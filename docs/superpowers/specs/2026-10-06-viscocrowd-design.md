@@ -307,11 +307,7 @@ Préfixes : `feat/`, `fix/`, `exp/`, `docs/`, `chore/`.
 
 ### 8.3 Commits
 
-Conventional Commits, messages en français.
-
-**Aucun `Co-Authored-By`, en aucune circonstance.** Verrouillage à deux niveaux : hook local
-`commit-msg` installé par `make install`, et job CI qui fait échouer la PR si un commit en
-contient un.
+Conventional Commits, messages en français : `type(portée): description à l'infinitif`.
 
 ### 8.4 Intégration continue
 
@@ -319,7 +315,6 @@ contient un.
 |---|---|
 | `ci.yml` | ruff, pytest et couverture, **suite d'invariants physiques** |
 | `report.yml` | compilation LaTeX, PDF en artefact |
-| `guard.yml` | garde-fou `Co-Authored-By` |
 
 Les invariants physiques (points 1 à 3 du § 5) tournent à chaque PR : une régression physique ne
 peut pas être fusionnée.

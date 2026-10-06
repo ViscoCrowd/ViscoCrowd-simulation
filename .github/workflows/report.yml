@@ -1,0 +1,31 @@
+name: Rapport
+
+on:
+  pull_request:
+    paths: ["report/**"]
+  push:
+    branches: [main]
+    paths: ["report/**"]
+  workflow_dispatch:
+
+jobs:
+  compiler:
+    name: Compiler le rapport LaTeX
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compilation
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: report
+          latexmk_use_xelatex: false
+
+      # Le PDF a jour est disponible en telechargement sur chaque PR : plus
+      # besoin d'une chaine LaTeX locale pour relire le rapport.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rapport-viscocrowd
+          path: report/main.pdf
+          retention-days: 90

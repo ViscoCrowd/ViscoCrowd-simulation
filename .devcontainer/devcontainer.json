@@ -1,0 +1,22 @@
+{
+  "name": "ViscoCrowd",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install -e '.[dev]'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "James-Yu.latex-workshop",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "python.testing.pytestEnabled": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "files.eol": "
+"
+      }
+    }
+  }
+}

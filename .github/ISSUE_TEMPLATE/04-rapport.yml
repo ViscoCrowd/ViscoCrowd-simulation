@@ -1,0 +1,29 @@
+name: "Rapport ou soutenance"
+description: "Une section a rediger, une figure a produire, un transparent a preparer"
+title: "[rapport] "
+labels: ["rapport"]
+body:
+  - type: dropdown
+    id: partie
+    attributes:
+      label: Partie
+      options:
+        - Resume
+        - Introduction
+        - Modelisation
+        - Discretisation numerique
+        - Implementation
+        - Validation
+        - Interpretation et analyse
+        - Conclusion
+        - References
+        - Annexes
+        - Transparents de soutenance
+    validations:
+      required: true
+  - type: textarea
+    id: contenu
+    attributes:
+      label: Ce qu'il faut y mettre
+    validations:
+      required: true

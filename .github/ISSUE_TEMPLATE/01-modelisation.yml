@@ -1,0 +1,34 @@
+name: "Modelisation"
+description: "Une brique du modele mathematique a concevoir ou a implementer"
+title: "[modele] "
+labels: ["modelisation"]
+body:
+  - type: textarea
+    id: objet
+    attributes:
+      label: Ce qu'il faut modeliser
+      description: Quel phenomene physique, et dans quelle partie du scenario.
+    validations:
+      required: true
+  - type: textarea
+    id: formulation
+    attributes:
+      label: Formulation envisagee
+      description: Equations, contraintes, schema de discretisation pressenti.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Comment on saura que c'est juste
+      description: |
+        Quelle grandeur mesurable, et quelle valeur attendue. Un invariant a verifier,
+        un cas limite dont on connait la reponse, un ordre de grandeur de la litterature.
+        Une brique sans critere de validation n'est pas prete a etre implementee.
+    validations:
+      required: true
+  - type: input
+    id: jalon
+    attributes:
+      label: Jalon
+      placeholder: "2 — exclusion entre agents"

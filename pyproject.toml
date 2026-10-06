@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "viscocrowd"
+version = "0.1.0"
+description = "Simulation particulaire d'une evacuation de piscine en panique : extraction aquatique repartie, zone de carrelage mouille, goulot d'etranglement unique."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Karrouchi Hamza" },
+    { name = "Lesueur Shaleena" },
+    { name = "Mongrandi Lenny" },
+]
+keywords = ["modelisation", "foule", "diagramme-fondamental", "simulation-particulaire"]
+
+# Bibliotheques generalistes uniquement : calcul numerique, algebre lineaire,
+# trace de courbes, lecture de configuration. Aucun moteur physique, moteur de
+# jeu ou code de simulation de foule pret a l'emploi (cf. consignes du module).
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "matplotlib>=3.9",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+viscocrowd = "viscocrowd.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/viscocrowd"]
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: scenario complet, trop long pour l'integration continue des PR",
+    "invariant: propriete physique qui doit tenir a chaque pas de temps",
+]
+
+# ---------------------------------------------------------------------------
+# Qualite
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # tri des imports
+    "N",        # conventions de nommage
+    "UP",       # tournures Python modernes
+    "B",        # pieges courants (bugbear)
+    "SIM",      # simplifications
+    "RUF",      # regles ruff
+]
+ignore = [
+    "N803",  # les noms mathematiques majuscules sont voulus (X, F, D...)
+    "N806",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

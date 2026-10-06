@@ -1,0 +1,62 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# --- Tests et qualité ---
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# --- Sorties de simulation ---
+# Les trajectoires et les figures sont REGENERABLES à partir des configs
+# de experiments/ et de la graine fixée. On ne versionne pas des artefacts
+# lourds qu'une commande reproduit à l'identique.
+/data/
+/figures/
+*.npz
+*.h5
+*.mp4
+*.gif
+
+# Les deux règles ci-dessus sont ancrées à la RACINE (barre oblique initiale),
+# et c'est volontaire : report/figures/ doit rester versionné, pour que le
+# rapport se compile sans relancer les simulations.
+#
+# Une règle non ancrée — « figures/ » — exclurait le répertoire lui-même, et
+# git cesserait alors d'y descendre : une négation « !report/figures/** »
+# n'aurait aucun effet, puisque git n'examine jamais le contenu d'un
+# répertoire exclu.
+
+# --- LaTeX ---
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+report/main.pdf
+
+# --- Environnements de développement ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,93 @@
+% =============================================================================
+%  ViscoCrowd — Rapport de projet
+%  R5.12 Modélisation mathématique · BUT 3 Informatique · 2026-2027
+%
+%  Compilation :  make report        (depuis la racine du dépôt)
+%            ou :  latexmk -pdf main.tex
+%
+%  Chaque section vit dans son propre fichier sous sections/, pour que trois
+%  personnes puissent rédiger en parallèle sans conflit de fusion permanent.
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\graphicspath{{figures/}}
+
+% --- Notations du projet -----------------------------------------------------
+% Centraliser les macros évite que trois rédacteurs notent la même grandeur de
+% trois façons différentes — un défaut d'homogénéité que le barème sanctionne.
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\pos}{\vect{x}}             % position
+\newcommand{\vit}{\vect{v}}             % vitesse
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\proj}[1]{P_{#1}}           % opérateur de projection
+\newcommand{\dt}{\Delta t}
+\newcommand{\admissible}{\mathcal{K}}   % ensemble des configurations admissibles
+\newcommand{\densite}{\rho}
+\newcommand{\debit}{q}
+
+\sisetup{locale = FR, per-mode = symbol}
+
+% =============================================================================
+
+\title{%
+    \vspace{-1.5cm}
+    \textbf{ViscoCrowd}\\[0.3cm]
+    \large Extraction aquatique répartie, carrelage mouillé et goulot unique :\\
+    effets sur le diagramme fondamental d'une foule en panique
+}
+\author{%
+    Karrouchi Hamza \and Lesueur Shaleena \and Mongrandi Lenny
+}
+\date{R5.12 — Modélisation mathématique \\ BUT 3 Informatique \\ \today}
+
+\begin{document}
+
+\maketitle
+
+% --- Résumé ------------------------------------------------------------------
+% Une demi-page au grand maximum : le problème étudié et l'approche retenue.
+\begin{abstract}
+\input{sections/00-resume}
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% --- Corps du rapport --------------------------------------------------------
+% Aucune section ne s'intitule « Développement » : le terme désigne le cœur du
+% rapport, qui contient autant de sections que nécessaire.
+\input{sections/01-introduction}
+\input{sections/02-modelisation}
+\input{sections/03-discretisation}
+\input{sections/04-implementation}
+\input{sections/05-validation}
+\input{sections/06-resultats}
+\input{sections/07-conclusion}
+
+% --- Références --------------------------------------------------------------
+\bibliographystyle{plain-fr}
+\bibliography{references}
+
+% --- Annexes -----------------------------------------------------------------
+\appendix
+\input{sections/A1-repartition-taches}
+\input{sections/A2-outils}
+
+\end{document}

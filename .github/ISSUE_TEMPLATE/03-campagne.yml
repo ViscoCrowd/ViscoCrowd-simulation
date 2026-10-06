@@ -1,0 +1,26 @@
+name: "Campagne de simulation"
+description: "Un balayage de parametres a lancer et a analyser"
+title: "[campagne] "
+labels: ["experience"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question posee
+      description: A quelle question cette campagne doit-elle repondre.
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Plan d'experience
+      description: Parametres balayes, plages, nombre de graines par point.
+    validations:
+      required: true
+  - type: textarea
+    id: sorties
+    attributes:
+      label: Figures attendues
+      description: Quelles figures, quels axes, quelles unites.
+    validations:
+      required: true
