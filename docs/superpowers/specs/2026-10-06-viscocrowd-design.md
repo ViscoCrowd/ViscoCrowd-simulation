@@ -300,8 +300,16 @@ peuvent pas pousser de branche. À corriger en premier.
 
 ### 8.2 Branches
 
-`main` protégée : pas de push direct, PR obligatoire, 1 approbation, CI verte, historique
-linéaire (squash).
+`main` protégée : pas de push direct, PR obligatoire, CI verte, historique linéaire (squash),
+force-push et suppression bloqués, conversations de revue résolues avant fusion.
+
+**L'approbation d'un pair n'est pas exigée techniquement**, et chacun peut fusionner sa propre
+pull request. Le groupe travaillant en alternance, une approbation bloquante immobiliserait une
+branche plusieurs jours quand les emplois du temps ne coïncident pas.
+
+La relecture croisée reste la règle de travail (§ 8.5) : elle est simplement portée par la
+discipline du groupe plutôt que par un verrou GitHub. Le garde-fou qui, lui, reste mécanique,
+c'est la CI — et notamment les invariants physiques, qu'aucune PR ne peut contourner.
 
 Préfixes : `feat/`, `fix/`, `exp/`, `docs/`, `chore/`.
 

@@ -104,9 +104,28 @@ make lint && make test
 **Fusion** — `Squash and merge`, pour un historique de `main` lisible, une ligne par
 contribution. La branche est supprimée automatiquement.
 
+**Vous pouvez fusionner votre propre PR.** GitHub n'exige pas d'approbation : nous travaillons en
+alternance, et une approbation bloquante immobiliserait une branche plusieurs jours dès que nos
+emplois du temps ne coïncident pas.
+
+Ce qui reste bloquant, et qui n'est pas négociable, c'est la **CI verte** — en particulier les
+invariants physiques. Aucune PR ne peut les contourner.
+
+Cette souplesse est une facilité d'organisation, pas une dispense de relecture : voir § 4.
+
 ---
 
 ## 4. Revue
+
+Rien ne vous empêche techniquement de fusionner sans relecture. La question n'est donc pas « ai-je
+le droit », mais **« est-ce que mes deux coéquipiers sauront défendre ce code en soutenance »** —
+et la réponse ne dépend que de vous.
+
+En pratique : demandez une relecture par défaut, et fusionnez sans attendre quand la PR est
+mineure (une faute de frappe, une section de rapport, un paramètre de figure) ou quand personne
+n'est disponible et que la CI est verte. Si vous fusionnez seul une PR qui touche au **modèle**
+ou au **schéma numérique**, prévenez les autres : ce sont les parties sur lesquelles vous serez
+tous les trois interrogés.
 
 **Côté auteur** — une PR qui dépasse ~400 lignes de diff est difficile à relire sérieusement.
 Découpez. Si vous ne pouvez pas, dites dans la description par où commencer.
