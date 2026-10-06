@@ -1,0 +1,34 @@
+\section{Discretisation numerique}
+
+% Du modele continu au schema numerique.
+
+\subsection{Schema d'Euler semi-implicite}
+
+% Pourquoi semi-implicite plutot qu'explicite : meilleur comportement en temps
+% long sur les systemes mecaniques, et c'est lui qui rend possible la
+% formulation par minimisation.
+
+\subsection{Formulation par minimisation}
+
+% Un pas de temps vu comme la minimisation d'un compromis entre inertie et
+% energie potentielle.
+
+\subsection{Prise en compte des contraintes : une projection}
+
+% Minimiser sous contrainte revient a projeter la position libre sur
+% l'ensemble admissible.
+
+\subsection{Linearisation et projection iterative}
+
+% L'ensemble admissible n'etant pas convexe, on linearise autour de la
+% configuration courante. Decrire l'algorithme et son critere d'arret.
+
+\subsection{Relecture de la vitesse}
+
+% $\vit^{n+1} = (\pos^{n+1} - \pos^n)/\dt$. C'est la que le choc se produit :
+% la vitesse n'est pas transportee, elle est deduite du deplacement reellement
+% effectue. Insister, c'est le coeur du schema.
+
+\subsection{Choix du pas de temps}
+
+% Critere : le deplacement par pas doit rester petit devant le rayon.

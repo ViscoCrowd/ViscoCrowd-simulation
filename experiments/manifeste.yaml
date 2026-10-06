@@ -1,0 +1,77 @@
+# Manifeste des figures
+#
+# Table de correspondance entre chaque figure du rapport, la configuration qui
+# l'a produite et la graine utilisee.
+#
+# Les consignes exigent « les parametres utilises pour produire chacune des
+# figures du rapport ». Ce fichier y repond : il doit etre mis a jour dans la
+# MEME pull request que la figure qu'il decrit, jamais apres.
+
+version: 1
+
+# Graine par defaut du projet. Toute execution qui ne declare pas la sienne
+# utilise celle-ci, de sorte qu'un oubli ne produise jamais un resultat
+# irreproductible.
+graine_par_defaut: 20262027
+
+figures:
+
+  - identifiant: fig01_respect_contrainte
+    titre: "Respect de la contrainte de confinement"
+    section_rapport: "Validation"
+    produite_par: "viscocrowd valider-moteur --figures"
+    scenario: bille_boite
+    parametres:
+      demi_largeur: 1.0              # R, m
+      rayon: 0.05                    # r, m
+      omega: 1.0                     # rad/s
+      duree: 10.0                    # s
+      dt: [1.0e-1, 1.0e-2, 1.0e-3]   # s, une courbe par valeur
+    graine: null                     # scenario deterministe, aucun tirage aleatoire
+    resultat_attendu: "violation maximale de l'ordre de 1e-16 m, independante de dt"
+
+  - identifiant: fig02_energie
+    titre: "Dissipation de l'energie par les chocs mous"
+    section_rapport: "Validation"
+    produite_par: "viscocrowd valider-moteur --figures"
+    scenario: bille_boite
+    parametres:
+      demi_largeur: 1.0
+      rayon: 0.05
+      masse: 1.0                     # kg
+      omega: 0.0                     # boite fixe : aucune paroi ne travaille
+      dt: 1.0e-3
+      duree: 10.0
+    graine: null
+    resultat_attendu: "energie strictement non croissante, dissipation totale d'environ 14,2 J"
+
+  - identifiant: fig03_entrainement
+    titre: "Convergence vers la vitesse d'entrainement du solide"
+    section_rapport: "Validation"
+    produite_par: "viscocrowd valider-moteur --figures"
+    scenario: bille_boite
+    parametres:
+      demi_largeur: 1.0
+      rayon: 0.05
+      dt: 1.0e-3
+      duree: 20.0
+      omega: [1.0, 3.0, 5.0, 10.0]   # rad/s, une courbe par valeur
+    graine: null
+    resultat_attendu: >
+      entrainement uniquement en regime centrifuge (omega^2 R / g >~ 1) ;
+      omega = 1 rad/s ne converge pas
+
+  - identifiant: fig04_trajectoire
+    titre: "Instantanes de la configuration"
+    section_rapport: "Validation"
+    produite_par: "viscocrowd valider-moteur --figures"
+    scenario: bille_boite
+    parametres:
+      demi_largeur: 1.0
+      rayon: 0.05
+      omega: 5.0
+      dt: 1.0e-3
+      duree: 20.0
+      instants: [0.0, 1.0, 5.0, 20.0]   # s
+    graine: null
+    resultat_attendu: "bille calee dans un coin, a sqrt(2) * (R - r) = 1,3435 m du centre"

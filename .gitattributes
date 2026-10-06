@@ -1,0 +1,21 @@
+# Normalisation des fins de ligne : le dépôt stocke en LF, chacun travaille
+# avec les fins de ligne de son système. Évite les diffs parasites entre
+# machines Windows, macOS et Linux.
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.md    text eol=lf
+*.tex   text eol=lf
+*.bib   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.toml  text eol=lf
+Makefile text eol=lf
+
+# Fichiers binaires : aucune conversion, aucun diff textuel
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.npz   binary
+*.mp4   binary
+*.gif   binary

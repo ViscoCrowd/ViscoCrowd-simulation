@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualite:
+    name: Style et format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: ruff check
+        run: ruff check --output-format=github .
+      - name: ruff format
+        run: ruff format --check .
+
+  tests:
+    name: Tests et invariants physiques
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+
+      - name: Suite de tests
+        run: pytest -m "not slow" --cov=viscocrowd --cov-report=term-missing
+
+      # Les invariants physiques sont rejoues isolement : si la CI casse, le
+      # journal doit dire immediatement si c'est le style, un test unitaire, ou
+      # la PHYSIQUE qui a regresse. Les trois ne se corrigent pas pareil.
+      - name: Invariants physiques
+        run: pytest -m invariant -v
+
+      - name: Criteres de validation du moteur
+        run: python -m viscocrowd.cli valider-moteur
+
+  reproductibilite:
+    name: Reproductibilite des figures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+
+      - name: Produire les figures
+        run: python -m viscocrowd.cli valider-moteur --figures --sortie figures
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: figures
+          path: figures/
+          retention-days: 30

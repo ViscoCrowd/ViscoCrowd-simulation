@@ -1,0 +1,30 @@
+name: "Comportement faux"
+description: "Le code tourne mais produit un resultat incorrect"
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: observe
+    attributes:
+      label: Ce qu'on observe
+      description: La grandeur mesuree et sa valeur.
+    validations:
+      required: true
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Ce qu'on attendait, et pourquoi
+      description: |
+        La valeur attendue ET sa justification physique ou mathematique.
+        Sans justification, on ne peut pas savoir si c'est le code ou l'attente qui a tort —
+        c'est arrive trois fois des la premiere journee du projet.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduire
+    attributes:
+      label: Comment reproduire
+      description: Commande exacte, parametres, graine.
+      render: shell
+    validations:
+      required: true

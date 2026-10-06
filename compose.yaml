@@ -1,0 +1,13 @@
+services:
+  viscocrowd:
+    build: .
+    image: viscocrowd:0.1.0
+    working_dir: /app
+    volumes:
+      # Les figures produites dans le conteneur atterrissent directement dans
+      # le depot, pretes a etre reprises par le rapport.
+      - ./figures:/app/figures
+      - ./report/figures:/app/report/figures
+      - ./data:/app/data
+    environment:
+      MPLBACKEND: Agg
