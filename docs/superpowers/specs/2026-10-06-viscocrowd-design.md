@@ -370,7 +370,9 @@ Retard non justifié : 2 points de pénalité par jour entamé.
 - Modèle de forces sociales en parallèle : un seul cadre, assumé et défendable.
 - Hétérogénéité comportementale fine (âge, groupes familiaux, altruisme) : seule la dispersion
   des rayons et des vitesses désirées est conservée.
-- Interface graphique interactive : les animations sont rendues hors ligne pour la soutenance.
+- Pilotage interactif de la simulation : les animations scientifiques restent rendues hors ligne
+  pour la soutenance. Un aperçu graphique de la piscine est ajouté le 12 octobre 2026 ; il reste
+  limité à une maquette visuelle indépendante du moteur, sans agents ni calcul physique.
 
 ---
 

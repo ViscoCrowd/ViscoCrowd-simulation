@@ -85,6 +85,54 @@ Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 **Temps d'exécution typique** — validation complète du moteur avec figures : **≈ 8 s** sur un
 portable récent. La suite de tests : **≈ 5 s**.
 
+### Aperçu de la piscine
+
+```bash
+make interface
+# Ou, avec l'environnement virtuel activé :
+viscocrowd interface
+```
+
+Une fenêtre affiche un schéma en noir et blanc, inspiré du croquis de référence :
+un bassin noir à contour blanc, une échelle à barreaux et une sortie unique à droite.
+Le cadre extérieur reste continu derrière la sortie. Un petit repère indique les
+directions x et y. Les différents sols ne sont pas encore détaillés.
+La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une image.
+Les dimensions sont indicatives : cette maquette ne lance aucune simulation et ne
+présente aucun résultat physique.
+
+Le panneau de droite réserve les valeurs de population, de géométrie, des trois milieux,
+des franchissements et du calcul. Les champs non renseignés affichent `—`. Le chronomètre
+en haut à droite affiche le **temps simulé**, au format minutes:secondes.centièmes ; il
+reste à zéro par défaut et ne compte pas le temps d'ouverture de la fenêtre.
+
+Les valeurs pourront être fournies directement en arguments. Exemple d'affichage uniquement
+(ces nombres ne constituent pas une calibration du modèle) :
+
+```python
+from viscocrowd.ui.parametres import ParametresAffichage, ParametresMilieu
+from viscocrowd.ui.piscine import ouvrir_interface
+
+ouvrir_interface(
+    parametres=ParametresAffichage(
+        nombre_agents=100,
+        dt=0.01,
+        graine=20262027,
+        eau=ParametresMilieu(vitesse=0.5),
+    ),
+    temps_simule=12.5,
+)
+```
+
+`creer_figure()` accepte les mêmes arguments pour construire la vue sans lancer sa boucle
+graphique. Les valeurs annotent le schéma ; elles ne modifient pas encore sa disposition.
+
+L'affichage utilise Matplotlib, déjà présent dans le projet, et reste isolé dans
+`src/viscocrowd/ui/`. Il nécessite un environnement graphique local : macOS utilise
+le backend natif ; les autres postes doivent disposer d'un backend interactif
+Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré avec
+`MPLBACKEND=Agg` reste destiné aux calculs et aux exports hors écran.
+
 ---
 
 ## État d'avancement
@@ -146,6 +194,7 @@ src/viscocrowd/
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
+├── ui/            aperçu graphique de la piscine, indépendant du moteur
 └── cli.py
 
 tests/             unitaires · invariants physiques (tournent à chaque PR)

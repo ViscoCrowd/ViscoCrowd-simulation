@@ -11,6 +11,32 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-12 — Ajouter un aperçu graphique limité à l'interface
+
+**Décision.** Créer une vue schématique de la piscine dans `ui/`, accessible par
+`viscocrowd interface` ou `make interface`. Suivant le croquis fourni, elle représente
+un bassin noir à contour blanc, une échelle à barreaux et une sortie à droite,
+avec un repère d'orientation et un cadre extérieur continu. Le fond noir permettra
+de distinguer les futurs agents blancs. Les sols ne sont pas encore différenciés.
+Les coordonnées sont des choix de présentation, sans valeur de calibration physique.
+
+Un panneau affiche les paramètres facultatifs de population, de géométrie, de milieu,
+de franchissement et de calcul. Ils sont vides par défaut et transmis à la vue par
+`ParametresAffichage`. Le chronomètre reçoit un temps simulé en secondes ; il reste
+à zéro sans donnée du moteur. Il ne mesure pas le temps d'ouverture de la fenêtre.
+
+**Pourquoi.** Visualiser rapidement la disposition avant de développer le scénario
+de foule. Matplotlib est déjà une dépendance du projet et permet cet aperçu sans
+introduire de bibliothèque supplémentaire. Le moteur et les scénarios restent indépendants
+de l'affichage ; la commande ne lance aucune simulation.
+
+**Périmètre.** Cette maquette étend le périmètre documentaire initial. Le pilotage
+interactif du moteur, les déplacements d'agents et les mesures d'évacuation restent
+hors de cette première interface. L'affichage graphique est chargé uniquement à la
+demande pour conserver l'exécution des tests et des validations sans écran.
+
+---
+
 ## 2026-10-06 — Le critère d'entraînement du sujet a un domaine de validité
 
 **Contexte.** Le sujet d'introduction donne comme critère de validation n° 2 : « après quelques

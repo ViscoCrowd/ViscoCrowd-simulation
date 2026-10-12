@@ -8,7 +8,7 @@ ifeq ($(OS),Windows_NT)
 	BIN := $(VENV)/Scripts
 endif
 
-.PHONY: help install test lint format valider figures report docker clean
+.PHONY: help install test lint format valider interface figures report docker clean
 
 help:  ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -34,6 +34,9 @@ format:  ## Reformate le code
 
 valider:  ## Rejoue les criteres de validation du moteur, chiffres
 	$(BIN)/python -m viscocrowd.cli valider-moteur
+
+interface:  ## Ouvre l'apercu de la piscine (affichage local)
+	$(BIN)/python -m viscocrowd.cli interface
 
 figures:  ## Regenere toutes les figures
 	$(BIN)/python -m viscocrowd.cli valider-moteur --figures --sortie report/figures
