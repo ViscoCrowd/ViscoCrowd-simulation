@@ -116,17 +116,26 @@ où `G_ij` vaut `−e_ij` sur la composante `i` et `+e_ij` sur la composante `j`
 `e_ij = (x_j − x_i)/|x_j − x_i|`. L'ensemble linéarisé est une **intersection de demi-espaces**,
 donc convexe : la projection y est bien définie et unique.
 
-**Résolution** — algorithme itératif de type Gauss-Seidel projeté sur les contraintes actives
-(équivalent à un Uzawa sur le problème dual) :
+**Résolution** — algorithme itératif de type **Jacobi** projeté sur les contraintes actives,
+accéléré par une **extrapolation de Nesterov** :
 
 ```
 X ← x_libre
 répéter jusqu'à convergence (ou n_max itérations) :
-    pour chaque paire (i,j) en contact ou en recouvrement :
-        corriger x_i et x_j le long de e_ij, de la moitié du recouvrement chacun
-    pour chaque agent hors du domaine :
-        projeter sur Ω
+    Y ← X + k/(k+3) · (X − X_précédent)        extrapolation, nulle au premier balayage
+    pour toutes les paires (i,j) en recouvrement, SIMULTANÉMENT :
+        corriger y_i et y_j le long de e_ij, de la moitié du recouvrement chacun
+        (un agent à c contacts reçoit la moyenne de ses c corrections)
+    projeter sur Ω
+    X_précédent ← X ; X ← Y
 ```
+
+Jacobi traite toutes les paires à la fois, ce qui se vectorise en NumPy, là où Gauss-Seidel
+impose une boucle Python paire par paire. Chaque correction vaut **exactement** le
+recouvrement : une sur-relaxation convergerait plus vite, mais séparerait les agents au-delà du
+contact et introduirait un rebond artificiel dans la vitesse relue (§ 2.8), donc un choc qui
+ne serait plus mou. Choix et mesures détaillés dans le
+[journal des décisions](../../journal-decisions.md) (entrée du 12 octobre 2026).
 
 Le critère d'arrêt est le recouvrement résiduel maximal, qui devient **l'indicateur de
 validation n°1** (§ 5). La tolérance atteinte est une grandeur à mesurer et à publier, pas à
@@ -294,9 +303,6 @@ contraintes et les conditions aux limites sont écrits par le groupe, conformém
 | Karrouchi Hamza | `CodeByHaamza` | admin |
 | Lesueur Shaleena | `shalee-pnt` | write |
 | Mongrandi Lenny | `lennymgrd` | write |
-
-**Action préalable bloquante** : Shaleena et Lenny sont actuellement en lecture seule et ne
-peuvent pas pousser de branche. À corriger en premier.
 
 ### 8.2 Branches
 
