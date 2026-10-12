@@ -117,24 +117,57 @@ où `G_ij` vaut `−e_ij` sur la composante `i` et `+e_ij` sur la composante `j`
 donc convexe : la projection y est bien définie et unique.
 
 **Résolution** — algorithme itératif de type **Jacobi** projeté sur les contraintes actives,
-accéléré par une **extrapolation de Nesterov** :
+accéléré par une **extrapolation de Nesterov retardée** :
 
 ```
-X ← x_libre
+X ← x_libre ;  k ← 0
 répéter jusqu'à convergence (ou n_max itérations) :
-    Y ← X + k/(k+3) · (X − X_précédent)        extrapolation, nulle au premier balayage
+    β ← (k − k₀)/(k − k₀ + 3) si k > k₀, sinon 0      k₀ = 80 balayages
+    Y ← X + β · (X − X_précédent)
     pour toutes les paires (i,j) en recouvrement, SIMULTANÉMENT :
-        corriger y_i et y_j le long de e_ij, de la moitié du recouvrement chacun
-        (un agent à c contacts reçoit la moyenne de ses c corrections)
-    projeter sur Ω
-    X_précédent ← X ; X ← Y
+        correction de la paire : la moitié du recouvrement le long de e_ij,
+        divisée par max(c_i, c_j), où c_k est le nombre de contacts de l'agent k
+    projeter Y sur Ω
+    X_précédent ← X ; X ← Y ; k ← k + 1
 ```
 
 Jacobi traite toutes les paires à la fois, ce qui se vectorise en NumPy, là où Gauss-Seidel
-impose une boucle Python paire par paire. Chaque correction vaut **exactement** le
-recouvrement : une sur-relaxation convergerait plus vite, mais séparerait les agents au-delà du
-contact et introduirait un rebond artificiel dans la vitesse relue (§ 2.8), donc un choc qui
-ne serait plus mou. Choix et mesures détaillés dans le
+impose une boucle Python paire par paire. Mesuré : Jacobi demande **plus** de balayages (35 à
+125 contre 13 à 19, de 12 à 600 agents) mais reste **environ deux fois plus rapide** en temps
+réel. C'est la seule justification du choix.
+
+Trois points du pseudo-code ci-dessus sont des corrections apportées après mesure, et non des
+détails d'implémentation :
+
+- **La pondération est portée par la PAIRE, pas par l'agent.** Diviser les corrections reçues
+  par un agent par son nombre de contacts n'est pas symétrique en `(i, j)` : dès que deux
+  voisins n'ont pas le même nombre de contacts, les deux réactions d'une paire cessent d'être
+  opposées et **le centre de gravité de la foule dérive** sans aucune force extérieure
+  (2,2·10⁻³ m mesurés sur un amas de 12 agents). Avec `1/max(c_i, c_j)`, l'amortissement est le
+  même et la conservation est exacte (10⁻¹⁷ m).
+- **L'extrapolation ne s'allume qu'au-delà de `k₀ = 80` balayages, et sa rampe repart de zéro.**
+  Elle écarte les agents au-delà du contact, et ce jeu est définitif puisque les corrections ne
+  font qu'écarter. Allumée dès le premier balayage, elle restituait jusqu'à 10⁻³ de l'énergie
+  d'arrivée sur un choc à contacts multiples — le choc n'était plus mou. Un choc entre quelques
+  agents se résout en moins de 80 balayages et reste donc exact ; seules les longues chaînes de
+  contacts, où l'accélération est indispensable, la reçoivent. Restitution ramenée à 9,0·10⁻⁷.
+- **Chaque correction vaut exactement le recouvrement.** Une sur-relaxation convergerait plus
+  vite, mais séparerait les agents au-delà du contact et introduirait un rebond artificiel dans
+  la vitesse relue (§ 2.8), donc un choc qui ne serait plus mou.
+
+**Ce que l'algorithme ne fait pas.** La projection sur l'ensemble linéarisé est unique, mais cet
+algorithme **ne la calcule pas**. Des corrections découplées répétées jusqu'à l'admissibilité
+cherchent une configuration *admissible*, pas la *plus proche* : rien ne minimise `|X − x_libre|`,
+et aucun balayage ne peut rapprocher deux agents qu'un précédent a trop écartés. Comparé à
+Gauss-Seidel, aucune des deux méthodes ne déplace systématiquement moins que l'autre — sur un
+triangle serré c'est Jacobi qui déplace le moins, sur un amas de 100 c'est Gauss-Seidel, et les
+deux solutions s'éloignent jusqu'à 1,4·10⁻² m. Aucune n'est donc le minimiseur.
+
+**Conséquence rédactionnelle, qui engage le rapport et la soutenance** : écrire « configuration
+admissible obtenue par projections successives », et **jamais** « projection de Gauss-Seidel »
+ni « projection euclidienne sur K ».
+
+Choix, impasses et mesures détaillés dans le
 [journal des décisions](../../journal-decisions.md) (entrée du 12 octobre 2026).
 
 Le critère d'arrêt est le recouvrement résiduel maximal, qui devient **l'indicateur de
