@@ -107,7 +107,19 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     valider.set_defaults(fonction=commande_valider_moteur)
 
+    interface = sous.add_parser(
+        "interface", help="ouvre une maquette visuelle de la piscine, sans simulation"
+    )
+    interface.set_defaults(fonction=commande_interface)
+
     return analyseur
+
+
+def commande_interface(_args: argparse.Namespace) -> int:
+    """Charge l'affichage uniquement pour la commande graphique."""
+    from viscocrowd.ui.piscine import ouvrir_interface
+
+    return ouvrir_interface()
 
 
 def main(argv: list[str] | None = None) -> int:

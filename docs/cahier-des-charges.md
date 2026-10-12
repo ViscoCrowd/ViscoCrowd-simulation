@@ -97,4 +97,7 @@ proportion) et section sur les outils utilisés, notamment d'IA générative, et
 ## 9. Hors périmètre
 
 Troisième dimension · chocs élastiques · modèle de forces sociales en parallèle · hétérogénéité
-comportementale fine · interface graphique interactive.
+comportementale fine · pilotage interactif de la simulation.
+
+Un aperçu graphique simple de la piscine est ajouté le 12 octobre 2026 : il sert
+uniquement à visualiser une disposition indicative, sans agents ni calcul physique.
