@@ -11,6 +11,47 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-12 — Projection d'exclusion : Jacobi accéléré, sans sur-relaxation
+
+**Décision.** La projection sur « pas de recouvrement » (`geometry/projection.py`) traite toutes
+les paires **en même temps** (Jacobi vectorisé, moyenne des corrections pour un agent à plusieurs
+contacts), accélérée par une **extrapolation de Nesterov**, et chaque correction vaut **exactement**
+le recouvrement.
+
+**Écart avec la spec.** La spec § 2.5 annonçait du Gauss-Seidel projeté. On a préféré Jacobi, qui se
+vectorise en NumPy (Gauss-Seidel impose une boucle Python paire par paire). Les deux itèrent vers le
+même ensemble admissible, mais pas forcément vers le même point : à rediscuter si le rapport veut
+affirmer « projection de Gauss-Seidel ».
+
+**Ce qui n'a pas marché, et ce qu'on en a tiré.**
+
+- *Jacobi simple* : un tas posé sur le sol reçoit à chaque pas une poussée de gravité de
+  g·Δt² ≈ 4·10⁻⁶ m, et l'information « le sol retient tout » ne remonte que d'un contact par
+  balayage. Pour ramener un tas de 64 disques sous 10⁻⁶ m, il fallait **642 à plus de 3000 balayages** (selon le
+  tas mesuré) ; 76 à 88 % des projections n'aboutissaient pas dans un budget de 200.
+- *Sur-relaxation* (corriger de 1,3 × le recouvrement) : plus rapide, **mais refusée**. Elle sépare
+  les disques au-delà du contact, donc la vitesse relue v = Δx/Δt contient un rebond artificiel : le
+  choc cesse d'être mou. Un test le détecte : deux disques qui se rencontrent finissent à 0,56 m au
+  lieu de 0,20 m.
+- *Extrapolation de Nesterov* (rang k, coefficient k/(k+3), sans extrapolation au premier
+  balayage) : **≈ 100 balayages** pour le même tas, 0 projection non convergée sur 1500. Elle ne change
+  que le chemin, pas la correction appliquée à une paire isolée, qui reste exacte en un balayage.
+
+**Mesures retenues** (36 disques de 0,07 m dans une boîte de 2 m, Δt = 2·10⁻³ s) : recouvrement
+résiduel ≤ 10⁻⁶ m (tolérance), parois à 0,0 m, 47 balayages au maximum, hauteur du tas stable à
+1 cm près quand Δt est doublé.
+
+**Limites connues.**
+
+- Près de l'empilement maximal (≳ 75 % de la surface), la projection n'atteint plus la tolérance dans
+  le budget : elle le **signale** (`non_convergences`, `recouvrement_max`) sans lever d'exception.
+- Le critère Δt de la spec (|v|·Δt ≪ r) reste à la charge du scénario : à Δt = 4·10⁻² s les disques
+  traversent leurs voisins et la projection ne peut plus rien.
+- L'invariant d'énergie du tassement est **peu sensible** : il ne détecte pas la sur-relaxation ×1,3
+  (c'est le test du choc à deux disques qui la voit). À renforcer.
+
+---
+
 ## 2026-10-12 — Ajouter un aperçu graphique limité à l'interface
 
 **Décision.** Créer une vue schématique de la piscine dans `ui/`, accessible par

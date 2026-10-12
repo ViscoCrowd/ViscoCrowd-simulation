@@ -17,6 +17,7 @@ import numpy as np
 from viscocrowd import __version__
 from viscocrowd.observables.energie import ecart_entrainement, energie_mecanique
 from viscocrowd.scenarios.bille_boite import ParametresBille, simuler_bille
+from viscocrowd.scenarios.tassement import ParametresTassement, simuler_tassement
 
 RACINE = Path(__file__).resolve().parents[2]
 
@@ -67,11 +68,26 @@ def commande_valider_moteur(args: argparse.Namespace) -> int:
         "\n   La valeur suggeree par le sujet, omega = 1 rad/s, n'y est pas."
     )
 
+    # Critere 4 — exclusion entre agents : 36 disques qui tombent et s'empilent.
+    print("\n4. Exclusion entre agents (36 disques qui s'empilent, tolerance 1e-6 m)")
+    print(
+        f"   {'dt (s)':>10} {'recouvrement (m)':>18} {'paroi (m)':>11} "
+        f"{'balayages max':>14} {'non converge':>13}"
+    )
+    for dt in (4e-3, 2e-3):
+        tassement = simuler_tassement(ParametresTassement(n_agents=36, duree=3.0, dt=dt, graine=1))
+        proj = tassement.projection
+        print(
+            f"   {dt:>10.0e} {tassement.recouvrement_max():>18.2e} "
+            f"{max(tassement.violation_paroi_max(), 0.0):>11.1e} "
+            f"{proj.iterations_max:>14d} {proj.non_convergences:>7d}/{proj.n_appels}"
+        )
+
     if args.figures:
         from viscocrowd.viz.figures import produire_toutes
 
         destination = Path(args.sortie)
-        print(f"\n4. Figures -> {destination}")
+        print(f"\n5. Figures -> {destination}")
         for chemin in produire_toutes(destination):
             print(f"   {chemin.name}")
 

@@ -141,7 +141,7 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 |---|---|---|
 | 0 | Socle du dépôt, méthodologie, cahier des charges | ✅ |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ validé |
-| 2 | Exclusion entre agents (projection itérative) | ⏳ |
+| 2 | Exclusion entre agents (projection itérative) | ✅ validé |
 | 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ |
 | 4 | Scénario piscine complet, franchissements | ⏳ |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ |
@@ -163,6 +163,9 @@ Chaque critère produit un **nombre**, pas une impression visuelle. Reproductibl
 | Remontée d'énergie (boîte fixe) | **0,0 J** | ≤ 0, strictement |
 | Dissipation totale par les chocs | 14,2 J | substantielle |
 | Écart à l'entraînement, ω = 5 rad/s | 1,7 × 10⁻² m/s | → 0 |
+| Recouvrement résiduel entre agents (36 disques, Δt = 2·10⁻³ s) | **≤ 10⁻⁶ m** (1,4 × 10⁻⁵ du rayon de 0,07 m) | ≤ tolérance annoncée |
+| … violation des parois, mêmes agents | **0,0 m** | précision machine |
+| … projections non convergées | **0 sur 1500** | 0 |
 
 ### Un résultat non trivial
 
@@ -190,7 +193,7 @@ continue.
 ```
 src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
-├── geometry/      domaines, parois, projections
+├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
