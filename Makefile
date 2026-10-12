@@ -11,8 +11,7 @@ endif
 .PHONY: help install test lint format valider figures report docker clean
 
 help:  ## Affiche cette aide
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  [36m%-12s[0m %s
-", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
 
 install:  ## Cree l'environnement et installe le projet
 	$(PYTHON) -m venv $(VENV)
