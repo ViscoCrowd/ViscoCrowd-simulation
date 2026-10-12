@@ -223,3 +223,166 @@ class TestWeidmann:
         assert debit[-1] == 0.0
         assert debit[sommet] == pytest.approx(1.22, abs=0.01)
         assert rho[sommet] == pytest.approx(1.75, abs=0.01)
+
+
+class TestContactSansTraversee:
+    """Toucher la ligne n'est pas la traverser.
+
+    Repond a la relecture de la PR #9. La version precedente rangeait un agent
+    pile sur la droite du cote DROIT : un agent venant de gauche qui touchait la
+    ligne et repartait a gauche comptait donc deux faux passages, de sens
+    opposes. Ils s'annulaient dans le debit net, mais faussaient le nombre brut
+    de passages — et un agent dont la trajectoire se terminait sur la ligne
+    comptait un faux passage positif, qui ne s'annulait pas, lui.
+
+    Le defaut etait asymetrique : le cote droit, lui, ne produisait rien. Ces
+    tests couvrent donc systematiquement les deux sens.
+    """
+
+    @pytest.mark.parametrize(
+        ("nom", "y_depart"),
+        [("depuis la gauche", 0.5), ("depuis la droite", -0.5)],
+    )
+    def test_toucher_la_ligne_et_repartir_du_meme_cote(self, nom, y_depart):
+        t, x = trajectoire_par_points([[(0.5, y_depart), (0.5, 0.0), (0.5, y_depart)]])
+
+        assert franchissements(t, x, A, B).nombre == 0, nom
+
+    @pytest.mark.parametrize("y_depart", [0.5, -0.5])
+    def test_toucher_la_ligne_et_s_y_arreter(self, y_depart):
+        """La trajectoire se termine sur la ligne : l'agent ne l'a pas traversee."""
+        t, x = trajectoire_par_points([[(0.5, y_depart), (0.5, 0.0)]])
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+    @pytest.mark.parametrize("y_depart", [0.5, -0.5])
+    def test_stationner_longuement_sur_la_ligne_sans_la_traverser(self, y_depart):
+        t, x = trajectoire_par_points(
+            [[(0.5, y_depart), (0.5, 0.0), (0.5, 0.0), (0.5, 0.0), (0.5, y_depart)]]
+        )
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+    def test_s_immobiliser_sur_la_ligne_avant_de_traverser_de_droite_a_gauche(self):
+        """Le sens oppose du test deja present : un seul passage, vers la gauche."""
+        t, x = trajectoire_par_points([[(0.5, -0.5), (0.5, 0.0), (0.5, 0.0), (0.5, 0.5)]])
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.nombre == 1
+        np.testing.assert_array_equal(passages.sens, [-1])
+
+    def test_l_instant_tombe_dans_l_intervalle_de_stationnement(self):
+        """Interpolation sur tout l'intervalle : le passage est place a l'interieur."""
+        t, x = trajectoire_par_points([[(0.5, 0.5), (0.5, 0.0), (0.5, 0.0), (0.5, -0.5)]], dt=1.0)
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.nombre == 1
+        assert 0.0 < passages.instant[0] < 3.0
+
+    def test_un_agent_pose_sur_la_ligne_au_depart_n_a_pas_de_cote_d_origine(self):
+        """On ne sait pas d'ou il vient : on ne peut pas lui compter de passage."""
+        t, x = trajectoire_par_points([[(0.5, 0.0), (0.5, 0.5)]])
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+    def test_une_vraie_traversee_reste_comptee(self):
+        """Garde-fou : la correction ne doit pas rendre la detection trop stricte."""
+        t, x = trajectoire_par_points(
+            [[(0.5, 0.5), (0.5, 0.0), (0.5, -0.5)], [(0.5, -0.5), (0.5, 0.0), (0.5, 0.5)]]
+        )
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.nombre == 2
+        np.testing.assert_array_equal(np.sort(passages.sens), [-1, 1])
+
+    def test_toucher_la_ligne_hors_de_la_porte_ne_compte_pas_davantage(self):
+        """Le contact a lieu dans le mur : ni faux passage, ni vrai."""
+        t, x = trajectoire_par_points([[(2.0, 0.5), (2.0, 0.0), (2.0, -0.5)]])
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+
+class TestSegmentInvalide:
+    """Une ligne de mesure mal configuree doit se signaler, pas rendre zero passage.
+
+    Repond a la relecture de la PR #9 : avec a == b, `cote` valait zero partout,
+    aucun changement de cote n'etait detecte, et la mesure rendait une liste vide
+    meme pour une trajectoire qui traverse. Resultat indiscernable d'une porte
+    que personne n'emprunte.
+    """
+
+    def test_segment_de_longueur_nulle_rejete(self):
+        t, x = trajectoire_par_points([[(0.5, 0.5), (0.5, -0.5)]])
+
+        with pytest.raises(ValueError, match="longueur nulle"):
+            franchissements(t, x, A, A)
+
+    def test_segment_de_longueur_nulle_rejete_aussi_par_cote(self):
+        with pytest.raises(ValueError, match="longueur nulle"):
+            cote(np.array([0.5, 0.5]), A, A)
+
+    @pytest.mark.parametrize("mauvais", [[np.nan, 0.0], [np.inf, 0.0], [0.0, -np.inf]])
+    def test_extremite_non_finie_rejetee(self, mauvais):
+        """Sans ce controle, tous les cotes deviennent NaN et aucun passage n'est vu."""
+        t, x = trajectoire_par_points([[(0.5, 0.5), (0.5, -0.5)]])
+
+        with pytest.raises(ValueError, match="finies"):
+            franchissements(t, x, A, np.array(mauvais))
+
+
+class TestDensiteInvalide:
+    """Les fonctions de Weidmann rejettent ce qui n'est pas une densite.
+
+    Repond a la relecture de la PR #9. Le masque `where=rho > 0` traitait toute
+    densite NEGATIVE comme la limite a densite nulle : `vitesse(-1)` rendait la
+    vitesse libre 1,34 m/s et `debit_specifique(-1)` rendait -1,34, deux valeurs
+    d'apparence plausible pour une entree fautive. Un NaN ressortait en vitesse
+    nulle, donc indiscernable d'une foule bloquee, et +inf declenchait un
+    avertissement numerique en rendant NaN.
+    """
+
+    FONCTIONS = (weidmann.vitesse, weidmann.debit_specifique)
+
+    @pytest.mark.parametrize("fonction", FONCTIONS)
+    @pytest.mark.parametrize("rho", [-1.0, -1e-9, -1e3])
+    def test_densite_negative_rejetee(self, fonction, rho):
+        with pytest.raises(ValueError, match="positive"):
+            fonction(rho)
+
+    @pytest.mark.parametrize("fonction", FONCTIONS)
+    @pytest.mark.parametrize("rho", [np.nan, np.inf, -np.inf])
+    def test_densite_non_finie_rejetee(self, fonction, rho):
+        """-inf est bien rejete, par le controle de finitude et non par celui de signe."""
+        with pytest.raises(ValueError, match="finie"):
+            fonction(rho)
+
+    @pytest.mark.parametrize("fonction", FONCTIONS)
+    def test_un_seul_element_fautif_dans_un_tableau_suffit(self, fonction):
+        """Sinon une campagne entiere passerait avec une valeur aberrante au milieu."""
+        with pytest.raises(ValueError):
+            fonction(np.array([1.0, 2.0, -0.5, 3.0]))
+
+    @pytest.mark.parametrize("fonction", FONCTIONS)
+    def test_un_nan_dans_un_tableau_suffit(self, fonction):
+        with pytest.raises(ValueError):
+            fonction(np.array([1.0, np.nan, 3.0]))
+
+    def test_les_densites_valides_gardent_leur_comportement(self):
+        """La correction ne doit rien changer aux cas deja couverts par la PR."""
+        assert weidmann.vitesse(0.0) == pytest.approx(weidmann.V0)
+        assert weidmann.debit_specifique(0.0) == pytest.approx(0.0)
+        assert weidmann.vitesse(weidmann.RHO_MAX) == 0.0
+        assert weidmann.vitesse(2.0 * weidmann.RHO_MAX) == 0.0
+        assert weidmann.debit_specifique(2.0 * weidmann.RHO_MAX) == 0.0
+
+    def test_un_tableau_valide_est_traite_d_un_coup(self):
+        rho = np.array([0.0, 1.0, 1.75, 5.4, 10.0])
+
+        v = weidmann.vitesse(rho)
+
+        assert v.shape == rho.shape
+        assert np.all(np.isfinite(v))
+        assert np.all(v >= 0.0)
