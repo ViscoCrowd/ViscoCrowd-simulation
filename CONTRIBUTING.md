@@ -41,12 +41,17 @@ pytest
 ## 3. Cycle de travail
 
 ```
-issue  →  branche  →  commits  →  PR  →  revue  →  squash merge  →  branche supprimée
+issue  →  branche  →  commits  →  PR vers dev  →  revue  →  squash merge  →  branche supprimée
+                                       jalon atteint  →  PR dev vers main  →  tag
 ```
 
 ### 3.1 Branches
 
-`main` est protégée : **pas de push direct**. Tout passe par une pull request.
+`main` et `dev` sont protégées : **pas de push direct**, pas de force-push, et **elles ne sont
+jamais supprimées**. Tout passe par une pull request.
+
+- `dev` est la branche d'intégration : les branches de travail (`feat/`, `fix/`…) y arrivent.
+- `main` est la branche présentable : elle ne reçoit que des briques terminées (voir § 3.4).
 
 | Préfixe | Pour quoi |
 |---|---|
@@ -101,8 +106,8 @@ PR évite de devoir tout mesurer en catastrophe au mois de décembre.
 make lint && make test
 ```
 
-**Fusion** — `Squash and merge`, pour un historique de `main` lisible, une ligne par
-contribution. La branche est supprimée automatiquement.
+**Fusion** — `Squash and merge` vers `dev`, pour un historique lisible, une ligne par
+contribution. La branche de travail peut être supprimée après fusion, **jamais `main` ni `dev`**.
 
 **Vous pouvez fusionner votre propre PR.** GitHub n'exige pas d'approbation : nous travaillons en
 alternance, et une approbation bloquante immobiliserait une branche plusieurs jours dès que nos
@@ -112,6 +117,29 @@ Ce qui reste bloquant, et qui n'est pas négociable, c'est la **CI verte** — e
 invariants physiques. Aucune PR ne peut les contourner.
 
 Cette souplesse est une facilité d'organisation, pas une dispense de relecture : voir § 4.
+
+### 3.4 Passer de `dev` à `main`
+
+On ouvre une PR `dev` → `main` seulement quand **les trois conditions** sont réunies :
+
+1. **CI verte** sur cette PR : style, tests et invariants physiques, reproductibilité des figures.
+2. **Une brique cohérente est terminée** (un jalon de la spec § 9, ou une version à rendre) :
+   jamais de travail à moitié fini sur `main`.
+3. **Un autre membre que l'auteur a relu**, et les chiffres de validation figurent dans la PR.
+
+Rythme visé : un passage par jalon, plus une version figée avant chaque échéance (rapport le
+5 janvier 2027, transparents le 18 janvier, soutenance le 19 janvier).
+
+Après la fusion :
+
+```bash
+git tag -a jalon-1 -m "Jalon 1 : moteur"     # un tag par passage sur main
+git switch dev && git merge origin/main      # resynchroniser dev, sans force-push
+git push origin dev
+```
+
+La resynchronisation est indispensable : le squash crée sur `main` un commit différent de ceux de
+`dev`, et sans ce merge les deux branches divergeraient à chaque passage.
 
 ---
 
