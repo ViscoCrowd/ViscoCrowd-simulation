@@ -83,8 +83,15 @@ class TestEnergie:
         Une correction qui repousserait un disque de plus que le recouvrement
         (sur-relaxation) lui donnerait un rebond artificiel et ferait remonter
         l'energie. On tolere une remontee de 10^-4 de l'energie dissipee par pas,
-        et 1 % cumule : ce sont les effets de la tolerance de projection, mesures
-        a 3·10^-5 et 3·10^-3 sur ce scenario.
+        et 1 % cumule : ce sont les effets de la tolerance de projection.
+
+        ATTENTION a la portee de ce test : le seuil est relatif a l'energie
+        DISSIPEE par le tassement entier (14 J), si bien qu'une creation locale
+        d'energie lors d'une collision y serait noyee. Il n'a d'ailleurs jamais
+        detecte la sur-relaxation x1,3 ni le rebond de l'extrapolation. C'est un
+        garde-fou d'ensemble, pas une mesure de choc : la restitution par choc est
+        mesuree sur des contacts ISOLES et rapportee a l'energie d'arrivee, par
+        `TestChocMultiple` dans `tests/test_projection.py`.
         """
         energie = energie_mecanique(resultat.x, resultat.v)
         dissipee = energie[0] - energie[-1]
