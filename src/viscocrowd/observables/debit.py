@@ -4,8 +4,14 @@ Le debit est un compteur de passage, comme un portique de metro : on trace un
 segment [a, b] sur le plan, et on compte les agents qui le traversent.
 
 Pour savoir si un agent a traverse entre deux instants, il suffit de savoir de
-quel COTE du segment il se trouve a chaque instant : s'il change de cote, il a
-franchi la ligne.
+quel COTE du segment il se trouve a chaque instant : s'il passe d'un cote a
+l'autre, il a franchi la ligne.
+
+Attention au troisieme cas : un agent peut se trouver EXACTEMENT sur la droite.
+Le ranger d'office a droite ferait compter deux faux passages a celui qui touche
+la ligne et repart du meme cote. On distingue donc trois etats — a gauche, a
+droite, sur la droite — et un franchissement n'est compte que lorsque l'agent
+arrive effectivement de l'AUTRE cote. Voir `franchissements`.
 """
 
 from __future__ import annotations
@@ -13,6 +19,27 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+
+
+def _verifier_segment(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Valide la ligne de mesure et rend le vecteur a->b.
+
+    Un segment de longueur nulle ne definit aucun cote : `cote` vaudrait zero
+    partout, aucun changement de cote ne serait detecte, et la mesure
+    renverrait « aucun passage » — resultat indiscernable d'une porte que
+    personne n'emprunte. C'est une erreur de configuration de la ligne de
+    mesure, pas un resultat : on la signale.
+    """
+    a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+    if not (np.all(np.isfinite(a)) and np.all(np.isfinite(b))):
+        raise ValueError(f"les extremites du segment doivent etre finies, recu a={a}, b={b}")
+    ab = b - a
+    if not np.any(ab):
+        raise ValueError(
+            f"le segment de mesure est de longueur nulle (a = b = {a}) : "
+            "il ne definit aucun cote, donc aucun franchissement"
+        )
+    return ab
 
 
 def cote(x: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -28,8 +55,10 @@ def cote(x: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
     Le calcul est le produit vectoriel en 2D des vecteurs a->b et a->x. Son
     signe dit si x est a gauche ou a droite, et il vaut zero si x est
-    exactement sur la droite. Sa valeur, divisee par |ab|, est la distance de x
-    a la droite, mais seul le signe sert a detecter un franchissement.
+    exactement sur la droite — troisieme cas, qui n'est NI a gauche NI a
+    droite, et que `franchissements` traite comme tel. Sa valeur, divisee par
+    |ab|, est la distance de x a la droite, mais seul le signe sert a detecter
+    un franchissement.
 
     Args:
         x: positions, de forme (..., 2), en metres. N'importe quel nombre de
@@ -41,9 +70,12 @@ def cote(x: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.ndarray:
     Returns:
         Tableau de forme (...) : positif a gauche, negatif a droite, nul sur
         la droite. En m^2.
+
+    Raises:
+        ValueError: si a et b sont confondus, ou si une extremite n'est pas finie.
     """
-    ab = b - a
-    ax = x - a
+    ab = _verifier_segment(a, b)
+    ax = np.asarray(x, dtype=float) - np.asarray(a, dtype=float)
     return ab[0] * ax[..., 1] - ab[1] * ax[..., 0]
 
 
@@ -68,19 +100,23 @@ class Franchissements:
 def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) -> Franchissements:
     """Detecte tous les passages a travers le segment [a, b].
 
-    Entre deux instants consecutifs, un agent a franchi le segment si :
+    Un agent a franchi le segment lorsque :
 
-      1. il a change de cote de la droite (a, b) ;
+      1. il ARRIVE d'un cote de la droite (a, b) alors qu'il etait de l'autre.
+         On compare donc l'echantillon courant au dernier echantillon ou l'agent
+         etait strictement d'un cote, en SAUTANT ceux ou il etait pile sur la
+         droite. Toucher la ligne et repartir du meme cote ne compte pas ;
+         s'arreter dessus puis la traverser compte une fois.
       2. le point ou il a croise la droite est ENTRE a et b. Sans ce test, un
          agent qui passe a cote de la porte serait compte lui aussi, puisque
          la droite, elle, est infinie.
 
-    Un agent pile sur la droite est range a droite. Ainsi un agent qui s'arrete
-    sur la ligne puis repart n'est compte qu'une fois, et pas deux.
-
-    L'instant du passage est interpole : si l'agent etait a 30 cm avant la
-    ligne puis a 10 cm apres, il l'a croisee aux trois quarts du pas de temps.
-    Pour un mouvement rectiligne uniforme, l'instant obtenu est exact.
+    L'instant du passage est interpole entre ces deux echantillons : si l'agent
+    etait a 30 cm avant la ligne puis a 10 cm apres, il l'a croisee aux trois
+    quarts du pas de temps. Pour un mouvement rectiligne uniforme, l'instant
+    obtenu est exact. Quand l'agent a stationne sur la ligne, l'interpolation
+    porte sur tout l'intervalle de stationnement, ce qui place le passage a
+    l'interieur de celui-ci.
 
     Args:
         t: instants, de forme (P,), en s.
@@ -91,29 +127,59 @@ def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) 
 
     Returns:
         Les passages detectes, tries par instant.
-    """
-    c = cote(x, a, b)  # (P, N)
-    a_gauche = c > 0.0
 
-    # 1. Changement de cote entre l'instant p et l'instant p + 1.
-    pas, agent = np.nonzero(a_gauche[:-1] != a_gauche[1:])
-    c_avant, c_apres = c[pas, agent], c[pas + 1, agent]
+    Raises:
+        ValueError: si a et b sont confondus, ou si une extremite n'est pas finie.
+    """
+    ab = _verifier_segment(a, b)
+    t, x = np.asarray(t, dtype=float), np.asarray(x, dtype=float)
+    c = cote(x, a, b)  # (P, N)
+    vide = Franchissements(
+        agent=np.empty(0, dtype=np.int64),
+        instant=np.empty(0, dtype=float),
+        sens=np.empty(0, dtype=np.int64),
+    )
+    if c.shape[0] < 2:
+        return vide
+
+    signe = np.sign(c)  # -1 a droite, +1 a gauche, 0 pile sur la droite
+    place = signe != 0
+
+    # Pour chaque instant, le rang du dernier echantillon ou l'agent etait
+    # strictement d'un cote, celui-ci inclus. `deja_place` evite de pointer sur
+    # l'echantillon 0 tant qu'aucun cote n'a encore ete observe.
+    rangs = np.where(place, np.arange(c.shape[0])[:, None], 0)
+    dernier = np.maximum.accumulate(rangs, axis=0)
+    deja_place = np.maximum.accumulate(place, axis=0)
+    signe_dernier = np.take_along_axis(signe, dernier, axis=0)
+
+    # 1. Arrivee de l'autre cote : l'agent est place, il l'etait deja avant, et
+    # ce n'est pas du meme cote.
+    traverse = place[1:] & deja_place[:-1] & (signe[1:] != signe_dernier[:-1])
+    apres, agent = np.nonzero(traverse)
+    if agent.size == 0:
+        return vide
+    avant = dernier[apres, agent]  # rang du dernier echantillon de l'autre cote
+    apres = apres + 1
+
+    c_avant, c_apres = c[avant, agent], c[apres, agent]
 
     # Fraction du pas a laquelle la droite est croisee. Le denominateur ne
-    # s'annule jamais : les deux valeurs sont de part et d'autre de zero.
+    # s'annule jamais : les deux valeurs sont strictement de part et d'autre de zero.
     fraction = c_avant / (c_avant - c_apres)
 
     # 2. Point de croisement, puis sa position le long du segment : 0 en a,
     # 1 en b. Le passage ne compte que s'il tombe entre les deux.
-    x_avant, x_apres = x[pas, agent], x[pas + 1, agent]
+    x_avant, x_apres = x[avant, agent], x[apres, agent]
     croisement = x_avant + fraction[:, None] * (x_apres - x_avant)
-    ab = b - a
-    le_long = (croisement - a) @ ab / (ab @ ab)
+    le_long = (croisement - np.asarray(a, dtype=float)) @ ab / (ab @ ab)
     sur_le_segment = (le_long >= 0.0) & (le_long <= 1.0)
 
-    pas, agent, fraction = pas[sur_le_segment], agent[sur_le_segment], fraction[sur_le_segment]
-    instant = t[pas] + fraction * (t[pas + 1] - t[pas])
-    sens = np.where(a_gauche[pas, agent], 1, -1)
+    agent = agent[sur_le_segment]
+    avant, apres = avant[sur_le_segment], apres[sur_le_segment]
+    fraction = fraction[sur_le_segment]
+    instant = t[avant] + fraction * (t[apres] - t[avant])
+    sens = signe[avant, agent].astype(np.int64)  # +1 : il venait de gauche
 
     ordre = np.argsort(instant, kind="stable")
     return Franchissements(agent=agent[ordre], instant=instant[ordre], sens=sens[ordre])
@@ -132,6 +198,25 @@ def debit_specifique(passages: Franchissements, largeur: float, debut: float, fi
     On retire les passages en sens inverse : un agent repousse en arriere apres
     avoir passe la ligne n'est pas sorti. Orienter le segment pour que le sens
     de sortie aille de gauche a droite (cf. `cote`), sinon le debit est negatif.
+
+    CE QUE CETTE GRANDEUR N'EST PAS
+    -------------------------------
+
+    Un flux NET a travers une ligne n'est pas un nombre d'evacues, et le temps
+    d'evacuation ne peut pas s'en deduire. Deux raisons :
+
+      - un agent peut traverser, revenir, puis retraverser : il compte alors
+        trois passages et un flux net de un, alors qu'il n'est sorti qu'une
+        fois ;
+      - une ligne de mesure n'est pas forcement une sortie. On en place aussi en
+        travers du bassin ou devant l'echelle, pour mesurer un flux interne.
+
+    Le flux net repond a « combien de personnes par metre et par seconde
+    franchissent cette ligne », ce qu'il faut pour un diagramme fondamental et
+    pour comparer a Weidmann. Pour « combien de personnes ont quitte la
+    piscine » et « au bout de combien de temps », le scenario complet devra
+    s'appuyer sur un etat de sortie par agent, ou sur un evenement de
+    franchissement DEFINITIF, et non sur ce compteur.
 
     Args:
         passages: sortie de `franchissements`.
