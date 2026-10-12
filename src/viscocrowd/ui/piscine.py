@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 import sys
+from numbers import Integral
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -23,7 +24,9 @@ def _formater_valeur(valeur: int | float | None) -> str:
     if valeur is None:
         return "—"
     # Les entiers (notamment la graine) restent exacts, sans notation scientifique.
-    return str(valeur) if isinstance(valeur, int) else f"{valeur:.4g}".replace(".", ",")
+    if isinstance(valeur, Integral):
+        return str(int(valeur))
+    return f"{valeur:.4g}".replace(".", ",")
 
 
 def _formater_temps(secondes: float) -> str:
