@@ -11,44 +11,114 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
-## 2026-10-12 — Projection d'exclusion : Jacobi accéléré, sans sur-relaxation
+## 2026-10-12 — Projection d'exclusion : Jacobi, pondération symétrique, extrapolation retardée
 
 **Décision.** La projection sur « pas de recouvrement » (`geometry/projection.py`) traite toutes
-les paires **en même temps** (Jacobi vectorisé, moyenne des corrections pour un agent à plusieurs
-contacts), accélérée par une **extrapolation de Nesterov**, et chaque correction vaut **exactement**
-le recouvrement.
+les paires **en même temps** (Jacobi vectorisé), chaque correction vaut **exactement** le
+recouvrement, les corrections d'une paire sont pondérées par `1/max(c_i, c_j)` où `c_k` est le
+nombre de contacts de l'agent `k`, et l'extrapolation de Nesterov ne s'allume **qu'au-delà de
+80 balayages**, avec une rampe repartant de zéro.
 
-**Écart avec la spec.** La spec § 2.5 annonçait du Gauss-Seidel projeté. On a préféré Jacobi, qui se
-vectorise en NumPy (Gauss-Seidel impose une boucle Python paire par paire). Les deux itèrent vers le
-même ensemble admissible, mais pas forcément vers le même point : à rediscuter si le rapport veut
-affirmer « projection de Gauss-Seidel ».
+**Écart avec la spec.** La spec § 2.5 annonçait du Gauss-Seidel projeté. On a préféré Jacobi, qui
+se vectorise en NumPy (Gauss-Seidel impose une boucle Python paire par paire). Mesuré : Jacobi
+demande **plus de balayages** (35 à 125 contre 13 à 19 de 12 à 600 agents) mais reste **environ
+deux fois plus rapide** en temps réel (1,46 ms contre 2,66 ms à 12 agents ; 7,87 ms contre
+16,08 ms à 600). Un portage de Gauss-Seidel en code compilé inverserait la conclusion.
+
+**Ce qui est garanti, et ce qui ne l'est pas.** Point important pour le rapport : le résultat
+n'est **pas** la projection euclidienne de `x_libre` sur K, c'est-à-dire l'argmin de
+`|x − x_libre|`. Rien dans l'algorithme ne minimise le déplacement, et aucun balayage ne peut
+rapprocher deux disques qu'un précédent a trop écartés, puisque les corrections ne font
+qu'écarter. Comparaison avec Gauss-Seidel, pris comme oracle de test :
+
+| Configuration | ‖ΔX‖ Jacobi | ‖ΔX‖ Gauss-Seidel | Écart des solutions |
+|---|---|---|---|
+| 3 disques alignés | 1,4141·10⁻² | 1,4141·10⁻² | 4,5·10⁻⁷ m |
+| Triangle serré | **0,9999·10⁻²** | 1,1770·10⁻² | 2,0·10⁻³ m |
+| Amas de 12 | 7,5924·10⁻² | **7,5044·10⁻²** | 6,1·10⁻³ m |
+| Amas de 100 | 1,2109·10⁻¹ | **1,1924·10⁻¹** | 1,4·10⁻² m |
+
+Aucune des deux ne domine : sur le triangle serré, c'est Jacobi qui déplace le moins. Donc aucune
+n'est le minimiseur. Le rapport doit écrire **« configuration admissible obtenue par projections
+successives »**, et non « projection de Gauss-Seidel » ni « projection euclidienne sur K ».
+Un test (`TestComparaisonGaussSeidel`) échouera si une méthode se met à dominer l'autre partout,
+ce qui serait l'indice qu'elle approche le minimiseur.
 
 **Ce qui n'a pas marché, et ce qu'on en a tiré.**
 
 - *Jacobi simple* : un tas posé sur le sol reçoit à chaque pas une poussée de gravité de
   g·Δt² ≈ 4·10⁻⁶ m, et l'information « le sol retient tout » ne remonte que d'un contact par
-  balayage. Pour ramener un tas de 64 disques sous 10⁻⁶ m, il fallait **642 à plus de 3000 balayages** (selon le
-  tas mesuré) ; 76 à 88 % des projections n'aboutissaient pas dans un budget de 200.
-- *Sur-relaxation* (corriger de 1,3 × le recouvrement) : plus rapide, **mais refusée**. Elle sépare
-  les disques au-delà du contact, donc la vitesse relue v = Δx/Δt contient un rebond artificiel : le
-  choc cesse d'être mou. Un test le détecte : deux disques qui se rencontrent finissent à 0,56 m au
+  balayage. Pour ramener un tas de 64 disques sous 10⁻⁶ m, il fallait **642 à plus de 3000
+  balayages** ; **716 projections sur 1500 échouaient** sur le tas de 36 disques. L'accélération
+  n'est donc pas un confort, elle conditionne l'usage de la méthode.
+- *Sur-relaxation* (corriger de 1,3 × le recouvrement) : plus rapide, **mais refusée**. Elle
+  sépare les disques au-delà du contact, donc la vitesse relue v = Δx/Δt contient un rebond
+  artificiel : le choc cesse d'être mou. Deux disques qui se rencontrent finissaient à 0,56 m au
   lieu de 0,20 m.
-- *Extrapolation de Nesterov* (rang k, coefficient k/(k+3), sans extrapolation au premier
-  balayage) : **≈ 100 balayages** pour le même tas, 0 projection non convergée sur 1500. Elle ne change
-  que le chemin, pas la correction appliquée à une paire isolée, qui reste exacte en un balayage.
+- *Moyenne des corrections par agent* (première version) : **abandonnée**, elle ne conserve pas
+  le centre de gravité. Diviser les corrections reçues par un agent par son nombre de contacts
+  n'est pas symétrique en (i, j) : dès que deux voisins n'ont pas le même nombre de contacts, les
+  deux réactions d'une paire cessent d'être opposées et **la foule entière dérive** — 2,2·10⁻³ m
+  mesurés sur un amas de 12 disques, 1,6·10⁻⁴ m sur 100, sans aucune force extérieure. La
+  pondération par paire `1/max(c_i, c_j)` amortit autant mais reste symétrique : dérive ramenée à
+  10⁻¹⁷ m, pour environ 30 % de balayages en plus.
+- *Extrapolation de Nesterov allumée dès le premier balayage* : **corrigée**. Elle écarte elle
+  aussi les disques au-delà du contact, et ce jeu est définitif. Un choc de trois disques alignés
+  laissait **1,27·10⁻² m de jeu et 1,06·10⁻² m/s de vitesse résiduelle**, soit 1 % de la vitesse
+  d'arrivée restituée. Le test du choc à **deux** disques ne pouvait pas le voir : une paire
+  isolée est corrigée exactement en un balayage, l'artefact n'apparaît qu'à partir de trois corps.
+  C'était le cas de figure signalé en relecture de la PR #6.
+- *Garder la meilleure configuration admissible rencontrée* (celle qui minimise `|x − x_libre|`,
+  en continuant quelques balayages après l'admissibilité) : **sans effet**, testé et écarté. Le
+  premier itéré admissible est déjà celui qui a dépassé, et comme les corrections ne font
+  qu'écarter, aucun itéré ultérieur n'est plus proche. Confirme que le dépassement est structurel
+  et non un accident de convergence.
+- *Retarder l'extrapolation sans faire repartir sa rampe* : **aggravait les chaînes longues**. Au
+  déclenchement, β sautait directement à 80/83 = 0,96, donc le premier balayage extrapolé
+  dépassait largement le contact : 7,7·10⁻⁴ de restitution sur une chaîne de 12 disques, contre
+  2,4·10⁻⁵ sans aucun retard. Faire repartir la rampe de zéro (`k = rang − 80`) rend le gain
+  monotone.
 
-**Mesures retenues** (36 disques de 0,07 m dans une boîte de 2 m, Δt = 2·10⁻³ s) : recouvrement
-résiduel ≤ 10⁻⁶ m (tolérance), parois à 0,0 m, 47 balayages au maximum, hauteur du tas stable à
-1 cm près quand Δt est doublé.
+**Correctif retenu et son réglage.** Énergie cinétique résiduelle après un choc, rapportée à
+l'énergie d'arrivée, pire cas sur des chaînes convergentes de 3 à 32 disques à quantité de
+mouvement nulle, plus un triangle à trois contacts mutuels :
+
+| Rang de déclenchement | Pire restitution | Balayages (tas de 64) | Temps |
+|---|---|---|---|
+| 0 (immédiat) | 1,0·10⁻³ | 91 | 5,3 s |
+| 20 | 4,3·10⁻⁵ | 113 | — |
+| 40 | 2,9·10⁻⁵ | 134 | 8,3 s |
+| **80 (retenu)** | **9,0·10⁻⁷** | 168 | 11,7 s |
+
+Au-delà de 80 le gain plafonne tandis que le budget d'itérations se consomme. Le budget par
+défaut passe de 200 à 300 balayages pour garder de la marge sur les 186 que demande le tas.
+
+**Mesures retenues** (36 disques de 0,07 m dans une boîte de 2 m, Δt = 2·10⁻³ s, graine 1) :
+recouvrement résiduel ≤ 10⁻⁶ m (tolérance), parois à 0,0 m, 182 balayages au maximum,
+0 projection non convergée sur 1500, énergie cinétique finale du tas 7,0·10⁻⁶ J, paires en
+contact tangentes à 5,0·10⁻⁶ m près.
 
 **Limites connues.**
 
-- Près de l'empilement maximal (≳ 75 % de la surface), la projection n'atteint plus la tolérance dans
-  le budget : elle le **signale** (`non_convergences`, `recouvrement_max`) sans lever d'exception.
-- Le critère Δt de la spec (|v|·Δt ≪ r) reste à la charge du scénario : à Δt = 4·10⁻² s les disques
-  traversent leurs voisins et la projection ne peut plus rien.
-- L'invariant d'énergie du tassement est **peu sensible** : il ne détecte pas la sur-relaxation ×1,3
-  (c'est le test du choc à deux disques qui la voit). À renforcer.
+- Près de l'empilement maximal (≳ 75 % de la surface), la projection n'atteint plus la tolérance
+  dans le budget. Elle le **signale** : `non_convergences` et `recouvrement_max` sont publiés, le
+  mode `strict=True` lève `ProjectionNonConvergee` dès le premier échec, et
+  `verifier_convergence()` permet de contrôler après coup une simulation qu'on n'a pas voulu
+  interrompre. Une trajectoire non convergée ne doit alimenter aucune figure du rapport.
+- Les **chaînes longues** de contacts, seules extrapolées, gardent une restitution de l'ordre de
+  10⁻⁶ de l'énergie d'arrivée.
+- Trois contacts **mutuels** corrigés dans le même balayage laissent un défaut de **position**,
+  indépendant de l'extrapolation : le triangle finit tangent à 1,7·10⁻³ m près, sans mouvement
+  résiduel. Ce défaut sature et ne décroît **pas** avec Δt, contrairement au jeu du tas
+  (5,0·10⁻⁶ m à Δt = 2·10⁻³ s contre 2,5·10⁻⁵ m à Δt = 4·10⁻³ s, soit une décroissance en Δt²).
+- Le critère Δt de la spec (|v|·Δt ≪ r) reste à la charge du scénario : à Δt = 4·10⁻² s les
+  disques traversent leurs voisins et la projection ne peut plus rien.
+- L'invariant d'énergie du tassement est **peu sensible** : la dissipation d'ensemble (14 J) masque
+  une création locale. C'est pourquoi `TestChocMultiple` mesure la restitution sur des chocs
+  **isolés**, rapportée à l'énergie d'arrivée.
+
+**À faire valider par le groupe.** L'écart de méthode avec la spec § 2.5 (traité par la PR #7), et
+le choix du rang 80, qui échange 2,2 × le temps de projection contre 1 100 × moins de restitution.
 
 ---
 

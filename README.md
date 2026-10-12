@@ -141,7 +141,7 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 |---|---|---|
 | 0 | Socle du dépôt, méthodologie, cahier des charges | ✅ |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ validé |
-| 2 | Exclusion entre agents (projection itérative) | ✅ validé |
+| 2 | Exclusion entre agents (projection itérative) | ⏳ implémenté, en cours de validation |
 | 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ |
 | 4 | Scénario piscine complet, franchissements | ⏳ |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ |
@@ -166,6 +166,9 @@ Chaque critère produit un **nombre**, pas une impression visuelle. Reproductibl
 | Recouvrement résiduel entre agents (36 disques, Δt = 2·10⁻³ s) | **≤ 10⁻⁶ m** (1,4 × 10⁻⁵ du rayon de 0,07 m) | ≤ tolérance annoncée |
 | … violation des parois, mêmes agents | **0,0 m** | précision machine |
 | … projections non convergées | **0 sur 1500** | 0 |
+| … balayages de projection par pas, au maximum | 182 (budget 300) | < budget |
+| … énergie cinétique finale du tas | **7,0 × 10⁻⁶ J** | → 0 (tas au repos) |
+| Restitution après un choc à contacts multiples | **9,0 × 10⁻⁷** de l'énergie d'arrivée | 0 (choc mou) |
 
 ### Un résultat non trivial
 
