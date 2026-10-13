@@ -120,16 +120,44 @@ donc convexe : la projection y est bien définie et unique.
 accéléré par une **extrapolation de Nesterov retardée** :
 
 ```
-X ← x_libre ;  k ← 0
-répéter jusqu'à convergence (ou n_max itérations) :
-    β ← (k − k₀)/(k − k₀ + 3) si k > k₀, sinon 0      k₀ = 80 balayages
-    Y ← X + β · (X − X_précédent)
-    pour toutes les paires (i,j) en recouvrement, SIMULTANÉMENT :
-        correction de la paire : la moitié du recouvrement le long de e_ij,
-        divisée par max(c_i, c_j), où c_k est le nombre de contacts de l'agent k
-    projeter Y sur Ω
-    X_précédent ← X ; X ← Y ; k ← k + 1
+entrées : x_libre, rayons r, tolérance ε, budget n_max, domaine Ω
+X ← x_libre ;  n ← 0                           n : balayages consommés pendant cet appel
+résidu ← recouvrement maximal de X, sur toutes les paires
+répéter :
+    P ← paires à distance < r_i + r_j + m      grille de hachage, marge m = r_min / 2
+    X_précédent ← X ;  ρ ← 0                   ρ : rang depuis la dernière recherche de P
+    tant que n < n_max et (n = 0 ou résidu > ε) :
+        κ ← ρ − k₀ ;  β ← κ / (κ + 3) si κ > 0, sinon 0           k₀ = 80
+        Y ← X + β · (X − X_précédent)
+        si β > 0 : projeter Y sur Ω            le point extrapolé peut sortir du domaine
+        pour toutes les paires (i,j) de P en recouvrement, SIMULTANÉMENT :
+            δ_ij ← ½ (r_i + r_j − |y_j − y_i|) / max(c_i, c_j)
+            y_i ← y_i − δ_ij e_ij ;  y_j ← y_j + δ_ij e_ij
+        projeter Y sur Ω                       toujours en dernier : parois exactes
+        X_précédent ← X ;  X ← Y ;  n ← n + 1 ;  ρ ← ρ + 1
+        résidu ← recouvrement maximal sur les paires de P
+    résidu ← recouvrement maximal sur TOUTES les paires (nouvelle recherche, sans marge)
+jusqu'à résidu ≤ ε ou n ≥ n_max
+si résidu > ε : compter une non-convergence (et lever ProjectionNonConvergee en mode strict)
+rendre X
 ```
+
+`c_k` est le nombre de recouvrements de l'agent `k` dans le balayage courant. Trois détails du
+pseudo-code comptent pour retrouver le comportement du moteur :
+
+- **Les paires sont cherchées avec une marge, puis vérifiées sans marge.** Les agents bougent
+  pendant les balayages : une paire absente de `P` peut se créer. Si la vérification finale en
+  trouve une, on recherche les paires et on continue, dans le même budget `n_max`.
+- **Le rang d'extrapolation `ρ` repart de zéro à chaque recherche de paires.** L'extrapolation
+  prolonge le dernier déplacement ; après une nouvelle recherche, ce déplacement concerne une
+  autre liste de contraintes, et on ne veut pas reprendre à une valeur de `β` déjà élevée.
+- **Au moins un balayage est toujours fait (`n = 0`)**, même sans recouvrement : la projection
+  sur `Ω` doit s'appliquer à `x_libre`, qui peut être sorti du domaine.
+
+Une projection qui n'atteint pas `ε` dans son budget n'est jamais silencieuse : elle est comptée
+(`non_convergences`, `recouvrement_max`). En mode strict elle interrompt la simulation ; sinon,
+`verifier_convergence()` doit être appelé avant d'exploiter une trajectoire. Le mode permissif
+reste le défaut, parce que les études de limites ont besoin de **mesurer** l'échec.
 
 Jacobi traite toutes les paires à la fois, ce qui se vectorise en NumPy, là où Gauss-Seidel
 impose une boucle Python paire par paire. Mesuré : Jacobi demande **plus** de balayages (35 à
@@ -149,19 +177,49 @@ détails d'implémentation :
   Elle écarte les agents au-delà du contact, et ce jeu est définitif puisque les corrections ne
   font qu'écarter. Allumée dès le premier balayage, elle restituait jusqu'à 10⁻³ de l'énergie
   d'arrivée sur un choc à contacts multiples — le choc n'était plus mou. Un choc entre quelques
-  agents se résout en moins de 80 balayages et reste donc exact ; seules les longues chaînes de
-  contacts, où l'accélération est indispensable, la reçoivent. Restitution ramenée à 9,0·10⁻⁷.
-- **Chaque correction vaut exactement le recouvrement.** Une sur-relaxation convergerait plus
-  vite, mais séparerait les agents au-delà du contact et introduirait un rebond artificiel dans
-  la vitesse relue (§ 2.8), donc un choc qui ne serait plus mou.
+  agents se résout en moins de 80 balayages et **ne reçoit donc pas d'extrapolation** : ce
+  mécanisme de rebond ne le touche pas, ce qui ne le rend pas exact pour autant (voir les limites
+  ci-dessous). Seules les longues chaînes de contacts, où l'accélération est indispensable, la
+  reçoivent. Restitution ramenée à 9,0·10⁻⁷.
+- **Aucune correction ne dépasse le recouvrement.** La correction élémentaire d'une paire est
+  calculée à partir de son recouvrement (la moitié pour chaque agent), puis pondérée par
+  `1/max(c_i, c_j)` : le déplacement appliqué en un balayage peut donc être **inférieur** au
+  recouvrement, jamais supérieur, et plusieurs balayages sont alors nécessaires. Une
+  sur-relaxation (facteur > 1) convergerait plus vite, mais séparerait les agents au-delà du
+  contact et introduirait un rebond artificiel dans la vitesse relue (§ 2.8), donc un choc qui ne
+  serait plus mou.
 
-**Ce que l'algorithme ne fait pas.** La projection sur l'ensemble linéarisé est unique, mais cet
-algorithme **ne la calcule pas**. Des corrections découplées répétées jusqu'à l'admissibilité
-cherchent une configuration *admissible*, pas la *plus proche* : rien ne minimise `|X − x_libre|`,
-et aucun balayage ne peut rapprocher deux agents qu'un précédent a trop écartés. Comparé à
-Gauss-Seidel, aucune des deux méthodes ne déplace systématiquement moins que l'autre — sur un
-triangle serré c'est Jacobi qui déplace le moins, sur un amas de 100 c'est Gauss-Seidel, et les
-deux solutions s'éloignent jusqu'à 1,4·10⁻² m. Aucune n'est donc le minimiseur.
+**Limites connues sur les contacts multiples.** L'algorithme vise le **non-recouvrement à la
+tolérance près** ; il ne garantit pas que des agents en contact finissent tangents. Seule une
+paire isolée est corrigée exactement, en un balayage (`TestPaire`). Dès que trois agents sont en
+contact **mutuel**, leurs corrections simultanées, exactes prises une à une, dépassent une fois
+additionnées : un triangle qui s'effondre finit avec un jeu d'environ **1,7·10⁻³ m** au-delà du
+contact, soit 0,85 % du diamètre d'un agent de 20 cm. Ce jeu ne doit rien à l'extrapolation (le
+triangle se résout en 5 balayages, bien avant le rang 80) et, contrairement au jeu d'un tas, **il
+ne décroît pas quand Δt diminue** (1,69·10⁻³ m à Δt = 4·10⁻³ s comme à 2·10⁻³ s). Il est suivi dans
+l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) et doit être traité,
+ou au moins borné et déclaré, avant le jalon 5 : les empilements au goulot sont exactement le cas
+où il fausserait la densité locale, abscisse du diagramme fondamental.
+
+**Ce que l'algorithme ne garantit pas.** La projection sur l'ensemble linéarisé est unique, mais
+l'algorithme n'est pas construit pour la calculer. Des corrections découplées, répétées jusqu'à
+l'admissibilité, cherchent une configuration *admissible* sans minimiser explicitement
+`|X − x_libre|`, et aucun balayage ne peut rapprocher deux agents qu'un précédent a trop écartés.
+Il n'y a donc **pas de garantie générale d'optimalité euclidienne**. Ce n'est pas la même chose
+qu'une impossibilité : pour une paire isolée, la correction en un balayage est exactement la
+projection (`TestPaire`).
+
+La comparaison à Gauss-Seidel le confirme sans le démontrer. Aucune des deux méthodes ne déplace
+systématiquement moins que l'autre : sur un triangle serré c'est Jacobi qui déplace le moins, sur
+un amas de 100 agents c'est Gauss-Seidel, et les deux solutions s'éloignent jusqu'à 1,4·10⁻² m.
+Quand deux résultats sont admissibles pour les mêmes contraintes, celui qui déplace strictement
+plus n'est pas le minimiseur **dans ce cas précis** : c'est un contre-exemple ponctuel. Mais cette
+alternance ne prouve pas qu'une méthode ne calcule jamais le minimum. La formulation retenue est
+donc :
+
+> Les résultats numériques ne démontrent pas que les configurations obtenues minimisent
+> systématiquement la distance à la position libre. L'algorithme recherche une configuration
+> admissible à la tolérance près, sans garantie générale d'optimalité euclidienne.
 
 **Conséquence rédactionnelle, qui engage le rapport et la soutenance** : écrire « configuration
 admissible obtenue par projections successives », et **jamais** « projection de Gauss-Seidel »
