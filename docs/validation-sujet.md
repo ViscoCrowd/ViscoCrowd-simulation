@@ -3,9 +3,11 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique · 2026-2027
 **Groupe** ViscoCrowd — Karrouchi Hamza, Lesueur Shaleena, Mongrandi Lenny
 
-> ⚠️ **À relire par les trois membres, puis à transmettre à l'enseignant avant de commencer
-> l'implémentation du modèle de foule.** Les consignes précisent qu'un travail mené sur un
-> sujet non validé ne pourra pas être évalué dans de bonnes conditions.
+> **Statut : sujet accepté par l'enseignant.**
+>
+> Acceptation confirmée par le groupe. Ce document est conservé comme trace du cadrage initial
+> du projet. La confirmation a été communiquée le 13 octobre 2026 ; la date exacte de
+> l'acceptation par l'enseignant n'a pas été précisée.
 
 ---
 
@@ -73,7 +75,11 @@ complet ne vaudront rien.
 
 ---
 
-## Questions à l'enseignant
+## Questions de cadrage initialement posées à l'enseignant
+
+Les réponses à ces questions restent à consigner lorsqu'elles sont connues. L'acceptation
+générale du sujet ne vaut pas validation explicite de chaque bibliothèque, paramètre ou
+extension du modèle.
 
 1. L'usage de SciPy pour le diagramme de Voronoï (calcul de la densité locale selon la méthode
    de Steffen et Seyfried) entre-t-il dans les bibliothèques généralistes autorisées ? Nous

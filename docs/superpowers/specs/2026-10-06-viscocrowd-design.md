@@ -3,7 +3,10 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique (alternance) · 2026-2027
 **Groupe** Karrouchi Hamza (`CodeByHaamza`), Lesueur Shaleena (`shalee-pnt`), Mongrandi Lenny (`lennymgrd`)
 **Date** 6 octobre 2026
-**Statut** Conception validée — en attente de validation du sujet par l'enseignant
+**Statut** Conception validée — sujet accepté par l'enseignant
+
+Acceptation confirmée par le groupe le 13 octobre 2026 ; la date exacte de l'acceptation par
+l'enseignant n'a pas été précisée. La date ci-dessus reste celle de création du document.
 
 ---
 
@@ -228,6 +231,11 @@ ni « projection euclidienne sur K ».
 Choix, impasses et mesures détaillés dans le
 [journal des décisions](../../journal-decisions.md) (entrée du 12 octobre 2026).
 
+Le choix de Jacobi vectorisé et le déclenchement de Nesterov après 80 balayages ont été validés
+collectivement par les trois membres du groupe, selon la confirmation communiquée le
+13 octobre 2026. Cette décision est consignée dans le journal (entrée du 13 octobre) et dans
+l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
+
 Le critère d'arrêt est le recouvrement résiduel maximal, qui devient **l'indicateur de
 validation n°1** (§ 5). La tolérance atteinte est une grandeur à mesurer et à publier, pas à
 supposer.
@@ -444,9 +452,9 @@ obligatoire est le mécanisme qui garantit cette lecture partagée.
 | 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée | semaines 10-11 |
 | 6 | Rapport, figures finales, transparents | semaines 12-13 |
 
-**Le jalon 0 est bloquant.** Les consignes précisent qu'un sujet non validé « ne pourra pas être
-évalué dans de bonnes conditions ». La demi-page de validation passe avant la première ligne de
-physique.
+**Le prérequis de validation du sujet (jalon 0) est satisfait.** L'acceptation par l'enseignant
+est confirmée par le groupe dans la [fiche de cadrage](../../validation-sujet.md). Les jalons 0,
+1 et 2 sont validés ; les jalons 3 à 6 restent à réaliser ou à finaliser (voir le README).
 
 ### 9.1 Échéances imposées
 
@@ -477,7 +485,7 @@ Retard non justifié : 2 points de pénalité par jour entamé.
 
 | Consigne | Traitement |
 |---|---|
-| Sujet validé avant implémentation | `docs/validation-sujet.md`, jalon 0 bloquant |
+| Sujet validé avant implémentation | `docs/validation-sujet.md`, acceptation confirmée ; date exacte non précisée |
 | Rapport 15-20 p. : résumé, introduction, développement, conclusion, références | structure `report/sections/` |
 | Rapport en LaTeX (bonus 1 point) | `report/` et CI de compilation |
 | Validation chiffrée | § 5, et suite d'invariants en CI |

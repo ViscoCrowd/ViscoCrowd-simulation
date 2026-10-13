@@ -139,13 +139,25 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 
 | Jalon | Contenu | État |
 |---|---|---|
-| 0 | Socle du dépôt, méthodologie, cahier des charges | ✅ |
-| 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ validé |
-| 2 | Exclusion entre agents (projection itérative) | ⏳ implémenté, en cours de validation |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ |
-| 4 | Scénario piscine complet, franchissements | ⏳ |
-| 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ |
-| 6 | Rapport, figures finales, transparents | ⏳ |
+| 0 | Socle du dépôt, méthodologie, cahier des charges | ✅ Validé — sujet accepté par l'enseignant |
+| 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
+| 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ À développer |
+| 4 | Scénario piscine complet, franchissements | ⏳ À développer |
+| 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
+| 6 | Rapport, figures finales, transparents | ⏳ À finaliser |
+
+Le sujet ViscoCrowd a été accepté par l'enseignant. Pour le jalon 2, le groupe a validé
+collectivement l'utilisation de Jacobi vectorisé et de l'extrapolation de Nesterov retardée,
+déclenchée après 80 balayages. Ces choix sont documentés dans la
+[spécification](docs/superpowers/specs/2026-10-06-viscocrowd-design.md), le
+[journal des décisions](docs/journal-decisions.md) et l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
+
+Cette confirmation a été communiquée le 13 octobre 2026 ; la date exacte de l'acceptation par
+l'enseignant n'a pas été précisée.
+
+Le [planning détaillé 2026–2027 (Excel)](docs/planning/planning-viscocrowd-2026-2027.xlsx)
+est conservé dans [`docs/planning/`](docs/planning/README.md) pour le suivi du projet.
 
 ---
 
