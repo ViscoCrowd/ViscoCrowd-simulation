@@ -88,3 +88,23 @@ class TestGardeFous:
                 v=np.zeros((2, 2)),
                 r=np.ones(3),
             )
+
+    @pytest.mark.parametrize("champ", ["x", "v", "r"])
+    @pytest.mark.parametrize("valeur", [np.nan, np.inf])
+    def test_etat_non_fini_rejete(self, champ, valeur):
+        tableaux = {"x": np.zeros((2, 2)), "v": np.zeros((2, 2)), "r": np.full(2, 0.1)}
+        tableaux[champ] = tableaux[champ].copy()
+        tableaux[champ].flat[1] = valeur
+        with pytest.raises(ValueError, match="non finies"):
+            State(**tableaux)
+
+    def test_rayon_nan_rejete_alors_que_nan_inferieur_a_zero_est_faux(self):
+        """`NaN <= 0` est faux : l'ancien controle de signe laissait passer un rayon NaN."""
+        with pytest.raises(ValueError, match="non finies"):
+            State(x=np.zeros((1, 2)), v=np.zeros((1, 2)), r=np.array([np.nan]))
+
+    def test_pas_libre_qui_diverge_est_arrete(self):
+        """Sans projection, la position libre devient l'etat suivant : elle est controlee."""
+        etat = State.single((0.0, 0.0))
+        with pytest.raises(ValueError, match="non finies"):
+            pas_semi_implicite(etat, 1e-3, lambda e, _dt: np.full_like(e.v, np.inf))

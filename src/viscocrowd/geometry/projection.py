@@ -303,6 +303,15 @@ class ProjectionExclusion:
 
     def __call__(self, x: np.ndarray, r: np.ndarray, t: float) -> np.ndarray:
         x = np.array(x, dtype=float, copy=True)
+        # Une entree non finie est une ERREUR, pas une non-convergence : elle leve dans
+        # les deux modes. Le mode permissif sert a mesurer un echec de convergence, pas
+        # a laisser passer un etat corrompu. Sans ce controle, un NaN rendait toutes les
+        # distances incomparables : aucune paire, residu nul, projection « convergee ».
+        if not (np.all(np.isfinite(x)) and np.all(np.isfinite(r))):
+            raise ValueError(
+                "positions ou rayons non finis (NaN ou infini) en entree de la projection : "
+                "la configuration est corrompue en amont (vitesse libre, guidage...)"
+            )
         if x.shape[0] >= 2:
             x, n_iterations, residu = self._iterer(x, r, t)
         else:

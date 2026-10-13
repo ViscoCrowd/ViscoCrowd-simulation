@@ -39,6 +39,11 @@ def paires_candidates(x: np.ndarray, r: np.ndarray, marge: float = 0.0) -> np.nd
     """
     if marge < 0.0:
         raise ValueError(f"la marge doit etre positive ou nulle, recu {marge}")
+    # Toute comparaison avec un NaN est fausse : aucune paire ne serait detectee, et
+    # `recouvrement_max` annoncerait 0 recouvrement pour une configuration corrompue,
+    # resultat indiscernable d'une configuration valide. On refuse donc l'entree.
+    if not (np.all(np.isfinite(x)) and np.all(np.isfinite(r))):
+        raise ValueError("positions et rayons doivent etre finis (ni NaN ni infini)")
 
     n = x.shape[0]
     vide = np.empty((0, 2), dtype=np.int64)
