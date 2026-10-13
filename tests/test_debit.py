@@ -305,6 +305,80 @@ class TestContactSansTraversee:
         assert franchissements(t, x, A, B).nombre == 0
 
 
+class TestPassageParLaDroiteHorsDeLaPorte:
+    """Passer pile sur la droite, mais a cote de la porte, n'est pas franchir la porte.
+
+    Repond a la seconde relecture de la PR #9. Ignorer l'echantillon pose sur la
+    droite pour interpoler entre ses voisins strictement de part et d'autre
+    fabriquait un croisement fictif DANS la porte, alors que l'agent avait
+    traverse la droite en dehors. La porte va de (0, 0) a (1, 0).
+    """
+
+    @pytest.mark.parametrize(
+        ("y_avant", "y_apres"),
+        [(0.01, -0.01), (-0.01, 0.01)],
+        ids=["de gauche a droite", "de droite a gauche"],
+    )
+    @pytest.mark.parametrize("x_hors", [1.01, -0.01], ids=["cote de b", "cote de a"])
+    def test_passer_par_l_extremite_hors_de_la_porte_ne_compte_pas(self, y_avant, y_apres, x_hors):
+        # Le premier et le dernier echantillon sont DANS l'aplomb de la porte.
+        x_dedans = 0.99 if x_hors > 0.5 else 0.01
+        t, x = trajectoire_par_points([[(x_dedans, y_avant), (x_hors, 0.0), (x_dedans, y_apres)]])
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+    @pytest.mark.parametrize("y_avant", [0.01, -0.01])
+    def test_meme_chose_apres_un_stationnement_hors_de_la_porte(self, y_avant):
+        t, x = trajectoire_par_points(
+            [[(0.99, y_avant), (1.01, 0.0), (1.01, 0.0), (1.02, 0.0), (0.99, -y_avant)]]
+        )
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+    @pytest.mark.parametrize("y_avant", [0.01, -0.01])
+    def test_passer_par_un_point_de_la_porte_compte_une_fois(self, y_avant):
+        """Garde-fou : le meme trajet, mais par l'interieur de la porte."""
+        t, x = trajectoire_par_points([[(0.99, y_avant), (0.99, 0.0), (0.99, -y_avant)]], dt=1.0)
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.nombre == 1
+        assert passages.instant[0] == pytest.approx(1.0)  # l'instant de l'echantillon sur la droite
+        np.testing.assert_array_equal(passages.sens, [1 if y_avant > 0 else -1])
+
+    def test_glisser_sur_la_droite_depuis_le_mur_jusque_dans_la_porte_compte(self):
+        """L'agent touche la droite hors de la porte, la suit, puis la quitte dans la porte."""
+        t, x = trajectoire_par_points([[(-0.5, 0.1), (-0.5, 0.0), (0.5, 0.0), (0.5, -0.1)]], dt=1.0)
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.nombre == 1
+        # Il entre dans la porte en a = (0, 0), au quart du glissement de t=1 a t=2.
+        assert passages.instant[0] == pytest.approx(1.5)
+
+    def test_glisser_sur_la_droite_d_un_mur_a_l_autre_en_traversant_la_porte_compte(self):
+        """Aucun echantillon dans la porte, mais le glissement la traverse entierement."""
+        t, x = trajectoire_par_points([[(0.5, 0.1), (-0.5, 0.0), (1.5, 0.0), (0.5, -0.1)]], dt=1.0)
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.nombre == 1
+        assert passages.instant[0] == pytest.approx(1.25)  # entre en a : (0 - (-0,5)) / 2 = 1/4
+
+    def test_glisser_sur_la_droite_a_cote_de_la_porte_ne_compte_pas(self):
+        t, x = trajectoire_par_points([[(1.2, 0.1), (1.2, 0.0), (2.0, 0.0), (2.0, -0.1)]])
+
+        assert franchissements(t, x, A, B).nombre == 0
+
+    def test_trajectoire_sans_contact_avec_la_droite_inchangee(self):
+        """Pour une trajectoire qui ne tombe jamais pile sur la droite, le calcul est celui d'avant."""
+        t, x = trajectoire_par_points([[(0.5, 0.3), (0.5, -0.1)]], dt=1.0)
+
+        passages = franchissements(t, x, A, B)
+
+        assert passages.instant[0] == pytest.approx(0.75)  # 0,3 / (0,3 + 0,1)
+
+
 class TestSegmentInvalide:
     """Une ligne de mesure mal configuree doit se signaler, pas rendre zero passage.
 

@@ -161,6 +161,7 @@ def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) 
         return vide
     avant = dernier[apres, agent]  # rang du dernier echantillon de l'autre cote
     apres = apres + 1
+    a = np.asarray(a, dtype=float)
 
     c_avant, c_apres = c[avant, agent], c[apres, agent]
 
@@ -172,17 +173,62 @@ def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) 
     # 1 en b. Le passage ne compte que s'il tombe entre les deux.
     x_avant, x_apres = x[avant, agent], x[apres, agent]
     croisement = x_avant + fraction[:, None] * (x_apres - x_avant)
-    le_long = (croisement - np.asarray(a, dtype=float)) @ ab / (ab @ ab)
+    le_long = (croisement - a) @ ab / (ab @ ab)
     sur_le_segment = (le_long >= 0.0) & (le_long <= 1.0)
-
-    agent = agent[sur_le_segment]
-    avant, apres = avant[sur_le_segment], apres[sur_le_segment]
-    fraction = fraction[sur_le_segment]
     instant = t[avant] + fraction * (t[apres] - t[avant])
+
+    # Cas general ci-dessus : deux echantillons consecutifs, de part et d'autre.
+    # Si l'agent est passe PAR la droite (un ou plusieurs echantillons dessus), la
+    # ligne droite entre les deux echantillons stricts ne dit rien du point ou il
+    # l'a traversee : on le localise avec les echantillons poses sur la droite.
+    for k in np.flatnonzero(apres - avant > 1):
+        instant_k = _instant_sur_la_porte(t, x, agent[k], avant[k], apres[k], a, ab)
+        sur_le_segment[k] = instant_k is not None
+        if instant_k is not None:
+            instant[k] = instant_k
+
+    agent, avant = agent[sur_le_segment], avant[sur_le_segment]
+    instant = instant[sur_le_segment]
     sens = signe[avant, agent].astype(np.int64)  # +1 : il venait de gauche
 
     ordre = np.argsort(instant, kind="stable")
     return Franchissements(agent=agent[ordre], instant=instant[ordre], sens=sens[ordre])
+
+
+def _instant_sur_la_porte(
+    t: np.ndarray, x: np.ndarray, agent: int, avant: int, apres: int, a: np.ndarray, ab: np.ndarray
+) -> float | None:
+    """Instant ou un agent passe par la droite DANS la porte, ou None s'il passe hors de la porte.
+
+    L'agent etait strictement d'un cote a l'echantillon `avant`, strictement de
+    l'autre a `apres`, et exactement SUR la droite entre les deux. Sa trajectoire
+    est une ligne brisee : elle touche la droite au premier echantillon pose
+    dessus, puis la suit d'un echantillon pose dessus au suivant, puis la quitte
+    au dernier. Il traverse donc la porte si cette portion de droite rencontre le
+    segment [a, b].
+
+    Exemple, porte de (0, 0) a (1, 0), positions (0,99 ; 0,01), (1,01 ; 0),
+    (0,99 ; -0,01) : l'agent est passe par (1,01 ; 0), HORS de la porte. Interpoler
+    entre le premier et le dernier echantillon donnerait un croisement fictif en
+    (0,99 ; 0), dans la porte, et compterait un passage qui n'a pas eu lieu.
+
+    L'instant rendu est celui ou l'agent entre pour la premiere fois dans la porte
+    en suivant la droite : il est dans l'intervalle de stationnement, et vaut
+    exactement l'instant de l'echantillon quand celui-ci est dans la porte.
+    """
+    rangs = np.arange(avant + 1, apres)  # les echantillons exactement sur la droite
+    # Position le long du segment : 0 en a, 1 en b.
+    s = (x[rangs, agent] - a) @ ab / (ab @ ab)
+
+    for j in range(rangs.size):
+        if 0.0 <= s[j] <= 1.0:
+            return float(t[rangs[j]])
+        if j + 1 < rangs.size and max(s[j], s[j + 1]) >= 0.0 and min(s[j], s[j + 1]) <= 1.0:
+            # Le glissement de j a j+1 entre dans la porte par l'extremite a ou b.
+            borne = 0.0 if s[j] < 0.0 else 1.0
+            part = (borne - s[j]) / (s[j + 1] - s[j])
+            return float(t[rangs[j]] + part * (t[rangs[j + 1]] - t[rangs[j]]))
+    return None
 
 
 def debit_specifique(passages: Franchissements, largeur: float, debut: float, fin: float) -> float:
