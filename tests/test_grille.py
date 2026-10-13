@@ -67,3 +67,20 @@ def test_recouvrement_max():
     x = np.array([[0.0, 0.0], [0.15, 0.0], [5.0, 5.0]])
     assert recouvrement_max(x, r) == pytest.approx(0.05)
     assert recouvrement_max(np.array([[0.0, 0.0], [1.0, 0.0]]), r[:2]) == 0.0
+
+
+@pytest.mark.parametrize("valeur", [np.nan, np.inf, -np.inf])
+def test_position_non_finie_rejetee(valeur):
+    """Un NaN rend toutes les comparaisons fausses : sans ce refus, recouvrement_max
+    annoncait 0 pour une configuration corrompue (issue #16)."""
+    x = np.array([[0.0, 0.0], [valeur, 0.0]])
+    r = np.full(2, 0.1)
+    with pytest.raises(ValueError, match="non finies"):
+        paires_candidates(x, r)
+    with pytest.raises(ValueError, match="non finies"):
+        recouvrement_max(x, r)
+
+
+def test_rayon_non_fini_rejete():
+    with pytest.raises(ValueError, match="non finies"):
+        paires_candidates(np.array([[0.0, 0.0], [1.0, 0.0]]), np.array([0.1, np.nan]))

@@ -164,6 +164,7 @@ from collections.abc import Callable
 
 import numpy as np
 
+from viscocrowd.core.verifications import exiger_fini
 from viscocrowd.geometry.grille import paires_candidates, recouvrement_max
 
 # Ramene des positions (N, 2) dans le domaine, au temps donne (cf. BoiteTournante.projeter).
@@ -303,6 +304,15 @@ class ProjectionExclusion:
 
     def __call__(self, x: np.ndarray, r: np.ndarray, t: float) -> np.ndarray:
         x = np.array(x, dtype=float, copy=True)
+        # Une entree non finie est une ERREUR, pas une non-convergence : elle leve dans
+        # les deux modes. Le mode permissif sert a mesurer un echec de convergence, pas
+        # a laisser passer un etat corrompu. Sans ce controle, un NaN rendait toutes les
+        # distances incomparables : aucune paire, residu nul, projection « convergee ».
+        exiger_fini(
+            "La configuration est corrompue en amont : vitesse libre, guidage, pas de temps.",
+            x=x,
+            r=r,
+        )
         if x.shape[0] >= 2:
             x, n_iterations, residu = self._iterer(x, r, t)
         else:
