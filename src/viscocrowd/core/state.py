@@ -19,6 +19,21 @@ from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
 GRAVITE = np.array([0.0, -9.81])  # m/s^2
 
 
+def _gele(tableau: np.ndarray) -> np.ndarray:
+    """Rend une vue en lecture seule du tableau, copiee si besoin.
+
+    Copier n'est necessaire que si l'appelant garde une reference modifiable :
+    sans cela, `State(x=x_init, ...)` puis `x_init[0, 0] = 5` modifiait l'etat
+    apres coup. Un tableau deja en lecture seule ne peut venir que d'un autre
+    State, donc le partager ne risque rien.
+    """
+    tableau = np.asarray(tableau, dtype=float)
+    if tableau.flags.writeable:
+        tableau = tableau.copy()
+        tableau.setflags(write=False)
+    return tableau
+
+
 @dataclass(frozen=True)
 class State:
     """Etat instantane de N particules dans le plan.
@@ -34,6 +49,18 @@ class State:
     t: float = 0.0  # s
 
     def __post_init__(self) -> None:
+        # `frozen=True` n'interdit que la REAFFECTATION d'un attribut, pas la
+        # modification du contenu d'un tableau NumPy : `etat.r[0] = 99` passait,
+        # et comme `advanced()` partage le tableau des rayons, toute la
+        # trajectoire changeait d'un coup. L'immuabilite annoncee n'existait pas.
+        # On gele donc le contenu : copie si le tableau est encore modifiable,
+        # puis passage en lecture seule. Un tableau deja gele vient forcement
+        # d'un autre State : le partager est sans danger, et evite de recopier
+        # les rayons a chaque pas de temps.
+        object.__setattr__(self, "x", _gele(self.x))
+        object.__setattr__(self, "v", _gele(self.v))
+        object.__setattr__(self, "r", _gele(self.r))
+
         if self.x.ndim != 2 or self.x.shape[1] != 2:
             raise ValueError(f"x doit etre de forme (N, 2), recu {self.x.shape}")
         if self.v.shape != self.x.shape:

@@ -243,3 +243,89 @@ class TestDiagnosticNommeLAgent:
             State(x=x, v=np.zeros_like(x), r=np.full(300, 0.1))
 
         assert "sur 300" in str(echec.value)
+
+
+class TestImmuabiliteReelle:
+    """`frozen=True` ne protege que les attributs, pas le CONTENU des tableaux.
+
+    Issue #17. La docstring de `State` promettait qu'un etat produit ne peut plus
+    changer, « ce qui evite les mutations accidentelles d'un historique de
+    trajectoires, source classique de resultats faux et difficiles a
+    diagnostiquer ». La promesse etait fausse : `etat.r[0] = 99` passait, et
+    comme `advanced()` partage le tableau des rayons, toute la trajectoire
+    changeait d'un seul coup.
+
+    Le defaut etait silencieux tant que personne ne modifiait un tableau sur
+    place. Il se serait reveille au premier scenario qui le fait — rayons
+    variables, agents sortis retires — en corrompant l'historique sans rien
+    signaler.
+    """
+
+    def test_ecrire_dans_un_etat_leve_au_lieu_de_corrompre(self):
+        etat = State.single((0.0, 0.0), rayon=0.1)
+
+        for tableau in (etat.x, etat.v, etat.r):
+            with pytest.raises(ValueError, match="read-only"):
+                tableau[0] = 99.0
+
+    def test_modifier_un_etat_ulterieur_ne_touche_plus_au_precedent(self):
+        """Le cas exact de l'issue : les rayons sont partages entre etats."""
+        e0 = State.single((0.0, 0.0), rayon=0.1)
+        e1 = e0.advanced(x=np.array([[1.0, 0.0]]), v=np.zeros((1, 2)), t=0.1)
+
+        with pytest.raises(ValueError, match="read-only"):
+            e1.r[0] = 99.0
+
+        assert e0.r[0] == pytest.approx(0.1)
+
+    def test_le_tableau_des_rayons_reste_partage_puisqu_il_est_gele(self):
+        """On ne recopie pas les rayons a chaque pas : geler suffit a les proteger.
+
+        C'est le point qui rend la correction gratuite en memoire sur une
+        trajectoire longue.
+        """
+        e0 = State.single((0.0, 0.0), rayon=0.1)
+        e1 = e0.advanced(x=np.array([[1.0, 0.0]]), v=np.zeros((1, 2)), t=0.1)
+
+        assert e1.r is e0.r
+        assert not e1.r.flags.writeable
+
+    def test_modifier_le_tableau_donne_au_constructeur_ne_change_plus_l_etat(self):
+        """Second cas de l'issue : l'appelant gardait une reference modifiable."""
+        x_init = np.array([[0.0, 0.0]])
+        v_init = np.zeros((1, 2))
+        r_init = np.array([0.1])
+
+        etat = State(x=x_init, v=v_init, r=r_init)
+        x_init[0, 0] = 5.0
+        v_init[0, 1] = 7.0
+        r_init[0] = 0.9
+
+        assert etat.x[0, 0] == pytest.approx(0.0)
+        assert etat.v[0, 1] == pytest.approx(0.0)
+        assert etat.r[0] == pytest.approx(0.1)
+
+    def test_un_etat_reste_lisible_et_calculable(self):
+        """Garde-fou : geler ne doit rien casser de l'usage normal."""
+        etat = State.single((1.0, 2.0), vitesse=(3.0, 4.0), rayon=0.1)
+
+        assert etat.n == 1
+        assert float(np.sum(etat.v**2)) == pytest.approx(25.0)
+        np.testing.assert_allclose(etat.x + etat.v, [[4.0, 6.0]])
+
+    def test_une_trajectoire_complete_reste_gelee(self):
+        """Chaque etat de l'historique est protege, pas seulement le dernier."""
+        etats = list(
+            simuler(
+                State.single((0.0, 0.5)),
+                dt=1e-3,
+                duree=0.05,
+                vitesse_libre=chute_libre(GRAVITE),
+            )
+        )
+
+        assert len(etats) > 10
+        for etat in etats:
+            assert not etat.x.flags.writeable
+            assert not etat.v.flags.writeable
+            assert not etat.r.flags.writeable
