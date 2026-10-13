@@ -1,0 +1,34 @@
+# Un contributeur, une identite.
+#
+# Git affiche l'auteur BRUT de chaque commit. Sans ce fichier, `git log`,
+# `git shortlog` et `git blame` comptent la meme personne plusieurs fois des
+# qu'elle a commite depuis un autre poste ou avec une autre adresse. Un
+# correcteur qui clone le depot et lance `git shortlog -sn` doit voir trois
+# contributeurs, pas six.
+#
+# Le nom retenu pour chacun est celui declare dans `pyproject.toml`, et
+# l'adresse universitaire quand elle existe : c'est sous cette identite que le
+# travail est rendu.
+#
+# Syntaxe : <identite a afficher> <identite trouvee dans les commits>
+#
+# PORTEE : ce fichier n'agit que sur les outils git locaux. L'attribution des
+# contributions SUR GitHub (graphe, compteur de commits, pastille d'auteur) ne
+# le lit pas : elle depend des adresses liees a chaque compte, qui se declarent
+# dans les reglages du compte GitHub. Les deux sont a tenir separement.
+#
+# On ne declare ici que des adresses DEJA presentes dans l'historique : ce
+# depot est public, et y ajouter une adresse personnelle qui n'y figure pas
+# l'exposerait sans rien apporter. Pour qu'un commit depuis un nouveau poste
+# soit attribue correctement, configurer `git config --global user.email` sur ce
+# poste avec une adresse liee au compte GitHub, plutot que de l'ajouter ici.
+
+Karrouchi Hamza <hamza.karrouchi@etu.unice.fr> <hamza.karrouchi.dev@gmail.com>
+Karrouchi Hamza <hamza.karrouchi@etu.unice.fr> <hamza.karrouchi@etu.unice.fr>
+
+Lesueur Shaleena <shaleena.lesueur@etu.unice.fr> <shaleena.lesueur@etu.unice.fr>
+
+# L'adresse en .local est le defaut d'un poste ou `user.email` n'etait pas
+# configure : elle n'est liee a aucun compte GitHub.
+Mongrandi Lenny <lenny.mongrandi@gmail.com> <lenny_mgrd@MacBook-Air-Lenny.local>
+Mongrandi Lenny <lenny.mongrandi@gmail.com> <lenny.mongrandi@gmail.com>
