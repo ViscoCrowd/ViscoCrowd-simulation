@@ -77,14 +77,16 @@ l'annexe du rapport sur les contributions réellement effectuées et leur propor
 
 ## Cadrage et prérequis
 
-Le jalon 3 ne démarre qu'après C1–C4 et la définition C6. La date cible ne suffit pas : les
-réponses de cadrage doivent être consignées et les correctifs #16/#17 vérifiés. Le scénario
-piscine dépend ensuite du guidage et des milieux validés. Les campagnes E1–E4 dépendent des
+Le jalon 3 ne démarre qu'après C2–C4 et la définition C6, qui dépendent toutes du groupe : la
+date cible ne suffit pas, les responsables doivent être confirmés et les correctifs #16/#17
+vérifiés. C1 dépend d'une réponse extérieure et ne bloque que ce qui en dépend réellement : la
+mesure de densité M1 (SciPy/Voronoï) et toute inclusion des chutes. Le scénario piscine dépend
+ensuite du guidage et des milieux validés. Les campagnes E1–E4 dépendent des
 mesures de densité, de l'étalonnage E0, de la maîtrise du biais #10 et de la reproductibilité.
 
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | 13–19/10/2026 | Lenny (coordination du suivi) | À compléter avant J3 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
+| C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | 13–19/10/2026 | Lenny (coordination du suivi) | À compléter ; conditionne M1 et les chutes, pas J3 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
 | C2 | Organisation | Confirmer les responsables S2–S7 et les périodes d'entreprise/congés ; ajuster la charge | S2 | 13–19/10/2026 | Lenny (coordination), accord des trois membres à recueillir | À faire | [#20], calendrier ci-dessus |
 | C3 | Moteur | Rejeter les valeurs non finies ; tests en projection stricte et permissive | S2–S3 | 13–26/10/2026 | Hamza (proposé) | À faire avant J3 | [#16] |
 | C4 | Moteur | Protéger les tableaux de State ; tester les alias d'entrée et entre états | S2–S3 | 13–26/10/2026 | Hamza (proposé) | À faire avant J3 | [#17] |

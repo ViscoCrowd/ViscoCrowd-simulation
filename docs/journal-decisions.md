@@ -16,8 +16,8 @@ Format : une entrée par décision, la plus récente en haut.
 **Cadrage.** Le statut du sujet, la trace disponible et les réponses encore manquantes sont
 centralisés dans la [fiche de cadrage](validation-sujet.md#trace-de-validation).
 Le complément de trace et les réponses de l'enseignant sont suivis dans
-l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19), cible au 19 octobre,
-avant le démarrage du jalon 3.
+l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19), cible au 19 octobre ;
+elles conditionnent la mesure de densité et l'extension aux chutes, pas le jalon 3.
 
 **Décisions collectives.** Les trois membres ont accepté Jacobi vectorisé et l'extrapolation
 de Nesterov retardée, déclenchée après 80 balayages. Jacobi est retenu pour les meilleures

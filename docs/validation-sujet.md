@@ -24,8 +24,9 @@ Un compte rendu d'accord oral suffit s'il précise ces éléments ; aucun justif
 de l'enseignant n'est présumé nécessaire. Compléter cette trace et les réponses ci-dessous
 fait l'objet de l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19),
 coordonnée par Lenny, et de la [tâche C1 du planning](planning/README.md#cadrage-et-prerequis).
-La cible est le **19 octobre 2026**, avant le démarrage du jalon 3 ; une réponse manquante
-maintient ce prérequis ouvert. Cette fiche centralise l'information ; les autres documents
+La cible est le **19 octobre 2026**. Une réponse manquante bloque ce qui en dépend, la mesure
+de densité (SciPy/Voronoï) et toute inclusion des chutes, mais pas le jalon 3, qui n'en dépend
+pas. Cette fiche centralise l'information ; les autres documents
 y renvoient.
 
 ---
