@@ -3,11 +3,30 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique · 2026-2027
 **Groupe** ViscoCrowd — Karrouchi Hamza, Lesueur Shaleena, Mongrandi Lenny
 
-> **Statut : sujet accepté par l'enseignant.**
->
-> Acceptation confirmée par le groupe. Ce document est conservé comme trace du cadrage initial
-> du projet. La confirmation a été communiquée le 13 octobre 2026 ; la date exacte de
-> l'acceptation par l'enseignant n'a pas été précisée.
+> **Statut : acceptation du sujet rapportée par le groupe ; trace de l'échange à compléter.**
+
+## Trace de validation
+
+L'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13) consigne la
+confirmation communiquée par le groupe le **13 octobre 2026**. C'est la trace du compte rendu
+du groupe, pas celle de l'échange avec l'enseignant. Elle ne permet pas de dater cet échange
+ni de vérifier qu'il a précédé l'implémentation.
+
+| Élément à consigner | Information disponible |
+|---|---|
+| Enseignant ayant donné l'accord | À préciser ; O. Pantz est l'encadrant indiqué dans le dépôt |
+| Date ou semaine de l'échange | Non renseignée ; le 13 octobre date seulement la confirmation du groupe |
+| Canal (séance, courriel, Moodle…) | Non renseigné |
+| Membre(s) ayant reçu l'accord | Non renseigné(s) |
+| Contenu de la réponse, réserves éventuelles | Acceptation générale rapportée ; formulation et réserves non renseignées |
+
+Un compte rendu d'accord oral suffit s'il précise ces éléments ; aucun justificatif écrit
+de l'enseignant n'est présumé nécessaire. Compléter cette trace et les réponses ci-dessous
+fait l'objet de l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19),
+coordonnée par Lenny, et de la [tâche C1 du planning](planning/README.md#cadrage-et-prerequis).
+La cible est le **19 octobre 2026**, avant le démarrage du jalon 3 ; une réponse manquante
+maintient ce prérequis ouvert. Cette fiche centralise l'information ; les autres documents
+y renvoient.
 
 ---
 
@@ -77,9 +96,10 @@ complet ne vaudront rien.
 
 ## Questions de cadrage initialement posées à l'enseignant
 
-Les réponses à ces questions restent à consigner lorsqu'elles sont connues. L'acceptation
-générale du sujet ne vaut pas validation explicite de chaque bibliothèque, paramètre ou
-extension du modèle.
+L'acceptation générale du sujet ne vaut pas validation explicite de chaque bibliothèque,
+paramètre ou extension du modèle. Les réponses manquantes sont suivies dans
+l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19) et la
+[tâche C1](planning/README.md#cadrage-et-prerequis), avec une échéance au **19 octobre 2026**.
 
 1. L'usage de SciPy pour le diagramme de Voronoï (calcul de la densité locale selon la méthode
    de Steffen et Seyfried) entre-t-il dans les bibliothèques généralistes autorisées ? Nous
@@ -87,3 +107,9 @@ extension du modèle.
    uniquement d'une routine de géométrie algorithmique.
 2. Le périmètre vous paraît-il correctement dimensionné pour trois personnes sur treize
    semaines, ou faut-il resserrer la question ?
+
+| Question | Réponse consignée | Conséquence tant que la réponse manque |
+|---|---|---|
+| SciPy pour Voronoï | Aucune réponse explicite disponible | SciPy est déjà une dépendance ; cela ne prouve pas l'accord pédagogique. Confirmer cet usage avant de développer la densité Voronoï ; en cas de refus, revoir la méthode et son calendrier avant les campagnes. |
+| Dimensionnement du sujet | Acceptation générale rapportée, détail de la réponse absent | Présenter le périmètre principal sans le module de chutes et confirmer qu'il est tenable. |
+| Extension aux chutes et au relevage | Addendum encore « à valider par le groupe » | Extension non programmée ; accord du groupe et avis de l'enseignant requis avant toute intégration au planning. |

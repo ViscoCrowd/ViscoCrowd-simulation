@@ -139,25 +139,28 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 
 | Jalon | Contenu | État |
 |---|---|---|
-| 0 | Socle du dépôt, méthodologie, cahier des charges | ✅ Validé — sujet accepté par l'enseignant |
+| 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
-| 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement |
+| 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
 | 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ À développer |
 | 4 | Scénario piscine complet, franchissements | ⏳ À développer |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
 | 6 | Rapport, figures finales, transparents | ⏳ À finaliser |
 
-Le sujet ViscoCrowd a été accepté par l'enseignant. Pour le jalon 2, le groupe a validé
-collectivement l'utilisation de Jacobi vectorisé et de l'extrapolation de Nesterov retardée,
-déclenchée après 80 balayages. Ces choix sont documentés dans la
-[spécification](docs/superpowers/specs/2026-10-06-viscocrowd-design.md), le
+Le statut du sujet et les questions encore ouvertes sont centralisés dans la
+[fiche de cadrage](docs/validation-sujet.md#trace-de-validation). Les choix collectifs du jalon 2
+(Jacobi vectorisé et Nesterov après 80 balayages) figurent dans le
 [journal des décisions](docs/journal-decisions.md) et l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
 
-Cette confirmation a été communiquée le 13 octobre 2026 ; la date exacte de l'acceptation par
-l'enseignant n'a pas été précisée.
+Cette validation conserve la limite de contacts multiples suivie dans
+l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10), à corriger ou à
+quantifier avant les campagnes. Le rejet des valeurs non finies
+([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
+([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) restent des prérequis au
+jalon 3 ; le lancement Docker est suivi dans [#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18).
 
-Le [planning détaillé 2026–2027 (Excel)](docs/planning/planning-viscocrowd-2026-2027.xlsx)
-est conservé dans [`docs/planning/`](docs/planning/README.md) pour le suivi du projet.
+Le [planning détaillé et daté 2026–2027](docs/planning/README.md) est la référence pour le suivi
+des tâches ; ses modifications sont relisibles dans les pull requests.
 
 ---
 

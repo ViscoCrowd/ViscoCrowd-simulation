@@ -3,10 +3,9 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique (alternance) · 2026-2027
 **Groupe** Karrouchi Hamza (`CodeByHaamza`), Lesueur Shaleena (`shalee-pnt`), Mongrandi Lenny (`lennymgrd`)
 **Date** 6 octobre 2026
-**Statut** Conception validée — sujet accepté par l'enseignant
+**Statut** Voir le [cadrage et la trace de validation](../../validation-sujet.md#trace-de-validation)
 
-Acceptation confirmée par le groupe le 13 octobre 2026 ; la date exacte de l'acceptation par
-l'enseignant n'a pas été précisée. La date ci-dessus reste celle de création du document.
+La date ci-dessus est celle de création du document.
 
 ---
 
@@ -442,19 +441,19 @@ obligatoire est le mécanisme qui garantit cette lecture partagée.
 
 ## 9. Jalons
 
-| # | Jalon | Cible |
-|---|---|---|
-| 0 | Socle du dépôt, droits, **demi-page validée par l'enseignant** | semaine 1 |
-| 1 | Moteur : semi-implicite et projection sur le domaine | semaines 2-3 |
-| 2 | Exclusion entre agents, projection itérative | semaines 4-5 |
-| 3 | Champ de guidage eikonal et milieux | semaines 6-7 |
-| 4 | Scénario piscine complet, franchissements | semaines 8-9 |
-| 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée | semaines 10-11 |
-| 6 | Rapport, figures finales, transparents | semaines 12-13 |
+| # | Jalon |
+|---|---|
+| 0 | Socle du dépôt, droits, demi-page et cadrage enseignant |
+| 1 | Moteur : semi-implicite et projection sur le domaine |
+| 2 | Exclusion entre agents, projection itérative |
+| 3 | Champ de guidage eikonal et milieux |
+| 4 | Scénario piscine complet, franchissements |
+| 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée |
+| 6 | Rapport, figures finales, transparents |
 
-**Le prérequis de validation du sujet (jalon 0) est satisfait.** L'acceptation par l'enseignant
-est confirmée par le groupe dans la [fiche de cadrage](../../validation-sujet.md). Les jalons 0,
-1 et 2 sont validés ; les jalons 3 à 6 restent à réaliser ou à finaliser (voir le README).
+Le [planning daté](../../planning/README.md) centralise les cibles, les responsables et les
+prérequis ; le [README](../../../README.md#état-davancement) résume l'avancement. Le statut
+du sujet et la trace disponible figurent dans la [fiche de cadrage](../../validation-sujet.md#trace-de-validation).
 
 ### 9.1 Échéances imposées
 
@@ -485,7 +484,7 @@ Retard non justifié : 2 points de pénalité par jour entamé.
 
 | Consigne | Traitement |
 |---|---|
-| Sujet validé avant implémentation | `docs/validation-sujet.md`, acceptation confirmée ; date exacte non précisée |
+| Sujet validé avant implémentation | [Trace à compléter](../../validation-sujet.md#trace-de-validation) ; chronologie non vérifiable avec les informations disponibles |
 | Rapport 15-20 p. : résumé, introduction, développement, conclusion, références | structure `report/sections/` |
 | Rapport en LaTeX (bonus 1 point) | `report/` et CI de compilation |
 | Validation chiffrée | § 5, et suite d'invariants en CI |
