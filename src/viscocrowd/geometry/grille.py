@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from viscocrowd.core.verifications import exiger_fini
+
 # Decalages (colonne, ligne) de la demi-voisinage : la case elle-meme et quatre voisines.
 _DECALAGES = ((0, 0), (1, 0), (-1, 1), (0, 1), (1, 1))
 
@@ -42,8 +44,7 @@ def paires_candidates(x: np.ndarray, r: np.ndarray, marge: float = 0.0) -> np.nd
     # Toute comparaison avec un NaN est fausse : aucune paire ne serait detectee, et
     # `recouvrement_max` annoncerait 0 recouvrement pour une configuration corrompue,
     # resultat indiscernable d'une configuration valide. On refuse donc l'entree.
-    if not (np.all(np.isfinite(x)) and np.all(np.isfinite(r))):
-        raise ValueError("positions et rayons doivent etre finis (ni NaN ni infini)")
+    exiger_fini("Aucune paire ne serait detectee, et le recouvrement serait mesure a 0.", x=x, r=r)
 
     n = x.shape[0]
     vide = np.empty((0, 2), dtype=np.int64)

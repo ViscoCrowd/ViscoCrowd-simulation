@@ -538,7 +538,7 @@ class TestEntreesNonFinies:
         x = np.array([[0.0, 0.0], [valeur, 0.0], [0.5, 0.5]])
         proj = ProjectionExclusion(BoiteTournante(demi_largeur=1.0).projeter, strict=strict)
 
-        with pytest.raises(ValueError, match="non finis"):
+        with pytest.raises(ValueError, match="non finies"):
             proj(x, np.full(3, 0.1), 0.0)
 
     def test_cas_de_l_issue_16_ne_compte_plus_comme_converge(self):
@@ -555,7 +555,7 @@ class TestEntreesNonFinies:
 
     def test_rayon_non_fini_rejete(self):
         x = np.array([[0.0, 0.0], [1.0, 0.0]])
-        with pytest.raises(ValueError, match="non finis"):
+        with pytest.raises(ValueError, match="non finies"):
             ProjectionExclusion()(x, np.array([0.1, np.nan]), 0.0)
 
     def test_agent_seul_non_fini_rejete(self):
@@ -563,7 +563,7 @@ class TestEntreesNonFinies:
         avoir lieu avant, sinon un agent seul a NaN passerait par la seule projection du
         domaine."""
         proj = ProjectionExclusion(BoiteTournante(demi_largeur=1.0).projeter)
-        with pytest.raises(ValueError, match="non finis"):
+        with pytest.raises(ValueError, match="non finies"):
             proj(np.array([[np.nan, 0.0]]), np.array([0.1]), 0.0)
 
     def test_vitesse_libre_qui_produit_un_nan_interrompt_le_pas(self):
@@ -571,5 +571,5 @@ class TestEntreesNonFinies:
         etat = State(x=np.array([[0.0, 0.0], [1.0, 0.0]]), v=np.zeros((2, 2)), r=np.full(2, 0.1))
         projection = ProjectionExclusion(BoiteTournante(demi_largeur=2.0).projeter, strict=True)
 
-        with pytest.raises(ValueError, match="non finis"):
+        with pytest.raises(ValueError, match="non finies"):
             pas_semi_implicite(etat, 1e-3, lambda e, _dt: np.full_like(e.v, np.nan), projection)

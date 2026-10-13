@@ -13,6 +13,8 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
+from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
+
 # Acceleration gravitationnelle terrestre, axe vertical oriente vers le haut.
 GRAVITE = np.array([0.0, -9.81])  # m/s^2
 
@@ -39,12 +41,11 @@ class State:
         if self.r.shape != (self.x.shape[0],):
             raise ValueError(f"r doit etre de forme ({self.x.shape[0]},), recu {self.r.shape}")
         # Avant le test de signe : `NaN <= 0` est faux, un rayon NaN passerait sinon.
-        for nom, tableau in (("x", self.x), ("v", self.v), ("r", self.r)):
-            if not np.all(np.isfinite(tableau)):
-                raise ValueError(
-                    f"{nom} contient des valeurs non finies (NaN ou infini) : "
-                    "un etat corrompu ne doit pas pouvoir avancer"
-                )
+        exiger_fini("Un etat corrompu ne doit pas pouvoir avancer.", x=self.x, v=self.v, r=self.r)
+        # L'instant fait partie de l'etat. Un t non fini rend la projection du
+        # domaine mobile non finie a son tour, et le diagnostic accuserait alors
+        # les positions au lieu de l'horloge.
+        exiger_scalaire_fini("t", self.t)
         if np.any(self.r <= 0.0):
             raise ValueError("tous les rayons doivent etre strictement positifs")
 
