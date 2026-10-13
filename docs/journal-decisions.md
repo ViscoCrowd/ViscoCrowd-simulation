@@ -11,6 +11,37 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-13 — Consigner le cadrage et la validation collective du jalon 2
+
+**Cadrage.** Le statut du sujet, la trace disponible et les réponses encore manquantes sont
+centralisés dans la [fiche de cadrage](validation-sujet.md#trace-de-validation).
+Le complément de trace et les réponses de l'enseignant sont suivis dans
+l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19), cible au 19 octobre ;
+elles conditionnent la mesure de densité et l'extension aux chutes, pas le jalon 3.
+
+**Décisions collectives.** Les trois membres ont accepté Jacobi vectorisé et l'extrapolation
+de Nesterov retardée, déclenchée après 80 balayages. Jacobi est retenu pour les meilleures
+performances d'exécution observées avec NumPy, malgré davantage de balayages que Gauss-Seidel ;
+cette justification concerne l'implémentation mesurée. Le rang 80 conserve le compromis mesuré
+entre performance et respect du comportement de choc mou. Les performances pourront être
+réexaminées pendant les campagnes de simulation si nécessaire.
+
+**Portée scientifique.** L'algorithme recherche une configuration admissible à la tolérance
+près, sans garantie générale d'optimalité euclidienne. Cela n'exclut pas un résultat exact dans
+certains cas, notamment pour une paire isolée. Les limites de contacts multiples suivies dans
+l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) restent à traiter.
+
+**Conséquence.** Le socle du jalon 0 est livré, sa trace de validation reste à compléter.
+Les jalons 1 et 2 sont validés avec les limites documentées ; les jalons 3 à 6 restent à
+développer ou à finaliser. Les corrections [#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)
+et [#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17) sont requises avant le
+jalon 3. Cette confirmation actualise le statut « à faire valider » de l'entrée du 12 octobre.
+L'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13) reste ouverte jusqu'à
+la fusion des mises à jour documentaires et la vérification des critères restants, dont la
+capacité de chacun à réexpliquer les choix et les mesures.
+
+---
+
 ## 2026-10-12 — Projection d'exclusion : Jacobi, pondération symétrique, extrapolation retardée
 
 **Décision.** La projection sur « pas de recouvrement » (`geometry/projection.py`) traite toutes

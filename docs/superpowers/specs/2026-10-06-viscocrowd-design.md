@@ -3,7 +3,9 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique (alternance) · 2026-2027
 **Groupe** Karrouchi Hamza (`CodeByHaamza`), Lesueur Shaleena (`shalee-pnt`), Mongrandi Lenny (`lennymgrd`)
 **Date** 6 octobre 2026
-**Statut** Conception validée — en attente de validation du sujet par l'enseignant
+**Statut** Voir le [cadrage et la trace de validation](../../validation-sujet.md#trace-de-validation)
+
+La date ci-dessus est celle de création du document.
 
 ---
 
@@ -228,6 +230,11 @@ ni « projection euclidienne sur K ».
 Choix, impasses et mesures détaillés dans le
 [journal des décisions](../../journal-decisions.md) (entrée du 12 octobre 2026).
 
+Le choix de Jacobi vectorisé et le déclenchement de Nesterov après 80 balayages ont été validés
+collectivement par les trois membres du groupe, selon la confirmation communiquée le
+13 octobre 2026. Cette décision est consignée dans le journal (entrée du 13 octobre) et dans
+l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
+
 Le critère d'arrêt est le recouvrement résiduel maximal, qui devient **l'indicateur de
 validation n°1** (§ 5). La tolérance atteinte est une grandeur à mesurer et à publier, pas à
 supposer.
@@ -434,19 +441,19 @@ obligatoire est le mécanisme qui garantit cette lecture partagée.
 
 ## 9. Jalons
 
-| # | Jalon | Cible |
-|---|---|---|
-| 0 | Socle du dépôt, droits, **demi-page validée par l'enseignant** | semaine 1 |
-| 1 | Moteur : semi-implicite et projection sur le domaine | semaines 2-3 |
-| 2 | Exclusion entre agents, projection itérative | semaines 4-5 |
-| 3 | Champ de guidage eikonal et milieux | semaines 6-7 |
-| 4 | Scénario piscine complet, franchissements | semaines 8-9 |
-| 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée | semaines 10-11 |
-| 6 | Rapport, figures finales, transparents | semaines 12-13 |
+| # | Jalon |
+|---|---|
+| 0 | Socle du dépôt, droits, demi-page et cadrage enseignant |
+| 1 | Moteur : semi-implicite et projection sur le domaine |
+| 2 | Exclusion entre agents, projection itérative |
+| 3 | Champ de guidage eikonal et milieux |
+| 4 | Scénario piscine complet, franchissements |
+| 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée |
+| 6 | Rapport, figures finales, transparents |
 
-**Le jalon 0 est bloquant.** Les consignes précisent qu'un sujet non validé « ne pourra pas être
-évalué dans de bonnes conditions ». La demi-page de validation passe avant la première ligne de
-physique.
+Le [planning daté](../../planning/README.md) centralise les cibles, les responsables et les
+prérequis ; le [README](../../../README.md#état-davancement) résume l'avancement. Le statut
+du sujet et la trace disponible figurent dans la [fiche de cadrage](../../validation-sujet.md#trace-de-validation).
 
 ### 9.1 Échéances imposées
 
@@ -477,7 +484,7 @@ Retard non justifié : 2 points de pénalité par jour entamé.
 
 | Consigne | Traitement |
 |---|---|
-| Sujet validé avant implémentation | `docs/validation-sujet.md`, jalon 0 bloquant |
+| Sujet validé avant implémentation | [Trace à compléter](../../validation-sujet.md#trace-de-validation) ; chronologie non vérifiable avec les informations disponibles |
 | Rapport 15-20 p. : résumé, introduction, développement, conclusion, références | structure `report/sections/` |
 | Rapport en LaTeX (bonus 1 point) | `report/` et CI de compilation |
 | Validation chiffrée | § 5, et suite d'invariants en CI |
