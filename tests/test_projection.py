@@ -521,3 +521,55 @@ class TestModeStrict:
 
         np.testing.assert_allclose(y, [[-0.025, 0.0], [0.175, 0.0]], atol=1e-15)
         assert proj.non_convergences == 0
+
+
+class TestEntreesNonFinies:
+    """Une entree non finie est une erreur, jamais une projection « convergee » (issue #16).
+
+    Avant correction, un NaN rendait toutes les distances incomparables : aucune paire
+    detectee, residu nul, 0 non-convergence, et l'agent ressortait avec ses deux
+    coordonnees a NaN. Une simulation corrompue affichait ainsi exactement les chiffres
+    publies comme preuve de justesse.
+    """
+
+    @pytest.mark.parametrize("strict", [True, False], ids=["strict", "permissif"])
+    @pytest.mark.parametrize("valeur", [np.nan, np.inf, -np.inf], ids=["nan", "+inf", "-inf"])
+    def test_position_non_finie_rejetee_dans_les_deux_modes(self, strict, valeur):
+        x = np.array([[0.0, 0.0], [valeur, 0.0], [0.5, 0.5]])
+        proj = ProjectionExclusion(BoiteTournante(demi_largeur=1.0).projeter, strict=strict)
+
+        with pytest.raises(ValueError, match="non finies"):
+            proj(x, np.full(3, 0.1), 0.0)
+
+    def test_cas_de_l_issue_16_ne_compte_plus_comme_converge(self):
+        """La reproduction exacte de #16 : l'appel echoue sans polluer les mesures."""
+        x = np.array([[0.0, 0.0], [np.nan, 0.0], [0.5, 0.5]])
+        proj = ProjectionExclusion(BoiteTournante(demi_largeur=1.0).projeter, strict=True)
+
+        with pytest.raises(ValueError):
+            proj(x, np.full(3, 0.1), 0.0)
+
+        assert proj.n_appels == 0
+        assert proj.non_convergences == 0
+        assert proj.recouvrement_max == 0.0
+
+    def test_rayon_non_fini_rejete(self):
+        x = np.array([[0.0, 0.0], [1.0, 0.0]])
+        with pytest.raises(ValueError, match="non finies"):
+            ProjectionExclusion()(x, np.array([0.1, np.nan]), 0.0)
+
+    def test_agent_seul_non_fini_rejete(self):
+        """Avec moins de deux agents, la recherche de paires est sautee : le controle doit
+        avoir lieu avant, sinon un agent seul a NaN passerait par la seule projection du
+        domaine."""
+        proj = ProjectionExclusion(BoiteTournante(demi_largeur=1.0).projeter)
+        with pytest.raises(ValueError, match="non finies"):
+            proj(np.array([[np.nan, 0.0]]), np.array([0.1]), 0.0)
+
+    def test_vitesse_libre_qui_produit_un_nan_interrompt_le_pas(self):
+        """Source realiste a venir : un champ de guidage mal initialise rend NaN."""
+        etat = State(x=np.array([[0.0, 0.0], [1.0, 0.0]]), v=np.zeros((2, 2)), r=np.full(2, 0.1))
+        projection = ProjectionExclusion(BoiteTournante(demi_largeur=2.0).projeter, strict=True)
+
+        with pytest.raises(ValueError, match="non finies"):
+            pas_semi_implicite(etat, 1e-3, lambda e, _dt: np.full_like(e.v, np.nan), projection)
