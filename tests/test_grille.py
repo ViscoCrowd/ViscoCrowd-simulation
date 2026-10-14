@@ -84,3 +84,19 @@ def test_position_non_finie_rejetee(valeur):
 def test_rayon_non_fini_rejete():
     with pytest.raises(ValueError, match="non finies"):
         paires_candidates(np.array([[0.0, 0.0], [1.0, 0.0]]), np.array([0.1, np.nan]))
+
+
+@pytest.mark.parametrize("marge", [np.nan, np.inf, -np.inf])
+def test_marge_non_finie_rejetee(marge):
+    """`NaN < 0` est faux : une marge NaN passait le controle de signe.
+
+    Elle contaminait ensuite le cote des cases de la grille, toutes les
+    comparaisons devenaient fausses, et une paire en recouvrement de 5 cm
+    disparaissait purement et simplement.
+    """
+    x = np.array([[0.0, 0.0], [0.15, 0.0]])
+    r = np.full(2, 0.1)
+    assert paires_candidates(x, r, 0.0).shape[0] == 1  # le recouvrement existe bien
+
+    with pytest.raises(ValueError, match="marge"):
+        paires_candidates(x, r, float(marge))

@@ -12,4 +12,4 @@ services:
     environment:
       MPLBACKEND: Agg
       # Cf. Dockerfile : le Makefile appelle $PY, et l'image n'a pas de .venv.
-      PY: python
+      VISCO_PY: python

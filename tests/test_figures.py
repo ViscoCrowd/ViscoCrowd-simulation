@@ -55,6 +55,20 @@ class TestOrdreDuSchema:
 
         assert pente == pytest.approx(1.0, abs=1e-6), f"ordre mesure {pente:.4f}"
 
+    @pytest.mark.parametrize("dt", [3e-3, 7e-4, 1.1e-3])
+    def test_un_pas_qui_ne_divise_pas_la_duree_reste_juste(self, dt):
+        """`simuler` fait `ceil(duree / dt)` pas : la trajectoire depasse la duree.
+
+        La solution exacte doit donc etre evaluee a l'instant REELLEMENT atteint.
+        Comparer a la duree demandee mesurait le decalage de dates et non
+        l'erreur du schema : a dt = 3 ms, 3,4e-2 m au lieu de 1,5e-2 m.
+        """
+        n_pas = int(np.ceil(1.0 / dt))
+        t_reel = n_pas * dt
+        attendu = abs(GRAVITE[1]) * t_reel * dt / 2.0
+
+        assert _erreur_chute_libre(dt, duree=1.0) == pytest.approx(attendu, rel=1e-9)
+
     def test_l_erreur_decroit_strictement_avec_le_pas(self):
         """Garde-fou : une erreur qui stagnerait signalerait un plancher numerique."""
         erreurs = [_erreur_chute_libre(float(dt)) for dt in sorted(CONVERGENCE_DT)]

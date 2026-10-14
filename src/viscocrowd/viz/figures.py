@@ -205,6 +205,9 @@ def figure_tassement(destination: Path) -> Path:
     """
     parametres = ParametresTassement(dt=TASSEMENT_DT, **TASSEMENT_FIGURES)
     resultat = simuler_tassement(parametres)
+    # Le titre publie un recouvrement residuel : il ne vaut que si toutes les
+    # projections ont converge.
+    resultat.projection.verifier_convergence()
     instants = [0.0, 0.3, 0.8, parametres.duree]
     demi = parametres.demi_largeur
 
@@ -251,20 +254,28 @@ def figure_tassement(destination: Path) -> Path:
 
 
 def _erreur_chute_libre(dt: float, duree: float = 1.0) -> float:
-    """Ecart a la solution CONTINUE exacte d'une chute libre, apres `duree`.
+    """Ecart a la solution CONTINUE exacte d'une chute libre.
 
     Le schema semi-implicite a sa propre solution fermee, exacte au bit pres
     (c'est ce que verifient les tests). Ici on mesure autre chose : l'ecart a la
     solution du probleme CONTINU, c'est-a-dire l'erreur de discretisation. Elle
     vaut analytiquement |g| t dt / 2, donc l'ordre 1.
+
+    La solution exacte est evaluee a l'instant REELLEMENT atteint, et non a la
+    duree demandee. `simuler` fait `ceil(duree / dt)` pas : des que dt ne divise
+    pas la duree, la trajectoire depasse. A dt = 3 ms la simulation s'arrete a
+    t = 1,002 s, et comparer sa position a la solution en t = 1 s donnait
+    3,4e-2 m au lieu de 1,5e-2 m — on mesurait alors le decalage de dates, pas
+    l'erreur du schema.
     """
-    _, x, _ = trajectoire(
+    t, x, _ = trajectoire(
         State.single((0.0, 0.0), (1.0, 0.0)),
         dt=dt,
         duree=duree,
         vitesse_libre=chute_libre(GRAVITE),
     )
-    exact = np.array([1.0 * duree, 0.5 * GRAVITE[1] * duree**2])
+    t_final = float(t[-1])
+    exact = np.array([1.0 * t_final, 0.5 * GRAVITE[1] * t_final**2])
     return float(np.linalg.norm(x[-1, 0] - exact))
 
 
@@ -276,7 +287,25 @@ def _hauteur_finale_tassement(dt: float) -> float:
     au meme instant. La hauteur moyenne du tas, elle, est une grandeur
     d'ensemble, celle que l'invariant de stabilite en dt controle deja.
     """
-    resultat = simuler_tassement(ParametresTassement(dt=dt, **TASSEMENT_FIGURES))
+    parametres = ParametresTassement(dt=dt, **TASSEMENT_FIGURES)
+    resultat = simuler_tassement(parametres)
+
+    # Une projection qui n'a pas converge laisse des agents interpenetres : la
+    # configuration n'est pas un etat physique et ne doit alimenter aucune
+    # figure. Les pas de temps fins de cette etude ne sont couverts par aucun
+    # critere de `valider-moteur`, qui n'en joue que deux.
+    resultat.projection.verifier_convergence()
+
+    # Les deux comparees doivent porter sur le MEME instant. `simuler` fait
+    # `ceil(duree / dt)` pas : si dt ne divise pas la duree, deux executions
+    # s'arretent a des dates differentes et l'ecart mesure melange la
+    # convergence et ce decalage.
+    t_final = float(resultat.t[-1])
+    if abs(t_final - parametres.duree) > 1e-12:
+        raise ValueError(
+            f"dt = {dt} ne divise pas la duree {parametres.duree} : la simulation "
+            f"s'arrete a t = {t_final}, l'ecart mesure ne serait pas comparable"
+        )
     return float(resultat.x[-1, :, 1].mean())
 
 

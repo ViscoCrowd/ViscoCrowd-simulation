@@ -15,6 +15,17 @@ name: Derive des dependances
 # branche et n'empeche aucune fusion, il dit seulement que l'ecosysteme a bouge
 # et qu'il faudra regarder avant de regenerer quoi que ce soit.
 
+# A SAVOIR AVANT DE FUSIONNER : GitHub ne lit `schedule` que sur la branche PAR
+# DEFAUT du depot, c'est-a-dire `main`. Fusionnee dans `dev`, cette planification
+# reste donc INERTE, et le job n'apparait meme pas dans l'onglet Actions. Elle ne
+# s'activera qu'au premier passage de `dev` vers `main`, au prochain jalon.
+#
+# Ce n'est pas un defaut a corriger ici — on ne peut pas planifier depuis une
+# branche non par defaut — mais il ne faut pas croire le garde-fou actif entre
+# temps. D'ici la, `workflow_dispatch` permet de le lancer a la main depuis
+# n'importe quelle branche, ce qui couvre le seul moment vraiment utile : juste
+# avant de regenerer les figures du rapport.
+
 on:
   schedule:
     # Le 1er de chaque mois a 6 h UTC. Assez tot pour que la derive se decouvre

@@ -13,7 +13,7 @@ FROM python:3.12-slim
 # PY est l'interpreteur que le Makefile appelle. Le projet est installe
 # globalement dans l'image, sans .venv : on pointe donc sur le python du
 # systeme, sinon `make valider` cherche .venv/bin/python et echoue.
-ENV MPLBACKEND=Agg     PYTHONUNBUFFERED=1     PIP_NO_CACHE_DIR=1     PY=python
+ENV MPLBACKEND=Agg     PYTHONUNBUFFERED=1     PIP_NO_CACHE_DIR=1     VISCO_PY=python
 
 RUN apt-get update  && apt-get install -y --no-install-recommends make  && rm -rf /var/lib/apt/lists/*
 

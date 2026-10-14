@@ -108,6 +108,23 @@ def simuler(
         # un resultat d'apparence valide.
         raise ValueError(f"la duree doit etre positive ou nulle, recu {duree}")
 
+    # Les controles ci-dessus sont volontairement HORS du generateur. Le corps
+    # d'une fonction a `yield` ne s'execute qu'au premier `next()` : place
+    # dedans, une validation serait differee, et `simuler(dt=NaN)` rendrait un
+    # generateur sans broncher. L'appelant qui range ce generateur pour plus tard
+    # decouvrirait l'erreur loin de l'appel fautif, ce qui est exactement ce que
+    # cette branche cherche a eviter.
+    return _etats(etat_initial, dt, duree, vitesse_libre, projection)
+
+
+def _etats(
+    etat_initial: State,
+    dt: float,
+    duree: float,
+    vitesse_libre: VitesseLibre,
+    projection: Projection | None,
+) -> Iterator[State]:
+    """Le generateur proprement dit. Ses arguments ont deja ete valides."""
     n_pas = int(np.ceil(duree / dt))
 
     etat = etat_initial
