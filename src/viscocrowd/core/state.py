@@ -20,18 +20,21 @@ GRAVITE = np.array([0.0, -9.81])  # m/s^2
 
 
 def _gele(tableau: np.ndarray) -> np.ndarray:
-    """Rend une vue en lecture seule du tableau, copiee si besoin.
+    """Isole le tableau dans une memoire immuable, partageable entre etats.
 
-    Copier n'est necessaire que si l'appelant garde une reference modifiable :
-    sans cela, `State(x=x_init, ...)` puis `x_init[0, 0] = 5` modifiait l'etat
-    apres coup. Un tableau deja en lecture seule ne peut venir que d'un autre
-    State, donc le partager ne risque rien.
+    Une vue en lecture seule peut avoir une base encore modifiable par
+    l'appelant. Le drapeau `writeable` ne suffit donc pas : on copie les
+    donnees dans un tampon `bytes`, dont le contenu ne peut plus changer.
+    Seuls les tableaux reposant deja sur un tel tampon sont partages, ce qui
+    evite de recopier les rayons a chaque appel a `advanced()`.
     """
     tableau = np.asarray(tableau, dtype=float)
-    if tableau.flags.writeable:
-        tableau = tableau.copy()
-        tableau.setflags(write=False)
-    return tableau
+    base = tableau
+    while isinstance(base, np.ndarray):
+        base = base.base
+    if isinstance(base, bytes):
+        return tableau
+    return np.frombuffer(tableau.tobytes(), dtype=tableau.dtype).reshape(tableau.shape)
 
 
 @dataclass(frozen=True)
@@ -53,10 +56,9 @@ class State:
         # modification du contenu d'un tableau NumPy : `etat.r[0] = 99` passait,
         # et comme `advanced()` partage le tableau des rayons, toute la
         # trajectoire changeait d'un coup. L'immuabilite annoncee n'existait pas.
-        # On gele donc le contenu : copie si le tableau est encore modifiable,
-        # puis passage en lecture seule. Un tableau deja gele vient forcement
-        # d'un autre State : le partager est sans danger, et evite de recopier
-        # les rayons a chaque pas de temps.
+        # On isole donc le contenu, meme pour une vue externe en lecture seule.
+        # Seule une memoire effectivement immuable peut etre partagee sans
+        # risque entre etats, notamment pour les rayons a chaque pas de temps.
         object.__setattr__(self, "x", _gele(self.x))
         object.__setattr__(self, "v", _gele(self.v))
         object.__setattr__(self, "r", _gele(self.r))
