@@ -19,6 +19,24 @@ from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
 GRAVITE = np.array([0.0, -9.81])  # m/s^2
 
 
+def _gele(tableau: np.ndarray) -> np.ndarray:
+    """Isole le tableau dans une memoire immuable, partageable entre etats.
+
+    Une vue en lecture seule peut avoir une base encore modifiable par
+    l'appelant. Le drapeau `writeable` ne suffit donc pas : on copie les
+    donnees dans un tampon `bytes`, dont le contenu ne peut plus changer.
+    Seuls les tableaux reposant deja sur un tel tampon sont partages, ce qui
+    evite de recopier les rayons a chaque appel a `advanced()`.
+    """
+    tableau = np.asarray(tableau, dtype=float)
+    base = tableau
+    while isinstance(base, np.ndarray):
+        base = base.base
+    if isinstance(base, bytes):
+        return tableau
+    return np.frombuffer(tableau.tobytes(), dtype=tableau.dtype).reshape(tableau.shape)
+
+
 @dataclass(frozen=True)
 class State:
     """Etat instantane de N particules dans le plan.
@@ -34,6 +52,17 @@ class State:
     t: float = 0.0  # s
 
     def __post_init__(self) -> None:
+        # `frozen=True` n'interdit que la REAFFECTATION d'un attribut, pas la
+        # modification du contenu d'un tableau NumPy : `etat.r[0] = 99` passait,
+        # et comme `advanced()` partage le tableau des rayons, toute la
+        # trajectoire changeait d'un coup. L'immuabilite annoncee n'existait pas.
+        # On isole donc le contenu, meme pour une vue externe en lecture seule.
+        # Seule une memoire effectivement immuable peut etre partagee sans
+        # risque entre etats, notamment pour les rayons a chaque pas de temps.
+        object.__setattr__(self, "x", _gele(self.x))
+        object.__setattr__(self, "v", _gele(self.v))
+        object.__setattr__(self, "r", _gele(self.r))
+
         if self.x.ndim != 2 or self.x.shape[1] != 2:
             raise ValueError(f"x doit etre de forme (N, 2), recu {self.x.shape}")
         if self.v.shape != self.x.shape:
