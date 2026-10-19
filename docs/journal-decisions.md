@@ -11,11 +11,11 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
-## 2026-10-19 — Donner une échelle commune au plan de la piscine
+## 2026-10-19 — Donner une échelle commune au plan et éloigner la sortie
 
 **Décision.** Remplacer les proportions libres du croquis par un dessin où une unité vaut
 un mètre. `DimensionsPlan` rassemble les dimensions provisoires : bassin 25 × 12,5 m,
-plages donnant une emprise de 35 × 20,5 m, échelle de 0,50 × 1 m, sortie de 1,20 m et rayon
+plages donnant une emprise de 48 × 20,5 m, échelle de 0,50 × 1 m, sortie de 1,20 m et rayon
 humain de référence de 0,20 m. Une barre de 5 m et un disque de diamètre 0,40 m, placé
 hors de l'emprise dans la légende, partagent les coordonnées du plan. Le panneau reprend
 le rayon de référence, le nombre d'échelles et la largeur de sortie effectivement dessinés.
@@ -25,13 +25,23 @@ personnes envisagées. Une unité commune rend leurs proportions comparables, y 
 après un zoom ou un redimensionnement de la fenêtre.
 Le bassin de 25 × 12,5 m reprend un format réel de piscine municipale, présent notamment
 à La Plaine et Mourlon selon la [Ville de Paris](https://mairie15.paris.fr/pages/equipements-sportifs-13195).
-Les plages conservent 3 m à gauche, 4 m en haut et en bas, et 7 m côté sortie ; l'emprise
-totale est calculée à partir de ces valeurs.
+Les plages conservent 3 m à gauche, 4 m en haut et en bas ; la distance du bord droit du
+bassin au mur de sortie passe de 7 à 20 m. Elle réserve de la place au futur parcours
+mouillé puis sec, y compris pour des personnes franchissant le rebord au lieu de l'échelle.
+Cette longueur reste réglable avec `plage_sortie` et l'emprise totale en découle.
+Une cote sur le plan rend cette distance lisible. Elle ne préjuge pas du temps d'évacuation.
+
+Le panneau de paramètres est replié par défaut et accessible avec un bouton dans l'en-tête.
+La vue récupère ainsi sa largeur sans réduire le bassin ni déformer les distances.
+Un clic est retenu plutôt que le survol pour pouvoir laisser les valeurs affichées.
+La bascule conserve les limites de zoom ; `afficher_parametres=True` ouvre directement
+le panneau, notamment pour les exports. Aucun paramètre physique n'est modifié par ce bouton.
 
 **Portée.** Ce sont des dimensions de travail pour l'interface, pas une calibration validée
 par le groupe. La géométrie physique commune (C6) reste à définir et à raccorder au moteur.
 Le plan reste sans population ni mouvement ; le cadre extérieur reste continu derrière
-le symbole de sortie, conformément au croquis.
+le symbole de sortie, conformément au croquis. La séparation entre sol mouillé et sol sec
+et leurs effets sur les trajectoires ne sont pas encore implémentés dans cet aperçu.
 
 ---
 

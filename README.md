@@ -101,16 +101,22 @@ La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une ima
 
 **Une unité du plan représente un mètre**, avec la même échelle horizontale et verticale.
 Les dimensions de travail sont regroupées dans `DimensionsPlan` : bassin de **25 × 12,5 m**
-dans une emprise de **35 × 20,5 m**, échelle de **0,50 m** de large et **1 m** de long,
+dans une emprise de **48 × 20,5 m**, échelle de **0,50 m** de large et **1 m** de long,
 sortie de **1,20 m**. Une barre de **5 m** et un disque de référence de **0,40 m de diamètre**,
 dessinés à la même échelle que le bassin, permettent de juger les proportions.
 Le disque est placé dans la légende : aucune population n'est ajoutée.
+La distance du bord droit du bassin au mur de sortie est de **20 m**, indiquée sur le plan
+et réglable avec `DimensionsPlan(plage_sortie=...)`. Cet espace réserve de la place au futur
+parcours sur sol mouillé puis sec ; leur séparation et leurs effets restent à définir.
 Ces dimensions sont **provisoires**, à valider pour le scénario ; cette maquette ne lance
 aucune simulation et ne présente aucun résultat physique.
 Le format du bassin reprend notamment celui des piscines municipales La Plaine et Mourlon,
 décrit par la [Ville de Paris](https://mairie15.paris.fr/pages/equipements-sportifs-13195).
 
-Le panneau de droite réserve les valeurs de population, de géométrie, des trois milieux,
+Le bouton **Afficher paramètres** déplie le panneau à droite ; **Masquer paramètres** rend
+sa largeur au plan. Le panneau est masqué à l'ouverture pour privilégier la vue d'ensemble.
+Le zoom et les valeurs sont conservés lors de la bascule, avec une échelle toujours uniforme.
+Le panneau réserve les valeurs de population, de géométrie, des trois milieux,
 des franchissements et du calcul. Le rayon de référence, le nombre d'échelles et la largeur
 de sortie reprennent le dessin ; les autres champs non renseignés affichent `—`. Le chronomètre
 en haut à droite affiche le **temps simulé**, au format minutes:secondes.centièmes ; il
@@ -124,7 +130,8 @@ from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage, Parame
 from viscocrowd.ui.piscine import ouvrir_interface
 
 ouvrir_interface(
-    dimensions=DimensionsPlan(largeur_sortie=1.2),
+    dimensions=DimensionsPlan(plage_sortie=20.0, largeur_sortie=1.2),
+    afficher_parametres=True,
     parametres=ParametresAffichage(
         nombre_agents=100,
         dt=0.01,

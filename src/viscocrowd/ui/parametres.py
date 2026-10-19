@@ -18,7 +18,7 @@ class DimensionsPlan:
     largeur_bassin: float = 12.5
     plage_gauche: float = 3.0
     plage_verticale: float = 4.0
-    plage_sortie: float = 7.0
+    plage_sortie: float = 20.0  # distance entre le bord droit du bassin et le mur de sortie
     largeur_echelle: float = 0.5
     longueur_echelle: float = 1.0
     largeur_sortie: float = 1.2

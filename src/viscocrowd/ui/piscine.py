@@ -17,6 +17,7 @@ from matplotlib.backends import backend_registry
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Rectangle
+from matplotlib.widgets import Button
 
 from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage
 
@@ -106,11 +107,40 @@ def _dessiner_parametres(ax: Axes, parametres: ParametresAffichage) -> None:
     ax.text(0, 0.025, "— : non renseigné", fontsize=8, color="white")
 
 
+def _installer_panneau_repliable(fig: Figure, plan: Axes, panneau: Axes, afficher: bool) -> None:
+    """Repartit la place sans changer les coordonnees ni le zoom du plan."""
+    separateur = Line2D(
+        [0.715, 0.715], [0.085, 0.87], transform=fig.transFigure, color="white", lw=0.6
+    )
+    fig.add_artist(separateur)
+    commande = fig.add_axes((0.65, 0.928, 0.16, 0.044), label="commande_parametres")
+    bouton = Button(commande, "", color="black", hovercolor="0.15")
+    bouton.label.set(color="white", fontsize=9)
+    for bord in commande.spines.values():
+        bord.set(color="white", linewidth=0.6)
+
+    def afficher_panneau(visible: bool) -> None:
+        panneau.set_visible(visible)
+        separateur.set_visible(visible)
+        plan.set_position((0.035, 0.10, 0.65 if visible else 0.93, 0.77))
+        bouton.label.set_text("Masquer paramètres" if visible else "Afficher paramètres")
+
+    def basculer(_evenement: object) -> None:
+        afficher_panneau(not panneau.get_visible())
+        fig.canvas.draw_idle()
+
+    afficher_panneau(afficher)
+    bouton.on_clicked(basculer)
+    # Matplotlib demande de conserver le widget pour maintenir ses callbacks actifs.
+    fig._bouton_parametres = bouton
+
+
 def creer_figure(
     *,
     parametres: ParametresAffichage | None = None,
     temps_simule: float = 0.0,
     dimensions: DimensionsPlan | None = None,
+    afficher_parametres: bool = False,
 ) -> Figure:
     """Construit le plan et ses annotations, sans lancer de simulation.
 
@@ -121,6 +151,8 @@ def creer_figure(
             pas du temps ecoule depuis l'ouverture de la fenetre.
         dimensions: dimensions de travail en metres, partagees par le dessin,
             les annotations et le panneau. Elles ne lancent aucun calcul physique.
+        afficher_parametres: ouvre le panneau des la creation. Le bouton permet
+            ensuite de l'afficher ou le masquer, sans modifier les valeurs.
     """
     chronometre = _formater_temps(temps_simule)
     dimensions = dimensions or DimensionsPlan()
@@ -131,9 +163,10 @@ def creer_figure(
         largeur_sortie=dimensions.largeur_sortie,
     )
     fig = plt.figure(figsize=(14, 8), facecolor="black")
-    ax = fig.add_axes((0.035, 0.10, 0.65, 0.77), anchor="N")
-    panneau = fig.add_axes((0.745, 0.07, 0.22, 0.80))
+    ax = fig.add_axes((0.035, 0.10, 0.93, 0.77), anchor="N", label="plan")
+    panneau = fig.add_axes((0.745, 0.07, 0.22, 0.80), label="parametres")
     _dessiner_parametres(panneau, parametres)
+    _installer_panneau_repliable(fig, ax, panneau, afficher_parametres)
     fig.text(0.04, 0.945, "ViscoCrowd — Vue en plan", fontsize=12, color="white")
     fig.text(0.965, 0.965, "TEMPS SIMULÉ", ha="right", fontsize=8, color="white")
     fig.text(
@@ -147,9 +180,6 @@ def creer_figure(
     )
     fig.add_artist(
         Line2D([0.035, 0.965], [0.90, 0.90], transform=fig.transFigure, color="white", lw=0.6)
-    )
-    fig.add_artist(
-        Line2D([0.715, 0.715], [0.085, 0.87], transform=fig.transFigure, color="white", lw=0.6)
     )
 
     # Bassin, passages et repere humain utilisent tous la meme unite : le metre.
@@ -235,6 +265,25 @@ def creer_figure(
         color="white",
     )
 
+    # Coter la distance reelle au mur, independamment de la place prise par le panneau.
+    bord_bassin = x_bassin + dimensions.longueur_bassin
+    ax.annotate(
+        "",
+        xy=(longueur, 1.8),
+        xytext=(bord_bassin, 1.8),
+        arrowprops={"arrowstyle": "<->", "color": "white", "lw": 0.7, "shrinkA": 0, "shrinkB": 0},
+    )
+    for x in (bord_bassin, longueur):
+        ax.plot([x, x], [1.4, 2.2], color="white", lw=0.7)
+    ax.text(
+        (bord_bassin + longueur) / 2,
+        2.5,
+        f"Bassin → sortie · {_formater_valeur(dimensions.plage_sortie)} m",
+        ha="center",
+        fontsize=9,
+        color="white",
+    )
+
     # Repere d'orientation, distinct de la barre d'echelle sous le plan.
     for extremite in ((2.4, 0.9), (0.9, 2.1)):
         ax.annotate(
@@ -275,6 +324,7 @@ def ouvrir_interface(
     parametres: ParametresAffichage | None = None,
     temps_simule: float = 0.0,
     dimensions: DimensionsPlan | None = None,
+    afficher_parametres: bool = False,
 ) -> int:
     """Affiche la maquette dans une fenetre locale avec zoom et deplacement."""
     # Conserver le backend choisi par Matplotlib, notamment Cocoa sur macOS.
@@ -289,7 +339,12 @@ def ouvrir_interface(
         )
         return 1
 
-    fig = creer_figure(parametres=parametres, temps_simule=temps_simule, dimensions=dimensions)
+    fig = creer_figure(
+        parametres=parametres,
+        temps_simule=temps_simule,
+        dimensions=dimensions,
+        afficher_parametres=afficher_parametres,
+    )
     fig.canvas.manager.set_window_title("ViscoCrowd · Aperçu de la piscine")
     plt.show(block=True)
     return 0
