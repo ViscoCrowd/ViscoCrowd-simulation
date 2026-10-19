@@ -305,6 +305,55 @@ class TestImmuabiliteReelle:
         assert etat.v[0, 1] == pytest.approx(0.0)
         assert etat.r[0] == pytest.approx(0.1)
 
+    @pytest.mark.parametrize("champ", ["x", "v", "r"])
+    @pytest.mark.parametrize("non_contigue", [False, True])
+    def test_une_vue_en_lecture_seule_reste_isolee_de_sa_base(self, champ, non_contigue):
+        """Le drapeau de la vue ne protege pas la memoire detenue par l'appelant."""
+        tableaux = {
+            "x": np.array([[1.0, 2.0], [3.0, 4.0]]),
+            "v": np.zeros((2, 2)),
+            "r": np.array([0.1, 0.2]),
+        }
+        attendu = tableaux[champ].copy()
+        origine = np.repeat(attendu, 2, axis=0) if non_contigue else attendu.copy()
+        vue = origine[::2] if non_contigue else origine.view()
+        vue.setflags(write=False)
+        tableaux[champ] = vue
+
+        etat = State(**tableaux)
+        origine.flat[0] = 99.0
+
+        np.testing.assert_array_equal(getattr(etat, champ), attendu)
+        assert not getattr(etat, champ).flags.writeable
+
+    def test_modifier_la_base_des_rayons_preserve_tout_l_historique(self):
+        origine = np.array([0.1])
+        vue = origine.view()
+        vue.setflags(write=False)
+        e0 = State(x=np.zeros((1, 2)), v=np.zeros((1, 2)), r=vue)
+        e1 = e0.advanced(x=np.array([[1.0, 0.0]]), v=np.zeros((1, 2)), t=0.1)
+        e2 = e1.advanced(x=np.array([[2.0, 0.0]]), v=np.zeros((1, 2)), t=0.2)
+
+        origine[0] = 99.0
+
+        for etat in (e0, e1, e2):
+            np.testing.assert_array_equal(etat.r, [0.1])
+        assert e0.r is e1.r is e2.r
+
+    @pytest.mark.parametrize("champ", ["x", "v"])
+    def test_advanced_isole_aussi_les_vues_externes(self, champ):
+        e0 = State.single((0.0, 0.0))
+        origine = np.array([[1.0, 2.0]])
+        vue = origine.view()
+        vue.setflags(write=False)
+        tableaux = {"x": np.zeros((1, 2)), "v": np.zeros((1, 2))}
+        tableaux[champ] = vue
+
+        e1 = e0.advanced(**tableaux, t=0.1)
+        origine[0, 0] = 99.0
+
+        np.testing.assert_array_equal(getattr(e1, champ), [[1.0, 2.0]])
+
     def test_un_etat_reste_lisible_et_calculable(self):
         """Garde-fou : geler ne doit rien casser de l'usage normal."""
         etat = State.single((1.0, 2.0), vitesse=(3.0, 4.0), rayon=0.1)
