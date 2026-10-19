@@ -84,7 +84,7 @@ jobs:
         run: docker build -t viscocrowd:ci .
 
       # `make valider` est la commande que documentent le README et la spec.
-      # Elle appelle $(PY), que l'image fixe a `python` faute de .venv.
+      # Elle appelle $(VISCO_PY), que l'image fixe a `python` faute de .venv.
       - name: Rejouer la validation par make, dans l'image
         run: docker run --rm viscocrowd:ci make valider
 

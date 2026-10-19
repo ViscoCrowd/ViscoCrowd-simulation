@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from viscocrowd.core.verifications import exiger_fini
+from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
 
 # Decalages (colonne, ligne) de la demi-voisinage : la case elle-meme et quatre voisines.
 _DECALAGES = ((0, 0), (1, 0), (-1, 1), (0, 1), (1, 1))
@@ -39,6 +39,12 @@ def paires_candidates(x: np.ndarray, r: np.ndarray, marge: float = 0.0) -> np.nd
     Returns:
         Tableau d'entiers de forme (M, 2), trie par i puis j. Vide si M = 0.
     """
+    # Ecrit en deux temps, et pas `if marge < 0.0` : `NaN < 0` est faux, une marge
+    # NaN passait donc le controle, puis contaminait le cote des cases. Toutes les
+    # comparaisons devenaient fausses et une paire en recouvrement de 5 cm
+    # disparaissait purement et simplement — le defaut meme que cette branche
+    # corrige ailleurs, reste ici.
+    exiger_scalaire_fini("la marge", marge)
     if marge < 0.0:
         raise ValueError(f"la marge doit etre positive ou nulle, recu {marge}")
     # Toute comparaison avec un NaN est fausse : aucune paire ne serait detectee, et

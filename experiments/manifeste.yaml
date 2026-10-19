@@ -75,3 +75,44 @@ figures:
       instants: [0.0, 1.0, 5.0, 20.0]   # s
     graine: null
     resultat_attendu: "bille calee dans un coin, a sqrt(2) * (R - r) = 1,3435 m du centre"
+
+  - identifiant: fig05_tassement
+    titre: "Instantanes de l'empilement de 36 disques"
+    section_rapport: "Validation"
+    produite_par: "viscocrowd valider-moteur --figures"
+    scenario: tassement
+    parametres:
+      n_agents: 36
+      demi_largeur: 1.0              # R, m
+      rayon: 0.07                    # r, m
+      dt: 2.0e-3                     # s
+      duree: 2.5                     # s
+      tolerance: 1.0e-6              # recouvrement residuel accepte, m
+      instants: [0.0, 0.3, 0.8, 2.5] # s
+    graine: 1                        # positions initiales bruitees : graine declaree
+    resultat_attendu: >
+      les disques tombent et s'empilent sans se recouvrir ; recouvrement residuel
+      maximal de l'ordre de 1e-6 m, soit 1e-5 rayon ; les rangees de depart
+      restent globalement ordonnees, la pile ne s'inverse pas
+
+  - identifiant: fig06_convergence_dt
+    titre: "Ordre de convergence en pas de temps, avec et sans contacts"
+    section_rapport: "Validation"
+    produite_par: "viscocrowd valider-moteur --figures"
+    scenario: [chute_libre, tassement]
+    parametres:
+      dt: [4.0e-3, 2.0e-3, 1.0e-3, 5.0e-4, 2.5e-4]   # s, un point par valeur
+      chute_libre:
+        position_initiale: [0.0, 0.0]   # m
+        vitesse_initiale: [1.0, 0.0]    # m/s
+        duree: 1.0                      # s
+      tassement:
+        n_agents: 36
+        rayon: 0.07
+        duree: 2.5
+    graine: 1                        # pour le volet tassement uniquement
+    resultat_attendu: >
+      sans contact, erreur egale a |g| t dt / 2 a mieux que 1e-9 en relatif, donc
+      ordre 1 exactement ; avec contacts, auto-convergence de pente mesuree ~1,4,
+      l'erreur etant deja sous 4 micrometres et dominee par les rearrangements
+      discrets de contacts

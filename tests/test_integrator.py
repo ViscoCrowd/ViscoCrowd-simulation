@@ -159,6 +159,20 @@ class TestParametresNonFinis:
         with pytest.raises(ValueError, match="duree"):
             list(simuler(self._etat(), 1e-3, float(duree), lambda e, _dt: e.v))
 
+    @pytest.mark.parametrize(
+        ("dt", "duree", "motif"),
+        [(np.nan, 1.0, "pas de temps"), (1e-3, -1.0, "duree"), (0.0, 1.0, "pas de temps")],
+    )
+    def test_simuler_valide_des_l_appel_et_non_au_premier_pas(self, dt, duree, motif):
+        """Le corps d'un generateur ne s'execute qu'au premier `next()`.
+
+        Les controles sont donc places HORS du generateur. Sans cela,
+        `simuler(dt=NaN)` rendait un objet sans broncher, et l'appelant qui le
+        range pour plus tard decouvrait l'erreur loin de l'appel fautif.
+        """
+        with pytest.raises(ValueError, match=motif):
+            simuler(self._etat(), float(dt), float(duree), lambda e, _dt: e.v)
+
     def test_duree_nulle_rend_le_seul_etat_initial(self):
         """Cas limite legitime, a distinguer d'une duree negative : il reste accepte."""
         etats = list(simuler(self._etat(), 1e-3, 0.0, lambda e, _dt: e.v))
