@@ -10,7 +10,7 @@ FROM python:3.12-slim
 
 # Backend matplotlib hors ecran, et sortie Python non tamponnee pour que les
 # logs apparaissent en direct dans la console.
-# PY est l'interpreteur que le Makefile appelle. Le projet est installe
+# VISCO_PY est l'interpreteur que le Makefile appelle. Le projet est installe
 # globalement dans l'image, sans .venv : on pointe donc sur le python du
 # systeme, sinon `make valider` cherche .venv/bin/python et echoue.
 ENV MPLBACKEND=Agg     PYTHONUNBUFFERED=1     PIP_NO_CACHE_DIR=1     VISCO_PY=python

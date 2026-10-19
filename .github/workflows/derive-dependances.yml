@@ -20,11 +20,13 @@ name: Derive des dependances
 # reste donc INERTE, et le job n'apparait meme pas dans l'onglet Actions. Elle ne
 # s'activera qu'au premier passage de `dev` vers `main`, au prochain jalon.
 #
-# Ce n'est pas un defaut a corriger ici — on ne peut pas planifier depuis une
-# branche non par defaut — mais il ne faut pas croire le garde-fou actif entre
-# temps. D'ici la, `workflow_dispatch` permet de le lancer a la main depuis
-# n'importe quelle branche, ce qui couvre le seul moment vraiment utile : juste
-# avant de regenerer les figures du rapport.
+# `workflow_dispatch` exige lui aussi que ce fichier existe sur `main` : le
+# lancement manuel ne contourne donc pas cette attente. Une fois le workflow
+# present sur `main`, on pourra choisir `dev` pour une execution manuelle :
+#   gh workflow run derive-dependances.yml --ref dev
+# D'ici la, rejouer les commandes ci-dessous dans un environnement neuf pour
+# verifier les dernieres versions avant de regenerer les figures du rapport.
+# https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow
 
 on:
   schedule:
