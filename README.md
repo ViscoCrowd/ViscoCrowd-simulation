@@ -98,11 +98,21 @@ un bassin noir à contour blanc, une échelle à barreaux et une sortie unique �
 Le cadre extérieur reste continu derrière la sortie. Un petit repère indique les
 directions x et y. Les différents sols ne sont pas encore détaillés.
 La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une image.
-Les dimensions sont indicatives : cette maquette ne lance aucune simulation et ne
-présente aucun résultat physique.
+
+**Une unité du plan représente un mètre**, avec la même échelle horizontale et verticale.
+Les dimensions de travail sont regroupées dans `DimensionsPlan` : bassin de **25 × 12,5 m**
+dans une emprise de **35 × 20,5 m**, échelle de **0,50 m** de large et **1 m** de long,
+sortie de **1,20 m**. Une barre de **5 m** et un disque de référence de **0,40 m de diamètre**,
+dessinés à la même échelle que le bassin, permettent de juger les proportions.
+Le disque est placé dans la légende : aucune population n'est ajoutée.
+Ces dimensions sont **provisoires**, à valider pour le scénario ; cette maquette ne lance
+aucune simulation et ne présente aucun résultat physique.
+Le format du bassin reprend notamment celui des piscines municipales La Plaine et Mourlon,
+décrit par la [Ville de Paris](https://mairie15.paris.fr/pages/equipements-sportifs-13195).
 
 Le panneau de droite réserve les valeurs de population, de géométrie, des trois milieux,
-des franchissements et du calcul. Les champs non renseignés affichent `—`. Le chronomètre
+des franchissements et du calcul. Le rayon de référence, le nombre d'échelles et la largeur
+de sortie reprennent le dessin ; les autres champs non renseignés affichent `—`. Le chronomètre
 en haut à droite affiche le **temps simulé**, au format minutes:secondes.centièmes ; il
 reste à zéro par défaut et ne compte pas le temps d'ouverture de la fenêtre.
 
@@ -110,10 +120,11 @@ Les valeurs pourront être fournies directement en arguments. Exemple d'affichag
 (ces nombres ne constituent pas une calibration du modèle) :
 
 ```python
-from viscocrowd.ui.parametres import ParametresAffichage, ParametresMilieu
+from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage, ParametresMilieu
 from viscocrowd.ui.piscine import ouvrir_interface
 
 ouvrir_interface(
+    dimensions=DimensionsPlan(largeur_sortie=1.2),
     parametres=ParametresAffichage(
         nombre_agents=100,
         dt=0.01,
@@ -125,7 +136,10 @@ ouvrir_interface(
 ```
 
 `creer_figure()` accepte les mêmes arguments pour construire la vue sans lancer sa boucle
-graphique. Les valeurs annotent le schéma ; elles ne modifient pas encore sa disposition.
+graphique. `DimensionsPlan` commande les dimensions du dessin et ses annotations : changer
+la largeur de sortie ajuste aussi son symbole et le panneau. Les valeurs de rayon, nombre
+d'échelles et largeur de sortie éventuellement fournies dans `ParametresAffichage` sont
+remplacées par celles du dessin. Les autres valeurs restent des annotations.
 
 L'affichage utilise Matplotlib, déjà présent dans le projet, et reste isolé dans
 `src/viscocrowd/ui/`. Il nécessite un environnement graphique local : macOS utilise

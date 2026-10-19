@@ -1,13 +1,14 @@
 """Premier apercu de la piscine, vu du dessus.
 
-Les coordonnees servent uniquement a la mise en page de cette maquette : elles
-ne definissent ni une geometrie physique ni des parametres de simulation.
+Une unite du plan represente un metre, pour comparer bassin, passages et
+taille humaine. Ces dimensions de travail restent a valider pour le scenario.
 """
 
 from __future__ import annotations
 
 import math
 import sys
+from dataclasses import replace
 from numbers import Integral
 
 import matplotlib.pyplot as plt
@@ -15,9 +16,9 @@ from matplotlib.axes import Axes
 from matplotlib.backends import backend_registry
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Circle, Rectangle
 
-from viscocrowd.ui.parametres import ParametresAffichage
+from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage
 
 
 def _formater_valeur(valeur: int | float | None) -> str:
@@ -106,20 +107,33 @@ def _dessiner_parametres(ax: Axes, parametres: ParametresAffichage) -> None:
 
 
 def creer_figure(
-    *, parametres: ParametresAffichage | None = None, temps_simule: float = 0.0
+    *,
+    parametres: ParametresAffichage | None = None,
+    temps_simule: float = 0.0,
+    dimensions: DimensionsPlan | None = None,
 ) -> Figure:
     """Construit le plan et ses annotations, sans lancer de simulation.
 
     Args:
-        parametres: valeurs facultatives du panneau ; vides par defaut.
+        parametres: valeurs facultatives du panneau. Le rayon de reference,
+            le nombre d'echelles et la largeur de sortie sont ceux du plan dessine.
         temps_simule: temps physique a afficher, en secondes. Il ne depend
             pas du temps ecoule depuis l'ouverture de la fenetre.
+        dimensions: dimensions de travail en metres, partagees par le dessin,
+            les annotations et le panneau. Elles ne lancent aucun calcul physique.
     """
     chronometre = _formater_temps(temps_simule)
+    dimensions = dimensions or DimensionsPlan()
+    parametres = replace(
+        parametres or ParametresAffichage(),
+        rayon_agents=dimensions.rayon_reference,
+        nombre_echelles=1,
+        largeur_sortie=dimensions.largeur_sortie,
+    )
     fig = plt.figure(figsize=(14, 8), facecolor="black")
     ax = fig.add_axes((0.035, 0.10, 0.65, 0.77), anchor="N")
     panneau = fig.add_axes((0.745, 0.07, 0.22, 0.80))
-    _dessiner_parametres(panneau, parametres or ParametresAffichage())
+    _dessiner_parametres(panneau, parametres)
     fig.text(0.04, 0.945, "ViscoCrowd — Vue en plan", fontsize=12, color="white")
     fig.text(0.965, 0.965, "TEMPS SIMULÉ", ha="right", fontsize=8, color="white")
     fig.text(
@@ -138,27 +152,90 @@ def creer_figure(
         Line2D([0.715, 0.715], [0.085, 0.87], transform=fig.transFigure, color="white", lw=0.6)
     )
 
-    # Le bassin et les deux passages reprennent le croquis de reference.
-    # Leur position est indicative ; aucune dimension physique n'est imposee.
+    # Bassin, passages et repere humain utilisent tous la meme unite : le metre.
+    x_bassin, y_bassin = dimensions.plage_gauche, dimensions.plage_verticale
+    longueur, largeur = dimensions.longueur_totale, dimensions.largeur_totale
     ax.add_patch(
-        Rectangle((2, 2.8), 19.5, 10.5, facecolor="black", edgecolor="white", linewidth=2.4)
+        Rectangle(
+            (x_bassin, y_bassin),
+            dimensions.longueur_bassin,
+            dimensions.largeur_bassin,
+            facecolor="black",
+            edgecolor="white",
+            linewidth=2,
+        )
     )
-    ax.text(11.75, 8.05, "Piscine", ha="center", va="center", fontsize=14, color="white")
+    ax.text(
+        x_bassin,
+        y_bassin + dimensions.largeur_bassin + 0.8,
+        f"Piscine · {_formater_valeur(dimensions.longueur_bassin)} \N{MULTIPLICATION SIGN} "
+        f"{_formater_valeur(dimensions.largeur_bassin)} m",
+        va="bottom",
+        fontsize=11,
+        color="white",
+    )
 
     # Masquer le rebord sous l'echelle, puis dessiner les montants et les barreaux.
-    ax.add_patch(Rectangle((19.15, 11.2), 1.4, 3.3, facecolor="black", edgecolor="none"))
-    for x in (19.35, 20.35):
-        ax.plot([x, x], [11.4, 14.3], color="white", lw=2, solid_capstyle="round")
-    for y in (11.65, 12.2, 12.75, 13.3, 13.85):
-        ax.plot([19.35, 20.35], [y, y], color="white", lw=1.6)
-    ax.text(19.85, 14.85, "Échelle", ha="center", fontsize=10, color="white")
+    x_echelle = x_bassin + 0.9 * dimensions.longueur_bassin
+    y_echelle = y_bassin + dimensions.largeur_bassin
+    gauche = x_echelle - dimensions.largeur_echelle / 2
+    droite = x_echelle + dimensions.largeur_echelle / 2
+    bas = y_echelle - dimensions.longueur_echelle / 2
+    haut = y_echelle + dimensions.longueur_echelle / 2
+    ax.add_patch(
+        Rectangle(
+            (gauche, bas),
+            dimensions.largeur_echelle,
+            dimensions.longueur_echelle,
+            facecolor="black",
+            edgecolor="none",
+        )
+    )
+    for x in (gauche, droite):
+        ax.plot([x, x], [bas, haut], color="white", lw=1.4, solid_capstyle="round")
+    for fraction in (0.15, 0.38, 0.62, 0.85):
+        y = bas + fraction * dimensions.longueur_echelle
+        ax.plot([gauche, droite], [y, y], color="white", lw=1)
+    ax.text(
+        x_echelle,
+        haut + 0.6,
+        f"Échelle\n{_formater_valeur(dimensions.largeur_echelle)} m",
+        ha="center",
+        va="bottom",
+        fontsize=9,
+        color="white",
+    )
 
     # Le cadre reste continu derriere le symbole de sortie.
-    ax.add_patch(Rectangle((0, 0), 30, 17, fill=False, edgecolor="white", linewidth=1))
-    ax.plot([30, 27.8, 27.8, 30], [7, 7, 10, 10], color="white", lw=1.4)
-    ax.text(28.9, 8.5, "Sortie", ha="center", va="center", rotation=270, fontsize=10, color="white")
+    ax.add_patch(Rectangle((0, 0), longueur, largeur, fill=False, edgecolor="white", linewidth=1))
+    bas_sortie = (largeur - dimensions.largeur_sortie) / 2
+    haut_sortie = bas_sortie + dimensions.largeur_sortie
+    x_sortie = longueur - dimensions.largeur_sortie / 2
+    ax.plot(
+        [longueur, x_sortie, x_sortie, longueur],
+        [bas_sortie, bas_sortie, haut_sortie, haut_sortie],
+        color="white",
+        lw=1.4,
+    )
+    ax.text(
+        x_sortie - 0.5,
+        largeur / 2,
+        f"Sortie\n{_formater_valeur(dimensions.largeur_sortie)} m",
+        ha="right",
+        va="center",
+        fontsize=10,
+        color="white",
+    )
+    ax.text(
+        0,
+        largeur + 0.6,
+        f"Emprise · {_formater_valeur(longueur)} \N{MULTIPLICATION SIGN} "
+        f"{_formater_valeur(largeur)} m",
+        fontsize=9,
+        color="white",
+    )
 
-    # Repere d'orientation sans graduation, les dimensions n'etant pas calibrees.
+    # Repere d'orientation, distinct de la barre d'echelle sous le plan.
     for extremite in ((2.4, 0.9), (0.9, 2.1)):
         ax.annotate(
             "",
@@ -169,14 +246,35 @@ def creer_figure(
     ax.text(2.6, 0.9, "$x$", va="center", fontsize=10, color="white")
     ax.text(0.9, 2.3, "$y$", ha="center", fontsize=10, color="white")
 
-    ax.set(xlim=(-0.2, 30.2), ylim=(-0.2, 17.2), aspect="equal")
+    # Ces reperes sont dans le MEME axe que le bassin : ils suivent son zoom
+    # et son redimensionnement. Le disque est une reference, pas un agent ajoute.
+    ax.plot([0, 5], [-1.2, -1.2], color="white", lw=1.4)
+    for x, etiquette in ((0, "0"), (5, "5 m")):
+        ax.plot([x, x], [-1.35, -1.05], color="white", lw=1)
+        ax.text(x, -1.7, etiquette, ha="center", fontsize=9, color="white")
+    ax.add_patch(
+        Circle((10, -1.2), dimensions.rayon_reference, facecolor="white", edgecolor="none")
+    )
+    ax.text(
+        10 + dimensions.rayon_reference + 0.4,
+        -1.2,
+        f"Personne · diamètre {_formater_valeur(2 * dimensions.rayon_reference)} m",
+        va="center",
+        fontsize=9,
+        color="white",
+    )
+
+    ax.set(xlim=(-0.6, longueur + 0.6), ylim=(-2.3, largeur + 1.3), aspect="equal")
     ax.set_axis_off()
-    fig.text(0.04, 0.025, "Schéma géométrique · Dimensions indicatives", fontsize=8, color="white")
+    fig.text(0.04, 0.025, "Vue en mètres · Dimensions provisoires", fontsize=8, color="white")
     return fig
 
 
 def ouvrir_interface(
-    *, parametres: ParametresAffichage | None = None, temps_simule: float = 0.0
+    *,
+    parametres: ParametresAffichage | None = None,
+    temps_simule: float = 0.0,
+    dimensions: DimensionsPlan | None = None,
 ) -> int:
     """Affiche la maquette dans une fenetre locale avec zoom et deplacement."""
     # Conserver le backend choisi par Matplotlib, notamment Cocoa sur macOS.
@@ -191,7 +289,7 @@ def ouvrir_interface(
         )
         return 1
 
-    fig = creer_figure(parametres=parametres, temps_simule=temps_simule)
+    fig = creer_figure(parametres=parametres, temps_simule=temps_simule, dimensions=dimensions)
     fig.canvas.manager.set_window_title("ViscoCrowd · Aperçu de la piscine")
     plt.show(block=True)
     return 0
