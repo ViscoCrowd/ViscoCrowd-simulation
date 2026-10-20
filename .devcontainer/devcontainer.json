@@ -14,8 +14,7 @@
         "python.testing.pytestEnabled": true,
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "charliermarsh.ruff",
-        "files.eol": "
-"
+        "files.eol": "\n"
       }
     }
   }
