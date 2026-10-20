@@ -29,7 +29,7 @@ Ce qui est GARANTI
    Jamais suppose : mesure et publie (`recouvrement_max`, `iterations_max`).
 2. *Parois exactes.* Le domaine etant reprojete en dernier, les contraintes de
    paroi sont respectees a la precision machine, meme quand la projection echoue.
-3. *Un contact qui se resout en moins de 40 balayages n'est jamais extrapole.*
+3. *Un contact qui se resout en moins de 80 balayages n'est jamais extrapole.*
    L'acceleration ne s'allume qu'au rang `_RANG_EXTRAPOLATION`, et la correction
    vaut exactement le recouvrement : un choc entre quelques agents suit donc la
    loi de choc mou, sans rebond artificiel (section « extrapolation » plus bas).
@@ -360,7 +360,7 @@ class ProjectionExclusion:
                 # disques au-dela du contact : un choc isole doit rester exact, seules
                 # les longues chaines de contacts ont besoin d'etre accelerees.
                 # La rampe de Nesterov repart de zero au declenchement : un saut
-                # direct a beta = 0,93 depasserait largement le contact.
+                # direct a beta = 80/83 = 0,96 depasserait largement le contact.
                 k = rang - _RANG_EXTRAPOLATION
                 beta = k / (k + 3.0) if k > 0 else 0.0
                 y = x + beta * (x - x_precedent)
