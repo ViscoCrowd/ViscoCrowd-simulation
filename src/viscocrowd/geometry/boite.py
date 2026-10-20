@@ -41,8 +41,11 @@ class BoiteTournante:
     theta0: float = 0.0
 
     def __post_init__(self) -> None:
-        if self.demi_largeur <= 0.0:
-            raise ValueError("la demi-largeur doit etre strictement positive")
+        # Forme positive : `NaN <= 0` est faux, une demi-largeur NaN passait sinon.
+        if not (np.isfinite(self.demi_largeur) and self.demi_largeur > 0.0):
+            raise ValueError(
+                f"la demi-largeur doit etre finie et strictement positive, recu {self.demi_largeur}"
+            )
 
     def theta(self, t: float) -> float:
         """Angle de la boite au temps t, en radians."""

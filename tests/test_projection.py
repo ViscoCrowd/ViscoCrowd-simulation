@@ -199,11 +199,29 @@ class TestLimites:
 
     @pytest.mark.parametrize(
         ("kwargs", "message"),
-        [({"tolerance": 0.0}, "tolerance"), ({"iterations": 0}, "iteration")],
+        [
+            ({"tolerance": 0.0}, "tolerance"),
+            # `NaN <= 0` est faux : une tolerance NaN passait le controle, puis
+            # `residu > NaN` etant faux lui aussi, tout appel se declarait converge.
+            ({"tolerance": np.nan}, "tolerance"),
+            ({"tolerance": np.inf}, "tolerance"),
+            ({"iterations": 0}, "iteration"),
+            # Un budget NaN passait `iterations < 1`, aucun balayage ne se faisait,
+            # et la boucle de recherche des paires tournait sans fin des le premier
+            # recouvrement.
+            ({"iterations": np.nan}, "iteration"),
+            ({"iterations": 2.5}, "iteration"),
+        ],
     )
     def test_parametres_invalides(self, kwargs, message):
         with pytest.raises(ValueError, match=message):
             ProjectionExclusion(**kwargs)
+
+    @pytest.mark.parametrize("demi_largeur", [0.0, -1.0, np.nan, np.inf])
+    def test_boite_de_demi_largeur_invalide_rejetee(self, demi_largeur):
+        """Une boite NaN rendait des positions NaN, refusees bien plus loin, sans cause."""
+        with pytest.raises(ValueError, match="demi-largeur"):
+            BoiteTournante(demi_largeur=demi_largeur)
 
 
 def _gauss_seidel(x, r, tolerance=TOLERANCE, budget=20000):
