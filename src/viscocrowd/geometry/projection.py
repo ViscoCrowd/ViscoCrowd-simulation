@@ -161,6 +161,7 @@ dissipation d'ensemble ne peut les masquer.
 from __future__ import annotations
 
 from collections.abc import Callable
+from numbers import Integral
 
 import numpy as np
 
@@ -289,10 +290,19 @@ class ProjectionExclusion:
                 l'echec. Sans ce mode, appeler `verifier_convergence()` apres la
                 simulation.
         """
-        if tolerance <= 0.0:
-            raise ValueError(f"la tolerance doit etre strictement positive, recu {tolerance}")
-        if iterations < 1:
-            raise ValueError(f"il faut au moins une iteration, recu {iterations}")
+        # Tests ecrits en forme POSITIVE, comme dans core.verifications : `tolerance
+        # <= 0.0` laissait passer un NaN, et comme `residu > NaN` est faux, toute
+        # projection se declarait alors convergee. Un budget NaN passait de meme
+        # `iterations < 1`, et la boucle de `_iterer` ne se terminait plus des le
+        # premier recouvrement.
+        if not (np.isfinite(tolerance) and tolerance > 0.0):
+            raise ValueError(
+                f"la tolerance doit etre finie et strictement positive, recu {tolerance}"
+            )
+        if not (isinstance(iterations, Integral) and iterations >= 1):
+            raise ValueError(
+                f"il faut un nombre entier d'iterations, au moins 1, recu {iterations}"
+            )
         self.domaine = domaine
         self.tolerance = tolerance
         self.iterations = iterations
