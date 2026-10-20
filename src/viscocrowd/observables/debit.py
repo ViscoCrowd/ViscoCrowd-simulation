@@ -273,10 +273,13 @@ def debit_specifique(passages: Franchissements, largeur: float, debut: float, fi
     Returns:
         Le debit specifique, en pers/m/s.
     """
-    if largeur <= 0.0:
-        raise ValueError(f"la largeur doit etre strictement positive, recu {largeur}")
-    if fin <= debut:
-        raise ValueError(f"la fenetre doit avoir une duree positive, recu [{debut}, {fin}[")
+    # Tests en forme POSITIVE : `largeur <= 0.0` et `fin <= debut` sont faux pour
+    # un NaN, qui ressortait alors en debit NaN. Une borne ou une largeur infinie,
+    # elle, rendait un debit nul, indiscernable d'une porte que personne n'emprunte.
+    if not (np.isfinite(largeur) and largeur > 0.0):
+        raise ValueError(f"la largeur doit etre finie et strictement positive, recu {largeur}")
+    if not (np.isfinite(debut) and np.isfinite(fin) and fin > debut):
+        raise ValueError(f"la fenetre doit etre finie et de duree positive, recu [{debut}, {fin}[")
 
     dans_la_fenetre = (passages.instant >= debut) & (passages.instant < fin)
     net = int(np.sum(passages.sens[dans_la_fenetre]))

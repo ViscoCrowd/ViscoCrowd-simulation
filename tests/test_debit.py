@@ -185,14 +185,21 @@ class TestDebitSpecifique:
 
         assert debit_specifique(passages, largeur, debut=0.0, fin=1.0) == 10.0
 
-    @pytest.mark.parametrize("largeur", [0.0, -1.0])
+    @pytest.mark.parametrize("largeur", [0.0, -1.0, np.nan, np.inf])
     def test_largeur_non_positive_rejetee(self, largeur):
+        """Une largeur NaN rendait un debit NaN ; une largeur infinie, un debit nul."""
         with pytest.raises(ValueError, match="largeur"):
             debit_specifique(passages_construits([0.5]), largeur, 0.0, 1.0)
 
     def test_fenetre_vide_rejetee(self):
         with pytest.raises(ValueError, match="fenetre"):
             debit_specifique(passages_construits([0.5]), 1.0, debut=2.0, fin=2.0)
+
+    @pytest.mark.parametrize(("debut", "fin"), [(np.nan, 1.0), (0.0, np.nan), (0.0, np.inf)])
+    def test_fenetre_non_finie_rejetee(self, debut, fin):
+        """Une borne NaN passait `fin <= debut` et rendait un debit NaN ou nul."""
+        with pytest.raises(ValueError, match="fenetre"):
+            debit_specifique(passages_construits([0.5]), 1.0, debut=debut, fin=fin)
 
 
 class TestWeidmann:
