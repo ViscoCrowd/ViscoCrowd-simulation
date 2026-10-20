@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from viscocrowd.core.verifications import exiger_fini
+from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
 
 
 def _verifier_parametre(nom: str, valeur: np.ndarray | float, n: int) -> np.ndarray:
@@ -99,6 +99,5 @@ def vitesse_libre(
     Returns:
         Les vitesses libres, de forme (N, 2), en m/s.
     """
-    if not (np.isfinite(dt) and dt > 0.0):
-        raise ValueError(f"le pas de temps doit etre fini et strictement positif, recu {dt}")
+    exiger_scalaire_fini("le pas de temps dt", dt, strictement_positif=True)
     return np.asarray(v, dtype=float) + dt * acceleration(v, u, relaxation, acceleration_max)
