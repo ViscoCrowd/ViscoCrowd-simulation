@@ -510,7 +510,7 @@ class TestJeuDeContact:
     Une forte sensibilite est mesuree : deplacer UN agent de 1e-12 m au
     depart ecarte les trajectoires de plus de 1e-6 m des les premiers chocs, et
     de 9e-5 m a la fin (amplification 1e8) ; des arrondis differents entre
-    processeurs sont une explication plausible, pas une cause isolee ici. Les paires
+    processeurs sont une explication plausible, pas une cause isolee ici. Le nombre de paires
     proches reste stable (101 et 102), mais leur partage entre contacts effectifs
     (jeu de l'ordre de la tolerance) et quasi-contacts (1e-5 a 1e-3 m) change :
     jeu moyen 2,2e-6 m sans perturbation, 3,85e-5 m avec -1e-12 m. Le jeu moyen
