@@ -12,15 +12,19 @@ Definition retenue
 Un agent est SORTI quand il a franchi le segment de sortie dans le sens sortant
 et qu'il ne le refranchit plus dans l'autre sens jusqu'a la fin de
 l'enregistrement. Son instant de sortie est celui de ce dernier franchissement
-sortant. Concretement : son DERNIER passage a travers le segment est sortant, et
-il termine de l'autre cote de la droite.
+sortant. Concretement : son DERNIER passage a travers le segment est sortant,
+il termine de l'autre cote de la droite et ne revient jamais du cote interieur
+apres ce passage, meme hors du segment de porte.
 
 Le segment s'oriente comme pour `debit_specifique` : en marchant de a vers b, le
 sens de sortie va de gauche a droite. L'exterieur est donc a droite (`cote < 0`).
 
-Cette definition est rendue a posteriori, sur une trajectoire archivee : elle vaut
-que le scenario retire les agents sortis (etat absorbant) ou qu'il les laisse
-continuer. « Ne revient plus » s'entend jusqu'au dernier instant enregistre.
+Cette definition est rendue a posteriori, sur une trajectoire a population fixe
+et identites stables. Un futur retrait d'agents devra conserver leur historique
+ou adapter le format ; aucun etat absorbant n'est introduit ici. « Ne revient
+plus » s'entend jusqu'au dernier instant enregistre. Le complement du nombre de
+sortis n'est pas le nombre geometrique d'agents a l'interieur : un agent dehors
+qui reviendra plus tard n'est pas encore classe definitivement sorti.
 
 Proprietes, vraies par construction et testees
 ----------------------------------------------
@@ -39,6 +43,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from viscocrowd.core.verifications import exiger_fini
 from viscocrowd.observables.debit import cote, franchissements
 
 
@@ -65,6 +70,7 @@ class Sorties:
     def nombre_sortis(self, t: np.ndarray | float) -> np.ndarray:
         """Nombre d'agents sortis a l'instant t (inclus), croissant en t par construction."""
         t = np.asarray(t, dtype=float)
+        exiger_fini("Instants de comptage des sorties.", t=t)
         instants = np.sort(self.instant[self.sortis])
         return np.searchsorted(instants, t, side="right")
 
@@ -77,9 +83,9 @@ class Sorties:
         """
         if not (np.isfinite(fraction) and 0.0 < fraction <= 1.0):
             raise ValueError(f"fraction doit etre dans ]0, 1], recu {fraction}")
-        # Nombre d'agents a attendre, sans qu'une erreur d'arrondi (0,9 x 10 =
-        # 9,000000000000002) n'en exige un de plus.
-        rang = max(1, math.ceil(fraction * self.n_agents - 1e-9))
+        # Un seul arrondi flottant est tolere : une marge absolue de 1e-9
+        # reduisait aussi le rang de fractions reellement au-dessus du seuil.
+        rang = max(1, math.ceil(math.nextafter(fraction * self.n_agents, -math.inf)))
         instants = np.sort(self.instant[self.sortis])
         return float(instants[rang - 1]) if rang <= instants.size else math.inf
 
@@ -97,13 +103,20 @@ def sorties_definitives(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarr
         Les sorties, une valeur par agent.
 
     Raises:
-        ValueError: si les formes sont incoherentes ou le segment degenere.
+        ValueError: si les formes, valeurs finies, temps ou segment sont invalides.
     """
     t, x = np.asarray(t, dtype=float), np.asarray(x, dtype=float)
     if x.ndim != 3 or x.shape[2] != 2 or t.shape != (x.shape[0],):
         raise ValueError(
             f"t et x doivent etre de formes (P,) et (P, N, 2), recu {t.shape}, {x.shape}"
         )
+    a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+    if a.shape != (2,) or b.shape != (2,):
+        raise ValueError("a et b doivent etre de forme (2,)")
+    exiger_fini("Trajectoire de mesure des sorties.", t=t, x=x, a=a, b=b)
+    if np.any(np.diff(t) <= 0.0):
+        raise ValueError("t doit etre strictement croissant")
+    c = cote(x, a, b)  # valide aussi le segment, meme avec une trajectoire vide
     instant = np.full(x.shape[1], np.nan)
     if x.shape[0] == 0:
         return Sorties(instant)
@@ -119,7 +132,8 @@ def sorties_definitives(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarr
     dernier_sens[agents] = passages.sens[rang]
     dernier_instant[agents] = passages.instant[rang]
 
-    dehors_a_la_fin = cote(x[-1], a, b) < 0.0
-    sorti = (dernier_sens == 1) & dehors_a_la_fin
+    dehors_a_la_fin = c[-1] < 0.0
+    dernier_interieur = np.max(np.where(c > 0.0, t[:, None], -np.inf), axis=0)
+    sorti = (dernier_sens == 1) & dehors_a_la_fin & (dernier_instant > dernier_interieur)
     instant[sorti] = dernier_instant[sorti]
     return Sorties(instant)

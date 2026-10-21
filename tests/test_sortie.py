@@ -46,6 +46,44 @@ def test_passer_a_cote_de_la_porte_n_est_pas_sortir():
     assert np.isnan(sorties_definitives(t, x, A, B).instant[0])
 
 
+def test_retour_hors_porte_annule_la_sortie_anterieure():
+    x = np.array([[[-1.0, 0.0]], [[1.0, 0.0]], [[1.0, 3.0]], [[-1.0, 3.0]], [[1.0, 3.0]]])
+    sorties = sorties_definitives(np.arange(5.0), x, A, B)
+    assert not sorties.sortis.any()
+
+
+def test_retour_hors_porte_puis_vraie_sortie_retenue():
+    x = np.array(
+        [[[-1.0, 0.0]], [[1.0, 0.0]], [[1.0, 3.0]], [[-1.0, 3.0]], [[-1.0, 0.0]], [[1.0, 0.0]]]
+    )
+    sorties = sorties_definitives(np.arange(6.0), x, A, B)
+    assert sorties.instant[0] == pytest.approx(4.5)
+
+
+@pytest.mark.parametrize(
+    "instants", [[2.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, np.nan, 2.0], [0.0, 1.0, np.inf]]
+)
+def test_instants_invalides_refuses(instants):
+    _, x = trajectoire([-1.0, 1.0, 2.0])
+    with pytest.raises(ValueError):
+        sorties_definitives(np.array(instants), x, A, B)
+
+
+def test_position_non_finie_refusee():
+    t, x = trajectoire([-1.0, np.nan, 2.0])
+    with pytest.raises(ValueError):
+        sorties_definitives(t, x, A, B)
+
+
+def test_requete_de_compte_non_finie_refusee():
+    with pytest.raises(ValueError):
+        Sorties(np.array([1.0, 2.0])).nombre_sortis(np.nan)
+
+
+def test_fraction_juste_superieure_exige_bien_un_agent_de_plus():
+    assert Sorties(np.arange(1.0, 11.0)).temps_evacuation(0.5 + 1e-11) == 6.0
+
+
 def test_jamais_sorti_et_deja_dehors():
     """Rester dedans ou demarrer dehors sans franchir la porte : aucune sortie."""
     t, x = trajectoire([-2.0, -1.0, -0.5], [1.0, 2.0, 3.0])
@@ -69,8 +107,8 @@ def test_compte_monotone_borne_et_conservatif():
     assert np.all(np.diff(n) >= 0)
     assert n[-1] <= 50
     assert n[-1] == sorties.sortis.sum()
-    dedans = np.array([np.sum(~(sorties.instant <= ti)) for ti in t])  # NaN : toujours dedans
-    np.testing.assert_array_equal(dedans + n, 50)
+    non_classes_sortis = np.array([np.sum(~(sorties.instant <= ti)) for ti in t])
+    np.testing.assert_array_equal(non_classes_sortis + n, 50)
     # Un agent compte sorti a un instant est dehors a tous les instants suivants
     # (ou exactement sur la droite) : sinon il serait revenu.
     for i in np.flatnonzero(sorties.sortis):
@@ -78,6 +116,13 @@ def test_compte_monotone_borne_et_conservatif():
         assert np.all(x[apres, i, 0] >= 0.0)
     # Il y a eu des refoulements : plus de passages que de sortants.
     assert franchissements(t, x, A, B).nombre > n[-1]
+
+
+def test_non_sortis_definitivement_ne_signifie_pas_dedans():
+    t, x = trajectoire([-1.0, 1.0, -1.0, 1.0])
+    sorties = sorties_definitives(t, x, A, B)
+    assert x[1, 0, 0] > 0.0  # dehors geometriquement, mais il reviendra
+    assert sorties.nombre_sortis(t[1]) == 0
 
 
 def test_temps_d_evacuation_et_quantiles():

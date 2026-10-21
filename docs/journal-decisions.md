@@ -30,24 +30,32 @@ sans fenêtre et les exports inspectés ; la fenêtre native reste à essayer su
 ## 2026-10-21 — Mesurer l'évacuation définitive a posteriori, sans retirer d'agent (#11)
 
 **Décision.** Un agent est **sorti** quand son dernier passage à travers le segment de sortie
-est sortant et qu'il termine du côté extérieur ; son instant de sortie est celui de ce
-dernier passage (`observables/sortie.py`). La mesure est calculée **hors ligne** sur la
+est sortant, qu'il termine du côté extérieur et qu'il n'est plus revenu du côté intérieur
+après ce passage, même hors porte ; son instant de sortie est celui de ce dernier passage
+(`observables/sortie.py`). La mesure est calculée **hors ligne** sur la
 trajectoire archivée, comme les autres observables. « Ne revient plus » s'entend jusqu'au
 dernier instant enregistré.
 
 **Options considérées.** L'issue #11 proposait un état absorbant (retirer l'agent de la
 simulation) ou un marquage sans retrait. Les deux portent sur le **scénario**, et le choix
 change le temps d'évacuation mesuré si un agent sorti peut revenir gêner la porte. Calculer
-la sortie a posteriori découple la mesure de ce choix : elle vaut dans les deux cas, et le
-retrait éventuel des agents reste à décider avec la géométrie de la sortie piscine (P5).
+la sortie a posteriori livre une première mesure sur les archives à population fixe.
+Un retrait effectif devra préserver l'historique et les identités ou adapter le format ;
+il reste à décider avec la géométrie de la sortie piscine (P5). Cette brique ne clôt pas
+l'issue #11 sur l'état de sortie du scénario.
 
 **Mesures.** Un agent qui traverse, revient et retraverse compte 3 passages, un flux net de 1
 et **une** sortie, au troisième passage. Sur 50 marches aléatoires autour d'une porte avec
-refoulements, `n_sortis(t)` est croissant, borné par N, et dedans + sortis = N à chaque
+refoulements, `n_sortis(t)` est croissant, borné par N, et non encore classés sortis + sortis = N à chaque
 instant ; un agent compté sorti reste dehors à tous les instants suivants. Sur le banc de
 couloir sans blocage, les 24 sorties coïncident avec les 24 passages ; dernier agent sorti à
 9,228 s. Les quantiles `temps_evacuation(0,5)` et `(0,9)` donnent t₅₀ et t₉₀, moins
 sensibles à un retardataire que le maximum.
+
+Le complément du classement final ne mesure pas la population géométriquement à
+l'intérieur : avant un refoulement, un agent peut être dehors sans être classé sorti.
+La revue de #47 ajoute les retours hors porte et le rejet des temps/positions invalides ;
+un passage antérieur à la dernière présence intérieure n'est pas une sortie définitive.
 
 **Reste à faire (P5).** Confronter le temps d'évacuation au repère `N / (1,3 w)` sur un goulot,
 et décider du retrait des agents sortis dans le scénario piscine.
