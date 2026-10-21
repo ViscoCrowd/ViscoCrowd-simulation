@@ -97,7 +97,7 @@ au sein d'un même balayage et demandent moins de balayages : 13 à 19 contre 35
 à 125, de 12 à 600 agents. Mais un balayage de Jacobi est une poignée
 d'opérations vectorisées NumPy, quand Gauss-Seidel impose une boucle Python
 paire par paire. Le critère retenu est le temps d'exécution
-(\cref{tab:jacobi-gs}). Cette justification vaut pour l'implémentation mesurée,
+(tableau~\ref{tab:jacobi-gs}). Cette justification vaut pour l'implémentation mesurée,
 pas comme supériorité générale de Jacobi : un portage compilé de Gauss-Seidel
 pourrait inverser la conclusion.
 
@@ -123,7 +123,7 @@ corrections répétées jusqu'à l'admissibilité cherchent une configuration
 \emph{admissible}, pas la \emph{plus proche} : aucune étape ne minimise le
 déplacement, et aucun balayage ne peut rapprocher deux disques qu'un balayage
 précédent a trop écartés. On le mesure en comparant les deux méthodes
-(\cref{tab:non-optimalite}) : aucune ne domine l'autre, donc aucune n'est le
+(tableau~\ref{tab:non-optimalite}) : aucune ne domine l'autre, donc aucune n'est le
 minimiseur. Cela n'exclut pas un résultat exact dans des cas particuliers, par
 exemple une paire isolée, corrigée exactement en un balayage. Nous parlons donc
 d'une \emph{configuration admissible obtenue par projections successives}, sans
@@ -163,7 +163,7 @@ corrections ne font qu'écarter : relu comme vitesse, il devient un rebond
 artificiel. Elle n'est donc allumée qu'après 80 balayages, avec une rampe qui
 repart de zéro : un choc entre quelques agents, résolu avant, reste exact, et
 seules les longues chaînes de contacts sont accélérées. Le rang 80 est un
-compromis mesuré entre vitesse et respect du choc mou (\cref{tab:nesterov}) :
+compromis mesuré entre vitesse et respect du choc mou (tableau~\ref{tab:nesterov}) :
 2,2 fois le temps de projection pour une restitution 1100 fois plus faible.
 Ce choix et celui de Jacobi ont été validés collectivement par le groupe.
 
