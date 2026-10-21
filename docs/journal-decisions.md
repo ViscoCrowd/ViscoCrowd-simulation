@@ -1,5 +1,37 @@
 # Journal des décisions
 
+Les décisions de modélisation un peu structurantes, les options écartées, et les pistes qui
+n'ont pas abouti.
+
+> Les consignes précisent que les pistes explorées sans succès **font partie du travail et que
+> leur analyse est valorisée**. Une impasse documentée en octobre est une section de rapport en
+> décembre ; la même impasse oubliée n'est rien.
+
+Format : une entrée par décision, la plus récente en haut.
+
+---
+
+## 2026-10-21 — Livrer la chaîne YAML et trajectoires persistées (C7)
+
+**Réalisation.** La décision de séparation calcul/observables du 6 octobre est désormais
+implémentée pour les bancs `bille_boite` et `tassement` (PR #32, issue #31).
+L'archive NPZ v1 conserve les tableaux SI et des métadonnées JSON, avec tous les paramètres
+effectifs, la graine et les versions Python/NumPy/ViscoCrowd. Le choix de tableaux numériques
+et de JSON permet une relecture sans pickle. Un résultat non convergé n'est pas publié ;
+les fichiers existants ne sont pas écrasés.
+
+**Validation.** Deux exécutions du tassement (36 agents, Δt = 0,002 s, durée 2,5 s, graine 1)
+produisent exactement les mêmes tableaux : 1 251 instants, recouvrement maximal
+9,9998254·10⁻⁷ m, aucune non-convergence et aucune violation des parois. Les tests vérifient
+aussi le rejeu à partir des paramètres archivés, la relecture et l'énergie calculée hors ligne.
+
+**Limites.** Même environnement requis pour l'égalité exacte ; population fixe et historique
+en mémoire. Le format ne constitue ni une reprise de calcul ni un état d'évacuation. Le futur
+scénario piscine et les campagnes devront utiliser cette chaîne. Les bancs de production des
+figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est ajoutée.
+
+---
+
 ## 2026-10-21 — Assembler guidage et milieux au début du pas
 
 **Décision d'implémentation (PR #30, suivi #26).** Le guidage fournit une direction
@@ -21,17 +53,6 @@ et les valeurs physiques restent suivis en C6/G1/G2 ; G3 n'est pas terminé. La 
 `ui.parametres.ParametresMilieu` accepte encore des champs non renseignés pour la maquette.
 Leur raccordement reste à faire avec C6, sans rendre facultatifs les paramètres du moteur.
 Cette entrée décrit le code intégré et ne présume pas une validation collective du modèle.
-
----
-
-Les décisions de modélisation un peu structurantes, les options écartées, et les pistes qui
-n'ont pas abouti.
-
-> Les consignes précisent que les pistes explorées sans succès **font partie du travail et que
-> leur analyse est valorisée**. Une impasse documentée en octobre est une section de rapport en
-> décembre ; la même impasse oubliée n'est rien.
-
-Format : une entrée par décision, la plus récente en haut.
 
 ---
 

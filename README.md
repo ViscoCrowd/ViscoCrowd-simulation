@@ -82,8 +82,9 @@ viscocrowd valider-moteur --figures
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
-**Temps d'exécution typique** — validation complète du moteur avec figures : **≈ 8 s** sur un
-portable récent. La suite de tests : **≈ 5 s**.
+**Temps d'exécution mesuré le 21 octobre 2026** — suite rapide : **382 tests en 34 s**
+sur le poste de Lenny, Python 3.14.4 (2 scénarios lents exclus). La validation du moteur
+affiche son propre temps ; les durées varient selon la machine et les dépendances.
 
 ### Aperçu de la piscine
 
@@ -163,7 +164,7 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ À développer |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | En cours : adhérence et assemblage livrés ; géométrie, calibration et guidage à terminer |
 | 4 | Scénario piscine complet, franchissements | ⏳ À développer |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
 | 6 | Rapport, figures finales, transparents | ⏳ À finaliser |
@@ -177,8 +178,13 @@ Cette validation conserve la limite de contacts multiples suivie dans
 l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10), à corriger ou à
 quantifier avant les campagnes. Le rejet des valeurs non finies
 ([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
-([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) restent des prérequis au
-jalon 3 ; le lancement Docker est suivi dans [#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18).
+([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés ;
+le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18))
+est vérifié par la CI. L'assemblage des milieux est livré dans la
+[PR #30](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/30) ; le raccordement à la
+géométrie et au guidage réels reste ouvert dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26).
+Les configurations YAML et archives de trajectoires C7 sont livrées pour les bancs d'essai
+dans la [PR #32](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/32).
 
 Le [planning détaillé et daté 2026–2027](docs/planning/README.md) est la référence pour le suivi
 des tâches ; ses modifications sont relisibles dans les pull requests.
