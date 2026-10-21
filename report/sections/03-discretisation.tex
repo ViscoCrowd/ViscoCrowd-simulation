@@ -1,34 +1,233 @@
-\section{Discretisation numerique}
+\section{Discrétisation numérique}
+\label{sec:discretisation}
 
-% Du modele continu au schema numerique.
+Cette section passe du modèle continu au schéma effectivement programmé. Elle
+précise ce que le schéma garantit, ce qui est seulement mesuré, et les limites
+connues qui conditionnent l'exploitation des campagnes.
 
-\subsection{Schema d'Euler semi-implicite}
+\subsection{Schéma d'Euler semi-implicite}
 
-% Pourquoi semi-implicite plutot qu'explicite : meilleur comportement en temps
-% long sur les systemes mecaniques, et c'est lui qui rend possible la
-% formulation par minimisation.
+On note $\pos^n_i$ et $\vit^n_i$ la position et la vitesse de l'agent $i$ à
+l'instant $t^n=n\dt$. Le pas libre, sans tenir compte des contacts ni des parois,
+s'écrit
+\begin{equation}
+\label{eq:pas-libre}
+\vit^{\mathrm{libre}}_i = \vit^n_i + \dt\,\vect{a}_i(\pos^n_i,\vit^n_i),
+\qquad
+\pos^{\mathrm{libre}}_i = \pos^n_i + \dt\,\vit^{\mathrm{libre}}_i ,
+\end{equation}
+où $\vect{a}_i$ est l'accélération vers la vitesse désirée $\vect{U}_i$, de
+temps de relaxation $\tau$ et bornée par l'adhérence $a_{\max}$ du milieu :
+\[
+\vect{a}_i=\frac{\vect{U}_i-\vit_i}{\tau(\pos_i)}
+\quad\text{ramenée à la norme } a_{\max}(\pos_i) \text{ si elle la dépasse.}
+\]
+La position est mise à jour avec la vitesse \emph{nouvelle}, et non avec
+$\vit^n_i$ : c'est le schéma d'Euler semi-implicite, dit aussi symplectique.
+Sur un système mécanique, il conserve bien mieux l'énergie en temps long que le
+schéma explicite~\cite{hairer2006}. Surtout, il rend possible la formulation
+par minimisation qui suit. Le milieu est évalué en $\pos^n_i$, au début du pas :
+un agent qui franchit une frontière de sol en prend les paramètres au pas suivant.
 
 \subsection{Formulation par minimisation}
 
-% Un pas de temps vu comme la minimisation d'un compromis entre inertie et
-% energie potentielle.
+Sans contrainte, $\pos^{\mathrm{libre}}$ est le minimiseur de
+$\tfrac12\norm{\pos-\pos^{\mathrm{libre}}}^2$ : la position que l'inertie et la
+vitesse désirée amèneraient à occuper. Avec contraintes, on retient la position
+admissible la plus proche, au sens de ce même écart~\cite{maury2008,maury2011} :
+\begin{equation}
+\label{eq:minimisation}
+\pos^{n+1} \in \operatorname*{argmin}_{\pos\in\admissible}
+\tfrac12\norm{\pos-\pos^{\mathrm{libre}}}^2
+= \proj{\admissible}\bigl(\pos^{\mathrm{libre}}\bigr),
+\end{equation}
+\[
+\admissible=\bigl\{\pos\in\mathbb{R}^{2N} :
+D_{ij}(\pos)=\norm{\pos_j-\pos_i}-r_i-r_j\geq 0\ \ \forall\, i<j,\
+\pos_i\in\Omega_i\bigr\},
+\]
+où $\Omega_i$ est le domaine accessible au centre de l'agent $i$, c'est-à-dire
+la salle réduite de son rayon. Minimiser sous contrainte revient donc à projeter
+la position libre sur l'ensemble admissible.
 
-\subsection{Prise en compte des contraintes : une projection}
+\subsection{Linéarisation et projection itérative}
 
-% Minimiser sous contrainte revient a projeter la position libre sur
-% l'ensemble admissible.
+L'ensemble $\admissible$ n'est \emph{pas} convexe : chaque contrainte
+$D_{ij}\geq 0$ décrit l'extérieur d'une boule, et la projection
+\eqref{eq:minimisation} n'est en général ni unique ni calculable directement.
+On linéarise chaque contrainte autour de la configuration courante
+$\pos^{k}$~\cite{maury2008} :
+\[
+D_{ij}(\pos^{k})+\nabla D_{ij}(\pos^{k})\cdot(\pos-\pos^{k})\geq 0 ,
+\]
+ce qui remplace la boule interdite par un demi-espace, donc un ensemble convexe.
+Pour une paire en recouvrement
+$\delta_{ij}=r_i+r_j-\norm{\pos_j-\pos_i}>0$, de normale
+$\vect{n}_{ij}=(\pos_j-\pos_i)/\norm{\pos_j-\pos_i}$, la projection exacte sur ce
+demi-espace, à masses égales, déplace chaque disque de la moitié du recouvrement
+le long de la ligne des centres.
 
-\subsection{Linearisation et projection iterative}
+\paragraph{Balayage de Jacobi.}
+Un balayage applique ces corrections à toutes les paires en contact
+\emph{simultanément}, à partir des mêmes positions :
+\[
+\pos_i \leftarrow \pos_i-\sum_{j}\frac{w_{ij}}{2}\,\delta_{ij}\,\vect{n}_{ij},
+\qquad
+w_{ij}=\frac{1}{\max(c_i,c_j)} ,
+\]
+où $c_k$ est le nombre de contacts de l'agent $k$. Sans pondération, un agent
+touché par plusieurs voisins recevrait la somme de corrections concurrentes et
+reculerait trop. La pondération est portée par la \emph{paire} et non par
+l'agent : les deux disques reçoivent des corrections opposées de même norme, et
+l'étape de contact conserve exactement le centre de gravité. Une moyenne par
+agent le faisait dériver de \SI{2.2e-3}{\metre} sur un amas de 12 disques ; la
+dérive mesurée est désormais de l'ordre de \SI{1e-17}{\metre}. Le domaine est
+ensuite reprojeté, toujours en dernier : les parois sont respectées à la
+précision machine. Balayages et reprojections alternent jusqu'à ce que le
+recouvrement résiduel passe sous la tolérance $\varepsilon=\SI{1e-6}{\metre}$,
+ou que le budget de 300 balayages soit épuisé ; un échec est alors compté et,
+en mode strict, interrompt le calcul. Les paires candidates sont cherchées par
+une grille de hachage spatial avec une marge de $r_{\min}/2$, puis le résultat
+est vérifié sur la liste complète des paires.
 
-% L'ensemble admissible n'etant pas convexe, on linearise autour de la
-% configuration courante. Decrire l'algorithme et son critere d'arret.
+\paragraph{Jacobi plutôt que Gauss-Seidel.}
+La spécification initiale prévoyait des corrections successives, paire après
+paire (Gauss-Seidel). Celles-ci propagent l'information d'un contact à l'autre
+au sein d'un même balayage et demandent moins de balayages : 13 à 19 contre 35
+à 125, de 12 à 600 agents. Mais un balayage de Jacobi est une poignée
+d'opérations vectorisées NumPy, quand Gauss-Seidel impose une boucle Python
+paire par paire. Le critère retenu est le temps d'exécution
+(\cref{tab:jacobi-gs}). Cette justification vaut pour l'implémentation mesurée,
+pas comme supériorité générale de Jacobi : un portage compilé de Gauss-Seidel
+pourrait inverser la conclusion.
+
+\begin{table}[ht]
+\centering
+\caption{Durée d'une projection dans une boîte occupée à 20\,\%.}
+\label{tab:jacobi-gs}
+\begin{tabular}{rrrr}
+\toprule
+$N$ & Jacobi (ms) & Gauss-Seidel (ms) & Rapport \\
+\midrule
+12 & 1,46 & 2,66 & 1,8 \\
+100 & 1,51 & 3,69 & 2,4 \\
+600 & 7,87 & 16,08 & 2,0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Ce que la méthode ne garantit pas.}
+Le résultat n'est \emph{pas} la projection euclidienne
+$\proj{\admissible}(\pos^{\mathrm{libre}})$ de \eqref{eq:minimisation}. Des
+corrections répétées jusqu'à l'admissibilité cherchent une configuration
+\emph{admissible}, pas la \emph{plus proche} : aucune étape ne minimise le
+déplacement, et aucun balayage ne peut rapprocher deux disques qu'un balayage
+précédent a trop écartés. On le mesure en comparant les deux méthodes
+(\cref{tab:non-optimalite}) : aucune ne domine l'autre, donc aucune n'est le
+minimiseur. Cela n'exclut pas un résultat exact dans des cas particuliers, par
+exemple une paire isolée, corrigée exactement en un balayage. Nous parlons donc
+d'une \emph{configuration admissible obtenue par projections successives}, sans
+garantie générale d'optimalité euclidienne.
+
+\begin{table}[ht]
+\centering
+\caption{Déplacement total $\norm{\pos-\pos^{\mathrm{libre}}}$ (m) imposé par
+chaque méthode, et écart entre leurs solutions.}
+\label{tab:non-optimalite}
+\begin{tabular}{lrrr}
+\toprule
+Configuration & Jacobi & Gauss-Seidel & Écart (m) \\
+\midrule
+3 disques alignés & \num{1.4141e-2} & \num{1.4141e-2} & \num{4.5e-7} \\
+Triangle serré & \num{0.9999e-2} & \num{1.1770e-2} & \num{2.0e-3} \\
+Amas de 12 & \num{7.5924e-2} & \num{7.5044e-2} & \num{6.1e-3} \\
+Amas de 100 & \num{1.2109e-1} & \num{1.1924e-1} & \num{1.4e-2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Accélération de Nesterov retardée.}
+Jacobi ne propage l'information que d'un contact par balayage. Pour un tas posé
+sur le sol, où la contrainte « le sol retient tout » doit remonter de proche en
+proche, il fallait de 642 à plus de 3000 balayages, et 716 projections sur 1500
+échouaient sur un tas de 36 disques. On accélère par extrapolation de
+Nesterov~\cite{nesterov1983,beck2009} :
+\[
+\vect{y}^{k}=\pos^{k}+\beta_k\,(\pos^{k}-\pos^{k-1}),\qquad
+\beta_k=\frac{m}{m+3}\ \text{avec}\ m=k-80\ \text{si}\ k>80,\quad
+\beta_k=0\ \text{sinon},
+\]
+le balayage partant de $\vect{y}^k$ au lieu de $\pos^k$. L'extrapolation écarte
+cependant les disques au-delà du contact, et ce jeu est définitif puisque les
+corrections ne font qu'écarter : relu comme vitesse, il devient un rebond
+artificiel. Elle n'est donc allumée qu'après 80 balayages, avec une rampe qui
+repart de zéro : un choc entre quelques agents, résolu avant, reste exact, et
+seules les longues chaînes de contacts sont accélérées. Le rang 80 est un
+compromis mesuré entre vitesse et respect du choc mou (\cref{tab:nesterov}) :
+2,2 fois le temps de projection pour une restitution 1100 fois plus faible.
+Ce choix et celui de Jacobi ont été validés collectivement par le groupe.
+
+\begin{table}[ht]
+\centering
+\caption{Rang de déclenchement de l'extrapolation. Restitution : énergie
+cinétique résiduelle après un choc, rapportée à l'énergie d'arrivée, pire cas sur
+des chaînes de 3 à 32 disques et un triangle. Balayages et temps : tas de 64
+disques.}
+\label{tab:nesterov}
+\begin{tabular}{rrrr}
+\toprule
+Rang & Pire restitution & Balayages & Temps (s) \\
+\midrule
+0 & \num{1.0e-3} & 91 & 5,3 \\
+20 & \num{4.3e-5} & 113 & -- \\
+40 & \num{2.9e-5} & 134 & 8,3 \\
+80 (retenu) & \num{9.0e-7} & 168 & 11,7 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Relecture de la vitesse}
 
-% $\vit^{n+1} = (\pos^{n+1} - \pos^n)/\dt$. C'est la que le choc se produit :
-% la vitesse n'est pas transportee, elle est deduite du deplacement reellement
-% effectue. Insister, c'est le coeur du schema.
+La vitesse n'est pas transportée d'un pas à l'autre ; elle est déduite du
+déplacement réellement effectué :
+\begin{equation}
+\label{eq:relecture}
+\vit^{n+1}_i=\frac{\pos^{n+1}_i-\pos^n_i}{\dt}.
+\end{equation}
+C'est ici que le choc se produit. Si la projection a annulé le déplacement
+normal à un contact ou à une paroi, elle annule du même coup la composante
+normale de la vitesse : c'est la traduction discrète d'un choc mou, sans rebond.
+Deux disques qui se rencontrent s'arrêtent au contact. Ce mécanisme explique
+aussi pourquoi toute correction qui dépasse le contact, par sur-relaxation ou
+par extrapolation, se lit immédiatement comme une vitesse parasite.
+
+\subsection{Limites connues du schéma}
+
+\begin{itemize}
+\item \textbf{Contacts mutuels.} Trois disques qui se touchent deux à deux,
+  corrigés dans le même balayage, finissent écartés d'environ
+  \SI{1.7e-3}{\metre} au-delà du contact, sans mouvement résiduel. Chaque
+  correction est exacte isolément, pas leur somme. Ce jeu ne décroît pas avec
+  $\dt$ (\SI{1.69e-3}{\metre} à $\dt=\SI{4e-3}{\second}$ comme à
+  \SI{2e-3}{\second}), contrairement à celui d'un tas, qui décroît en $\dt^2$
+  (\SI{2.5e-5}{\metre} puis \SI{5.0e-6}{\metre}). Il peut biaiser la densité
+  mesurée au goulot ; son influence doit être bornée avant les campagnes.
+\item \textbf{Chaînes longues.} Seules accélérées, elles gardent une restitution
+  de l'ordre de \num{1e-6} de l'énergie d'arrivée.
+\item \textbf{Empilement maximal.} Au-delà d'environ \SI{75}{\percent} de surface
+  occupée, la projection n'atteint plus la tolérance dans le budget. L'échec est
+  compté, publié, et interdit l'archivage du résultat.
+\end{itemize}
 
 \subsection{Choix du pas de temps}
 
-% Critere : le deplacement par pas doit rester petit devant le rayon.
+Le critère est que le déplacement par pas reste petit devant le rayon :
+$\norm{\vit}\,\dt\ll r$. Avec $r\approx\SI{0.2}{\metre}$ et
+$\norm{\vit}\leq\SI{1.5}{\metre\per\second}$, $\dt=\SI{1e-2}{\second}$ donne
+\SI{1.5}{\centi\metre} par pas, moins d'un dixième de rayon. À
+$\dt=\SI{4e-2}{\second}$, des disques traversent leurs voisins entre deux pas et
+la projection ne peut plus rien. Les scénarios refusent donc tout pas qui
+dépasse $r/5$ de déplacement souhaité ou mesuré, et imposent
+$\dt\leq\min\tau$ pour que la relaxation reste monotone. Ces garde-fous ne
+remplacent pas l'étude de sensibilité : la convergence d'ordre un en $\dt$ est
+mesurée à la section~\ref{sec:validation}.
