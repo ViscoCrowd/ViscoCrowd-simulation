@@ -246,7 +246,7 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier proposés dans les PR #43/#49 ; géométrie piscine et calibration restent ouvertes |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier livrés dans #43/#49 ; géométrie piscine en revue dans #54, calibration ouverte |
 | 4 | Scénario piscine complet, franchissements | ⏳ À développer |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
 | 6 | Rapport, figures finales, transparents | Rédaction commencée : chaîne de calcul, validation du couloir et outils ; analyse finale à venir |

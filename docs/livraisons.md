@@ -13,7 +13,7 @@ décrit les opérations de publication.
 | 0 — socle et cadrage | Socle présent depuis #1 ; trace enseignant encore incomplète (#19) | Aucun tag attestant une clôture complète de J0 |
 | 1 — moteur | Livré sur `main` par #1, correctif Makefile #2/#3 inclus | [`jalon-1`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-1), commit `28252ef6d196caec847e6f957e7282152cf98449` ; repère historique créé le 21 octobre |
 | 2 — exclusion | Validé avec limites connues ; corrections et figures #21–#23, correctifs #28 | [`jalon-2`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-2), publication de rattrapage du 21 octobre ; [provenance, mesures et limites](releases/jalon-2.md) |
-| 3 — guidage et milieux | En cours : adhérence et couloir G1/G5 livrés ; eikonal G2 et pilier en relecture (#43/#49) ; géométrie piscine et calibration C6 manquantes | Reste sur `dev`, pas de tag de jalon terminé |
+| 3 — guidage et milieux | En cours : adhérence et couloir G1/G5 livrés ; eikonal G2 et pilier livrés (#43/#49) ; géométrie piscine en revue (#54), calibration C6 ouverte | Reste sur `dev`, pas de tag de jalon terminé |
 | 4 à 6 | Scénario complet, campagnes et livrables finaux à réaliser | Non publiés |
 
 Les anciennes versions restent consultables ; elles ne doivent pas être présentées comme
@@ -60,8 +60,8 @@ pas dans ce périmètre. La méthode et ce registre passent d'abord par une PR v
 La validation a été rejouée sur le candidat exact : 282 tests rapides passent, six figures
 sont produites et la validation du moteur réussit. Les [notes de version](releases/jalon-2.md)
 donnent les mesures et les commandes de reproduction.
-Le défaut résiduel de contacts multiples (#10), l'état absorbant absent (#11), la source
-primaire de Weidmann (#12) et le cadrage (#19) restent visibles. Aucun de ces éléments n'est
-déclaré résolu par l'attribution d'un tag.
+Lors de ce rattrapage, les contacts multiples (#10), l’état absorbant absent (#11), la source
+primaire de Weidmann (#12) et le cadrage (#19) restaient ouverts. Leurs évolutions ultérieures
+sont suivies dans le planning et les issues ; l’attribution du tag ne les résolvait pas.
 
 [#39]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/39
