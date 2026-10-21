@@ -260,9 +260,9 @@ def debit_specifique(passages: Franchissements, largeur: float, debut: float, fi
     Le flux net repond a « combien de personnes par metre et par seconde
     franchissent cette ligne », ce qu'il faut pour un diagramme fondamental et
     pour comparer a Weidmann. Pour « combien de personnes ont quitte la
-    piscine » et « au bout de combien de temps », le scenario complet devra
-    s'appuyer sur un etat de sortie par agent, ou sur un evenement de
-    franchissement DEFINITIF, et non sur ce compteur.
+    piscine » et « au bout de combien de temps », utiliser l'instant de sortie
+    DEFINITIVE de chaque agent (`observables.sortie.sorties_definitives`), et non
+    ce compteur.
 
     Args:
         passages: sortie de `franchissements`.

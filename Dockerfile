@@ -36,4 +36,11 @@ RUN pip install --no-deps -e .
 COPY tests/ ./tests/
 COPY experiments/ ./experiments/
 
+# Commit du code copie, enregistre dans les archives faute de depot dans l'image
+# (cf. io/provenance.py). Declare en dernier : le changer a chaque commit ne doit
+# pas invalider le cache des couches de dependances.
+#   docker build --build-arg VISCOCROWD_COMMIT=$(git rev-parse HEAD) .
+ARG VISCOCROWD_COMMIT=""
+ENV VISCOCROWD_COMMIT=${VISCOCROWD_COMMIT}
+
 CMD ["viscocrowd", "valider-moteur", "--figures"]
