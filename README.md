@@ -163,6 +163,13 @@ toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relan
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
 le banc `couloir` ; la maquette piscine reste disponible séparément via `interface`.
 
+Pour séparer les effets du sol mouillé, `viscocrowd comparer-mouille experiments/couloir.yaml`
+reprend **un seul paramètre du mouillé à la fois** (vitesse, relaxation, adhérence), sur la même
+population et cinq graines, et `--figure report/figures` produit la figure 7 du rapport.
+À vitesse souhaitée constante, relaxation et adhérence seules n'ont aucun effet ; seule la
+vitesse retarde et comprime la file, et l'inertie allonge le freinage tout en réduisant la
+compression dans ce couloir droit (environ 17 s de calcul).
+
 Le [guide du banc](docs/couloir.md) donne les mesures de référence et la commande pour
 les recalculer depuis l'archive. La méthode et la convergence sont rédigées dans les
 sections [implémentation](report/sections/04-implementation.tex) et

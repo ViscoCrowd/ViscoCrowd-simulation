@@ -67,6 +67,35 @@ du banc devront être explicites dans son YAML, avec des tests de convergence s�
 
 ---
 
+## 2026-10-21 — Séparer les effets du sol mouillé, un paramètre à la fois
+
+**Décision de protocole.** Le démonstrateur du couloir change à la fois `s`, `τ` et `a_max`
+dans la bande mouillée : ses mesures ne permettent d'attribuer un effet à aucun d'eux.
+`viscocrowd comparer-mouille` part d'une référence où le mouillé est identique au sec, puis
+reprend un seul paramètre du mouillé à la fois, et deux combinaisons. Même population, mêmes
+cinq graines pour toutes les variantes ; les retards sont appariés graine par graine.
+
+**Mesures** (24 agents, Δt = 0,01 s, graines 20262027 et 1 à 4, écart-type ≈ 0,003 s) :
+
+| Variante | t₅₀ (s) | Traversée (s) | Freinage (m) | Contacts (paires·s) |
+|---|---|---|---|---|
+| Référence (mouillé = sec) | 7,082 | 2,672 | 0,01 | 0 |
+| Relaxation seule | 7,083 | 2,677 | 0,01 | 0 |
+| Adhérence seule | 7,082 | 2,672 | 0,01 | 0 |
+| Vitesse seule | 8,368 | 3,860 | 0,53 | 65 |
+| Vitesse + adhérence | 8,324 | 3,816 | 0,73 | 63 |
+| Complet (démonstrateur) | 8,223 | 3,716 | 1,86 | 55 |
+
+**Ce qu'on en tire.** À vitesse souhaitée constante, `τ` et `a_max` n'ont aucun effet : ils
+n'agissent qu'à travers un transitoire (changement de vitesse, virage, collision). La vitesse
+seule retarde et comprime la file. L'inertie (adhérence faible, relaxation lente) allonge le
+freinage et **réduit** la compression dans ce couloir droit. C'est l'inverse de l'hypothèse
+inertielle, mais il n'y a ici ni virage ni goulot ; ce résultat oriente les campagnes vers les
+situations qui demandent de tourner ou de s'arrêter. Figure 7 inscrite au manifeste et
+reprise dans la section résultats du rapport.
+
+---
+
 ## 2026-10-21 — Livrer la chaîne YAML et trajectoires persistées (C7)
 
 **Réalisation.** La décision de séparation calcul/observables du 6 octobre est désormais
