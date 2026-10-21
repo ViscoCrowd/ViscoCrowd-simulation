@@ -359,7 +359,7 @@ pas de relancer les simulations (déterminant sur un balayage de paramètres), e
 |---|---|---|
 | `core/` | état, schéma semi-implicite, graine RNG, paramètres | — |
 | `geometry/` | domaine, parois, projection itérative, grille spatiale | `core` |
-| `model/desire` | eikonal et Fast Marching, direction de guidage | `geometry` |
+| `model/eikonal` | eikonal et Fast Marching, direction de guidage (G2) ; `model/guidage` garde le cas analytique du couloir (G1) | `geometry` |
 | `model/milieu` | accélération bornée par (`τ`, `a_max`) ; carte position vers (`τ`, `a_max`, `s`) à venir (C6) | `core`, puis `geometry` pour la carte |
 | `model/crossing` | sites de franchissement à capacité unitaire | `geometry` |
 | `model/contact` | contraintes d'exclusion entre agents | `geometry` |
