@@ -241,8 +241,14 @@ par extrapolation, se lit immédiatement comme une vitesse parasite.
   n'est pas reproduite lors de la revue. Sous macOS arm64, Python 3.14.4,
   NumPy 2.5.3 et SciPy 1.18.1, le jeu moyen passe de \SI{7.576e-6}{\metre}
   à \SI{4.272e-5}{\metre} pour $\dt=\SI{0.01}{\second}$ puis
-  \SI{0.005}{\second}. Le test lent échoue ; la cause reste à déterminer.
-  Aucun ordre de convergence n'est donc établi pour cette foule.
+  \SI{0.005}{\second}. L'hypothèse de décroissance en $\dt^2$ a donc été retirée.
+  Le diagnostic qui la remplace perturbe la position initiale d'un agent de
+  \SI{1e-12}{\metre} : l'écart final dépasse \SI{1e-6}{\metre}, tout en
+  respectant la tolérance de non-recouvrement. Les 58 tests de projection,
+  diagnostic lent compris, passent sur les deux architectures examinées.
+  Cette sensibilité rend plausibles des effets d'arrondi, sans isoler leur
+  origine ni démontrer un chaos mathématique. Aucun ordre de convergence
+  n'est établi pour cette foule.
   L'indicateur sans dimension
   $2\times\text{jeu moyen}/\text{diamètre moyen}$ est de l'ordre de
   \num{4e-5} au premier pas testé.
