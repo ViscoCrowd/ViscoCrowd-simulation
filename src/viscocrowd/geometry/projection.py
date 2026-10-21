@@ -147,12 +147,23 @@ Ce qu'il RESTE comme artefact, mesure et assume :
 
   - Les chaines longues, seules extrapolees, gardent une restitution de l'ordre
     de 1e-6 de l'energie d'arrivee.
-  - Trois contacts MUTUELS corriges dans le meme balayage laissent un defaut de
-    POSITION, independant de l'extrapolation : le triangle finit tangent a
-    1,7e-3 m pres, sans mouvement residuel. Il sature et ne decroit pas avec dt.
+  - La TOLERANCE cree une petite vitesse parasite. La projection s'arrete des
+    que le recouvrement passe sous `tolerance` ; au pas suivant, une infime
+    poussee le fait repasser au-dessus, et un balayage le corrige au-dela de ce
+    qu'il etait : les disques s'ecartent de quelques 1e-7 m de trop, ce que la
+    relecture v = dx/dt transforme en vitesse sortante de 0,15 a 0,37 fois
+    tolerance / dt. Sans rien pour l'amortir, comme dans un choc sans frottement
+    a trois contacts mutuels, l'ecart croit lineairement (1e-3 m apres 1,6 s a
+    tolerance 1e-6 m et dt = 1e-3 s, 4e-6 m a tolerance 1e-8 m). Une foule qui
+    pousse vers sa cible n'en garde rien. Ce n'est donc ni un defaut de position
+    propre aux contacts mutuels, ni une saturation en dt, comme on l'avait
+    d'abord ecrit (issue #10) : a 2000 pas fixes, les deux effets de dt se
+    compensaient.
   - Sur le tas, les paires en contact sont tangentes a 5,0e-6 m au plus a
     dt = 2e-3 s, contre 2,5e-5 m a dt = 4e-3 s : ce defaut-la decroit bien
-    comme dt^2.
+    comme dt^2. C'est lui qui fixe le biais de densite d'une foule comprimee
+    puis arretee : jeu moyen 8,2e-6 m a dt = 0,01 s, soit 4,1e-5 en densite
+    relative (`TestBiaisDeDensite`).
 
 `TestChocMultiple` controle ces bornes sur des contacts isoles, ou aucune
 dissipation d'ensemble ne peut les masquer.

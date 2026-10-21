@@ -336,14 +336,14 @@ class TestChocMultiple:
     RESTITUTION_MAX = 5e-6
 
     @staticmethod
-    def _choquer(x0, v0, rayon=0.1, dt=1e-3, pas=2000):
+    def _choquer(x0, v0, rayon=0.1, dt=1e-3, pas=2000, tolerance=TOLERANCE):
         """Lache des disques les uns contre les autres, sans force exterieure."""
         etat = State(
             x=np.array(x0, dtype=float),
             v=np.array(v0, dtype=float),
             r=np.full(len(x0), rayon),
         )
-        projection = ProjectionExclusion(tolerance=TOLERANCE)
+        projection = ProjectionExclusion(tolerance=tolerance)
         energie_initiale = 0.5 * float(np.sum(etat.v**2))
 
         for _ in range(pas):
@@ -376,26 +376,75 @@ class TestChocMultiple:
             assert distance == pytest.approx(0.2, abs=1e-3)  # en contact, pas separes
         assert projection.non_convergences == 0
 
-    def test_triangle_qui_s_effondre_sur_son_centre(self):
-        """Trois disques convergent vers le centre : chacun touche les deux autres."""
-        angles = np.array([90.0, 210.0, 330.0]) * np.pi / 180.0
-        x0 = 0.5 * np.stack([np.cos(angles), np.sin(angles)], axis=1)
-        v0 = -x0 / np.linalg.norm(x0, axis=1, keepdims=True)  # 1 m/s vers le centre
+    # Trois disques lances vers le centre : chacun touchera les deux autres.
+    _ANGLES = np.array([90.0, 210.0, 330.0]) * np.pi / 180.0
+    TRIANGLE = 0.5 * np.stack([np.cos(_ANGLES), np.sin(_ANGLES)], axis=1)
+    VERS_LE_CENTRE = -TRIANGLE / 0.5  # 1 m/s
 
-        etat, energie_initiale, _ = self._choquer(x0, v0)
+    @staticmethod
+    def _cotes(x):
+        return np.array([np.linalg.norm(x[b] - x[a]) for a, b in ((0, 1), (1, 2), (0, 2))])
+
+    def test_triangle_qui_s_effondre_sur_son_centre(self):
+        """Les trois finissent tangents deux a deux, a 1e-5 m pres (issue #10).
+
+        Le jeu de 1,7e-3 m mesure a la tolerance 1e-6 m n'etait pas un defaut de
+        position : c'est une VITESSE residuelle de l'ordre de tolerance / dt, que
+        rien n'amortit dans ce choc sans frottement (voir le test suivant). A la
+        tolerance 1e-8 m, le jeu tombe a 4,1e-6 m.
+        """
+        etat, energie_initiale, _ = self._choquer(
+            self.TRIANGLE, self.VERS_LE_CENTRE, tolerance=1e-8
+        )
 
         energie = 0.5 * float(np.sum(etat.v**2))
         assert energie / energie_initiale < self.RESTITUTION_MAX
-        # Triangle equilateral de cote 0,2 m : les trois sont tangents deux a deux,
-        # a 1,7e-3 m pres. Ce jeu residuel est le defaut de POSITION propre aux
-        # trois contacts mutuels corriges dans le meme balayage : il sature vers
-        # 1,69e-3 m (mesure pour v0 de 0,5 a 2 m/s et dt de 5e-4 a 1e-3 s) et ne
-        # se traduit par aucun mouvement, l'energie residuelle restant sous
-        # RESTITUTION_MAX.
-        for a, b in ((0, 1), (1, 2), (0, 2)):
-            distance = np.linalg.norm(etat.x[b] - etat.x[a])
-            assert distance >= 0.2 - TOLERANCE  # jamais d'interpenetration
-            assert distance == pytest.approx(0.2, abs=3e-3)
+        cotes = self._cotes(etat.x)
+        assert np.all(cotes >= 0.2 - 1e-8)  # jamais d'interpenetration
+        np.testing.assert_allclose(cotes, 0.2, atol=1e-5)
+
+    def test_le_jeu_du_triangle_vient_de_la_tolerance_et_non_du_pas_de_temps(self):
+        """Diagnostic de l'issue #10, chiffre.
+
+        La projection s'arrete des que le recouvrement passe sous la tolerance. Le
+        pas suivant, une infime poussee le fait repasser au-dessus, et un balayage
+        le divise par quatre : les disques s'ecartent de quelques 1e-7 m de plus que
+        necessaire, ce que la relecture v = dx/dt transforme en vitesse sortante.
+        Mesures (v0 = 1 m/s, 2000 pas) : vitesse radiale residuelle 3,7e-4 m/s a
+        dt = 1e-3 s, 7,1e-4 m/s a dt = 5e-4 s, soit 0,15 a 0,37 tolerance / dt ;
+        le jeu croit ensuite LINEAIREMENT avec la duree. Au protocole de 2000 pas,
+        les deux effets de dt se compensent : c'est la fausse « saturation ».
+        """
+        dt = 1e-3
+        jeux, vitesses = [], []
+        for tolerance in (1e-6, 1e-8):
+            etat, _, _ = self._choquer(self.TRIANGLE, self.VERS_LE_CENTRE, tolerance=tolerance)
+            jeux.append(self._cotes(etat.x).mean() - 0.2)
+            radiale = np.sum(etat.v * etat.x, axis=1) / np.linalg.norm(etat.x, axis=1)
+            vitesses.append(radiale)
+            # Vitesse sortante, identique pour les trois, bornee par la tolerance.
+            assert np.all(radiale > 0.0)
+            assert np.all(radiale < 0.5 * tolerance / dt)
+        assert jeux[0] / jeux[1] > 100  # mesure : 1,045e-3 / 4,1e-6 = 256
+
+        # Le jeu croit lineairement apres le choc (contact vers t = 0,385 s).
+        etat_court, _, _ = self._choquer(self.TRIANGLE, self.VERS_LE_CENTRE, pas=1000)
+        jeu_court = self._cotes(etat_court.x).mean() - 0.2
+        np.testing.assert_allclose(jeux[0] / (2.0 - 0.385), jeu_court / (1.0 - 0.385), rtol=0.02)
+
+    def test_une_foule_qui_pousse_reste_au_contact(self):
+        """Avec une vitesse desiree vers le centre, aucune vitesse parasite ne survit."""
+
+        def vers_le_centre(etat, dt):
+            u = -etat.x / np.linalg.norm(etat.x, axis=1, keepdims=True)
+            return etat.v + dt * (u - etat.v) / 0.5  # relaxation, tau = 0,5 s
+
+        etat = State(x=self.TRIANGLE, v=self.VERS_LE_CENTRE, r=np.full(3, 0.1))
+        projection = ProjectionExclusion(tolerance=TOLERANCE)
+        for _ in range(2000):
+            etat = pas_semi_implicite(etat, 1e-3, vers_le_centre, projection)
+        # Mesure : recouvrement residuel 8,1e-7 m, dans la tolerance : aucun jeu.
+        np.testing.assert_allclose(self._cotes(etat.x), 0.2, atol=TOLERANCE)
 
     def test_chaine_de_sept_disques(self):
         """Le cas defavorable : la chaine depasse le rang d'extrapolation.
@@ -443,6 +492,62 @@ class TestChocMultiple:
         assert remontee < 1e-6 * energies[0], (
             f"remontee de {remontee:.3e} J sur un pas, pour {energies[0]:.3f} J d'arrivee"
         )
+
+
+class TestBiaisDeDensite:
+    """Issue #10 : de combien les contacts multiples faussent-ils la densite d'une foule ?
+
+    Une foule de 60 agents (rayons 0,18 a 0,22 m) est poussee contre une paroi a
+    1,5 m/s, puis s'arrete, avec les parametres du sec du banc de couloir. On
+    mesure le jeu des paires en contact : la densite variant comme 1/d^2, le biais
+    relatif de densite vaut environ 2 x jeu moyen / diametre.
+
+    Mesures apres l'arret (tolerance 1e-6 m) : jeu moyen 8,2e-6 m a dt = 0,01 s,
+    2,2e-6 m a dt = 5e-3 s, soit une decroissance proche de dt^2 comme le tas ;
+    presque rien ne change a la tolerance 1e-7 m. Biais de densite : 4,1e-5 puis
+    1,1e-5.
+    """
+
+    @staticmethod
+    def _jeux_en_contact(dt):
+        from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+
+        n = 60
+        rng = generateur(1)
+        x = np.array([[-2.0 + 0.5 * (k % 8), -2.0 + 0.5 * (k // 8)] for k in range(n)])
+        x += rng.uniform(-0.02, 0.02, size=x.shape)
+        etat = State(x=x, v=np.zeros_like(x), r=rng.uniform(0.18, 0.22, size=n))
+        sec = {Milieu.SEC: ParametresMilieu(relaxation=0.3, acceleration_max=3.0, vitesse=1.5)}
+
+        def partout(points):
+            return np.full(points.shape[0], Milieu.SEC, dtype=np.int64)
+
+        pousse = pas_libre_milieux(lambda e: np.tile([1.0, 0.0], (e.n, 1)), partout, sec)
+        arret = pas_libre_milieux(lambda e: np.zeros((e.n, 2)), partout, sec)
+        projection = ProjectionExclusion(BoiteTournante(2.5).projeter, tolerance=TOLERANCE)
+        for libre, duree in ((pousse, 8.0), (arret, 4.0)):
+            for _ in range(round(duree / dt)):
+                etat = pas_semi_implicite(etat, dt, libre, projection)
+        assert projection.non_convergences == 0
+
+        paires = paires_candidates(etat.x, etat.r, 1e-3)
+        i, j = paires[:, 0], paires[:, 1]
+        jeux = np.linalg.norm(etat.x[j] - etat.x[i], axis=1) - etat.r[i] - etat.r[j]
+        return jeux, 2 * etat.r.mean()
+
+    def test_foule_comprimee_puis_arretee(self):
+        jeux, diametre = self._jeux_en_contact(0.01)
+        assert jeux.size > 80  # une vraie foule au contact : mesure 101 paires
+        assert jeux.min() >= -TOLERANCE  # jamais d'interpenetration
+        biais = 2 * jeux.mean() / diametre
+        assert 0.0 <= biais < 1e-4  # mesure : 4,1e-5 ; negligeable devant la mesure de densite
+        assert jeux.max() < 5e-4  # mesure : 1,5e-4 m, soit 0,07 % du diametre
+
+    @pytest.mark.slow
+    def test_le_biais_decroit_avec_le_pas_de_temps(self):
+        grossier, _ = self._jeux_en_contact(0.01)
+        fin, _ = self._jeux_en_contact(0.005)
+        assert grossier.mean() / fin.mean() > 3  # mesure : 3,7 (ordre 2 : 4)
 
 
 class TestCentreDeGravite:
