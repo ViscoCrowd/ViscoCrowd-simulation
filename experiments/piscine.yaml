@@ -1,0 +1,44 @@
+# Scenario piscine de reference (jalon 4). Valeurs de la proposition C6 (issue #26),
+# a valider par le groupe ; sources dans docs/journal-decisions.md.
+version: 1
+scenario: piscine
+graine: 20262027
+parametres:
+  geometrie:
+    longueur_bassin: 25.0      # m
+    largeur_bassin: 12.5       # m
+    plage_gauche: 3.0          # m
+    plage_verticale: 4.0       # m, en haut et en bas
+    plage_sortie: 20.0         # m, du bord du bassin au mur de la porte
+    largeur_porte: 1.2         # m, le goulot
+    profondeur_porte: 1.0      # m, couloir de la porte avant l'exterieur
+    largeur_mouillee: 3.0      # m, bande de carrelage mouille autour du bassin
+    pas_rebord: 0.6            # m, un site de rebord par intervalle
+    largeur_echelle: 0.5       # m
+    echelles: [[haut, 0.9], [bas, 0.9]]   # cote, fraction de sa longueur
+  n_agents: 100                # environ 0,32 pers/m^2 dans le bassin
+  rayon: 0.2                   # m
+  espacement: 1.0              # m entre emplacements initiaux
+  bruit: 0.1                   # m, perturbation bornee
+  parametres_milieux:
+    EAU:                       # petit bain de 0,7 m : V = 0,53 (d^2/2)^-0,19
+      relaxation: 0.5          # s (Helbing et al. 2000)
+      acceleration_max: 1.6    # m/s^2 : 0,34 g x poids apparent ~0,5 (hypothese)
+      vitesse: 0.69            # m/s
+    MOUILLE:
+      relaxation: 0.5
+      acceleration_max: 3.3    # 0,34 g (Kendzior 2023)
+      vitesse: 1.34            # m/s (Weidmann 1993, p. 43)
+    SEC:
+      relaxation: 0.5
+      acceleration_max: 5.9    # 0,60 g (Kendzior 2023)
+      vitesse: 1.34
+  facteur_vitesse: 1.0         # niveau de panique de reference
+  durees:                      # s, hypotheses non sourcees, balayees en E4
+    rebord: 4.0
+    echelle: 2.0
+  portee: 0.25                 # m : on saisit le bord a moins d'une demi-echelle
+  dt: 0.01                     # s
+  duree: 180.0                 # s, borne ; le calcul s'arrete quand tous sont sortis
+  tolerance: 1.0e-6            # m
+  pas_guidage: 0.1             # m
