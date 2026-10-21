@@ -29,6 +29,13 @@ contrainte, rien n'aurait empêché l'un d'eux d'y entrer.
 guidage eikonal. Au-delà de la section de sortie, où le champ est nul, les agents reprennent
 la direction (1, 0) pour continuer en aval comme dans le banc G1.
 
+**Compatibilité de relecture.** Les anciennes archives v1 sans les trois champs
+de guidage restent affichables comme banc analytique sans obstacle. Cette adaptation
+est limitée à la lecture, ne modifie pas les métadonnées et ne masque pas un champ
+manquant dans une archive moderne. Les nouveaux YAML restent explicites.
+Les méthodes publiques de projection et de violation d'obstacle refusent aussi
+les rayons non finis ou non positifs, même si la population est vide.
+
 **Mesures** (`experiments/couloir_obstacle.yaml`, pilier de 1 × 1 m au milieu de la bande
 mouillée, Δt = 0,01 s, 16 s). 24 agents sortis sur 24, 12 de chaque côté ; recouvrement
 maximal 9,9998·10⁻⁷ m pour une tolérance de 10⁻⁶ m ; violation des parois et du pilier

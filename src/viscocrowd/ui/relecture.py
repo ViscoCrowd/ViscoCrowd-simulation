@@ -32,7 +32,14 @@ class LecteurCouloir:
         if not isinstance(config, dict) or config.get("scenario") != "couloir":
             raise ValueError("cette relecture graphique attend une archive du scenario couloir")
         try:
-            self.p = ParametresCouloir(**config["parametres"], graine=config["graine"])
+            parametres = dict(config["parametres"])
+            if not {"guidage", "pas_guidage", "obstacles"}.intersection(parametres):
+                # Anciennes archives v1 : uniquement le banc analytique sans obstacle.
+                # Une archive moderne a laquelle il manque un champ reste refusee.
+                parametres.update(
+                    guidage="aval", pas_guidage=min(0.05, parametres["rayon"]), obstacles=()
+                )
+            self.p = ParametresCouloir(**parametres, graine=config["graine"])
         except (KeyError, TypeError) as erreur:
             raise ValueError(
                 "configuration du couloir absente ou incomplete dans l'archive"

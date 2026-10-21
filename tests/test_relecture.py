@@ -52,6 +52,28 @@ def test_navigation_restitue_positions_rayons_temps_et_passages(lecteur, donnees
     assert lecteur.compteur.get_text().endswith("0")
 
 
+def test_archive_ancienne_sans_champs_guidage_reste_lisible(donnees):
+    parametres = donnees.metadonnees["configuration"]["parametres"]
+    for nom in ("guidage", "pas_guidage", "obstacles"):
+        del parametres[nom]
+    vue = LecteurCouloir(donnees, interactif=False)
+    try:
+        vue.aller_au_temps(1.0)
+        np.testing.assert_array_equal([d.center for d in vue.disques], donnees.x[-1])
+        assert vue.p.guidage == "aval"
+        assert not vue.obstacles
+        assert "guidage" not in parametres  # les metadonnees archivees restent intactes
+    finally:
+        plt.close(vue.figure)
+
+
+@pytest.mark.parametrize("manquant", ["guidage", "pas_guidage", "obstacles"])
+def test_archive_moderne_partiellement_tronquee_refusee(donnees, manquant):
+    del donnees.metadonnees["configuration"]["parametres"][manquant]
+    with pytest.raises(ValueError, match="incomplete"):
+        LecteurCouloir(donnees, interactif=False)
+
+
 def test_pause_vitesse_et_fin_de_lecture(lecteur, monkeypatch):
     horloge = [100.0]
     monkeypatch.setattr("viscocrowd.ui.relecture.time.monotonic", lambda: horloge[0])

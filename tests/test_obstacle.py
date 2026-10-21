@@ -11,6 +11,17 @@ R = 0.2
 
 
 class TestRepousser:
+    @pytest.mark.parametrize("methode", ["repousser", "violation"])
+    @pytest.mark.parametrize("rayon", [np.nan, np.inf, -0.2, 0.0, [np.nan]])
+    def test_rayon_invalide_refuse(self, methode, rayon):
+        with pytest.raises(ValueError, match="r"):
+            getattr(PILIER, methode)(np.array([[5.9, 0.0]]), rayon)
+
+    @pytest.mark.parametrize("methode", ["repousser", "violation"])
+    def test_rayon_nan_refuse_meme_sans_agent(self, methode):
+        with pytest.raises(ValueError, match="r"):
+            getattr(PILIER, methode)(np.empty((0, 2)), np.nan)
+
     def test_point_pres_d_une_face_ramene_a_un_rayon(self):
         x = PILIER.repousser(np.array([[5.9, 0.1]]), R)
         np.testing.assert_allclose(x, [[5.8, 0.1]], atol=1e-15)

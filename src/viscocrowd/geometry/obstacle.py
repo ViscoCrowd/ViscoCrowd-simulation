@@ -35,6 +35,15 @@ def _points(x: np.ndarray) -> np.ndarray:
     return x
 
 
+def _rayons(r: np.ndarray, nombre: int) -> np.ndarray:
+    r = np.asarray(r, dtype=float)
+    # Avant diffusion : un scalaire NaN ne doit pas disparaitre sur une population vide.
+    exiger_fini(r=r)
+    if np.any(r <= 0.0):
+        raise ValueError("r doit etre strictement positif")
+    return np.broadcast_to(r, (nombre,))
+
+
 @dataclass(frozen=True)
 class ObstacleRectangle:
     """Rectangle [x_min, x_max] x [y_min, y_max], en metres."""
@@ -70,7 +79,7 @@ class ObstacleRectangle:
     def repousser(self, x: np.ndarray, r: np.ndarray) -> np.ndarray:
         """Centres (M, 2) ramenes a la distance r au moins de l'obstacle. Voir le module."""
         x = _points(x)
-        r = np.broadcast_to(np.asarray(r, dtype=float), (x.shape[0],))
+        r = _rayons(r, x.shape[0])
         resultat = x.copy()
         proche = np.clip(x, [self.x_min, self.y_min], [self.x_max, self.y_max])
         ecart = x - proche
@@ -104,5 +113,5 @@ class ObstacleRectangle:
     def violation(self, x: np.ndarray, r: np.ndarray) -> float:
         """Plus grand chevauchement (m) entre un disque et l'obstacle, nul si aucun."""
         x = _points(x)
-        r = np.broadcast_to(np.asarray(r, dtype=float), (x.shape[0],))
+        r = _rayons(r, x.shape[0])
         return float(np.max(r - self._distance_signee(x), initial=0.0))
