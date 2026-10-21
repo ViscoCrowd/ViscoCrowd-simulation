@@ -11,6 +11,26 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Coupler la foule guidée aux milieux et à l'exclusion
+
+**Réalisation (suivi #34).** Le banc `experiments/couloir.yaml` initialise une grille
+de disques perturbée par une graine explicite, avec une marge garantissant son admissibilité.
+Le guidage vers l'aval, la carte par bandes et le pas libre des milieux alimentent ensuite
+l'exclusion existante en mode strict. Aucun paramètre de scénario n'est implicite.
+
+On exige Δt ≤ min(τ) pour une relaxation monotone sans saturation, puis un déplacement
+souhaité et mesuré par pas ≤ rayon/5, comme garde-fou pratique contre les pas trop grands.
+La convergence est testée séparément : la trajectoire d'un agent en milieu uniforme
+approche à l'ordre 1 la solution `x(t) = x₀ + s [t − τ (1 − exp(−t/τ))]` sans saturation.
+
+**Mesures du démonstrateur.** 24 agents, Δt = 0,01 s, 14 s simulées : 24 passages distincts
+de la section x = 12 m, entre 7,225 et 9,228 s ; recouvrement maximal 9,99457·10⁻⁷ m,
+aucune non-convergence et aucune violation de paroi. Des contacts ont effectivement lieu.
+Les différences de vitesse et d'adhérence entre bandes sont illustratives et ne permettent
+pas d'attribuer séparément un effet à l'adhérence ; ce n'est pas une campagne E0–E4.
+
+---
+
 ## 2026-10-21 — Valider le guidage sur un couloir prolongé en aval
 
 **Décision d'implémentation (G1, suivi #34).** Le premier banc guidé est un couloir
