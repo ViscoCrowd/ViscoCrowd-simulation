@@ -104,13 +104,21 @@ exactement ; les cellules pavent la salle. Sur 300 nuages uniformes, Voronoï et
 retrouvent la densité moyenne, Voronoï 1,34 fois moins dispersé ; un agent qui entre dans la
 zone fait sauter le comptage de 1/|M| et la densité de Voronoï de moins de 5 % de ce saut.
 
-**Biais de densité dû à la tolérance (#10).** La foule comprimée étant chaotique (PR #48),
-on compare des distributions, pas des configurations. 60 agents poussés contre une paroi puis
-arrêtés, 8 graines appariées, densité de Voronoï contre la paroi (environ 6,5 pers/m²) :
-tolérance 10⁻⁶ contre 10⁻⁹ m, différence moyenne +0,0146 pers/m² (+0,22 %), erreur
-standard 0,034, soit un effet indiscernable de zéro, borné à 1,3 % à environ 95 %, et
-inférieur à la dispersion entre graines (2,1 %). Il reste à refaire cette mesure sur la
-géométrie cible (goulot, E0) avant de conclure #10.
+**Biais de densité dû à la tolérance (#10), essai exploratoire.** La sensibilité des
+arrangements (#48) motive une comparaison appariée sur huit graines, sans démontrer un
+chaos. Pour 60 agents poussés contre une paroi puis arrêtés, la première exécution
+rapporte une différence moyenne de +0,0146 pers/m² et une erreur standard estimée de
+0,034 entre les tolérances 10⁻⁶ et 10⁻⁹ m. Sur macOS arm64, la revue mesure +0,035154
+et 0,059588 pers/m² : |moyenne| + 2 SE = 0,15433, au-dessus du critère 0,13 du test lent.
+La conclusion initiale de borne à 1,3 % est retirée. Deux erreurs standard sur huit
+graines ne donnent pas un intervalle garanti ; ne pas détecter de différence ne prouve
+pas l'absence d'effet. Le test reste en échec, sans seuil relevé : protocole, hypothèses
+d'incertitude et critère restent à justifier avant fusion de #53, puis à appliquer à la
+géométrie cible (goulot, E0). #10 reste ouverte.
+
+La revue corrige séparément les centres confondus ou fusionnés par Qhull : compter deux
+fois une même cellule faussait aussi la vitesse uniforme. Ces entrées et les partitions
+dégénérées sont refusées ; les 17 tests rapides de densité passent.
 
 ---
 

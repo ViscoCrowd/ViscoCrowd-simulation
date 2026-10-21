@@ -68,10 +68,15 @@ pour un réseau carré de pas \SI{0.5}{\metre}, $2/(\sqrt3\,a^2)$ pour un résea
 comptage, avec une dispersion 1,34 fois plus faible. Quand un agent entre dans la zone,
 le comptage saute de $1/|M|$ et la densité de Voronoï de moins de \SI{5}{\percent} de ce saut.
 
-Elle sert aussi à mesurer l'effet de la tolérance de projection sur la densité (issue~10).
-Comme la foule comprimée est chaotique, nous comparons des distributions sur huit graines
-appariées, et non des configurations. Passer la tolérance de \num{1e-6} à
-\SI{1e-9}{\metre} change la densité de Voronoï contre la paroi de \SI{0.22}{\percent} en
-moyenne, avec une erreur standard de \SI{0.5}{\percent}. L'effet est indiscernable de zéro
-et inférieur à la dispersion entre graines (\SI{2.1}{\percent}). La mesure reste à refaire
-au goulot du scénario cible.
+Un essai exploratoire compare aussi la densité contre une paroi sur huit graines
+appariées, à des tolérances de projection de \num{1e-6} et \SI{1e-9}{\metre}
+(issue~10). La sensibilité des arrangements motive cette comparaison ; elle ne
+constitue pas une preuve de chaos. La première exécution rapporte une différence
+moyenne de \num{0.0146}~P/m$^2$, avec une erreur standard estimée de
+\num{0.034}~P/m$^2$. La revue sur macOS arm64 obtient respectivement
+\num{0.035154} et \num{0.059588}~P/m$^2$ : son test lent échoue au critère
+$|\text{moyenne}|+2\,\text{erreur standard}<\num{0.13}$~P/m$^2$.
+Ces statistiques sont descriptives : deux erreurs standard sur huit graines ne
+donnent pas une borne garantie, et une absence de différence détectée ne prouve
+pas l'absence d'effet. Le protocole, les hypothèses d'incertitude et le critère
+d'acceptation restent à justifier avant validation, puis à appliquer au goulot cible.

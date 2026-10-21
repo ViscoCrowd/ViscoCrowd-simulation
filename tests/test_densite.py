@@ -138,11 +138,14 @@ def test_biais_de_densite_de_la_tolerance_indiscernable_sur_huit_graines():
 
     60 agents (rayons 0,18 a 0,22 m) pousses contre une paroi a 1,5 m/s puis
     arretes ; densite de Voronoi contre la paroi. Comparaison appariee, graine par
-    graine, tolerance 1e-6 contre 1e-9 m. La foule etant chaotique (PR #48), les
-    configurations finales different : seule une conclusion statistique a un sens.
+    graine, tolerance 1e-6 contre 1e-9 m. Les arrangements sont sensibles aux
+    perturbations (PR #48), ce qui ne constitue pas une preuve de chaos.
 
     Mesure : difference moyenne +0,0146 pers/m^2 (+0,22 %), erreur standard
-    0,034 ; dispersion entre graines 2,1 %. Effet indiscernable de zero.
+    0,034 ; dispersion entre graines 2,1 %. Revue macOS arm64 : moyenne 0,035154,
+    erreur standard 0,059588 ; le second critere ECHOUE. Ces statistiques ne
+    demontrent ni absence d'effet ni borne universelle. Test conserve sans seuil
+    releve : protocole et critere restent a justifier avant fusion de la PR #53.
     """
     from viscocrowd.core.integrator import pas_semi_implicite
     from viscocrowd.core.state import State
@@ -176,8 +179,9 @@ def test_biais_de_densite_de_la_tolerance_indiscernable_sur_huit_graines():
     graines = range(1, 9)
     ecarts = np.array([densite(1e-6, g) - densite(1e-9, g) for g in graines])
     erreur_standard = ecarts.std(ddof=1) / np.sqrt(len(ecarts))
-    assert abs(ecarts.mean()) < 2 * erreur_standard  # indiscernable de zero
-    assert abs(ecarts.mean()) + 2 * erreur_standard < 0.02 * 6.5  # moins de 2 % au plus
+    # Criteres initiaux conserves pour rendre l'echec visible, sans preuve d'absence d'effet.
+    assert abs(ecarts.mean()) < 2 * erreur_standard
+    assert abs(ecarts.mean()) + 2 * erreur_standard < 0.02 * 6.5
 
 
 def test_rectangle_degenere_refuse():
