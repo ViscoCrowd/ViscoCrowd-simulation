@@ -4,8 +4,17 @@
 
 \subsection{Organisation du code}
 
-% Separation moteur / modele / observables, et pourquoi les trajectoires sont
-% persistees plutot que les observables calcules au vol.
+Le moteur sépare trois opérations : calcul du pas libre, projection des positions
+sur les contraintes, puis relecture de la vitesse par déplacement réalisé.
+Les modules de modèle fournissent la direction souhaitée et les propriétés du milieu.
+Le scénario assemble ces fonctions avec la géométrie, les rayons et la graine.
+Les observables reçoivent ensuite des tableaux de trajectoire, sans dépendre du simulateur.
+
+Dans le banc de couloir, la direction est constante vers l'aval. Une carte par bandes
+associe à chaque centre d'agent son milieu ; une frontière appartient à la bande de droite.
+Le milieu est évalué au début du pas : un changement de zone influence donc le pas suivant.
+La projection d'exclusion impose les contacts entre disques et les trois parois du couloir.
+La section de mesure, fournie par la même géométrie, ne constitue pas une paroi.
 
 \subsection{Recherche des voisins}
 
@@ -13,4 +22,28 @@
 
 \subsection{Reproductibilite}
 
-% Graine unique, manifeste des figures, conteneur Docker.
+La chaîne disponible est
+\[
+\text{configuration YAML} \longrightarrow \text{simulation}
+\longrightarrow \text{archive NPZ} \longrightarrow \text{mesures et relecture}.
+\]
+Les configurations sont versionnées. Les clés inconnues ou dupliquées et les valeurs
+physiques invalides sont refusées. Tous les paramètres du couloir sont obligatoires ;
+son initialisation utilise exclusivement le générateur commun à graine explicite.
+Les contrôles imposent notamment $\dt\leq\min_m\tau_m$ et un déplacement souhaité
+puis effectivement mesuré inférieur ou égal à $r/5$ par pas. Ces garde-fous ne remplacent
+pas une étude de convergence. Une non-convergence de la projection interdit l'archivage.
+
+L'archive conserve les instants, positions, vitesses et rayons en unités SI, ainsi que
+la configuration effective, la graine, les versions logicielles et les diagnostics.
+Les métadonnées utilisent JSON et les tableaux se chargent sans pickle. Les tests
+comparent exactement les tableaux relus et ceux de deux calculs à graine identique
+dans un même environnement ; cette propriété ne garantit pas l'identité entre versions
+de dépendances. Le fichier existant n'est jamais écrasé.
+
+La commande \texttt{rejouer} anime le couloir uniquement à partir de l'archive : positions,
+rayons, horloge et compteur de passages proviennent des données enregistrées. Le curseur
+choisit le dernier instant archivé inférieur ou égal au temps demandé ; le GIF inclut
+le dernier instant. Lire/Pause, vitesse de lecture et export PNG/GIF ne modifient pas
+la dynamique. Les archives gardent tous les agents et tous les pas en mémoire : elles
+ne constituent ni une reprise de calcul ni un état de sortie absorbant.

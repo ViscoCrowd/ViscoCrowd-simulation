@@ -14,8 +14,25 @@
 
 \subsection{Outils de developpement}
 
-% Python, NumPy, SciPy, Matplotlib, pytest, ruff, Docker, GitHub Actions.
+Python et NumPy servent aux calculs et aux tableaux ; PyYAML charge les expériences.
+Matplotlib produit les figures et la relecture animée, avec Pillow pour le GIF.
+pytest vérifie les cas analytiques, les invariants et les interfaces ; Ruff contrôle
+le style. GitHub Actions exécute les tests, la reproduction des figures et le contrôle
+Docker, puis compile le rapport lorsqu'il change. Les versions sont consignées dans
+les archives et les dépendances sont figées pour les environnements de référence.
 
 \subsection{Outils d'intelligence artificielle generative}
 
-% Lister : quel outil, pour quelle tache, et comment le resultat a ete verifie.
+Le 21 octobre 2026, Lenny a utilisé Codex pour examiner les PR et les issues,
+implémenter le banc de couloir, ses tests et sa relecture, et préparer la documentation
+et le suivi des tâches (PR 35 à 37 et documentation associée). La vérification repose
+sur la solution analytique d'un agent isolé, le raffinement temporel, les invariants
+sur toutes les paires du groupe, la relecture des archives et la CI. Les exports ont
+été inspectés visuellement ; les commandes de lecture sont testées sans fenêtre.
+
+Un défaut de résolution du GIF, révélé par la suite complète lorsque les figures
+scientifiques modifiaient les réglages Matplotlib, a été corrigé et couvert par un
+test de régression. Ces vérifications ne remplacent pas la compréhension du code
+par chaque membre : l'explication collective en préparation de soutenance reste à faire.
+Les autres usages d'outils et les proportions de contribution restent à renseigner
+par les personnes concernées.
