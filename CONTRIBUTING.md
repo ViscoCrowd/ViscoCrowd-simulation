@@ -41,12 +41,17 @@ pytest
 ## 3. Cycle de travail
 
 ```
-issue  →  branche  →  commits  →  PR  →  revue  →  squash merge  →  branche supprimée
+issue  →  branche  →  commits  →  PR vers dev  →  revue  →  squash merge  →  branche supprimée
+                                       jalon terminé  →  PR dev vers main  →  tag + release
 ```
 
 ### 3.1 Branches
 
-`main` est protégée : **pas de push direct**. Tout passe par une pull request.
+`main` et `dev` sont protégées : **pas de push direct**, pas de force-push, et **elles ne sont
+jamais supprimées**. Tout passe par une pull request.
+
+- `dev` est la branche d'intégration : les branches de travail (`feat/`, `fix/`…) y arrivent.
+- `main` est la branche présentable : elle ne reçoit que des briques terminées (voir § 3.4).
 
 | Préfixe | Pour quoi |
 |---|---|
@@ -55,6 +60,8 @@ issue  →  branche  →  commits  →  PR  →  revue  →  squash merge  →  
 | `exp/` | campagne de simulation, exploration de paramètres |
 | `docs/` | rapport, cahier des charges, journal des décisions |
 | `chore/` | outillage, CI, dépendances |
+| `release/` | instantané de jalon à publier, uniquement si un rattrapage est nécessaire |
+| `sync/` | resynchronisation de `main` vers `dev` après publication |
 
 ```bash
 git switch -c feat/projection-iterative
@@ -101,8 +108,9 @@ PR évite de devoir tout mesurer en catastrophe au mois de décembre.
 make lint && make test
 ```
 
-**Fusion** — `Squash and merge`, pour un historique de `main` lisible, une ligne par
-contribution. La branche est supprimée automatiquement.
+**Fusion** — `Squash and merge` vers `dev`, pour un historique lisible, une ligne par
+contribution. La branche de travail peut être supprimée après fusion, **jamais `main` ni `dev`**.
+Seule exception : les PR de synchronisation `sync/` conservent leurs commits de fusion (§ 3.4).
 
 **Vous pouvez fusionner votre propre PR.** GitHub n'exige pas d'approbation : nous travaillons en
 alternance, et une approbation bloquante immobiliserait une branche plusieurs jours dès que nos
@@ -112,6 +120,73 @@ Ce qui reste bloquant, et qui n'est pas négociable, c'est la **CI verte** — e
 invariants physiques. Aucune PR ne peut les contourner.
 
 Cette souplesse est une facilité d'organisation, pas une dispense de relecture : voir § 4.
+
+### 3.4 Passer de `dev` à `main`
+
+Les jalons sont définis dans la [spécification § 9](docs/superpowers/specs/2026-10-06-viscocrowd-design.md#9-jalons),
+leur avancement dans le [planning](docs/planning/README.md) et leur publication dans le
+[registre des livraisons](docs/livraisons.md). Une tâche terminée dans un jalon encore ouvert
+reste sur `dev` : livrer G1 ne clôt pas à lui seul le jalon 3.
+
+À la fin d'un jalon, stabiliser `dev` puis ouvrir une PR `dev` → `main`. Elle indique le
+jalon, son périmètre, les PR intégrées, les mesures, les limites connues et le tag prévu.
+Les travaux du jalon suivant attendent sur leurs branches jusqu'à la publication.
+**Avant fusion**, les trois conditions suivantes doivent être réunies :
+
+1. **Toute la CI de la PR est verte**, y compris Docker et, lorsqu'il est concerné, le rapport.
+2. **Le périmètre du jalon est terminé et documenté**, ou une version de rendu est explicitement
+   délimitée ; aucun travail incomplet n'est annoncé comme une livraison achevée.
+3. **La relecture croisée est traçable**, avec les chiffres de validation. Les revues des PR
+   constitutives peuvent servir de preuve si leurs corrections sont incluses sans modification ;
+   tout changement supplémentaire doit être relu. Une revue automatisée ne vaut pas accord collectif.
+
+Fusionner par **squash vers `main`**, puis publier un **tag annoté `jalon-N` sur le commit
+exact résultant de cette fusion**. Une **GitHub Release du même nom** accompagne ce tag :
+elle contient le périmètre, les commandes de reproduction, les résultats et les limites.
+Le tag est le repère Git ; la release est sa fiche de livraison. Ils sont complémentaires.
+
+Ne jamais créer le tag sur le `HEAD` de travail par défaut, déplacer un tag publié ou
+antidater une régularisation. Un correctif ultérieur passe par de nouvelles PR et, si nécessaire,
+une nouvelle version `jalon-N.1`. Une version figée est aussi prévue avant chaque échéance
+(rapport le 5 janvier 2027, transparents le 18 janvier, soutenance le 19 janvier).
+
+Après fusion et vérification du SHA sur `main` (remplacer les valeurs entre chevrons) :
+
+```bash
+git fetch origin --tags
+git merge-base --is-ancestor <sha_publication> origin/main
+git tag -a jalon-N <sha_publication> -m "Jalon N : <intitule>"
+git push origin refs/tags/jalon-N
+gh release create jalon-N --verify-tag --title "Jalon N — <intitule>" --notes-file notes.md
+```
+
+**Resynchroniser par PR, sans push direct.** Le squash crée un nouveau commit sur `main` ;
+il doit devenir un ancêtre de `dev` pour que la prochaine promotion n'inclue pas à nouveau
+l'ancien jalon. Depuis un arbre propre :
+
+```bash
+git switch -c sync/main-jalon-N origin/dev
+git merge origin/main
+# Résoudre les conflits en conservant les travaux plus récents de dev.
+git push -u origin HEAD
+gh pr create --base dev --head sync/main-jalon-N
+```
+
+Après revue et CI verte, fusionner cette PR avec **Create a merge commit** (`gh pr merge
+<numero> --merge`), jamais squash ou rebase : ces modes perdraient l'ascendance recherchée.
+Vérifier ensuite `git merge-base --is-ancestor origin/main origin/dev` après un fetch.
+Si une protection interdit le commit de fusion, faire corriger la règle par un administrateur ;
+ne pas contourner la protection par un push direct ou forcé.
+
+**Rattrapage historique.** Si `dev` contient déjà un jalon suivant incomplet, une branche
+`release/jalon-N` peut partir du dernier instantané complet de `dev`, identifié par SHA.
+Seuls des correctifs et documents déjà intégrés et relus dans `dev` peuvent y être repris,
+avec leurs références ; toute correction nouvelle repasse d'abord par une PR vers `dev`.
+Les notes propres à la version, son registre et ses indications de périmètre sont finalisés
+dans la PR de publication, puis repris dans `dev` lors de la synchronisation.
+La PR de publication vers `main` explique cette exception, rejoue la validation sur son
+contenu exact, puis suit les mêmes règles de tag, release et synchronisation. Ne jamais
+reculer `dev` ni réécrire les anciens commits pour simuler un historique parfait.
 
 ---
 

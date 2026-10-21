@@ -63,6 +63,10 @@ groupe. Aucun moteur physique, moteur de jeu ou code de simulation de foule prê
 
 ## Démarrage
 
+**Version publiée : jalon 2.** Voir les [notes et mesures de cette version](docs/releases/jalon-2.md).
+Les développements suivants (guidage, milieux et couloir) restent sur
+[`dev`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/tree/dev) jusqu'à la clôture de leur jalon.
+
 ### Avec Docker — reproductibilité garantie
 
 ```bash
@@ -82,8 +86,57 @@ viscocrowd valider-moteur --figures
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
-**Temps d'exécution typique** — validation complète du moteur avec figures : **≈ 8 s** sur un
-portable récent. La suite de tests : **≈ 5 s**.
+**Mesures du 21 octobre 2026** — 282 tests rapides en **17,64 s** ; validation avec les six
+figures en **48,9 s**, sur le poste de Lenny (Python 3.14.4). Deux tests lents sont exclus de
+la suite rapide ; les durées varient selon la machine et les dépendances.
+
+### Aperçu de la piscine
+
+```bash
+make interface
+# Ou, avec l'environnement virtuel activé :
+viscocrowd interface
+```
+
+Une fenêtre affiche un schéma en noir et blanc, inspiré du croquis de référence :
+un bassin noir à contour blanc, une échelle à barreaux et une sortie unique à droite.
+Le cadre extérieur reste continu derrière la sortie. Un petit repère indique les
+directions x et y. Les différents sols ne sont pas encore détaillés.
+La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une image.
+Les dimensions sont indicatives : cette maquette ne lance aucune simulation et ne
+présente aucun résultat physique.
+
+Le panneau de droite réserve les valeurs de population, de géométrie, des trois milieux,
+des franchissements et du calcul. Les champs non renseignés affichent `—`. Le chronomètre
+en haut à droite affiche le **temps simulé**, au format minutes:secondes.centièmes ; il
+reste à zéro par défaut et ne compte pas le temps d'ouverture de la fenêtre.
+
+Les valeurs pourront être fournies directement en arguments. Exemple d'affichage uniquement
+(ces nombres ne constituent pas une calibration du modèle) :
+
+```python
+from viscocrowd.ui.parametres import ParametresAffichage, ParametresMilieu
+from viscocrowd.ui.piscine import ouvrir_interface
+
+ouvrir_interface(
+    parametres=ParametresAffichage(
+        nombre_agents=100,
+        dt=0.01,
+        graine=20262027,
+        eau=ParametresMilieu(vitesse=0.5),
+    ),
+    temps_simule=12.5,
+)
+```
+
+`creer_figure()` accepte les mêmes arguments pour construire la vue sans lancer sa boucle
+graphique. Les valeurs annotent le schéma ; elles ne modifient pas encore sa disposition.
+
+L'affichage utilise Matplotlib, déjà présent dans le projet, et reste isolé dans
+`src/viscocrowd/ui/`. Il nécessite un environnement graphique local : macOS utilise
+le backend natif ; les autres postes doivent disposer d'un backend interactif
+Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré avec
+`MPLBACKEND=Agg` reste destiné aux calculs et aux exports hors écran.
 
 ---
 
@@ -91,13 +144,28 @@ portable récent. La suite de tests : **≈ 5 s**.
 
 | Jalon | Contenu | État |
 |---|---|---|
-| 0 | Socle du dépôt, méthodologie, cahier des charges | ✅ |
-| 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ validé |
-| 2 | Exclusion entre agents (projection itérative) | ⏳ |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ |
-| 4 | Scénario piscine complet, franchissements | ⏳ |
-| 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ |
-| 6 | Rapport, figures finales, transparents | ⏳ |
+| 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
+| 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
+| 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | ⏳ À développer |
+| 4 | Scénario piscine complet, franchissements | ⏳ À développer |
+| 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
+| 6 | Rapport, figures finales, transparents | ⏳ À finaliser |
+
+Le statut du sujet et les questions encore ouvertes sont centralisés dans la
+[fiche de cadrage](docs/validation-sujet.md#trace-de-validation). Les choix collectifs du jalon 2
+(Jacobi vectorisé et Nesterov après 80 balayages) figurent dans le
+[journal des décisions](docs/journal-decisions.md) et l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
+
+Cette validation conserve la limite de contacts multiples suivie dans
+l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10), à corriger ou à
+quantifier avant les campagnes. Le rejet des valeurs non finies
+([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
+([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés dans cette version ;
+le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18)) est vérifié en CI.
+
+Le [planning détaillé et daté 2026–2027](docs/planning/README.md) est la référence pour le suivi
+des tâches ; ses modifications sont relisibles dans les pull requests.
 
 ---
 
@@ -115,6 +183,12 @@ Chaque critère produit un **nombre**, pas une impression visuelle. Reproductibl
 | Remontée d'énergie (boîte fixe) | **0,0 J** | ≤ 0, strictement |
 | Dissipation totale par les chocs | 14,2 J | substantielle |
 | Écart à l'entraînement, ω = 5 rad/s | 1,7 × 10⁻² m/s | → 0 |
+| Recouvrement résiduel entre agents (36 disques, Δt = 2·10⁻³ s) | **≤ 10⁻⁶ m** (1,4 × 10⁻⁵ du rayon de 0,07 m) | ≤ tolérance annoncée |
+| … violation des parois, mêmes agents | **0,0 m** | précision machine |
+| … projections non convergées | **0 sur 1500** | 0 |
+| … balayages de projection par pas, au maximum | 182 (budget 300) | < budget |
+| … énergie cinétique finale du tas | **7,0 × 10⁻⁶ J** | → 0 (tas au repos) |
+| Restitution après un choc à contacts multiples | **9,0 × 10⁻⁷** de l'énergie d'arrivée | 0 (choc mou) |
 
 ### Un résultat non trivial
 
@@ -142,10 +216,11 @@ continue.
 ```
 src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
-├── geometry/      domaines, parois, projections
+├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
+├── ui/            aperçu graphique de la piscine, indépendant du moteur
 └── cli.py
 
 tests/             unitaires · invariants physiques (tournent à chaque PR)
@@ -176,6 +251,8 @@ Exigences du module, et où elles sont tenues :
 ## Contribuer
 
 Méthodologie, convention de branches et processus de revue : **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+Les jalons publiés, leurs tags/releases et l'audit du cycle `dev` → `main` sont suivis dans
+le **[registre des livraisons](docs/livraisons.md)**.
 
 ```bash
 make install     # environnement de développement

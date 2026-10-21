@@ -3,7 +3,9 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique (alternance) · 2026-2027
 **Groupe** Karrouchi Hamza (`CodeByHaamza`), Lesueur Shaleena (`shalee-pnt`), Mongrandi Lenny (`lennymgrd`)
 **Date** 6 octobre 2026
-**Statut** Conception validée — en attente de validation du sujet par l'enseignant
+**Statut** Voir le [cadrage et la trace de validation](../../validation-sujet.md#trace-de-validation)
+
+La date ci-dessus est celle de création du document.
 
 ---
 
@@ -116,17 +118,122 @@ où `G_ij` vaut `−e_ij` sur la composante `i` et `+e_ij` sur la composante `j`
 `e_ij = (x_j − x_i)/|x_j − x_i|`. L'ensemble linéarisé est une **intersection de demi-espaces**,
 donc convexe : la projection y est bien définie et unique.
 
-**Résolution** — algorithme itératif de type Gauss-Seidel projeté sur les contraintes actives
-(équivalent à un Uzawa sur le problème dual) :
+**Résolution** — algorithme itératif de type **Jacobi** projeté sur les contraintes actives,
+accéléré par une **extrapolation de Nesterov retardée** :
 
 ```
-X ← x_libre
-répéter jusqu'à convergence (ou n_max itérations) :
-    pour chaque paire (i,j) en contact ou en recouvrement :
-        corriger x_i et x_j le long de e_ij, de la moitié du recouvrement chacun
-    pour chaque agent hors du domaine :
-        projeter sur Ω
+entrées : x_libre, rayons r, tolérance ε, budget n_max, domaine Ω
+X ← x_libre ;  n ← 0                           n : balayages consommés pendant cet appel
+résidu ← recouvrement maximal de X, sur toutes les paires
+répéter :
+    P ← paires à distance < r_i + r_j + m      grille de hachage, marge m = r_min / 2
+    X_précédent ← X ;  ρ ← 0                   ρ : rang depuis la dernière recherche de P
+    tant que n < n_max et (n = 0 ou résidu > ε) :
+        κ ← ρ − k₀ ;  β ← κ / (κ + 3) si κ > 0, sinon 0           k₀ = 80
+        Y ← X + β · (X − X_précédent)
+        si β > 0 : projeter Y sur Ω            le point extrapolé peut sortir du domaine
+        pour toutes les paires (i,j) de P en recouvrement, SIMULTANÉMENT :
+            δ_ij ← ½ (r_i + r_j − |y_j − y_i|) / max(c_i, c_j)
+            y_i ← y_i − δ_ij e_ij ;  y_j ← y_j + δ_ij e_ij
+        projeter Y sur Ω                       toujours en dernier : parois exactes
+        X_précédent ← X ;  X ← Y ;  n ← n + 1 ;  ρ ← ρ + 1
+        résidu ← recouvrement maximal sur les paires de P
+    résidu ← recouvrement maximal sur TOUTES les paires (nouvelle recherche, sans marge)
+jusqu'à résidu ≤ ε ou n ≥ n_max
+si résidu > ε : compter une non-convergence (et lever ProjectionNonConvergee en mode strict)
+rendre X
 ```
+
+`c_k` est le nombre de recouvrements de l'agent `k` dans le balayage courant. Trois détails du
+pseudo-code comptent pour retrouver le comportement du moteur :
+
+- **Les paires sont cherchées avec une marge, puis vérifiées sans marge.** Les agents bougent
+  pendant les balayages : une paire absente de `P` peut se créer. Si la vérification finale en
+  trouve une, on recherche les paires et on continue, dans le même budget `n_max`.
+- **Le rang d'extrapolation `ρ` repart de zéro à chaque recherche de paires.** L'extrapolation
+  prolonge le dernier déplacement ; après une nouvelle recherche, ce déplacement concerne une
+  autre liste de contraintes, et on ne veut pas reprendre à une valeur de `β` déjà élevée.
+- **Au moins un balayage est toujours fait (`n = 0`)**, même sans recouvrement : la projection
+  sur `Ω` doit s'appliquer à `x_libre`, qui peut être sorti du domaine.
+
+Une projection qui n'atteint pas `ε` dans son budget n'est jamais silencieuse : elle est comptée
+(`non_convergences`, `recouvrement_max`). En mode strict elle interrompt la simulation ; sinon,
+`verifier_convergence()` doit être appelé avant d'exploiter une trajectoire. Le mode permissif
+reste le défaut, parce que les études de limites ont besoin de **mesurer** l'échec.
+
+Jacobi traite toutes les paires à la fois, ce qui se vectorise en NumPy, là où Gauss-Seidel
+impose une boucle Python paire par paire. Mesuré : Jacobi demande **plus** de balayages (35 à
+125 contre 13 à 19, de 12 à 600 agents) mais reste **environ deux fois plus rapide** en temps
+réel. C'est la seule justification du choix.
+
+Trois points du pseudo-code ci-dessus sont des corrections apportées après mesure, et non des
+détails d'implémentation :
+
+- **La pondération est portée par la PAIRE, pas par l'agent.** Diviser les corrections reçues
+  par un agent par son nombre de contacts n'est pas symétrique en `(i, j)` : dès que deux
+  voisins n'ont pas le même nombre de contacts, les deux réactions d'une paire cessent d'être
+  opposées et **le centre de gravité de la foule dérive** sans aucune force extérieure
+  (2,2·10⁻³ m mesurés sur un amas de 12 agents). Avec `1/max(c_i, c_j)`, l'amortissement est le
+  même et la conservation est exacte (10⁻¹⁷ m).
+- **L'extrapolation ne s'allume qu'au-delà de `k₀ = 80` balayages, et sa rampe repart de zéro.**
+  Elle écarte les agents au-delà du contact, et ce jeu est définitif puisque les corrections ne
+  font qu'écarter. Allumée dès le premier balayage, elle restituait jusqu'à 10⁻³ de l'énergie
+  d'arrivée sur un choc à contacts multiples — le choc n'était plus mou. Un choc entre quelques
+  agents se résout en moins de 80 balayages et **ne reçoit donc pas d'extrapolation** : ce
+  mécanisme de rebond ne le touche pas, ce qui ne le rend pas exact pour autant (voir les limites
+  ci-dessous). Seules les longues chaînes de contacts, où l'accélération est indispensable, la
+  reçoivent. Restitution ramenée à 9,0·10⁻⁷.
+- **Aucune correction ne dépasse le recouvrement.** La correction élémentaire d'une paire est
+  calculée à partir de son recouvrement (la moitié pour chaque agent), puis pondérée par
+  `1/max(c_i, c_j)` : le déplacement appliqué en un balayage peut donc être **inférieur** au
+  recouvrement, jamais supérieur, et plusieurs balayages sont alors nécessaires. Une
+  sur-relaxation (facteur > 1) convergerait plus vite, mais séparerait les agents au-delà du
+  contact et introduirait un rebond artificiel dans la vitesse relue (§ 2.8), donc un choc qui ne
+  serait plus mou.
+
+**Limites connues sur les contacts multiples.** L'algorithme vise le **non-recouvrement à la
+tolérance près** ; il ne garantit pas que des agents en contact finissent tangents. Seule une
+paire isolée est corrigée exactement, en un balayage (`TestPaire`). Dès que trois agents sont en
+contact **mutuel**, leurs corrections simultanées, exactes prises une à une, dépassent une fois
+additionnées : un triangle qui s'effondre finit avec un jeu d'environ **1,7·10⁻³ m** au-delà du
+contact, soit 0,85 % du diamètre d'un agent de 20 cm. Ce jeu ne doit rien à l'extrapolation (le
+triangle se résout en 5 balayages, bien avant le rang 80) et, contrairement au jeu d'un tas, **il
+ne décroît pas quand Δt diminue** (1,69·10⁻³ m à Δt = 4·10⁻³ s comme à 2·10⁻³ s). Il est suivi dans
+l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) et doit être traité,
+ou au moins borné et déclaré, avant le jalon 5 : les empilements au goulot sont exactement le cas
+où il fausserait la densité locale, abscisse du diagramme fondamental.
+
+**Ce que l'algorithme ne garantit pas.** La projection sur l'ensemble linéarisé est unique, mais
+l'algorithme n'est pas construit pour la calculer. Des corrections découplées, répétées jusqu'à
+l'admissibilité, cherchent une configuration *admissible* sans minimiser explicitement
+`|X − x_libre|`, et aucun balayage ne peut rapprocher deux agents qu'un précédent a trop écartés.
+Il n'y a donc **pas de garantie générale d'optimalité euclidienne**. Ce n'est pas la même chose
+qu'une impossibilité : pour une paire isolée, la correction en un balayage est exactement la
+projection (`TestPaire`).
+
+La comparaison à Gauss-Seidel le confirme sans le démontrer. Aucune des deux méthodes ne déplace
+systématiquement moins que l'autre : sur un triangle serré c'est Jacobi qui déplace le moins, sur
+un amas de 100 agents c'est Gauss-Seidel, et les deux solutions s'éloignent jusqu'à 1,4·10⁻² m.
+Quand deux résultats sont admissibles pour les mêmes contraintes, celui qui déplace strictement
+plus n'est pas le minimiseur **dans ce cas précis** : c'est un contre-exemple ponctuel. Mais cette
+alternance ne prouve pas qu'une méthode ne calcule jamais le minimum. La formulation retenue est
+donc :
+
+> Les résultats numériques ne démontrent pas que les configurations obtenues minimisent
+> systématiquement la distance à la position libre. L'algorithme recherche une configuration
+> admissible à la tolérance près, sans garantie générale d'optimalité euclidienne.
+
+**Conséquence rédactionnelle, qui engage le rapport et la soutenance** : écrire « configuration
+admissible obtenue par projections successives », et **jamais** « projection de Gauss-Seidel »
+ni « projection euclidienne sur K ».
+
+Choix, impasses et mesures détaillés dans le
+[journal des décisions](../../journal-decisions.md) (entrée du 12 octobre 2026).
+
+Le choix de Jacobi vectorisé et le déclenchement de Nesterov après 80 balayages ont été validés
+collectivement par les trois membres du groupe, selon la confirmation communiquée le
+13 octobre 2026. Cette décision est consignée dans le journal (entrée du 13 octobre) et dans
+l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
 
 Le critère d'arrêt est le recouvrement résiduel maximal, qui devient **l'indicateur de
 validation n°1** (§ 5). La tolérance atteinte est une grandeur à mesurer et à publier, pas à
@@ -253,7 +360,7 @@ pas de relancer les simulations (déterminant sur un balayage de paramètres), e
 | `core/` | état, schéma semi-implicite, graine RNG, paramètres | — |
 | `geometry/` | domaine, parois, projection itérative, grille spatiale | `core` |
 | `model/desire` | eikonal et Fast Marching, direction de guidage | `geometry` |
-| `model/medium` | position vers (`τ`, `a_max`, `s`) | `geometry` |
+| `model/milieu` | accélération bornée par (`τ`, `a_max`) ; carte position vers (`τ`, `a_max`, `s`) à venir (C6) | `core`, puis `geometry` pour la carte |
 | `model/crossing` | sites de franchissement à capacité unitaire | `geometry` |
 | `model/contact` | contraintes d'exclusion entre agents | `geometry` |
 | `observables/` | densité Voronoï, débit, diagramme fondamental | — |
@@ -295,13 +402,16 @@ contraintes et les conditions aux limites sont écrits par le groupe, conformém
 | Lesueur Shaleena | `shalee-pnt` | write |
 | Mongrandi Lenny | `lennymgrd` | write |
 
-**Action préalable bloquante** : Shaleena et Lenny sont actuellement en lecture seule et ne
-peuvent pas pousser de branche. À corriger en premier.
-
 ### 8.2 Branches
 
 `main` protégée : pas de push direct, PR obligatoire, CI verte, historique linéaire (squash),
 force-push et suppression bloqués, conversations de revue résolues avant fusion.
+
+Les contributions vont d'abord dans `dev` par PR squashée. Un jalon terminé est promu
+vers `main`, puis identifié par un tag annoté et une GitHub Release. La resynchronisation
+de `main` vers `dev` passe par une PR avec commit de fusion : c'est l'exception nécessaire
+au squash des contributions. La procédure complète et le rattrapage d'anciens jalons sont
+définis dans [CONTRIBUTING § 3.4](../../../CONTRIBUTING.md#34-passer-de-dev-à-main).
 
 **L'approbation d'un pair n'est pas exigée techniquement**, et chacun peut fusionner sa propre
 pull request. Le groupe travaillant en alternance, une approbation bloquante immobiliserait une
@@ -337,19 +447,21 @@ obligatoire est le mécanisme qui garantit cette lecture partagée.
 
 ## 9. Jalons
 
-| # | Jalon | Cible |
-|---|---|---|
-| 0 | Socle du dépôt, droits, **demi-page validée par l'enseignant** | semaine 1 |
-| 1 | Moteur : semi-implicite et projection sur le domaine | semaines 2-3 |
-| 2 | Exclusion entre agents, projection itérative | semaines 4-5 |
-| 3 | Champ de guidage eikonal et milieux | semaines 6-7 |
-| 4 | Scénario piscine complet, franchissements | semaines 8-9 |
-| 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée | semaines 10-11 |
-| 6 | Rapport, figures finales, transparents | semaines 12-13 |
+| # | Jalon |
+|---|---|
+| 0 | Socle du dépôt, droits, demi-page et cadrage enseignant |
+| 1 | Moteur : semi-implicite et projection sur le domaine |
+| 2 | Exclusion entre agents, projection itérative |
+| 3 | Champ de guidage eikonal et milieux |
+| 4 | Scénario piscine complet, franchissements |
+| 5 | Campagnes E0 à E4, diagramme fondamental, validation chiffrée |
+| 6 | Rapport, figures finales, transparents |
 
-**Le jalon 0 est bloquant.** Les consignes précisent qu'un sujet non validé « ne pourra pas être
-évalué dans de bonnes conditions ». La demi-page de validation passe avant la première ligne de
-physique.
+Le [planning daté](../../planning/README.md) centralise les cibles, les responsables et les
+prérequis ; le [README](../../../README.md#état-davancement) résume l'avancement. Le statut
+du sujet et la trace disponible figurent dans la [fiche de cadrage](../../validation-sujet.md#trace-de-validation).
+Le [registre des livraisons](../../livraisons.md) distingue les jalons validés dans `dev`
+des versions effectivement publiées sur `main`, avec leurs tags et leurs releases.
 
 ### 9.1 Échéances imposées
 
@@ -370,7 +482,9 @@ Retard non justifié : 2 points de pénalité par jour entamé.
 - Modèle de forces sociales en parallèle : un seul cadre, assumé et défendable.
 - Hétérogénéité comportementale fine (âge, groupes familiaux, altruisme) : seule la dispersion
   des rayons et des vitesses désirées est conservée.
-- Interface graphique interactive : les animations sont rendues hors ligne pour la soutenance.
+- Pilotage interactif de la simulation : les animations scientifiques restent rendues hors ligne
+  pour la soutenance. Un aperçu graphique de la piscine est ajouté le 12 octobre 2026 ; il reste
+  limité à une maquette visuelle indépendante du moteur, sans agents ni calcul physique.
 
 ---
 
@@ -378,7 +492,7 @@ Retard non justifié : 2 points de pénalité par jour entamé.
 
 | Consigne | Traitement |
 |---|---|
-| Sujet validé avant implémentation | `docs/validation-sujet.md`, jalon 0 bloquant |
+| Sujet validé avant implémentation | [Trace à compléter](../../validation-sujet.md#trace-de-validation) ; chronologie non vérifiable avec les informations disponibles |
 | Rapport 15-20 p. : résumé, introduction, développement, conclusion, références | structure `report/sections/` |
 | Rapport en LaTeX (bonus 1 point) | `report/` et CI de compilation |
 | Validation chiffrée | § 5, et suite d'invariants en CI |

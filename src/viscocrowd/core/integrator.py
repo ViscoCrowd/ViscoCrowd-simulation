@@ -24,6 +24,7 @@ from collections.abc import Callable, Iterator
 import numpy as np
 
 from viscocrowd.core.state import State
+from viscocrowd.core.verifications import exiger_scalaire_fini
 
 # Calcule la vitesse libre (N, 2) a partir de l'etat courant et du pas de temps.
 VitesseLibre = Callable[[State, float], np.ndarray]
@@ -52,8 +53,11 @@ def pas_semi_implicite(
     Returns:
         La configuration au temps t + dt.
     """
-    if dt <= 0.0:
-        raise ValueError(f"le pas de temps doit etre strictement positif, recu {dt}")
+    # `dt <= 0.0` laissait passer NaN et +inf, puisque toute comparaison avec un
+    # NaN est fausse : le pas se deroulait, les positions devenaient non finies, et
+    # le refus tombait plus loin en accusant la vitesse libre. Meme piege que le
+    # rayon NaN de l'issue #16, deux lignes plus bas dans State.
+    exiger_scalaire_fini("le pas de temps dt", dt, strictement_positif=True)
 
     t_arrivee = etat.t + dt
 
@@ -96,6 +100,31 @@ def simuler(
     Rendu sous forme de generateur : une campagne de simulation peut agreger
     ses observables au vol sans conserver toute la trajectoire en memoire.
     """
+    exiger_scalaire_fini("le pas de temps dt", dt, strictement_positif=True)
+    exiger_scalaire_fini("la duree", duree)
+    if duree < 0.0:
+        # Sans ce controle, `range(n_pas)` est vide et la fonction rend le seul
+        # etat initial, sans rien signaler : une campagne mal parametree produisait
+        # un resultat d'apparence valide.
+        raise ValueError(f"la duree doit etre positive ou nulle, recu {duree}")
+
+    # Les controles ci-dessus sont volontairement HORS du generateur. Le corps
+    # d'une fonction a `yield` ne s'execute qu'au premier `next()` : place
+    # dedans, une validation serait differee, et `simuler(dt=NaN)` rendrait un
+    # generateur sans broncher. L'appelant qui range ce generateur pour plus tard
+    # decouvrirait l'erreur loin de l'appel fautif, ce qui est exactement ce que
+    # cette branche cherche a eviter.
+    return _etats(etat_initial, dt, duree, vitesse_libre, projection)
+
+
+def _etats(
+    etat_initial: State,
+    dt: float,
+    duree: float,
+    vitesse_libre: VitesseLibre,
+    projection: Projection | None,
+) -> Iterator[State]:
+    """Le generateur proprement dit. Ses arguments ont deja ete valides."""
     n_pas = int(np.ceil(duree / dt))
 
     etat = etat_initial

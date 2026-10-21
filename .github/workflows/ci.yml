@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   push:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -68,3 +68,25 @@ jobs:
           name: figures
           path: figures/
           retention-days: 30
+
+  # La commande de reproductibilite promise par le README et la spec passe par
+  # `make` DANS l'image. Rien ne l'exercait : ni la CI, qui appelle Python
+  # directement, ni les tests. Le defaut de l'issue #18 a donc pu vivre tant
+  # qu'on ne l'a pas lue. Ce job echoue si la commande documentee cesse de
+  # fonctionner, ce qui est le seul moment utile pour l'apprendre.
+  conteneur:
+    name: Reproductibilite dans le conteneur
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construire l'image
+        run: docker build -t viscocrowd:ci .
+
+      # `make valider` est la commande que documentent le README et la spec.
+      # Elle appelle $(VISCO_PY), que l'image fixe a `python` faute de .venv.
+      - name: Rejouer la validation par make, dans l'image
+        run: docker run --rm viscocrowd:ci make valider
+
+      - name: Verifier la commande par defaut de l'image
+        run: docker run --rm viscocrowd:ci
