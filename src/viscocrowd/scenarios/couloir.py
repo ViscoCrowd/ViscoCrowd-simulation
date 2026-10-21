@@ -1,4 +1,4 @@
-"""Banc G1/G5 : foule guidee dans un couloir, avec milieux et exclusion."""
+"""Banc G1/G5 : foule guidee dans un couloir, avec milieux, exclusion et obstacles."""
 
 from dataclasses import dataclass
 
@@ -8,15 +8,24 @@ from viscocrowd.core.integrator import trajectoire
 from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
 from viscocrowd.geometry.couloir import Couloir
+from viscocrowd.geometry.obstacle import ObstacleRectangle
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CarteBandes
+from viscocrowd.model.eikonal import ChampEikonal, GrilleReguliere, vitesse_des_milieux
 from viscocrowd.model.guidage import direction_aval
-from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.model.milieu import Direction, Milieu, ParametresMilieu, pas_libre_milieux
+
+GUIDAGES = ("aval", "eikonal")
 
 
 @dataclass(frozen=True)
 class ParametresCouloir:
-    """Tous les choix du banc sont explicites dans le YAML, en unites SI."""
+    """Tous les choix du banc sont explicites dans le YAML, en unites SI.
+
+    `guidage` vaut "aval" (direction analytique (1, 0) de G1, sans obstacle) ou
+    "eikonal" (champ de temps de parcours de G2, calcule sur une grille de pas
+    `pas_guidage`). `obstacles` liste des rectangles [x_min, x_max, y_min, y_max].
+    """
 
     longueur: float
     largeur: float
@@ -33,6 +42,9 @@ class ParametresCouloir:
     frontieres: tuple[float, ...]
     milieux: tuple[str, ...]
     parametres_milieux: dict[str, ParametresMilieu]
+    guidage: str
+    pas_guidage: float
+    obstacles: tuple[tuple[float, float, float, float], ...]
     graine: int
 
     def __post_init__(self) -> None:
@@ -51,6 +63,7 @@ class ParametresCouloir:
             "duree",
             "tolerance",
             "facteur_vitesse",
+            "pas_guidage",
         ):
             valeur = getattr(self, nom)
             if type(valeur) not in (int, float) or not np.isfinite(valeur):
@@ -95,6 +108,68 @@ class ParametresCouloir:
             or (lignes - 1) * self.espacement / 2 + self.bruit + self.rayon > self.largeur / 2
         ):
             raise ValueError("population initiale trop grande ou hors du couloir avant la sortie")
+        self._verifier_guidage_et_obstacles()
+
+    def _verifier_guidage_et_obstacles(self) -> None:
+        if self.guidage not in GUIDAGES:
+            raise ValueError(f"guidage doit valoir {' ou '.join(GUIDAGES)}, recu {self.guidage!r}")
+        # La grille doit resoudre la marge d'un rayon autour des obstacles.
+        if self.pas_guidage > self.rayon:
+            raise ValueError("pas_guidage doit etre inferieur ou egal au rayon")
+        try:
+            rectangles = tuple(ObstacleRectangle(*map(float, o)) for o in self.obstacles)
+        except (TypeError, ValueError) as erreur:
+            raise ValueError(
+                "chaque obstacle doit etre [x_min, x_max, y_min, y_max], fini et non vide"
+            ) from erreur
+        if rectangles and self.guidage != "eikonal":
+            raise ValueError("des obstacles exigent le guidage eikonal : l'aval les traverse")
+        # Un diametre libre autour de chaque obstacle : la projection reste exacte
+        # (cf. Couloir) et un agent peut toujours passer.
+        diametre = 2 * self.rayon
+        for o in rectangles:
+            if (
+                o.x_min < diametre
+                or o.x_max > self.longueur
+                or o.y_min - (-self.largeur / 2) < diametre
+                or self.largeur / 2 - o.y_max < diametre
+            ):
+                raise ValueError(
+                    "chaque obstacle doit laisser un diametre d'agent jusqu'aux parois "
+                    "et finir avant la section de sortie"
+                )
+        for k, a in enumerate(rectangles):
+            for b in rectangles[k + 1 :]:
+                ecart = max(
+                    b.x_min - a.x_max, a.x_min - b.x_max, b.y_min - a.y_max, a.y_min - b.y_max
+                )
+                if ecart < diametre:
+                    raise ValueError("deux obstacles doivent etre separes d'au moins un diametre")
+        depart = positions_de_depart(self, bruit=False)
+        if any(
+            np.any(o.distance(depart) < self.rayon + self.bruit * np.sqrt(2)) for o in rectangles
+        ):
+            raise ValueError("la population initiale chevauche un obstacle")
+        object.__setattr__(self, "obstacles", tuple(tuple(map(float, o)) for o in self.obstacles))
+
+    @property
+    def rectangles(self) -> tuple[ObstacleRectangle, ...]:
+        return tuple(ObstacleRectangle(*o) for o in self.obstacles)
+
+
+def positions_de_depart(p: ParametresCouloir, *, bruit: bool = True) -> np.ndarray:
+    """Grille de depart (N, 2), perturbee par la graine si `bruit`."""
+    indices = np.arange(p.n_agents)
+    lignes = (p.n_agents + p.colonnes - 1) // p.colonnes
+    x = np.column_stack(
+        (
+            p.origine_x + (indices % p.colonnes) * p.espacement,
+            (indices // p.colonnes - (lignes - 1) / 2) * p.espacement,
+        )
+    )
+    if bruit:
+        x += generateur(p.graine).uniform(-p.bruit, p.bruit, size=x.shape)
+    return x
 
 
 @dataclass(frozen=True)
@@ -113,22 +188,39 @@ class ResultatCouloir:
         )
 
 
+def guidage_du_couloir(p: ParametresCouloir, carte: CarteBandes) -> Direction:
+    """Direction de guidage du banc : analytique (G1) ou eikonale (G2).
+
+    Le champ eikonal a sa sortie sur la section x = longueur ; au-dela, son
+    gradient est nul. Les agents passes en aval y reprennent la direction (1, 0),
+    comme avec le guidage analytique, pour continuer entre les parois.
+    """
+    if p.guidage == "aval":
+        return direction_aval
+    grille = GrilleReguliere.couvrant(0.0, p.longueur, -p.largeur / 2, p.largeur / 2, p.pas_guidage)
+    vitesse = vitesse_des_milieux(
+        carte, {Milieu[nom]: v for nom, v in p.parametres_milieux.items()}, p.rectangles, p.rayon
+    )
+    champ = ChampEikonal(grille, vitesse, lambda points: points[:, 0] >= p.longueur - 1e-9)
+
+    def _direction(etat: State) -> np.ndarray:
+        e = champ(etat)
+        en_aval = np.all(e == 0.0, axis=1) & (etat.x[:, 0] >= p.longueur - p.pas_guidage)
+        e[en_aval] = direction_aval(etat)[en_aval]
+        return e
+
+    return _direction
+
+
 def simuler_couloir(p: ParametresCouloir) -> ResultatCouloir:
     """Assemble les briques existantes ; la projection est stricte a chaque pas."""
-    domaine = Couloir(p.longueur, p.largeur)
-    indices = np.arange(p.n_agents)
-    lignes = (p.n_agents + p.colonnes - 1) // p.colonnes
-    x = np.column_stack(
-        (
-            p.origine_x + (indices % p.colonnes) * p.espacement,
-            (indices // p.colonnes - (lignes - 1) / 2) * p.espacement,
-        )
+    domaine = Couloir(p.longueur, p.largeur, p.rectangles)
+    initial = State(
+        x=positions_de_depart(p), v=np.zeros((p.n_agents, 2)), r=np.full(p.n_agents, p.rayon)
     )
-    x += generateur(p.graine).uniform(-p.bruit, p.bruit, size=x.shape)
-    initial = State(x=x, v=np.zeros_like(x), r=np.full(p.n_agents, p.rayon))
     carte = CarteBandes(p.frontieres, tuple(Milieu[nom] for nom in p.milieux))
     libre = pas_libre_milieux(
-        direction_aval,
+        guidage_du_couloir(p, carte),
         carte,
         {Milieu[nom]: v for nom, v in p.parametres_milieux.items()},
         facteur_vitesse=p.facteur_vitesse,

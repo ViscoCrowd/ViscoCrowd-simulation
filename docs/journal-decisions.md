@@ -11,6 +11,100 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Imposer l'obstacle dans la projection et l'intégrer au banc de couloir (G2/G5)
+
+**Décision.** Un obstacle rectangulaire devient une contrainte du domaine, comme une paroi :
+`ObstacleRectangle.repousser` ramène tout centre qui le chevauche au bord du rectangle
+gonflé d'un rayon, aux coins arrondis. L'extérieur d'un rectangle n'est pas convexe, mais
+cette projection est explicite et exacte. `Couloir` projette les parois puis les obstacles ;
+ce second pas reste exact pour les parois tant qu'un diamètre d'agent sépare chaque obstacle
+des parois et des autres obstacles, ce que le scénario vérifie avant le calcul.
+
+Le guidage seul ne suffisait pas : mesuré sur le banc, des agents **touchent** le pilier
+(distance au pilier égale au rayon à 10⁻¹⁶ m près), poussés par leurs voisins. Sans la
+contrainte, rien n'aurait empêché l'un d'eux d'y entrer.
+
+**Configuration.** Le scénario `couloir` déclare désormais `guidage` (`aval` ou `eikonal`),
+`pas_guidage` et `obstacles` dans son YAML, sans valeur implicite. Des obstacles exigent le
+guidage eikonal. Au-delà de la section de sortie, où le champ est nul, les agents reprennent
+la direction (1, 0) pour continuer en aval comme dans le banc G1.
+
+**Compatibilité de relecture.** Les anciennes archives v1 sans les trois champs
+de guidage restent affichables comme banc analytique sans obstacle. Cette adaptation
+est limitée à la lecture, ne modifie pas les métadonnées et ne masque pas un champ
+manquant dans une archive moderne. Les nouveaux YAML restent explicites.
+Les méthodes publiques de projection et de violation d'obstacle refusent aussi
+les rayons non finis ou non positifs, même si la population est vide.
+
+**Mesures** (`experiments/couloir_obstacle.yaml`, pilier de 1 × 1 m au milieu de la bande
+mouillée, Δt = 0,01 s, 16 s). 24 agents sortis sur 24, 12 de chaque côté ; recouvrement
+maximal 9,9998·10⁻⁷ m pour une tolérance de 10⁻⁶ m ; violation des parois et du pilier
+5,6·10⁻¹⁷ m ; aucune non-convergence (87 balayages au plus) ; premier et dernier passage
+à 7,177 et 9,380 s, contre 7,225 et 9,228 s sans pilier. Sans obstacle, le guidage eikonal
+redonne la trajectoire du guidage analytique **bit à bit**. Calcul : 1,1 s.
+
+**Portée.** Valeurs illustratives, comme le banc sans obstacle. Le partage 12/12 vient de la
+symétrie du pilier et de la population ; il ne mesure encore aucun arbitrage entre milieux.
+
+---
+
+## 2026-10-21 — Calculer le guidage par Fast Marching et contourner un obstacle (G2)
+
+**Décision d'implémentation.** `model/eikonal.py` résout `|∇φ| = 1/F` par Fast Marching
+du premier ordre sur une grille régulière, écrit par le groupe (spec § 2.6). La vitesse `F`
+est la vitesse souhaitée du milieu sous chaque nœud ; un obstacle est un ensemble de nœuds
+où `F = 0`, retirés jusqu'à une marge égale au rayon des agents pour que le champ guide les
+centres sans que les disques touchent l'obstacle. La direction est `−∇φ/|∇φ|`, prise par les
+mêmes différences amont que le schéma puis interpolée bilinéairement aux positions.
+
+**Options écartées.** Un gradient centré mélange les deux côtés d'une crête, et donne un
+vecteur nul derrière un obstacle symétrique : l'agent pousse alors contre la face. Le
+gradient amont choisit toujours le voisin d'indice inférieur en cas d'égalité, ce qui brise
+la symétrie de façon déterministe. Un schéma d'ordre 2 n'a pas été retenu : l'ordre 1 est
+exact sur le cas couloir et suffit aux détours mesurés ; il reste une amélioration possible.
+
+**Mesures** (`tests/test_eikonal.py`). Couloir sec/mouillé/sec : `φ` égale l'intégrale de
+`1/F` à 10⁻¹³ près et la direction reproduit exactement `direction_aval` de G1. Source
+ponctuelle : erreur maximale 0,103 ; 0,062 ; 0,037 s pour h = 0,1 ; 0,05 ; 0,025 m, direction
+à 3,6° au pire au pas le plus fin. Ombre d'un obstacle de 1 × 1,5 m : erreur maximale 0,131 ;
+0,090 ; 0,050 s sur environ 11 s de parcours. Le schéma surestime `φ` (écart minimal mesuré
+−3·10⁻¹⁴ s). Un agent de rayon 0,2 m guidé à 1,5 m/s contourne l'obstacle sans le toucher
+(marge minimale 1,9 cm), y compris depuis l'axe de symétrie, et arrive 0,34 s après le temps
+du contour à vitesse constante, soit environ `τ` = 0,3 s de mise en vitesse. Un groupe de
+12 agents en contact contourne aussi l'obstacle, avec 6,7 cm de marge et aucune
+non-convergence. Coût : 0,16 s pour les 99 086 nœuds de l'emprise de la piscine à h = 0,1 m.
+
+**Limites.** Dans `model/eikonal.py`, l'obstacle n'est qu'une zone que le guidage évite ;
+le banc de couloir l'ajoute aussi à la projection (entrée suivante). Le champ est statique ;
+il ne tient compte ni de la densité ni de la capacité des franchissements (P3). Un agent hors
+de la grille reçoit la direction du bord le plus proche ; un agent au cœur de la sortie reçoit
+une direction nulle. La géométrie piscine (C6) reste à raccorder.
+
+**Correction après revue de la PR #43, le 21 octobre (Lenny).** Le départage amont aux
+nœuds ne suffisait pas : l'interpolation pouvait moyenner deux directions opposées et
+immobiliser un agent accessible. Sur une grille de pas 1 m, avec des sorties en x = 0 et
+x = 4 m, le point (2,5 ; 0,5) recevait une direction nulle. Un agent au repos en
+(4,5 ; 0,125) devant l'obstacle [5,6] × [-0,5,0,5], avec h = 0,25 m et une marge de
+0,25 m, restait également immobile pendant les 10 s du test.
+
+Lorsque deux gradients non nuls qui contribuent à l'interpolation forment un angle
+obtus (produit scalaire normalisé < −10⁻¹²), le guidage choisit maintenant le gradient
+du nœud contributeur de plus petit temps de parcours. Les égalités sont départagées
+dans l'ordre fixe des quatre nœuds. Les poids nuls sont exclus : un nœud de sortie ne
+récupère donc pas artificiellement la direction de ses voisins. Ailleurs, l'interpolation
+bilinéaire est conservée. Ce choix local évite l'annulation de branches opposées ; ce
+n'est pas une garantie d'optimalité du chemin continu ni une contrainte dure d'obstacle.
+
+Les régressions couvrent deux sorties selon chacun des axes, les perturbations de
+position de ±10⁻¹⁰ m autour du point d'annulation et le détour d'un agent initialement
+au repos entre les nœuds. Le test du groupe mesure aussi toutes les distances entre
+paires, indépendamment des diagnostics de la projection : recouvrement maximal
+9,99189 × 10⁻⁷ m, marge à l'obstacle 6,689 cm, 12/12 arrivés. L'évaluation des directions
+de 500 agents coûte environ 0,21 ms par appel sur le poste de revue (médiane de trois
+séries de 1 000 appels, Python 3.14.4) ; les temps dépendent de l'environnement.
+
+---
+
 ## 2026-10-21 — Relire le couloir à partir des archives
 
 **Réalisation (PR #37).** La vue du couloir lit les positions, rayons et instants du
@@ -24,6 +118,41 @@ au temps demandé, même pour des archives irrégulières ; le dernier instant e
 dans le GIF. La résolution du GIF est fixée explicitement : un test a révélé sa dépendance
 aux réglages globaux des figures scientifiques. Les contrôles de lecture sont testés
 sans fenêtre et les exports inspectés ; la fenêtre native reste à essayer sur les postes.
+
+---
+
+## 2026-10-21 — Mesurer l'évacuation définitive a posteriori, sans retirer d'agent (#11)
+
+**Décision.** Un agent est **sorti** quand son dernier passage à travers le segment de sortie
+est sortant, qu'il termine du côté extérieur et qu'il n'est plus revenu du côté intérieur
+après ce passage, même hors porte ; son instant de sortie est celui de ce dernier passage
+(`observables/sortie.py`). La mesure est calculée **hors ligne** sur la
+trajectoire archivée, comme les autres observables. « Ne revient plus » s'entend jusqu'au
+dernier instant enregistré.
+
+**Options considérées.** L'issue #11 proposait un état absorbant (retirer l'agent de la
+simulation) ou un marquage sans retrait. Les deux portent sur le **scénario**, et le choix
+change le temps d'évacuation mesuré si un agent sorti peut revenir gêner la porte. Calculer
+la sortie a posteriori livre une première mesure sur les archives à population fixe.
+Un retrait effectif devra préserver l'historique et les identités ou adapter le format ;
+il reste à décider avec la géométrie de la sortie piscine (P5). Cette brique ne clôt pas
+l'issue #11 sur l'état de sortie du scénario.
+
+**Mesures.** Un agent qui traverse, revient et retraverse compte 3 passages, un flux net de 1
+et **une** sortie, au troisième passage. Sur 50 marches aléatoires autour d'une porte avec
+refoulements, `n_sortis(t)` est croissant, borné par N, et non encore classés sortis + sortis = N à chaque
+instant ; un agent compté sorti reste dehors à tous les instants suivants. Sur le banc de
+couloir sans blocage, les 24 sorties coïncident avec les 24 passages ; dernier agent sorti à
+9,228 s. Les quantiles `temps_evacuation(0,5)` et `(0,9)` donnent t₅₀ et t₉₀, moins
+sensibles à un retardataire que le maximum.
+
+Le complément du classement final ne mesure pas la population géométriquement à
+l'intérieur : avant un refoulement, un agent peut être dehors sans être classé sorti.
+La revue de #47 ajoute les retours hors porte et le rejet des temps/positions invalides ;
+un passage antérieur à la dernière présence intérieure n'est pas une sortie définitive.
+
+**Reste à faire (P5).** Confronter le temps d'évacuation au repère `N / (1,3 w)` sur un goulot,
+et décider du retrait des agents sortis dans le scénario piscine.
 
 ---
 
