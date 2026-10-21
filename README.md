@@ -125,9 +125,12 @@ reste à raccorder. Ces configurations ne produisent pas de nouvelles figures du
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
-**Temps d'exécution mesuré le 21 octobre 2026** — suite rapide : **430 tests en 24 s**
-sur le poste de Lenny, Python 3.14.4 (2 scénarios lents exclus). La validation du moteur
-affiche son propre temps ; les durées varient selon la machine et les dépendances.
+**Temps d'exécution mesuré le 21 octobre 2026** — après intégration de la géométrie
+piscine (#54), la suite complète passe : **598 tests en 105 s, tests lents compris**
+(`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). La CI rapide
+exclut le marqueur `slow` ; les conclusions portées par ces tests demandent donc une
+exécution explicite. La validation du moteur affiche son propre temps ; les durées
+varient selon la machine et les dépendances.
 
 ### Premier banc de foule guidée
 
@@ -246,7 +249,7 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier livrés dans #43/#49 ; géométrie piscine en revue dans #54, calibration ouverte |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier livrés dans #43/#49 ; géométrie/carte/guidage piscine livrés dans #54 ; calibration et scénario complet ouverts |
 | 4 | Scénario piscine complet, franchissements | ⏳ À développer |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
 | 6 | Rapport, figures finales, transparents | Rédaction commencée : chaîne de calcul, validation du couloir et outils ; analyse finale à venir |
