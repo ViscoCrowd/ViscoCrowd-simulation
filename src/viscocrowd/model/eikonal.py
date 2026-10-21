@@ -43,8 +43,9 @@ Ce qui est exact, ce qui est mesure
   - Detour d'un obstacle de 1 x 1,5 m, F = 1 m/s : erreur maximale dans son ombre
     0,131 ; 0,090 ; 0,050 s pour les memes pas, sur un parcours d'environ 11 s.
 
-Cout : 0,16 s pour les 99 086 noeuds de l'emprise de la piscine (48 x 20,5 m) a
-h = 0,1 m, calcules une fois ; puis 0,07 ms par pas pour guider 500 agents.
+Cout initial mesure : 0,16 s pour les 99 086 noeuds de l'emprise de la piscine
+(48 x 20,5 m) a h = 0,1 m, calcules une fois. Apres le correctif d'interpolation
+aux cretes, environ 0,21 ms par appel pour guider 500 agents sur le poste de revue.
 
 Gradient et direction
 ---------------------
@@ -56,10 +57,14 @@ symetrique), on prend toujours le voisin d'indice inferieur : la symetrie est
 brisee de facon deterministe, et l'agent contourne au lieu de buter.
 
 Aux positions des agents, le gradient est interpole bilineairement entre les
-quatre noeuds voisins, puis normalise. Un noeud d'obstacle ou de sortie a un
-gradient nul : il ne contribue pas. Un agent dont les quatre noeuds sont nuls,
-au coeur de la sortie, recoit une direction nulle, ce que le contrat de
-`pas_libre_milieux` admet pour un agent arrive.
+quatre noeuds voisins, puis normalise. Si deux gradients qui contribuent forment
+un angle obtus, la maille chevauche des branches de descente opposees : leur
+moyenne pourrait annuler le guidage hors sortie. On choisit alors le gradient
+non nul du noeud contributeur de plus petit phi (ordre fixe en cas d'egalite).
+Ce choix local de branche ne garantit pas le chemin continu optimal. Un noeud
+d'obstacle ou de sortie a un gradient nul : il ne contribue pas. Un agent dont
+les quatre noeuds sont nuls recoit une direction nulle, ce que le contrat de
+`pas_libre_milieux` admet pour un agent arrive ou dans une zone inaccessible.
 """
 
 from __future__ import annotations
@@ -274,12 +279,26 @@ class ChampEikonal:
         tu = np.clip(u - i, 0.0, 1.0)[:, None]
         tw = np.clip(w - j, 0.0, 1.0)[:, None]
         G = self._gradient
-        gradient = (
-            (1 - tu) * (1 - tw) * G[i, j]
-            + tu * (1 - tw) * G[i + 1, j]
-            + (1 - tu) * tw * G[i, j + 1]
-            + tu * tw * G[i + 1, j + 1]
+        voisins = np.stack((G[i, j], G[i + 1, j], G[i, j + 1], G[i + 1, j + 1]), axis=1)
+        poids = np.concatenate(((1 - tu) * (1 - tw), tu * (1 - tw), (1 - tu) * tw, tu * tw), axis=1)
+        gradient = np.sum(poids[..., None] * voisins, axis=1)
+
+        # Aux cretes, ne pas moyenner deux chemins opposes : cela creait un
+        # equilibre artificiel entre les noeuds, malgre le departage amont.
+        normes_voisines = np.hypot(voisins[..., 0], voisins[..., 1])
+        actifs = (poids > 0.0) & (normes_voisines > 0.0)
+        unitaires = voisins / np.where(normes_voisines > 0.0, normes_voisines, 1.0)[..., None]
+        produits = np.einsum("nki,nli->nkl", unitaires, unitaires)
+        opposees = np.any(
+            (produits < -1e-12) & actifs[:, :, None] & actifs[:, None, :], axis=(1, 2)
         )
+        if np.any(opposees):
+            temps = np.stack(
+                (self.phi[i, j], self.phi[i + 1, j], self.phi[i, j + 1], self.phi[i + 1, j + 1]),
+                axis=1,
+            )
+            choix = np.argmin(np.where(actifs, temps, np.inf), axis=1)
+            gradient[opposees] = voisins[np.flatnonzero(opposees), choix[opposees]]
         norme = np.hypot(gradient[:, 0], gradient[:, 1])
         return np.where(
             (norme > 0.0)[:, None], -gradient / np.where(norme > 0.0, norme, 1.0)[:, None], 0.0

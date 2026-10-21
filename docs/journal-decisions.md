@@ -43,6 +43,29 @@ il ne tient compte ni de la densité ni de la capacité des franchissements (P3)
 de la grille reçoit la direction du bord le plus proche ; un agent au cœur de la sortie reçoit
 une direction nulle. La géométrie piscine (C6) reste à raccorder.
 
+**Correction après revue de la PR #43, le 21 octobre (Lenny).** Le départage amont aux
+nœuds ne suffisait pas : l'interpolation pouvait moyenner deux directions opposées et
+immobiliser un agent accessible. Sur une grille de pas 1 m, avec des sorties en x = 0 et
+x = 4 m, le point (2,5 ; 0,5) recevait une direction nulle. Un agent au repos en
+(4,5 ; 0,125) devant l'obstacle [5,6] × [-0,5,0,5], avec h = 0,25 m et une marge de
+0,25 m, restait également immobile pendant les 10 s du test.
+
+Lorsque deux gradients non nuls qui contribuent à l'interpolation forment un angle
+obtus (produit scalaire normalisé < −10⁻¹²), le guidage choisit maintenant le gradient
+du nœud contributeur de plus petit temps de parcours. Les égalités sont départagées
+dans l'ordre fixe des quatre nœuds. Les poids nuls sont exclus : un nœud de sortie ne
+récupère donc pas artificiellement la direction de ses voisins. Ailleurs, l'interpolation
+bilinéaire est conservée. Ce choix local évite l'annulation de branches opposées ; ce
+n'est pas une garantie d'optimalité du chemin continu ni une contrainte dure d'obstacle.
+
+Les régressions couvrent deux sorties selon chacun des axes, les perturbations de
+position de ±10⁻¹⁰ m autour du point d'annulation et le détour d'un agent initialement
+au repos entre les nœuds. Le test du groupe mesure aussi toutes les distances entre
+paires, indépendamment des diagnostics de la projection : recouvrement maximal
+9,99189 × 10⁻⁷ m, marge à l'obstacle 6,689 cm, 12/12 arrivés. L'évaluation des directions
+de 500 agents coûte environ 0,21 ms par appel sur le poste de revue (médiane de trois
+séries de 1 000 appels, Python 3.14.4) ; les temps dépendent de l'environnement.
+
 ---
 
 ## 2026-10-21 — Relire le couloir à partir des archives
