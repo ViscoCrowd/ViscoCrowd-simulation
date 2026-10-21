@@ -182,6 +182,8 @@ ne pas contourner la protection par un push direct ou forcé.
 `release/jalon-N` peut partir du dernier instantané complet de `dev`, identifié par SHA.
 Seuls des correctifs et documents déjà intégrés et relus dans `dev` peuvent y être repris,
 avec leurs références ; toute correction nouvelle repasse d'abord par une PR vers `dev`.
+Les notes propres à la version, son registre et ses indications de périmètre sont finalisés
+dans la PR de publication, puis repris dans `dev` lors de la synchronisation.
 La PR de publication vers `main` explique cette exception, rejoue la validation sur son
 contenu exact, puis suit les mêmes règles de tag, release et synchronisation. Ne jamais
 reculer `dev` ni réécrire les anciens commits pour simuler un historique parfait.
