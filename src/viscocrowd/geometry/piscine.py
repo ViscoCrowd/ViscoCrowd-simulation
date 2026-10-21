@@ -205,17 +205,28 @@ class Piscine:
 
     # --- Projection ------------------------------------------------------------
 
+    def valider_rayons(self, r: np.ndarray) -> None:
+        """Refuser une geometrie trop etroite pour les disques, avant toute projection."""
+        r = np.asarray(r, dtype=float)
+        exiger_fini(r=r)
+        if np.any(r <= 0.0) or np.any(2 * r >= self.largeur_porte):
+            raise ValueError("chaque rayon doit etre positif et passer la porte")
+        if np.any(2 * r > min(self.plage_gauche, self.plage_verticale, self.plage_sortie)):
+            raise ValueError("chaque plage doit mesurer au moins un diametre d'agent")
+        if np.any(2 * r >= min(self.longueur_bassin, self.largeur_bassin)):
+            raise ValueError("le bassin doit etre plus large qu'un diametre d'agent")
+
     def _entrees(self, x, r):
         x, r = np.asarray(x, dtype=float), np.asarray(r, dtype=float)
         if x.ndim != 2 or x.shape[1] != 2 or r.shape != (x.shape[0],):
             raise ValueError("x et r doivent etre de formes (N, 2) et (N,)")
         exiger_fini(x=x, r=r)
-        if np.any(r <= 0.0) or np.any(2 * r >= self.largeur_porte):
-            raise ValueError("chaque rayon doit etre positif et passer la porte")
+        self.valider_rayons(r)
         return x, r
 
     def projeter_plage(self, x: np.ndarray, r: np.ndarray) -> np.ndarray:
         """Projection exacte sur l'union emprise reduite et couloir de la porte (sans le bassin)."""
+        x, r = self._entrees(x, r)
         L, W = self.longueur_emprise, self.largeur_emprise
         a, b = self.porte
         emprise = np.column_stack((np.clip(x[:, 0], r, L - r), np.clip(x[:, 1], r, W - r)))

@@ -79,7 +79,23 @@ class GuidagePiscine:
             raise ValueError(f"parametres manquants pour {sorted(m.name for m in manquants)}")
 
         self.piscine, self.rayon = piscine, rayon
+        piscine.valider_rayons(np.array([rayon]))
         self.sites = piscine.sites()
+        if not self.sites:
+            raise ValueError("la piscine doit proposer au moins un site de franchissement")
+        attentes = np.array([s.attente(rayon) for s in self.sites])
+        arrivees = np.array([s.arrivee(rayon) for s in self.sites])
+        points_sites = np.concatenate((attentes, arrivees))
+        tolerance_arrondi = (
+            64 * np.finfo(float).eps * max(piscine.longueur_emprise, piscine.largeur_emprise, 1.0)
+        )
+        if (
+            not np.all(piscine.dans_bassin(attentes))
+            or np.any(piscine.dans_bassin(arrivees))
+            or piscine.violation(points_sites, np.full(len(points_sites), rayon), 0.0)
+            > tolerance_arrondi
+        ):
+            raise ValueError("un site de franchissement n'a pas d'attente ou d'arrivee admissible")
         vitesse = {Milieu(m): facteur_vitesse * p.vitesse for m, p in parametres.items()}
         carte = CartePiscine(piscine)
 
@@ -112,7 +128,6 @@ class GuidagePiscine:
             & (noeuds[:, 1] <= b.y_max - rayon + 1e-12)
         )
         indices_libres = np.flatnonzero(libre)
-        arrivees = np.array([s.arrivee(rayon) for s in self.sites])
         self.temps_sites = np.array([durees[s.nature] for s in self.sites]) + self.plage.temps(
             arrivees
         )

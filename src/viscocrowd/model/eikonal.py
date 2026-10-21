@@ -296,6 +296,9 @@ class ChampEikonal:
         self._initialiser(grille, F.reshape(grille.forme), S.reshape(grille.forme), T0)
 
     def _initialiser(self, grille, F, S, T0) -> None:
+        for nom, tableau in (("vitesse", F), ("sortie", S), ("temps_initial", T0)):
+            if tableau is not None and np.shape(tableau) != grille.forme:
+                raise ValueError(f"{nom} doit avoir la forme de la grille {grille.forme}")
         self.grille = grille
         self.phi = fast_marching(F, S, grille.pas, T0)
         self.phi.flags.writeable = False
