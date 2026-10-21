@@ -1,0 +1,187 @@
+"""Densite et vitesse de Voronoi dans une zone de mesure (spec § 3, tache M1).
+
+Compter les agents d'une zone donne une densite en paliers entiers : un agent
+qui entre fait sauter la valeur de 1/|M|. La methode de Voronoi de Steffen &
+Seyfried (2010) attribue a chaque agent i la cellule Ci des points plus proches
+de lui que de tout autre, et la densite locale 1/|Ci| sur cette cellule. Dans une
+zone de mesure M :
+
+    rho_V = (1/|M|) * somme_i |Ci inter M| / |Ci|          (pers/m^2)
+    v_V   = (1/|M|) * somme_i |vi| |Ci inter M|            (m/s)
+
+Un agent ne compte plus 0 ou 1 : il compte la fraction de sa cellule qui tombe
+dans M. La mesure varie continument quand les agents bougent.
+
+Cellules bornees
+----------------
+
+Les cellules des agents du bord sont infinies. On les borne par la salle, un
+rectangle, en ajoutant le reflet de chaque agent par rapport a chacun des quatre
+murs : la mediatrice entre un agent et son reflet est le mur lui-meme. Pour un
+domaine convexe comme un rectangle, ce procede donne EXACTEMENT les cellules
+decoupees par la salle (les cellules pavent la salle).
+
+Le calcul des cellules est confie a `scipy.spatial.Voronoi` (calcul geometrique
+generaliste, cf. issue #19) ; le decoupage par la zone de mesure, les aires et
+les moyennes sont ecrits ici.
+
+Repli sans Voronoi : `densite_comptage`, N dans M divise par |M|.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+from scipy.spatial import Voronoi
+
+from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
+
+
+@dataclass(frozen=True)
+class Rectangle:
+    """[x_min, x_max] x [y_min, y_max], en m : salle ou zone de mesure."""
+
+    x_min: float
+    x_max: float
+    y_min: float
+    y_max: float
+
+    def __post_init__(self) -> None:
+        for nom in ("x_min", "x_max", "y_min", "y_max"):
+            exiger_scalaire_fini(nom, getattr(self, nom))
+        if not (self.x_max > self.x_min and self.y_max > self.y_min):
+            raise ValueError("le rectangle doit etre d'aire strictement positive")
+
+    @property
+    def aire(self) -> float:
+        return (self.x_max - self.x_min) * (self.y_max - self.y_min)
+
+    def contient(self, autre: Rectangle) -> bool:
+        return (
+            self.x_min <= autre.x_min
+            and autre.x_max <= self.x_max
+            and self.y_min <= autre.y_min
+            and autre.y_max <= self.y_max
+        )
+
+
+def _positions(x: np.ndarray, salle: Rectangle) -> np.ndarray:
+    x = np.asarray(x, dtype=float)
+    if x.ndim != 2 or x.shape[1] != 2 or x.shape[0] == 0:
+        raise ValueError(f"x doit etre de forme (N, 2), N >= 1, recu {x.shape}")
+    exiger_fini("Positions transmises a la mesure de densite.", x=x)
+    # Strictement a l'interieur : un agent sur un mur coinciderait avec son reflet.
+    if np.any(
+        (x[:, 0] <= salle.x_min)
+        | (x[:, 0] >= salle.x_max)
+        | (x[:, 1] <= salle.y_min)
+        | (x[:, 1] >= salle.y_max)
+    ):
+        raise ValueError("chaque agent doit etre strictement a l'interieur de la salle")
+    return x
+
+
+def aire_polygone(p: np.ndarray) -> float:
+    """Aire (m^2) d'un polygone (K, 2) aux sommets ordonnes, formule du lacet."""
+    if p.shape[0] < 3:
+        return 0.0
+    x, y = p[:, 0], p[:, 1]
+    return 0.5 * abs(float(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1))))
+
+
+def decouper(p: np.ndarray, zone: Rectangle) -> np.ndarray:
+    """Intersection d'un polygone convexe (K, 2) et d'un rectangle (Sutherland-Hodgman)."""
+    # Chaque demi-plan : (axe, borne, garde le cote >= borne si sens = +1).
+    for axe, borne, sens in (
+        (0, zone.x_min, 1.0),
+        (0, zone.x_max, -1.0),
+        (1, zone.y_min, 1.0),
+        (1, zone.y_max, -1.0),
+    ):
+        if p.shape[0] == 0:
+            break
+        suivant = np.roll(p, -1, axis=0)
+        d, d_suivant = sens * (p[:, axe] - borne), sens * (suivant[:, axe] - borne)
+        sortie = []
+        for k in range(p.shape[0]):
+            if d[k] >= 0.0:
+                sortie.append(p[k])
+            if (d[k] >= 0.0) != (d_suivant[k] >= 0.0):
+                s = d[k] / (d[k] - d_suivant[k])
+                sortie.append(p[k] + s * (suivant[k] - p[k]))
+        p = np.array(sortie).reshape(-1, 2)
+    return p
+
+
+def cellules(x: np.ndarray, salle: Rectangle) -> list[np.ndarray]:
+    """Cellule de Voronoi (K, 2) de chaque agent, decoupee par la salle, sommets ordonnes."""
+    x = _positions(x, salle)
+    reflets = [
+        x,
+        np.column_stack((2 * salle.x_min - x[:, 0], x[:, 1])),
+        np.column_stack((2 * salle.x_max - x[:, 0], x[:, 1])),
+        np.column_stack((x[:, 0], 2 * salle.y_min - x[:, 1])),
+        np.column_stack((x[:, 0], 2 * salle.y_max - x[:, 1])),
+    ]
+    diagramme = Voronoi(np.concatenate(reflets))
+    resultat = []
+    for i in range(x.shape[0]):
+        region = diagramme.regions[diagramme.point_region[i]]
+        if -1 in region or not region:
+            raise RuntimeError("cellule non bornee malgre les reflets : salle mal posee")
+        sommets = diagramme.vertices[region]
+        # Ordre angulaire autour de l'agent : la cellule est convexe et le contient.
+        angles = np.arctan2(sommets[:, 1] - x[i, 1], sommets[:, 0] - x[i, 0])
+        resultat.append(sommets[np.argsort(angles)])
+    return resultat
+
+
+def _fractions(x: np.ndarray, salle: Rectangle, zone: Rectangle) -> tuple[np.ndarray, np.ndarray]:
+    """Aires |Ci| et |Ci inter M| de chaque agent, en m^2."""
+    if not salle.contient(zone):
+        raise ValueError("la zone de mesure doit etre incluse dans la salle")
+    polygones = cellules(x, salle)
+    aires = np.array([aire_polygone(p) for p in polygones])
+    dans_zone = np.array([aire_polygone(decouper(p, zone)) for p in polygones])
+    return aires, dans_zone
+
+
+def densite_voronoi(x: np.ndarray, salle: Rectangle, zone: Rectangle) -> float:
+    """Densite de Voronoi dans la zone de mesure, en pers/m^2. Voir le module."""
+    aires, dans_zone = _fractions(x, salle, zone)
+    return float(np.sum(dans_zone / aires) / zone.aire)
+
+
+def vitesse_voronoi(
+    x: np.ndarray, v: np.ndarray, salle: Rectangle, zone: Rectangle, direction=None
+) -> float:
+    """Vitesse de Voronoi dans la zone, en m/s : norme, ou composante sur `direction`."""
+    v = np.asarray(v, dtype=float)
+    if v.shape != np.shape(x):
+        raise ValueError("v doit avoir la forme de x")
+    exiger_fini("Vitesses transmises a la mesure de vitesse.", v=v)
+    if direction is None:
+        vitesses = np.hypot(v[:, 0], v[:, 1])
+    else:
+        e = np.asarray(direction, dtype=float)
+        if e.shape != (2,) or not np.isclose(np.hypot(*e), 1.0):
+            raise ValueError("direction doit etre un vecteur unitaire (2,)")
+        vitesses = v @ e
+    _, dans_zone = _fractions(x, salle, zone)
+    return float(np.sum(vitesses * dans_zone) / zone.aire)
+
+
+def densite_comptage(x: np.ndarray, zone: Rectangle) -> float:
+    """Repli sans Voronoi : agents dont le centre est dans la zone, divise par |M|."""
+    x = np.asarray(x, dtype=float)
+    if x.ndim != 2 or x.shape[1] != 2:
+        raise ValueError(f"x doit etre de forme (N, 2), recu {x.shape}")
+    exiger_fini("Positions transmises au comptage.", x=x)
+    dedans = (
+        (x[:, 0] >= zone.x_min)
+        & (x[:, 0] < zone.x_max)
+        & (x[:, 1] >= zone.y_min)
+        & (x[:, 1] < zone.y_max)
+    )
+    return float(np.sum(dedans) / zone.aire)
