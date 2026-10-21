@@ -23,21 +23,27 @@ temps de relaxation $\tau$ et bornée par l'adhérence $a_{\max}$ du milieu :
 \quad\text{ramenée à la norme } a_{\max}(\pos_i) \text{ si elle la dépasse.}
 \]
 La position est mise à jour avec la vitesse \emph{nouvelle}, et non avec
-$\vit^n_i$ : c'est le schéma d'Euler semi-implicite, dit aussi symplectique.
-Sur un système mécanique, il conserve bien mieux l'énergie en temps long que le
-schéma explicite~\cite{hairer2006}. Surtout, il rend possible la formulation
-par minimisation qui suit. Le milieu est évalué en $\pos^n_i$, au début du pas :
+$\vit^n_i$ : nous utilisons ici le schéma d'Euler semi-implicite.
+Dans le cas particulier d'un système hamiltonien séparable, sans dissipation
+ni contact, cette succession correspond à Euler symplectique, dont le comportement
+énergétique en temps long est étudié dans~\cite{hairer2006}. Cette propriété ne
+s'étend pas à notre modèle avec relaxation, adhérence et chocs : par exemple,
+pour $U=0$ sans saturation, $v^{n+1}=(1-\dt/\tau)v^n$ contracte l'espace des phases.
+Nous ne revendiquons donc ni symplecticité ni conservation d'énergie pour la foule.
+La position libre sert de référence à la correction des contraintes décrite ensuite.
+Le milieu est évalué en $\pos^n_i$, au début du pas :
 un agent qui franchit une frontière de sol en prend les paramètres au pas suivant.
 
 \subsection{Formulation par minimisation}
 
 Sans contrainte, $\pos^{\mathrm{libre}}$ est le minimiseur de
 $\tfrac12\norm{\pos-\pos^{\mathrm{libre}}}^2$ : la position que l'inertie et la
-vitesse désirée amèneraient à occuper. Avec contraintes, on retient la position
-admissible la plus proche, au sens de ce même écart~\cite{maury2008,maury2011} :
+vitesse désirée amèneraient à occuper. Le problème de projection idéal consiste à
+chercher une position admissible la plus proche, au sens de ce même
+écart~\cite{maury2008,maury2011} :
 \begin{equation}
 \label{eq:minimisation}
-\pos^{n+1} \in \operatorname*{argmin}_{\pos\in\admissible}
+\pos_\star^{n+1} \in \operatorname*{argmin}_{\pos\in\admissible}
 \tfrac12\norm{\pos-\pos^{\mathrm{libre}}}^2
 = \proj{\admissible}\bigl(\pos^{\mathrm{libre}}\bigr),
 \end{equation}
@@ -48,7 +54,9 @@ D_{ij}(\pos)=\norm{\pos_j-\pos_i}-r_i-r_j\geq 0\ \ \forall\, i<j,\
 \]
 où $\Omega_i$ est le domaine accessible au centre de l'agent $i$, c'est-à-dire
 la salle réduite de son rayon. Minimiser sous contrainte revient donc à projeter
-la position libre sur l'ensemble admissible.
+la position libre sur l'ensemble admissible. La position idéale $\pos_\star^{n+1}$
+est distinguée du résultat effectivement calculé : l'algorithme ci-dessous cherche
+l'admissibilité, sans résoudre exactement ce problème dans le cas général.
 
 \subsection{Linéarisation et projection itérative}
 
@@ -117,14 +125,15 @@ $N$ & Jacobi (ms) & Gauss-Seidel (ms) & Rapport \\
 \end{table}
 
 \paragraph{Ce que la méthode ne garantit pas.}
-Le résultat n'est \emph{pas} la projection euclidienne
+Le résultat n'est \emph{pas garanti égal à} la projection euclidienne
 $\proj{\admissible}(\pos^{\mathrm{libre}})$ de \eqref{eq:minimisation}. Des
 corrections répétées jusqu'à l'admissibilité cherchent une configuration
 \emph{admissible}, pas la \emph{plus proche} : aucune étape ne minimise le
 déplacement, et aucun balayage ne peut rapprocher deux disques qu'un balayage
 précédent a trop écartés. On le mesure en comparant les deux méthodes
-(tableau~\ref{tab:non-optimalite}) : aucune ne domine l'autre, donc aucune n'est le
-minimiseur. Cela n'exclut pas un résultat exact dans des cas particuliers, par
+(tableau~\ref{tab:non-optimalite}) : aucune ne domine systématiquement l'autre.
+Ces comparaisons ne déterminent pas le minimiseur exact et ne constituent pas une
+preuve d'optimalité de l'une des méthodes. Cela n'exclut pas un résultat exact dans des cas particuliers, par
 exemple une paire isolée, corrigée exactement en un balayage. Nous parlons donc
 d'une \emph{configuration admissible obtenue par projections successives}, sans
 garantie générale d'optimalité euclidienne.
@@ -150,18 +159,22 @@ Amas de 100 & \num{1.2109e-1} & \num{1.1924e-1} & \num{1.4e-2} \\
 Jacobi ne propage l'information que d'un contact par balayage. Pour un tas posé
 sur le sol, où la contrainte « le sol retient tout » doit remonter de proche en
 proche, il fallait de 642 à plus de 3000 balayages, et 716 projections sur 1500
-échouaient sur un tas de 36 disques. On accélère par extrapolation de
-Nesterov~\cite{nesterov1983,beck2009} :
+échouaient sur un tas de 36 disques. On accélère par extrapolation
+de type Nesterov~\cite{nesterov1983,beck2009}, sans transposer à notre problème
+non convexe les garanties de convergence de ces méthodes convexes :
 \[
 \vect{y}^{k}=\pos^{k}+\beta_k\,(\pos^{k}-\pos^{k-1}),\qquad
 \beta_k=\frac{m}{m+3}\ \text{avec}\ m=k-80\ \text{si}\ k>80,\quad
 \beta_k=0\ \text{sinon},
 \]
-le balayage partant de $\vect{y}^k$ au lieu de $\pos^k$. L'extrapolation écarte
+le balayage partant de $\vect{y}^k$ au lieu de $\pos^k$. Ici, $k$ désigne le rang
+depuis la dernière recherche de paires : il repart à zéro lorsque la liste des
+voisins est renouvelée, indépendamment du budget total de balayages.
+L'extrapolation écarte
 cependant les disques au-delà du contact, et ce jeu est définitif puisque les
 corrections ne font qu'écarter : relu comme vitesse, il devient un rebond
 artificiel. Elle n'est donc allumée qu'après 80 balayages, avec une rampe qui
-repart de zéro : un choc entre quelques agents, résolu avant, reste exact, et
+repart de zéro : un choc résolu avant ce seuil évite cet artefact d'extrapolation, et
 seules les longues chaînes de contacts sont accélérées. Le rang 80 est un
 compromis mesuré entre vitesse et respect du choc mou (tableau~\ref{tab:nesterov}) :
 2,2 fois le temps de projection pour une restitution 1100 fois plus faible.
@@ -194,10 +207,14 @@ déplacement réellement effectué :
 \label{eq:relecture}
 \vit^{n+1}_i=\frac{\pos^{n+1}_i-\pos^n_i}{\dt}.
 \end{equation}
-C'est ici que le choc se produit. Si la projection a annulé le déplacement
-normal à un contact ou à une paroi, elle annule du même coup la composante
-normale de la vitesse : c'est la traduction discrète d'un choc mou, sans rebond.
-Deux disques qui se rencontrent s'arrêtent au contact. Ce mécanisme explique
+C'est ici que le choc se produit. Si la correction annule le déplacement normal
+relatif de deux disques en contact, elle annule la composante normale relative
+de la vitesse relue. Cela ne supprime ni les vitesses tangentielles ni la
+translation du centre de masse : deux disques tangents de masses égales, lancés
+normalement à 2 et 0 m/s, peuvent continuer ensemble à 1 m/s. À une paroi fixe,
+c'est le déplacement normal à cette paroi qui est contraint. La vitesse relue
+est une moyenne du déplacement sur le pas ; ce schéma vise la loi de choc mou,
+avec les écarts numériques mesurés ci-dessus. Ce mécanisme explique
 aussi pourquoi toute correction qui dépasse le contact, par sur-relaxation ou
 par extrapolation, se lit immédiatement comme une vitesse parasite.
 
@@ -215,20 +232,27 @@ par extrapolation, se lit immédiatement comme une vitesse parasite.
   $\varepsilon=\SI{1e-8}{\metre}$. Nous avions d'abord pris ce jeu pour un
   défaut de position propre aux contacts mutuels, insensible à $\dt$ ; la mesure
   de sa croissance linéaire et de sa proportionnalité à $\varepsilon$ l'a
-  requalifié. Une foule qui pousse vers sa cible n'en garde aucune trace.
-\item \textbf{Biais de densité.} Le jeu entre agents au contact d'une foule
+  requalifié. Dans le test de trois disques avec désir vers le centre, ce jeu
+  n'est pas observé ; cela ne garantit pas son absence dans toute foule.
+\item \textbf{Jeu local et densité.} Le jeu entre agents au contact d'une foule
   comprimée puis arrêtée ne dépend presque pas de $\varepsilon$ ; il décroît à
   peu près comme $\dt^2$, comme celui d'un tas (\SI{2.5e-5}{\metre} puis
   \SI{5.0e-6}{\metre} quand $\dt$ passe de \num{4e-3} à \SI{2e-3}{\second}),
   ce qui le rattache au déplacement imposé à chaque pas plutôt qu'à l'arrêt
   à la tolérance. Pour 60 agents de rayons 0,18 à
   \SI{0.22}{\metre} poussés contre une paroi, il vaut \SI{8.2e-6}{\metre} en
-  moyenne à $\dt=\SI{0.01}{\second}$, soit un biais relatif de densité de
-  \num{4.1e-5}, négligeable devant la mesure de densité elle-même.
+  moyenne à $\dt=\SI{0.01}{\second}$. L'indicateur sans dimension
+  $2\times\text{jeu moyen}/\text{diamètre moyen}$ vaut alors \num{4.1e-5}.
+  Son interprétation comme variation relative de densité suppose une dilatation
+  isotrope homogène, non vérifiée dans ce banc : seules les paires proches du
+  contact sont mesurées, sans densité de référence ni prise en compte des vides
+  entre groupes. Ce chiffre n'est donc pas une borne du biais de densité au goulot.
+  Sa mesure et sa comparaison à une incertitude restent requises avant les campagnes.
 \item \textbf{Chaînes longues.} Seules accélérées, elles gardent une restitution
   de l'ordre de \num{1e-6} de l'énergie d'arrivée.
-\item \textbf{Empilement maximal.} Au-delà d'environ \SI{75}{\percent} de surface
-  occupée, la projection n'atteint plus la tolérance dans le budget. L'échec est
+\item \textbf{Empilement maximal testé.} Sur les configurations denses étudiées,
+  au-delà d'environ \SI{75}{\percent} de surface occupée, la projection n'atteint
+  plus la tolérance dans le budget. Ce n'est pas un seuil universel de densité. L'échec est
   compté, publié, et interdit l'archivage du résultat.
 \end{itemize}
 
@@ -239,7 +263,7 @@ $\norm{\vit}\,\dt\ll r$. Avec $r\approx\SI{0.2}{\metre}$ et
 $\norm{\vit}\leq\SI{1.5}{\metre\per\second}$, $\dt=\SI{1e-2}{\second}$ donne
 \SI{1.5}{\centi\metre} par pas, moins d'un dixième de rayon. À
 $\dt=\SI{4e-2}{\second}$, des disques traversent leurs voisins entre deux pas et
-la projection ne peut plus rien. Les scénarios refusent donc tout pas qui
+la projection ne peut plus rien sur les cas de contact concernés. Le banc de couloir refuse tout pas qui
 dépasse $r/5$ de déplacement souhaité ou mesuré, et imposent
 $\dt\leq\min\tau$ pour que la relaxation reste monotone. Ces garde-fous ne
 remplacent pas l'étude de sensibilité : la convergence d'ordre un en $\dt$ est
