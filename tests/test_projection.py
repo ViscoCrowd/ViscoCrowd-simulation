@@ -504,21 +504,29 @@ class TestJeuDeContact:
     dilatation isotrope homogene. Ce banc ne mesure aucune densite de reference
     et ne borne pas le biais au goulot ; les paires eloignees sont exclues.
 
-    La decroissance en dt^2 annoncee initialement n'est pas reproduite lors de
-    la revue : jeux moyens 7,576e-6 puis 4,272e-5 m a dt = 0,01 puis 0,005 s
-    (macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1). Le test lent
-    conserve son assertion et echoue ; la sensibilite doit etre expliquee
-    avant de valider ce banc. Voir le journal et la review de la PR #48.
+    La decroissance en dt^2 annoncee initialement est REFUTEE, pas assouplie.
+    La revue mesurait 7,576e-6 puis 4,272e-5 m a dt = 0,01 puis 0,005 s (macOS
+    arm64), contre 8,2e-6 puis 2,2e-6 m sur x86-64, avec les memes versions.
+    Cause : la foule comprimee est chaotique. Deplacer UN agent de 1e-12 m au
+    depart ecarte les trajectoires de plus de 1e-6 m des les premiers chocs, et
+    de 9e-5 m a la fin (amplification 1e8) ; des arrondis differents entre
+    processeurs suffisent donc a changer l'arrangement final. Le nombre de paires
+    proches reste stable (101 et 102), mais leur partage entre contacts effectifs
+    (jeu de l'ordre de la tolerance) et quasi-contacts (1e-5 a 1e-3 m) change :
+    jeu moyen 2,2e-6 m sans perturbation, 3,85e-5 m avec -1e-12 m. Le jeu moyen
+    n'est donc pas une observable de convergence ; le biais de densite devra etre
+    estime sur plusieurs graines avec la densite elle-meme (M1, issue #10).
     """
 
     @staticmethod
-    def _jeux_en_contact(dt):
+    def _foule_arretee(dt, perturbation=0.0):
         from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
 
         n = 60
         rng = generateur(1)
         x = np.array([[-2.0 + 0.5 * (k % 8), -2.0 + 0.5 * (k // 8)] for k in range(n)])
         x += rng.uniform(-0.02, 0.02, size=x.shape)
+        x[0, 0] += perturbation
         etat = State(x=x, v=np.zeros_like(x), r=rng.uniform(0.18, 0.22, size=n))
         sec = {Milieu.SEC: ParametresMilieu(relaxation=0.3, acceleration_max=3.0, vitesse=1.5)}
 
@@ -532,7 +540,12 @@ class TestJeuDeContact:
             for _ in range(round(duree / dt)):
                 etat = pas_semi_implicite(etat, dt, libre, projection)
         assert projection.non_convergences == 0
+        return etat
 
+    @classmethod
+    def _jeux_en_contact(cls, dt, perturbation=0.0):
+        """Jeux (m) des paires a moins de 1 mm du contact, et diametre moyen (m)."""
+        etat = cls._foule_arretee(dt, perturbation)
         paires = paires_candidates(etat.x, etat.r, 1e-3)
         i, j = paires[:, 0], paires[:, 1]
         jeux = np.linalg.norm(etat.x[j] - etat.x[i], axis=1) - etat.r[i] - etat.r[j]
@@ -547,11 +560,19 @@ class TestJeuDeContact:
         assert jeux.max() < 5e-4  # mesure : 1,5e-4 m, soit 0,07 % du diametre
 
     @pytest.mark.slow
-    def test_le_jeu_decroit_avec_le_pas_de_temps(self):
-        # Hypothese non validee : echec reproduit en revue, ne pas assouplir le seuil.
-        grossier, _ = self._jeux_en_contact(0.01)
-        fin, _ = self._jeux_en_contact(0.005)
-        assert grossier.mean() / fin.mean() > 3  # mesure : 3,7 (ordre 2 : 4)
+    def test_l_arrangement_final_est_sensible_aux_arrondis(self):
+        """Pourquoi le jeu moyen differait entre deux machines (revue de la PR #48).
+
+        Une perturbation de 1e-12 m, de l'ordre d'un arrondi, change l'arrangement
+        final de bien plus que la tolerance, sans changer le reseau de contacts.
+        """
+        reference = self._foule_arretee(0.005)
+        perturbee = self._foule_arretee(0.005, perturbation=1e-12)
+        ecart = np.max(np.abs(perturbee.x - reference.x))
+        assert ecart > 1e-6  # mesure : 9,1e-5 m, soit une amplification de 9e7
+        for etat in (reference, perturbee):
+            assert recouvrement_max(etat.x, etat.r) <= TOLERANCE
+            assert paires_candidates(etat.x, etat.r, 1e-3).shape[0] > 80  # mesure : 101 et 102
 
 
 class TestCentreDeGravite:
