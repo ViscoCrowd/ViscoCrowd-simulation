@@ -47,6 +47,47 @@ pas d'attribuer séparément un effet à l'adhérence ; ce n'est pas une campagn
 
 ---
 
+## 2026-10-21 — Requalifier le « jeu des contacts mutuels » et borner le biais de densité (#10)
+
+**Diagnostic corrigé.** Le jeu de 1,7·10⁻³ m du triangle (entrée du 12 octobre) n'est pas
+un défaut de position propre aux corrections simultanées de Jacobi. Après le choc, les trois
+disques gardent une **vitesse sortante** de 3,7·10⁻⁴ m/s : la projection s'arrête dès que le
+recouvrement passe sous la tolérance, une poussée infime le fait repasser au-dessus au pas
+suivant, et un balayage le corrige au-delà de ce qu'il était. La relecture `v = Δx/Δt`
+transforme ces quelques 10⁻⁷ m en vitesse, que rien n'amortit dans ce test sans frottement :
+le jeu croît **linéairement** avec le temps (6,47·10⁻⁴ m/s sur le côté, constant entre
+0,2 et 3,6 s après le choc).
+
+| Mesure (v₀ = 1 m/s) | Valeur |
+|---|---|
+| Vitesse résiduelle, Δt = 10⁻³ puis 5·10⁻⁴ s | 3,7·10⁻⁴ puis 7,1·10⁻⁴ m/s, soit 0,15 à 0,37 × tolérance/Δt |
+| Jeu à 2000 pas, tolérance 10⁻⁶ / 10⁻⁷ / 10⁻⁸ m | 1,0·10⁻³ / 6,5·10⁻⁵ / 4,1·10⁻⁶ m |
+| Avec un désir vers le centre (τ = 0,5 s) | recouvrement résiduel 8,1·10⁻⁷ m, aucun jeu |
+
+La « saturation en Δt » venait du protocole à **2000 pas fixes** : la vitesse parasite double
+quand Δt est divisé par deux, mais la durée simulée est divisée par deux aussi.
+
+**Biais de densité, la question de l'issue.** Foule de 60 agents (rayons 0,18 à 0,22 m)
+poussée contre une paroi à 1,5 m/s puis arrêtée, paramètres du sec du couloir, tolérance
+10⁻⁶ m : 101 paires au contact. Pendant la poussée, jeu moyen 7,5·10⁻⁶ m à Δt = 0,01 s et
+1,6·10⁻⁶ m à Δt = 5·10⁻³ s ; après l'arrêt, 8,2·10⁻⁶ m et 2,2·10⁻⁶ m, pour un maximum de
+1,5·10⁻⁴ m puis 2,6·10⁻⁵ m. Le jeu décroît à peu près comme Δt², comme celui du tas, et
+change à peine à la tolérance 10⁻⁷ m. Le biais relatif de densité, environ
+2 × jeu moyen / diamètre, vaut **4,1·10⁻⁵** à Δt = 0,01 s : négligeable devant toute mesure
+de densité par cellules de Voronoï ou par comptage.
+
+**Décision : piste 1 de l'issue, rien à changer dans le moteur.** Les pistes 2 (sous-relaxation)
+et 3 (résolution locale exacte) corrigeraient un défaut que la foule ne présente pas. Les
+tests vérifient désormais le triangle tangent à 10⁻⁵ m près (au lieu de 3·10⁻³ m),
+la proportionnalité à la tolérance, l'absence de jeu sous poussée, et la borne du biais de
+densité ; `TestNonInterpenetration` reste inchangé. Le rapport déclare ce biais.
+
+**Conséquence pour les campagnes.** Choisir la tolérance telle que `tolérance/Δt` reste petit
+devant les vitesses étudiées : 10⁻⁶ m avec Δt = 0,01 s donne au plus 4·10⁻⁵ m/s de vitesse
+parasite. Remesurer le biais si une campagne descend sous Δt = 10⁻³ s.
+
+---
+
 ## 2026-10-21 — Valider le guidage sur un couloir prolongé en aval
 
 **Décision d'implémentation (G1, suivi #34).** Le premier banc guidé est un couloir
@@ -277,6 +318,8 @@ contact tangentes à 5,0·10⁻⁶ m près.
   indépendant de l'extrapolation : le triangle finit tangent à 1,7·10⁻³ m près, sans mouvement
   résiduel. Ce défaut sature et ne décroît **pas** avec Δt, contrairement au jeu du tas
   (5,0·10⁻⁶ m à Δt = 2·10⁻³ s contre 2,5·10⁻⁵ m à Δt = 4·10⁻³ s, soit une décroissance en Δt²).
+  *Diagnostic corrigé le 21 octobre (#10) : c'est une vitesse résiduelle liée à la tolérance,
+  pas un défaut de position ; voir l'entrée correspondante.*
 - Le critère Δt de la spec (|v|·Δt ≪ r) reste à la charge du scénario : à Δt = 4·10⁻² s les
   disques traversent leurs voisins et la projection ne peut plus rien.
 - L'invariant d'énergie du tassement est **peu sensible** : la dissipation d'ensemble (14 J) masque

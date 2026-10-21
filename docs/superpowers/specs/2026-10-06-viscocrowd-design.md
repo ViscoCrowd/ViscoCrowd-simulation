@@ -193,15 +193,15 @@ détails d'implémentation :
 
 **Limites connues sur les contacts multiples.** L'algorithme vise le **non-recouvrement à la
 tolérance près** ; il ne garantit pas que des agents en contact finissent tangents. Seule une
-paire isolée est corrigée exactement, en un balayage (`TestPaire`). Dès que trois agents sont en
-contact **mutuel**, leurs corrections simultanées, exactes prises une à une, dépassent une fois
-additionnées : un triangle qui s'effondre finit avec un jeu d'environ **1,7·10⁻³ m** au-delà du
-contact, soit 0,85 % du diamètre d'un agent de 20 cm. Ce jeu ne doit rien à l'extrapolation (le
-triangle se résout en 5 balayages, bien avant le rang 80) et, contrairement au jeu d'un tas, **il
-ne décroît pas quand Δt diminue** (1,69·10⁻³ m à Δt = 4·10⁻³ s comme à 2·10⁻³ s). Il est suivi dans
-l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) et doit être traité,
-ou au moins borné et déclaré, avant le jalon 5 : les empilements au goulot sont exactement le cas
-où il fausserait la densité locale, abscisse du diagramme fondamental.
+paire isolée est corrigée exactement, en un balayage (`TestPaire`). L'arrêt à la tolérance crée
+une vitesse parasite de 0,15 à 0,37 × tolérance/Δt : un triangle qui s'effondre sans frottement
+s'en écarte lentement, d'environ 10⁻³ m après 1,6 s à la tolérance 10⁻⁶ m, et ce jeu est
+proportionnel à la tolérance. Il avait d'abord été pris pour un défaut de position propre aux
+contacts mutuels, insensible à Δt ; l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10)
+l'a requalifié. Une foule qui pousse n'en garde rien. Le biais qui compte pour le diagramme
+fondamental, celui d'une foule comprimée puis arrêtée, est mesuré à **4,1·10⁻⁵ en densité
+relative** à Δt = 0,01 s et décroît à peu près comme Δt² (`TestBiaisDeDensite`, journal du
+21 octobre 2026).
 
 **Ce que l'algorithme ne garantit pas.** La projection sur l'ensemble linéarisé est unique, mais
 l'algorithme n'est pas construit pour la calculer. Des corrections découplées, répétées jusqu'à

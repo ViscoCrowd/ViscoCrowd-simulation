@@ -256,9 +256,9 @@ Le statut du sujet et les questions encore ouvertes sont centralisés dans la
 (Jacobi vectorisé et Nesterov après 80 balayages) figurent dans le
 [journal des décisions](docs/journal-decisions.md) et l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
 
-Cette validation conserve la limite de contacts multiples suivie dans
-l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10), à corriger ou à
-quantifier avant les campagnes. Le rejet des valeurs non finies
+Le biais de densité dû aux contacts multiples est quantifié dans
+l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) : 4,1 × 10⁻⁵ en densité
+relative pour une foule comprimée à Δt = 0,01 s, négligeable devant la mesure de densité. Le rejet des valeurs non finies
 ([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
 ([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés ;
 le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18))
