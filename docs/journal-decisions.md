@@ -11,6 +11,100 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Imposer l'obstacle dans la projection et l'intégrer au banc de couloir (G2/G5)
+
+**Décision.** Un obstacle rectangulaire devient une contrainte du domaine, comme une paroi :
+`ObstacleRectangle.repousser` ramène tout centre qui le chevauche au bord du rectangle
+gonflé d'un rayon, aux coins arrondis. L'extérieur d'un rectangle n'est pas convexe, mais
+cette projection est explicite et exacte. `Couloir` projette les parois puis les obstacles ;
+ce second pas reste exact pour les parois tant qu'un diamètre d'agent sépare chaque obstacle
+des parois et des autres obstacles, ce que le scénario vérifie avant le calcul.
+
+Le guidage seul ne suffisait pas : mesuré sur le banc, des agents **touchent** le pilier
+(distance au pilier égale au rayon à 10⁻¹⁶ m près), poussés par leurs voisins. Sans la
+contrainte, rien n'aurait empêché l'un d'eux d'y entrer.
+
+**Configuration.** Le scénario `couloir` déclare désormais `guidage` (`aval` ou `eikonal`),
+`pas_guidage` et `obstacles` dans son YAML, sans valeur implicite. Des obstacles exigent le
+guidage eikonal. Au-delà de la section de sortie, où le champ est nul, les agents reprennent
+la direction (1, 0) pour continuer en aval comme dans le banc G1.
+
+**Compatibilité de relecture.** Les anciennes archives v1 sans les trois champs
+de guidage restent affichables comme banc analytique sans obstacle. Cette adaptation
+est limitée à la lecture, ne modifie pas les métadonnées et ne masque pas un champ
+manquant dans une archive moderne. Les nouveaux YAML restent explicites.
+Les méthodes publiques de projection et de violation d'obstacle refusent aussi
+les rayons non finis ou non positifs, même si la population est vide.
+
+**Mesures** (`experiments/couloir_obstacle.yaml`, pilier de 1 × 1 m au milieu de la bande
+mouillée, Δt = 0,01 s, 16 s). 24 agents sortis sur 24, 12 de chaque côté ; recouvrement
+maximal 9,9998·10⁻⁷ m pour une tolérance de 10⁻⁶ m ; violation des parois et du pilier
+5,6·10⁻¹⁷ m ; aucune non-convergence (87 balayages au plus) ; premier et dernier passage
+à 7,177 et 9,380 s, contre 7,225 et 9,228 s sans pilier. Sans obstacle, le guidage eikonal
+redonne la trajectoire du guidage analytique **bit à bit**. Calcul : 1,1 s.
+
+**Portée.** Valeurs illustratives, comme le banc sans obstacle. Le partage 12/12 vient de la
+symétrie du pilier et de la population ; il ne mesure encore aucun arbitrage entre milieux.
+
+---
+
+## 2026-10-21 — Calculer le guidage par Fast Marching et contourner un obstacle (G2)
+
+**Décision d'implémentation.** `model/eikonal.py` résout `|∇φ| = 1/F` par Fast Marching
+du premier ordre sur une grille régulière, écrit par le groupe (spec § 2.6). La vitesse `F`
+est la vitesse souhaitée du milieu sous chaque nœud ; un obstacle est un ensemble de nœuds
+où `F = 0`, retirés jusqu'à une marge égale au rayon des agents pour que le champ guide les
+centres sans que les disques touchent l'obstacle. La direction est `−∇φ/|∇φ|`, prise par les
+mêmes différences amont que le schéma puis interpolée bilinéairement aux positions.
+
+**Options écartées.** Un gradient centré mélange les deux côtés d'une crête, et donne un
+vecteur nul derrière un obstacle symétrique : l'agent pousse alors contre la face. Le
+gradient amont choisit toujours le voisin d'indice inférieur en cas d'égalité, ce qui brise
+la symétrie de façon déterministe. Un schéma d'ordre 2 n'a pas été retenu : l'ordre 1 est
+exact sur le cas couloir et suffit aux détours mesurés ; il reste une amélioration possible.
+
+**Mesures** (`tests/test_eikonal.py`). Couloir sec/mouillé/sec : `φ` égale l'intégrale de
+`1/F` à 10⁻¹³ près et la direction reproduit exactement `direction_aval` de G1. Source
+ponctuelle : erreur maximale 0,103 ; 0,062 ; 0,037 s pour h = 0,1 ; 0,05 ; 0,025 m, direction
+à 3,6° au pire au pas le plus fin. Ombre d'un obstacle de 1 × 1,5 m : erreur maximale 0,131 ;
+0,090 ; 0,050 s sur environ 11 s de parcours. Le schéma surestime `φ` (écart minimal mesuré
+−3·10⁻¹⁴ s). Un agent de rayon 0,2 m guidé à 1,5 m/s contourne l'obstacle sans le toucher
+(marge minimale 1,9 cm), y compris depuis l'axe de symétrie, et arrive 0,34 s après le temps
+du contour à vitesse constante, soit environ `τ` = 0,3 s de mise en vitesse. Un groupe de
+12 agents en contact contourne aussi l'obstacle, avec 6,7 cm de marge et aucune
+non-convergence. Coût : 0,16 s pour les 99 086 nœuds de l'emprise de la piscine à h = 0,1 m.
+
+**Limites.** Dans `model/eikonal.py`, l'obstacle n'est qu'une zone que le guidage évite ;
+le banc de couloir l'ajoute aussi à la projection (entrée suivante). Le champ est statique ;
+il ne tient compte ni de la densité ni de la capacité des franchissements (P3). Un agent hors
+de la grille reçoit la direction du bord le plus proche ; un agent au cœur de la sortie reçoit
+une direction nulle. La géométrie piscine (C6) reste à raccorder.
+
+**Correction après revue de la PR #43, le 21 octobre (Lenny).** Le départage amont aux
+nœuds ne suffisait pas : l'interpolation pouvait moyenner deux directions opposées et
+immobiliser un agent accessible. Sur une grille de pas 1 m, avec des sorties en x = 0 et
+x = 4 m, le point (2,5 ; 0,5) recevait une direction nulle. Un agent au repos en
+(4,5 ; 0,125) devant l'obstacle [5,6] × [-0,5,0,5], avec h = 0,25 m et une marge de
+0,25 m, restait également immobile pendant les 10 s du test.
+
+Lorsque deux gradients non nuls qui contribuent à l'interpolation forment un angle
+obtus (produit scalaire normalisé < −10⁻¹²), le guidage choisit maintenant le gradient
+du nœud contributeur de plus petit temps de parcours. Les égalités sont départagées
+dans l'ordre fixe des quatre nœuds. Les poids nuls sont exclus : un nœud de sortie ne
+récupère donc pas artificiellement la direction de ses voisins. Ailleurs, l'interpolation
+bilinéaire est conservée. Ce choix local évite l'annulation de branches opposées ; ce
+n'est pas une garantie d'optimalité du chemin continu ni une contrainte dure d'obstacle.
+
+Les régressions couvrent deux sorties selon chacun des axes, les perturbations de
+position de ±10⁻¹⁰ m autour du point d'annulation et le détour d'un agent initialement
+au repos entre les nœuds. Le test du groupe mesure aussi toutes les distances entre
+paires, indépendamment des diagnostics de la projection : recouvrement maximal
+9,99189 × 10⁻⁷ m, marge à l'obstacle 6,689 cm, 12/12 arrivés. L'évaluation des directions
+de 500 agents coûte environ 0,21 ms par appel sur le poste de revue (médiane de trois
+séries de 1 000 appels, Python 3.14.4) ; les temps dépendent de l'environnement.
+
+---
+
 ## 2026-10-21 — Relire le couloir à partir des archives
 
 **Réalisation (PR #37).** La vue du couloir lit les positions, rayons et instants du
@@ -24,6 +118,41 @@ au temps demandé, même pour des archives irrégulières ; le dernier instant e
 dans le GIF. La résolution du GIF est fixée explicitement : un test a révélé sa dépendance
 aux réglages globaux des figures scientifiques. Les contrôles de lecture sont testés
 sans fenêtre et les exports inspectés ; la fenêtre native reste à essayer sur les postes.
+
+---
+
+## 2026-10-21 — Mesurer l'évacuation définitive a posteriori, sans retirer d'agent (#11)
+
+**Décision.** Un agent est **sorti** quand son dernier passage à travers le segment de sortie
+est sortant, qu'il termine du côté extérieur et qu'il n'est plus revenu du côté intérieur
+après ce passage, même hors porte ; son instant de sortie est celui de ce dernier passage
+(`observables/sortie.py`). La mesure est calculée **hors ligne** sur la
+trajectoire archivée, comme les autres observables. « Ne revient plus » s'entend jusqu'au
+dernier instant enregistré.
+
+**Options considérées.** L'issue #11 proposait un état absorbant (retirer l'agent de la
+simulation) ou un marquage sans retrait. Les deux portent sur le **scénario**, et le choix
+change le temps d'évacuation mesuré si un agent sorti peut revenir gêner la porte. Calculer
+la sortie a posteriori livre une première mesure sur les archives à population fixe.
+Un retrait effectif devra préserver l'historique et les identités ou adapter le format ;
+il reste à décider avec la géométrie de la sortie piscine (P5). Cette brique ne clôt pas
+l'issue #11 sur l'état de sortie du scénario.
+
+**Mesures.** Un agent qui traverse, revient et retraverse compte 3 passages, un flux net de 1
+et **une** sortie, au troisième passage. Sur 50 marches aléatoires autour d'une porte avec
+refoulements, `n_sortis(t)` est croissant, borné par N, et non encore classés sortis + sortis = N à chaque
+instant ; un agent compté sorti reste dehors à tous les instants suivants. Sur le banc de
+couloir sans blocage, les 24 sorties coïncident avec les 24 passages ; dernier agent sorti à
+9,228 s. Les quantiles `temps_evacuation(0,5)` et `(0,9)` donnent t₅₀ et t₉₀, moins
+sensibles à un retardataire que le maximum.
+
+Le complément du classement final ne mesure pas la population géométriquement à
+l'intérieur : avant un refoulement, un agent peut être dehors sans être classé sorti.
+La revue de #47 ajoute les retours hors porte et le rejet des temps/positions invalides ;
+un passage antérieur à la dernière présence intérieure n'est pas une sortie définitive.
+
+**Reste à faire (P5).** Confronter le temps d'évacuation au repère `N / (1,3 w)` sur un goulot,
+et décider du retrait des agents sortis dans le scénario piscine.
 
 ---
 
@@ -44,6 +173,85 @@ de la section x = 12 m, entre 7,225 et 9,228 s ; recouvrement maximal 9,99457·1
 aucune non-convergence et aucune violation de paroi. Des contacts ont effectivement lieu.
 Les différences de vitesse et d'adhérence entre bandes sont illustratives et ne permettent
 pas d'attribuer séparément un effet à l'adhérence ; ce n'est pas une campagne E0–E4.
+
+---
+
+## 2026-10-21 — Requalifier le « jeu des contacts mutuels » et mesurer le jeu local (#10)
+
+**Diagnostic corrigé.** Le jeu de 1,7·10⁻³ m du triangle (entrée du 12 octobre) n'est pas
+un défaut de position propre aux corrections simultanées de Jacobi. Après le choc, les trois
+disques gardent une **vitesse sortante** de 3,7·10⁻⁴ m/s : la projection s'arrête dès que le
+recouvrement passe sous la tolérance, une poussée infime le fait repasser au-dessus au pas
+suivant, et un balayage le corrige au-delà de ce qu'il était. La relecture `v = Δx/Δt`
+transforme ces quelques 10⁻⁷ m en vitesse, que rien n'amortit dans ce test sans frottement :
+le jeu croît **linéairement** avec le temps (6,47·10⁻⁴ m/s sur le côté, constant entre
+0,2 et 3,6 s après le choc).
+
+| Mesure (v₀ = 1 m/s) | Valeur |
+|---|---|
+| Vitesse résiduelle, Δt = 10⁻³ puis 5·10⁻⁴ s | 3,7·10⁻⁴ puis 7,1·10⁻⁴ m/s, soit 0,15 à 0,37 × tolérance/Δt |
+| Jeu à 2000 pas, tolérance 10⁻⁶ / 10⁻⁷ / 10⁻⁸ m | 1,0·10⁻³ / 6,5·10⁻⁵ / 4,1·10⁻⁶ m |
+| Avec un désir vers le centre (τ = 0,5 s) | recouvrement résiduel 8,1·10⁻⁷ m, aucun jeu |
+
+La « saturation en Δt » venait du protocole à **2000 pas fixes** : la vitesse parasite double
+quand Δt est divisé par deux, mais la durée simulée est divisée par deux aussi.
+
+**Jeu local, première étape de l'issue.** Foule de 60 agents (rayons 0,18 à 0,22 m)
+poussée contre une paroi à 1,5 m/s puis arrêtée, paramètres du sec du couloir, tolérance
+10⁻⁶ m. Les mesures initiales annonçaient 8,2·10⁻⁶ m puis 2,2·10⁻⁶ m de jeu moyen
+après l'arrêt pour Δt = 0,01 puis 0,005 s. **La revue ne reproduit pas cette décroissance** :
+deux exécutions donnent les valeurs suivantes, avec les mêmes dépendances figées
+(macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1).
+
+| Δt (s) | Paires proches | Jeu moyen (m) | Jeu maximal (m) | Indicateur 2 × jeu / diamètre |
+|---|---|---|---|---|
+| 0,01 | 101 | 7,576·10⁻⁶ | 9,011·10⁻⁵ | 3,776·10⁻⁵ |
+| 0,005 | 101 | 4,272·10⁻⁵ | 8,458·10⁻⁴ | 2,130·10⁻⁴ |
+
+Le ratio des jeux moyens vaut 0,177, contre un seuil de test supérieur à 3.
+
+**Diagnostic après la revue : forte sensibilité à de petites perturbations.** Déplacer un seul agent
+de 10⁻¹² m au départ écarte les trajectoires de plus de 10⁻⁶ m dès les premiers chocs
+(t ≈ 1,7 s), puis de 9,1·10⁻⁵ m à la fin pour Δt = 0,005 s : une amplification de 10⁸.
+Cette sensibilité rend plausible une influence des arrondis entre environnements,
+mais elle n’isole pas leur rôle exact et ne démontre pas un chaos dynamique. Le nombre de paires
+à moins de 1 mm reste stable (101 et 102), mais leur partage entre contacts effectifs (jeu de
+l'ordre de la tolérance) et quasi-contacts (10⁻⁵ à 10⁻³ m) change, et le jeu moyen avec lui :
+
+| Δt = 0,005 s (x86-64) | Quasi-contacts (≥ 10⁻⁵ m) | Jeu moyen (m) |
+|---|---|---|
+| sans perturbation | 8 | 2,2·10⁻⁶ |
+| un agent déplacé de +10⁻¹² m | 11 | 1,2·10⁻⁵ |
+| un agent déplacé de −10⁻¹² m | 31 | 3,85·10⁻⁵ |
+
+La dernière ligne retrouve l'ordre de grandeur de la revue. Sur quatre graines, le nombre de
+quasi-contacts varie de 3 à 68. Même restreint aux paires sous 10 × tolérance, le jeu ne suit
+aucune loi en Δt, et la sélection dépend elle-même de la tolérance. **L'hypothèse d'une
+décroissance en Δt² est donc réfutée, pas assouplie** : le jeu moyen n'est pas une observable
+de convergence. Le test lent qui la portait est remplacé par un test qui vérifie la sensibilité
+aux arrondis (écart final > 10⁻⁶ m pour une perturbation de 10⁻¹² m) et le maintien de plus de 80 paires proches, sans garantir les mêmes arêtes
+du réseau de contacts. L'indicateur sans dimension est de l'ordre de 4·10⁻⁵ à Δt = 0,01 s sur x86-64.
+Son interprétation comme
+variation relative de densité suppose une dilatation isotrope homogène, non vérifiée ici.
+Les paires sont sélectionnées à moins de 10⁻³ m du contact : les vides entre groupes
+ne sont pas mesurés. Aucune densité de référence ni incertitude de Voronoï/comptage
+n'est évaluée ; ce résultat ne permet pas de déclarer le biais au goulot négligeable.
+
+**Décision : caractériser avant de modifier le moteur.** Ces bancs motivent la poursuite
+de la piste 1, mais n'écartent pas définitivement les pistes 2 (sous-relaxation) et 3
+(résolution locale exacte) pour d'autres configurations. Les
+tests vérifient désormais le triangle tangent à 10⁻⁵ m près (au lieu de 3·10⁻³ m),
+la dépendance à la tolérance, l'absence de jeu sur le triangle sous poussée et l'indicateur
+de jeu local ; `TestNonInterpenetration` reste inchangé. La revue de #48 conserve #10
+ouverte : il reste à mesurer le biais de densité, statistiquement sur plusieurs graines et
+avec l'observable de densité elle-même (M1), sur la géométrie cible. Le rapport présente
+ces résultats comme des mesures de jeu, avec cette limite.
+
+**Conséquence pour les campagnes.** Choisir la tolérance telle que `tolérance/Δt` reste petit
+devant les vitesses étudiées. Le coefficient observé sur le triangle suggère un ordre
+de grandeur de 4·10⁻⁵ m/s pour 10⁻⁶ m et Δt = 0,01 s ; ce n'est pas une borne universelle.
+Mesurer le biais de densité du scénario cible avant les campagnes et étudier sa
+sensibilité au pas, à la tolérance et à la population.
 
 ---
 
@@ -313,6 +521,8 @@ contact tangentes à 5,0·10⁻⁶ m près.
   indépendant de l'extrapolation : le triangle finit tangent à 1,7·10⁻³ m près, sans mouvement
   résiduel. Ce défaut sature et ne décroît **pas** avec Δt, contrairement au jeu du tas
   (5,0·10⁻⁶ m à Δt = 2·10⁻³ s contre 2,5·10⁻⁵ m à Δt = 4·10⁻³ s, soit une décroissance en Δt²).
+  *Diagnostic corrigé le 21 octobre (#10) : c'est une vitesse résiduelle liée à la tolérance,
+  pas un défaut de position ; voir l'entrée correspondante.*
 - Le critère Δt de la spec (|v|·Δt ≪ r) reste à la charge du scénario : à Δt = 4·10⁻² s les
   disques traversent leurs voisins et la projection ne peut plus rien.
 - L'invariant d'énergie du tassement est **peu sensible** : la dissipation d'ensemble (14 J) masque

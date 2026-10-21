@@ -52,6 +52,28 @@ def test_navigation_restitue_positions_rayons_temps_et_passages(lecteur, donnees
     assert lecteur.compteur.get_text().endswith("0")
 
 
+def test_archive_ancienne_sans_champs_guidage_reste_lisible(donnees):
+    parametres = donnees.metadonnees["configuration"]["parametres"]
+    for nom in ("guidage", "pas_guidage", "obstacles"):
+        del parametres[nom]
+    vue = LecteurCouloir(donnees, interactif=False)
+    try:
+        vue.aller_au_temps(1.0)
+        np.testing.assert_array_equal([d.center for d in vue.disques], donnees.x[-1])
+        assert vue.p.guidage == "aval"
+        assert not vue.obstacles
+        assert "guidage" not in parametres  # les metadonnees archivees restent intactes
+    finally:
+        plt.close(vue.figure)
+
+
+@pytest.mark.parametrize("manquant", ["guidage", "pas_guidage", "obstacles"])
+def test_archive_moderne_partiellement_tronquee_refusee(donnees, manquant):
+    del donnees.metadonnees["configuration"]["parametres"][manquant]
+    with pytest.raises(ValueError, match="incomplete"):
+        LecteurCouloir(donnees, interactif=False)
+
+
 def test_pause_vitesse_et_fin_de_lecture(lecteur, monkeypatch):
     horloge = [100.0]
     monkeypatch.setattr("viscocrowd.ui.relecture.time.monotonic", lambda: horloge[0])
@@ -117,6 +139,28 @@ def test_un_seul_instant_reste_affichable(donnees):
     assert vue.slider is None
     np.testing.assert_array_equal(indices_animation(unique.t, 5, 1.0), [0])
     plt.close(vue.figure)
+
+
+def test_obstacles_lus_dans_l_archive_et_dessines(tmp_path):
+    """Le pilier vient de la configuration archivee, a l'echelle metrique, sans moteur."""
+    import yaml
+
+    from viscocrowd.scenarios.experience import executer_configuration
+
+    config = lire_configuration(Path(__file__).parents[1] / "experiments/couloir_obstacle.yaml")
+    config["parametres"]["duree"] = 0.05
+    fichier = tmp_path / "obstacle.yaml"
+    fichier.write_text(yaml.safe_dump(config))
+    donnees = executer_configuration(fichier, tmp_path / "obstacle.npz")
+    vue = LecteurCouloir(donnees, interactif=False)
+    try:
+        assert len(vue.obstacles) == 1
+        pilier = vue.obstacles[0]
+        assert pilier.get_xy() == (6.0, -0.5)
+        assert (pilier.get_width(), pilier.get_height()) == (1.0, 1.0)
+        assert any("CONTOURNEMENT" in texte.get_text() for texte in vue.figure.texts)
+    finally:
+        plt.close(vue.figure)
 
 
 def test_configuration_absente_refusee(donnees):
