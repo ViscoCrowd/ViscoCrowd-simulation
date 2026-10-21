@@ -164,7 +164,7 @@ Ce qu'il RESTE comme artefact, mesure et assume :
     dt = 2e-3 s, contre 2,5e-5 m a dt = 4e-3 s : ce defaut-la decroit bien
     comme dt^2 sur ces mesures. Un banc de 60 agents comprimes puis arretes
     donne un jeu moyen de l'ordre de 8e-6 m a dt = 0,01 s, mais aucune loi en
-    dt : la foule comprimee est chaotique, une perturbation de 1e-12 m change
+    dt etudiee ici : une perturbation de 1e-12 m change
     l'arrangement final de 1e-4 m, et le jeu moyen avec lui.
     L'indicateur 2 * jeu moyen / diametre est de l'ordre de 4e-5 a dt = 0,01 s
     (`TestJeuDeContact`) ; ce n'est ni une mesure ni une borne du biais de

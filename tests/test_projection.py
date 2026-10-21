@@ -507,10 +507,10 @@ class TestJeuDeContact:
     La decroissance en dt^2 annoncee initialement est REFUTEE, pas assouplie.
     La revue mesurait 7,576e-6 puis 4,272e-5 m a dt = 0,01 puis 0,005 s (macOS
     arm64), contre 8,2e-6 puis 2,2e-6 m sur x86-64, avec les memes versions.
-    Cause : la foule comprimee est chaotique. Deplacer UN agent de 1e-12 m au
+    Une forte sensibilite est mesuree : deplacer UN agent de 1e-12 m au
     depart ecarte les trajectoires de plus de 1e-6 m des les premiers chocs, et
     de 9e-5 m a la fin (amplification 1e8) ; des arrondis differents entre
-    processeurs suffisent donc a changer l'arrangement final. Le nombre de paires
+    processeurs sont une explication plausible, pas une cause isolee ici. Les paires
     proches reste stable (101 et 102), mais leur partage entre contacts effectifs
     (jeu de l'ordre de la tolerance) et quasi-contacts (1e-5 a 1e-3 m) change :
     jeu moyen 2,2e-6 m sans perturbation, 3,85e-5 m avec -1e-12 m. Le jeu moyen
@@ -564,7 +564,7 @@ class TestJeuDeContact:
         """Pourquoi le jeu moyen differait entre deux machines (revue de la PR #48).
 
         Une perturbation de 1e-12 m, de l'ordre d'un arrondi, change l'arrangement
-        final de bien plus que la tolerance, sans changer le reseau de contacts.
+        final de bien plus que la tolerance, tout en gardant une population dense de paires proches.
         """
         reference = self._foule_arretee(0.005)
         perturbee = self._foule_arretee(0.005, perturbation=1e-12)

@@ -81,11 +81,11 @@ deux exécutions donnent les valeurs suivantes, avec les mêmes dépendances fig
 
 Le ratio des jeux moyens vaut 0,177, contre un seuil de test supérieur à 3.
 
-**Cause, établie après la revue : la foule comprimée est chaotique.** Déplacer un seul agent
+**Diagnostic après la revue : forte sensibilité à de petites perturbations.** Déplacer un seul agent
 de 10⁻¹² m au départ écarte les trajectoires de plus de 10⁻⁶ m dès les premiers chocs
 (t ≈ 1,7 s), puis de 9,1·10⁻⁵ m à la fin pour Δt = 0,005 s : une amplification de 10⁸.
-Des arrondis différents entre processeurs (arm64 et x86-64) suffisent donc à produire deux
-arrangements finaux distincts, avec les mêmes versions de bibliothèques. Le nombre de paires
+Cette sensibilité rend plausible une influence des arrondis entre environnements,
+mais elle n’isole pas leur rôle exact et ne démontre pas un chaos dynamique. Le nombre de paires
 à moins de 1 mm reste stable (101 et 102), mais leur partage entre contacts effectifs (jeu de
 l'ordre de la tolérance) et quasi-contacts (10⁻⁵ à 10⁻³ m) change, et le jeu moyen avec lui :
 
@@ -100,8 +100,8 @@ quasi-contacts varie de 3 à 68. Même restreint aux paires sous 10 × toléranc
 aucune loi en Δt, et la sélection dépend elle-même de la tolérance. **L'hypothèse d'une
 décroissance en Δt² est donc réfutée, pas assouplie** : le jeu moyen n'est pas une observable
 de convergence. Le test lent qui la portait est remplacé par un test qui vérifie la sensibilité
-aux arrondis (écart final > 10⁻⁶ m pour une perturbation de 10⁻¹² m) et la stabilité du réseau
-de contacts. L'indicateur sans dimension est de l'ordre de 4·10⁻⁵ à Δt = 0,01 s sur x86-64.
+aux arrondis (écart final > 10⁻⁶ m pour une perturbation de 10⁻¹² m) et le maintien de plus de 80 paires proches, sans garantir les mêmes arêtes
+du réseau de contacts. L'indicateur sans dimension est de l'ordre de 4·10⁻⁵ à Δt = 0,01 s sur x86-64.
 Son interprétation comme
 variation relative de densité suppose une dilatation isotrope homogène, non vérifiée ici.
 Les paires sont sélectionnées à moins de 10⁻³ m du contact : les vides entre groupes

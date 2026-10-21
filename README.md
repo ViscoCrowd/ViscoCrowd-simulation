@@ -259,7 +259,7 @@ Le statut du sujet et les questions encore ouvertes sont centralisés dans la
 Le jeu dû aux contacts multiples est caractérisé sur des bancs de test dans la PR #48.
 L'indicateur `2 × jeu moyen / diamètre` est de l'ordre de 4 × 10⁻⁵ pour 60 agents
 comprimés à Δt = 0,01 s ; il ne constitue pas une borne du biais de densité au goulot.
-La décroissance annoncée avec Δt est réfutée : la foule comprimée est chaotique, et une
+La décroissance annoncée avec Δt est réfutée : le banc est très sensible à de petites perturbations, et une
 perturbation de 10⁻¹² m suffit à changer le jeu moyen d'un facteur dix (voir le journal).
 L'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) reste ouverte
 pour cette validation avant les campagnes. Le rejet des valeurs non finies

@@ -201,9 +201,9 @@ contacts mutuels, insensible à Δt ; l'[issue #10](https://github.com/ViscoCrow
 l'a requalifié sur ces bancs. Dans le test de trois disques poussés vers leur centre,
 ce jeu n'est pas observé. Pour 60 agents comprimés puis arrêtés, l'indicateur
 `2 × jeu moyen / diamètre` est de l'ordre de **4·10⁻⁵** à Δt = 0,01 s. La décroissance
-annoncée en Δt² est réfutée : la foule comprimée est chaotique (une perturbation de 10⁻¹² m
+annoncée en Δt² est réfutée : le banc est très sensible aux perturbations (une perturbation de 10⁻¹² m
 change l'arrangement final de 10⁻⁴ m), si bien que le jeu moyen dépend de l'arrangement et
-même du processeur (`TestJeuDeContact`, journal du 21 octobre 2026).
+de détails numériques à identifier (`TestJeuDeContact`, journal du 21 octobre 2026).
 Cet indicateur ne mesure ni ne borne le biais de densité au goulot : il faudrait une
 référence et une comparaison de densités sur la géométrie cible. L'issue #10 reste ouverte.
 
