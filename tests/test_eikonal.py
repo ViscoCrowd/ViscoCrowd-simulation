@@ -160,6 +160,27 @@ class TestFastMarching:
 
 
 class TestDirection:
+    @pytest.mark.parametrize("axe", [0, 1])
+    def test_deux_sorties_ne_creent_pas_un_arret_entre_les_noeuds(self, axe):
+        """Une moyenne de directions opposees ne doit pas simuler une arrivee."""
+        forme = (5, 2) if axe == 0 else (2, 5)
+        grille = GrilleReguliere(0.0, 0.0, 1.0, *forme)
+        champ = ChampEikonal(
+            grille,
+            lambda p: np.ones(len(p)),
+            lambda p: (p[:, axe] == 0.0) | (p[:, axe] == 4.0),
+        )
+        # Le noeud x=2 choisit la sortie gauche, x=3 la droite. Leur moyenne
+        # s'annulait a x=2,5 alors que la sortie droite est la plus proche.
+        points = np.array([[2.5, 0.5], [2.5 - 1e-10, 0.5], [2.5 + 1e-10, 0.5]])
+        sorties = np.array([[0.0, 0.5], [4.0, 0.5]])
+        if axe == 1:
+            points, sorties = points[:, ::-1], sorties[:, ::-1]
+        attendu = np.zeros_like(points)
+        attendu[:, axe] = 1.0
+        np.testing.assert_array_equal(champ.direction(points), attendu)
+        np.testing.assert_array_equal(champ.direction(sorties), 0.0)
+
     def test_couloir_redonne_la_direction_analytique_de_g1(self):
         """Sans obstacle, le champ calcule retrouve exactement direction_aval."""
         bandes = CarteBandes((4.0, 8.0), (Milieu.SEC, Milieu.MOUILLE, Milieu.SEC))
@@ -204,6 +225,21 @@ class TestDirection:
 
 
 class TestDetour:
+    def test_depart_au_repos_entre_les_noeuds_devant_l_obstacle(self):
+        """La crete interpolee doit choisir un detour, meme hors noeud de grille."""
+        rayon = 0.2
+        obstacle = ObstacleRectangle(5.0, 6.0, -0.5, 0.5)
+        champ = couloir(0.25, (TOUT_SEC, {Milieu.SEC: SEC}), [obstacle], 0.25, longueur=L + 0.5)
+        x0 = np.array([[4.5, 0.125]])
+        initial = State(x=x0, v=np.zeros_like(x0), r=np.array([rayon]))
+        libre = pas_libre_milieux(champ, TOUT_SEC, {Milieu.SEC: SEC})
+        projection = ProjectionExclusion(Couloir(L, W).projeter, strict=True)
+        _, x, _ = trajectoire(initial, 0.01, 10.0, libre, projection)
+
+        assert x[-1, 0, 0] >= L  # avant correction, l'agent reste exactement en x0
+        assert obstacle.distance(x[:, 0]).min() > rayon
+        assert projection.non_convergences == 0
+
     def test_temps_de_parcours_derriere_l_obstacle_converge(self):
         un_metre_par_seconde = ParametresMilieu(relaxation=0.3, acceleration_max=3.0, vitesse=1.0)
         erreurs = []
@@ -255,3 +291,9 @@ class TestDetour:
         assert np.all(x[-1, :, 0] >= L)
         assert obstacle.distance(x.reshape(-1, 2)).min() > rayon  # mesure : 6,7 cm de marge
         assert projection.non_convergences == 0
+        # Controle geometrique independant des diagnostics du projecteur : le
+        # groupe rencontre bien des contacts, sans recouvrement hors tolerance.
+        i, j = np.triu_indices(len(x0), 1)
+        distances = np.linalg.norm(x[:, i] - x[:, j], axis=2)
+        assert np.max(2 * rayon - distances) <= projection.tolerance * (1 + 1e-8)
+        assert np.min(distances) < 2 * rayon + 1e-6
