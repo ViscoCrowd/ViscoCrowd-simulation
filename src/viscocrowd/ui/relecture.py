@@ -5,7 +5,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, Rectangle
 from matplotlib.widgets import Button, Slider
 
 from viscocrowd.geometry.couloir import Couloir
@@ -32,7 +32,14 @@ class LecteurCouloir:
         if not isinstance(config, dict) or config.get("scenario") != "couloir":
             raise ValueError("cette relecture graphique attend une archive du scenario couloir")
         try:
-            self.p = ParametresCouloir(**config["parametres"], graine=config["graine"])
+            parametres = dict(config["parametres"])
+            if not {"guidage", "pas_guidage", "obstacles"}.intersection(parametres):
+                # Anciennes archives v1 : uniquement le banc analytique sans obstacle.
+                # Une archive moderne a laquelle il manque un champ reste refusee.
+                parametres.update(
+                    guidage="aval", pas_guidage=min(0.05, parametres["rayon"]), obstacles=()
+                )
+            self.p = ParametresCouloir(**parametres, graine=config["graine"])
         except (KeyError, TypeError) as erreur:
             raise ValueError(
                 "configuration du couloir absente ou incomplete dans l'archive"
@@ -48,9 +55,10 @@ class LecteurCouloir:
 
         self.figure = plt.figure(figsize=(12, 5.4), dpi=100, facecolor="#101923")
         self.figure.text(0.07, 0.91, "ViscoCrowd", color="white", fontsize=25, weight="bold")
-        self.figure.text(
-            0.07, 0.845, "FOULE GUIDÉE  /  BANC EN COULOIR", color="#7dd3d8", fontsize=11
-        )
+        sous_titre = "FOULE GUIDÉE  /  BANC EN COULOIR"
+        if self.p.obstacles:
+            sous_titre += "  /  CONTOURNEMENT D'OBSTACLE"
+        self.figure.text(0.07, 0.845, sous_titre, color="#7dd3d8", fontsize=11)
         self.figure.text(
             0.07,
             0.785,
@@ -96,6 +104,20 @@ class LecteurCouloir:
         for y in (-self.p.largeur / 2, self.p.largeur / 2):
             self.ax.plot([0.0, bornes[-1]], [y, y], color="#cbd5df", lw=1.5)
         self.ax.plot([0.0, 0.0], [-self.p.largeur / 2, self.p.largeur / 2], color="#cbd5df", lw=1.5)
+        # Les obstacles sont lus dans la configuration archivee, comme tout le reste.
+        self.obstacles = [
+            Rectangle(
+                (o.x_min, o.y_min),
+                o.x_max - o.x_min,
+                o.y_max - o.y_min,
+                facecolor="#cbd5df",
+                edgecolor="none",
+                zorder=2,
+            )
+            for o in self.p.rectangles
+        ]
+        for obstacle in self.obstacles:
+            self.ax.add_patch(obstacle)
         self.ax.axvline(self.p.longueur, color="#7dd3d8", linestyle="--", lw=1.3)
         self.ax.text(
             self.p.longueur + 0.12,

@@ -11,6 +11,43 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Imposer l'obstacle dans la projection et l'intégrer au banc de couloir (G2/G5)
+
+**Décision.** Un obstacle rectangulaire devient une contrainte du domaine, comme une paroi :
+`ObstacleRectangle.repousser` ramène tout centre qui le chevauche au bord du rectangle
+gonflé d'un rayon, aux coins arrondis. L'extérieur d'un rectangle n'est pas convexe, mais
+cette projection est explicite et exacte. `Couloir` projette les parois puis les obstacles ;
+ce second pas reste exact pour les parois tant qu'un diamètre d'agent sépare chaque obstacle
+des parois et des autres obstacles, ce que le scénario vérifie avant le calcul.
+
+Le guidage seul ne suffisait pas : mesuré sur le banc, des agents **touchent** le pilier
+(distance au pilier égale au rayon à 10⁻¹⁶ m près), poussés par leurs voisins. Sans la
+contrainte, rien n'aurait empêché l'un d'eux d'y entrer.
+
+**Configuration.** Le scénario `couloir` déclare désormais `guidage` (`aval` ou `eikonal`),
+`pas_guidage` et `obstacles` dans son YAML, sans valeur implicite. Des obstacles exigent le
+guidage eikonal. Au-delà de la section de sortie, où le champ est nul, les agents reprennent
+la direction (1, 0) pour continuer en aval comme dans le banc G1.
+
+**Compatibilité de relecture.** Les anciennes archives v1 sans les trois champs
+de guidage restent affichables comme banc analytique sans obstacle. Cette adaptation
+est limitée à la lecture, ne modifie pas les métadonnées et ne masque pas un champ
+manquant dans une archive moderne. Les nouveaux YAML restent explicites.
+Les méthodes publiques de projection et de violation d'obstacle refusent aussi
+les rayons non finis ou non positifs, même si la population est vide.
+
+**Mesures** (`experiments/couloir_obstacle.yaml`, pilier de 1 × 1 m au milieu de la bande
+mouillée, Δt = 0,01 s, 16 s). 24 agents sortis sur 24, 12 de chaque côté ; recouvrement
+maximal 9,9998·10⁻⁷ m pour une tolérance de 10⁻⁶ m ; violation des parois et du pilier
+5,6·10⁻¹⁷ m ; aucune non-convergence (87 balayages au plus) ; premier et dernier passage
+à 7,177 et 9,380 s, contre 7,225 et 9,228 s sans pilier. Sans obstacle, le guidage eikonal
+redonne la trajectoire du guidage analytique **bit à bit**. Calcul : 1,1 s.
+
+**Portée.** Valeurs illustratives, comme le banc sans obstacle. Le partage 12/12 vient de la
+symétrie du pilier et de la population ; il ne mesure encore aucun arbitrage entre milieux.
+
+---
+
 ## 2026-10-21 — Calculer le guidage par Fast Marching et contourner un obstacle (G2)
 
 **Décision d'implémentation.** `model/eikonal.py` résout `|∇φ| = 1/F` par Fast Marching
@@ -37,8 +74,8 @@ du contour à vitesse constante, soit environ `τ` = 0,3 s de mise en vitesse. U
 12 agents en contact contourne aussi l'obstacle, avec 6,7 cm de marge et aucune
 non-convergence. Coût : 0,16 s pour les 99 086 nœuds de l'emprise de la piscine à h = 0,1 m.
 
-**Limites.** L'obstacle n'est pas une contrainte de la projection : seul le guidage l'évite,
-et rien ne garantit qu'une foule plus dense n'y pousse pas un agent. Le champ est statique ;
+**Limites.** Dans `model/eikonal.py`, l'obstacle n'est qu'une zone que le guidage évite ;
+le banc de couloir l'ajoute aussi à la projection (entrée suivante). Le champ est statique ;
 il ne tient compte ni de la densité ni de la capacité des franchissements (P3). Un agent hors
 de la grille reçoit la direction du bord le plus proche ; un agent au cœur de la sortie reçoit
 une direction nulle. La géométrie piscine (C6) reste à raccorder.

@@ -147,8 +147,23 @@ Les vitesses et adhérences sont **illustratives** : ce banc ne calibre pas la p
 La sortie est une section de mesure, de toute la largeur du couloir. Les agents
 continuent en aval entre les parois latérales ; ils restent dans l'archive. Un passage
 ne constitue donc pas encore une évacuation définitive (#11). Ce cas sans obstacle
-valide le guidage rectiligne G1 et un premier couplage G5 ; le champ eikonal G2,
-le goulot étroit et les franchissements aquatiques restent à construire.
+valide le guidage rectiligne G1 et un premier couplage G5.
+
+#### Variante avec obstacle
+
+```bash
+viscocrowd simuler experiments/couloir_obstacle.yaml --sortie data/couloir_obstacle.npz
+viscocrowd rejouer data/couloir_obstacle.npz --gif figures/couloir_obstacle.gif
+```
+
+Même population et mêmes milieux, avec un **pilier de 1 × 1 m** au milieu de la bande
+mouillée. Le guidage `eikonal` (G2, Fast Marching) contourne le pilier avec une marge
+d'un rayon, et la projection l'impose comme une paroi : un agent poussé par ses voisins
+ne peut pas y entrer. Mesures : 24 agents sortis, 12 de chaque côté du pilier ;
+recouvrement maximal 9,9998·10⁻⁷ m ; violation des parois et du pilier 5,6·10⁻¹⁷ m ;
+dernier passage à 9,380 s contre 9,228 s sans pilier. Sans obstacle, `guidage: eikonal`
+redonne bit à bit la trajectoire de `guidage: aval`. Le goulot étroit et les
+franchissements aquatiques restent à construire.
 
 Le pas doit être inférieur aux temps de relaxation et le déplacement par pas rester
 au plus égal à un cinquième du rayon. Le scénario contrôle ce dernier critère aussi
