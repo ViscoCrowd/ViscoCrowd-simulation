@@ -407,6 +407,12 @@ contraintes et les conditions aux limites sont écrits par le groupe, conformém
 `main` protégée : pas de push direct, PR obligatoire, CI verte, historique linéaire (squash),
 force-push et suppression bloqués, conversations de revue résolues avant fusion.
 
+Les contributions vont d'abord dans `dev` par PR squashée. Un jalon terminé est promu
+vers `main`, puis identifié par un tag annoté et une GitHub Release. La resynchronisation
+de `main` vers `dev` passe par une PR avec commit de fusion : c'est l'exception nécessaire
+au squash des contributions. La procédure complète et le rattrapage d'anciens jalons sont
+définis dans [CONTRIBUTING § 3.4](../../../CONTRIBUTING.md#34-passer-de-dev-à-main).
+
 **L'approbation d'un pair n'est pas exigée techniquement**, et chacun peut fusionner sa propre
 pull request. Le groupe travaillant en alternance, une approbation bloquante immobiliserait une
 branche plusieurs jours quand les emplois du temps ne coïncident pas.
@@ -454,6 +460,8 @@ obligatoire est le mécanisme qui garantit cette lecture partagée.
 Le [planning daté](../../planning/README.md) centralise les cibles, les responsables et les
 prérequis ; le [README](../../../README.md#état-davancement) résume l'avancement. Le statut
 du sujet et la trace disponible figurent dans la [fiche de cadrage](../../validation-sujet.md#trace-de-validation).
+Le [registre des livraisons](../../livraisons.md) distingue les jalons validés dans `dev`
+des versions effectivement publiées sur `main`, avec leurs tags et leurs releases.
 
 ### 9.1 Échéances imposées
 

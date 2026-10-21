@@ -360,6 +360,8 @@ Exigences du module, et où elles sont tenues :
 ## Contribuer
 
 Méthodologie, convention de branches et processus de revue : **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+Les jalons publiés, leurs tags/releases et l'audit du cycle `dev` → `main` sont suivis dans
+le **[registre des livraisons](docs/livraisons.md)**.
 
 ```bash
 make install     # environnement de développement
