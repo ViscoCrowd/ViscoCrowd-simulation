@@ -33,7 +33,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.spatial import Voronoi
+from scipy.spatial import QhullError, Voronoi
 
 from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
 
@@ -71,6 +71,8 @@ def _positions(x: np.ndarray, salle: Rectangle) -> np.ndarray:
     if x.ndim != 2 or x.shape[1] != 2 or x.shape[0] == 0:
         raise ValueError(f"x doit etre de forme (N, 2), N >= 1, recu {x.shape}")
     exiger_fini("Positions transmises a la mesure de densite.", x=x)
+    if np.unique(x, axis=0).shape[0] != x.shape[0]:
+        raise ValueError("les centres doivent etre distincts pour mesurer leur densite")
     # Strictement a l'interieur : un agent sur un mur coinciderait avec son reflet.
     if np.any(
         (x[:, 0] <= salle.x_min)
@@ -124,7 +126,15 @@ def cellules(x: np.ndarray, salle: Rectangle) -> list[np.ndarray]:
         np.column_stack((x[:, 0], 2 * salle.y_min - x[:, 1])),
         np.column_stack((x[:, 0], 2 * salle.y_max - x[:, 1])),
     ]
-    diagramme = Voronoi(np.concatenate(reflets))
+    try:
+        diagramme = Voronoi(np.concatenate(reflets))
+    except QhullError as erreur:
+        raise ValueError(
+            "partition de Voronoi degeneree : centres numeriquement inseparables"
+        ) from erreur
+    regions = diagramme.point_region[: x.shape[0]]
+    if np.unique(regions).size != x.shape[0]:
+        raise ValueError("partition de Voronoi degeneree : plusieurs centres partagent une cellule")
     resultat = []
     for i in range(x.shape[0]):
         region = diagramme.regions[diagramme.point_region[i]]
@@ -134,6 +144,11 @@ def cellules(x: np.ndarray, salle: Rectangle) -> list[np.ndarray]:
         # Ordre angulaire autour de l'agent : la cellule est convexe et le contient.
         angles = np.arctan2(sommets[:, 1] - x[i, 1], sommets[:, 0] - x[i, 0])
         resultat.append(sommets[np.argsort(angles)])
+    aires = np.array([aire_polygone(p) for p in resultat])
+    if not np.all(np.isfinite(aires) & (aires > 0.0)) or not np.isclose(
+        aires.sum(), salle.aire, rtol=1e-8, atol=0.0
+    ):
+        raise ValueError("partition de Voronoi degeneree : les cellules ne pavent pas la salle")
     return resultat
 
 

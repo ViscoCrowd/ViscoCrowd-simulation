@@ -34,6 +34,14 @@ def reseau_hexagonal(a, salle=SALLE):
 
 
 class TestGeometrie:
+    @pytest.mark.parametrize("decalage", [0.0, 1e-14])
+    def test_centres_confondus_ou_fusionnes_par_qhull_refuses(self, decalage):
+        x = np.array([[2.0, 3.0], [2.0 + decalage, 3.0], [8.0, 3.0]])
+        with pytest.raises(ValueError, match=r"distinct|degenere"):
+            cellules(x, SALLE)
+        with pytest.raises(ValueError, match=r"distinct|degenere"):
+            vitesse_voronoi(x, np.tile([1.0, 0.0], (3, 1)), SALLE, SALLE)
+
     def test_aire_et_decoupage(self):
         carre = np.array([[0.0, 0.0], [2.0, 0.0], [2.0, 2.0], [0.0, 2.0]])
         assert aire_polygone(carre) == 4.0
