@@ -11,6 +11,26 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Valider le guidage sur un couloir prolongé en aval
+
+**Décision d'implémentation (G1, suivi #34).** Le premier banc guidé est un couloir
+rectiligne sans obstacle : paroi amont en x = 0, parois latérales en y = ±largeur/2,
+section de sortie en x = longueur. Les parois latérales et le mouvement se prolongent
+en aval. Les agents ne sont pas retirés à la sortie : on peut mesurer un passage avec
+l'observable existante sans préjuger de l'état absorbant du futur scénario (#11).
+
+La direction est (1, 0). C'est la direction analytique du champ de temps de parcours
+quand la vitesse positive ne dépend que de x. Ce cas ne remplace pas le calcul eikonal
+avec obstacles de G2. La carte par bandes attribue une frontière à la zone de droite ;
+le milieu sous le centre est lu au début du pas, conformément à #30. La géométrie
+fournit aussi le segment de mesure et sera reprise par la relecture graphique.
+
+**Portée.** Cette brique prépare le test couplé guidage/milieux/exclusion. Elle ne fixe
+ni la géométrie commune de la piscine ni les paramètres physiques de C6 ; les valeurs
+du banc devront être explicites dans son YAML, avec des tests de convergence séparés.
+
+---
+
 ## 2026-10-21 — Livrer la chaîne YAML et trajectoires persistées (C7)
 
 **Réalisation.** La décision de séparation calcul/observables du 6 octobre est désormais
