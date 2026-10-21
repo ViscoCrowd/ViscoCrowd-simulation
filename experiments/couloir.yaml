@@ -15,6 +15,9 @@ parametres:
   duree: 14.0             # s
   tolerance: 1.0e-6       # m
   facteur_vitesse: 1.0
+  guidage: aval           # direction analytique (1, 0) de G1
+  pas_guidage: 0.05       # m, grille du guidage eikonal (inutilisee ici)
+  obstacles: []           # [x_min, x_max, y_min, y_max] en m
   frontieres: [4.0, 8.0]  # m ; chaque frontiere appartient au milieu a droite
   milieux: [SEC, MOUILLE, SEC]
   parametres_milieux:

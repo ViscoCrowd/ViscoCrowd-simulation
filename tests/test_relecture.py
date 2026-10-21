@@ -119,6 +119,28 @@ def test_un_seul_instant_reste_affichable(donnees):
     plt.close(vue.figure)
 
 
+def test_obstacles_lus_dans_l_archive_et_dessines(tmp_path):
+    """Le pilier vient de la configuration archivee, a l'echelle metrique, sans moteur."""
+    import yaml
+
+    from viscocrowd.scenarios.experience import executer_configuration
+
+    config = lire_configuration(Path(__file__).parents[1] / "experiments/couloir_obstacle.yaml")
+    config["parametres"]["duree"] = 0.05
+    fichier = tmp_path / "obstacle.yaml"
+    fichier.write_text(yaml.safe_dump(config))
+    donnees = executer_configuration(fichier, tmp_path / "obstacle.npz")
+    vue = LecteurCouloir(donnees, interactif=False)
+    try:
+        assert len(vue.obstacles) == 1
+        pilier = vue.obstacles[0]
+        assert pilier.get_xy() == (6.0, -0.5)
+        assert (pilier.get_width(), pilier.get_height()) == (1.0, 1.0)
+        assert any("CONTOURNEMENT" in texte.get_text() for texte in vue.figure.texts)
+    finally:
+        plt.close(vue.figure)
+
+
 def test_configuration_absente_refusee(donnees):
     donnees.metadonnees.clear()
     with pytest.raises(ValueError, match="archive du scenario couloir"):
