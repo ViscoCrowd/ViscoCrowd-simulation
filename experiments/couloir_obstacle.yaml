@@ -1,0 +1,34 @@
+# Banc G2/G5 : le couloir sec/mouille/sec avec un pilier au milieu de la bande mouillee.
+# Meme population et memes milieux que couloir.yaml ; valeurs illustratives, aucune
+# calibration piscine. Le guidage eikonal contourne le pilier, la projection l'impose.
+version: 1
+scenario: couloir
+graine: 20262027
+parametres:
+  longueur: 12.0          # m, section de sortie ; domaine prolonge en aval
+  largeur: 3.0            # m
+  n_agents: 24
+  colonnes: 6
+  rayon: 0.2              # m
+  espacement: 0.55        # m entre centres initiaux
+  origine_x: 0.5          # m, centre de la premiere colonne
+  bruit: 0.02             # m, perturbation bornee par coordonnee
+  dt: 0.01                # s
+  duree: 16.0             # s
+  tolerance: 1.0e-6       # m
+  facteur_vitesse: 1.0
+  guidage: eikonal        # Fast Marching (G2), marge d'un rayon autour des obstacles
+  pas_guidage: 0.05       # m
+  obstacles:
+    - [6.0, 7.0, -0.5, 0.5]   # pilier de 1 x 1 m, passages lateraux de 1 m
+  frontieres: [4.0, 8.0]  # m ; chaque frontiere appartient au milieu a droite
+  milieux: [SEC, MOUILLE, SEC]
+  parametres_milieux:
+    SEC:
+      relaxation: 0.3         # s
+      acceleration_max: 3.0   # m/s^2
+      vitesse: 1.5            # m/s
+    MOUILLE:
+      relaxation: 0.6
+      acceleration_max: 0.7
+      vitesse: 1.0

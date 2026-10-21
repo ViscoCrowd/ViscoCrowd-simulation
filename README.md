@@ -99,8 +99,18 @@ les valeurs non finies et les paramètres physiques invalides sont refusés. Une
 existante n'est jamais écrasée : choisir un autre nom pour une nouvelle expérience.
 
 L'archive NPZ v1 contient `t` (P,), `x` et `v` (P, N, 2), `rayons` (N,), ainsi que
-des métadonnées JSON : configuration effective, unités, versions Python/NumPy/ViscoCrowd
-et diagnostics de validation. Une simulation non convergée n'est pas sauvegardée.
+des métadonnées JSON : configuration effective, unités, versions Python/NumPy/ViscoCrowd,
+diagnostics de validation et **provenance du code** (`code`) : commit Git complet, et
+`modifications_locales` vrai si `src/`, `experiments/`, `pyproject.toml` ou
+`requirements.lock.txt` différaient de ce commit au moment du calcul. Dans l'image, sans
+dépôt, le commit vient de `VISCOCROWD_COMMIT`, à fixer à la construction
+(`VISCOCROWD_COMMIT=$(git rev-parse HEAD) docker compose build`) ; sinon il est noté
+inconnu (`null`), jamais deviné. Une simulation non convergée n'est pas sauvegardée.
+La provenance est relevée avant la lecture de la configuration et vérifiée à la fin :
+si le commit ou l'indicateur de modifications change pendant le calcul, l'archivage
+est refusé. Cet indicateur n'est pas une empreinte des fichiers : deux états déjà
+modifiés ne sont pas distingués, et un changement temporaire annulé peut échapper au
+contrôle. Un résultat marqué modifié ne suffit donc pas à reconstruire le code utilisé.
 La lecture vérifie version, formes, valeurs finies et temps strictement croissants,
 avec `allow_pickle=False` : aucun objet Python n'est chargé.
 
@@ -150,8 +160,23 @@ Les vitesses et adhérences sont **illustratives** : ce banc ne calibre pas la p
 La sortie est une section de mesure, de toute la largeur du couloir. Les agents
 continuent en aval entre les parois latérales ; ils restent dans l'archive. Un passage
 ne constitue donc pas encore une évacuation définitive (#11). Ce cas sans obstacle
-valide le guidage rectiligne G1 et un premier couplage G5 ; le champ eikonal G2,
-le goulot étroit et les franchissements aquatiques restent à construire.
+valide le guidage rectiligne G1 et un premier couplage G5.
+
+#### Variante avec obstacle
+
+```bash
+viscocrowd simuler experiments/couloir_obstacle.yaml --sortie data/couloir_obstacle.npz
+viscocrowd rejouer data/couloir_obstacle.npz --gif figures/couloir_obstacle.gif
+```
+
+Même population et mêmes milieux, avec un **pilier de 1 × 1 m** au milieu de la bande
+mouillée. Le guidage `eikonal` (G2, Fast Marching) contourne le pilier avec une marge
+d'un rayon, et la projection l'impose comme une paroi : un agent poussé par ses voisins
+ne peut pas y entrer. Mesures : 24 agents sortis, 12 de chaque côté du pilier ;
+recouvrement maximal 9,9998·10⁻⁷ m ; violation des parois et du pilier 5,6·10⁻¹⁷ m ;
+dernier passage à 9,380 s contre 9,228 s sans pilier. Sans obstacle, `guidage: eikonal`
+redonne bit à bit la trajectoire de `guidage: aval`. Le goulot étroit et les
+franchissements aquatiques restent à construire.
 
 Le pas doit être inférieur aux temps de relaxation et le déplacement par pas rester
 au plus égal à un cinquième du rayon. Le scénario contrôle ce dernier critère aussi
@@ -165,6 +190,18 @@ Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
 le banc `couloir` ; la maquette piscine reste disponible séparément via `interface`.
+
+Pour séparer les effets du sol mouillé, `viscocrowd comparer-mouille experiments/couloir.yaml`
+reprend **un seul paramètre du mouillé à la fois** (vitesse, relaxation, adhérence), sur la même
+population et cinq graines, et `--figure report/figures` produit la figure 7 du rapport.
+À vitesse souhaitée constante, relaxation et adhérence seules n'ont aucun effet ; seule la
+vitesse retarde et comprime la file, et l'inertie allonge le freinage tout en réduisant la
+compression dans ce couloir droit (environ 17 s de calcul).
+Le protocole exige une bande mouillée entre deux bandes sèches, sans obstacle,
+et une durée suffisante pour que tous les agents traversent les trois sections.
+Le seuil de freinage tient compte du facteur de vitesse. Une mesure incomplète
+est refusée avant le tableau ou la figure ; aucun agent ni aucune graine n'est
+écarté silencieusement de la moyenne. La distance est échantillonnée au pas de temps.
 
 Le [guide du banc](docs/couloir.md) donne les mesures de référence et la commande pour
 les recalculer depuis l'archive. La méthode et la convergence sont rédigées dans les
@@ -259,9 +296,13 @@ Le statut du sujet et les questions encore ouvertes sont centralisés dans la
 (Jacobi vectorisé et Nesterov après 80 balayages) figurent dans le
 [journal des décisions](docs/journal-decisions.md) et l'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13).
 
-Cette validation conserve la limite de contacts multiples suivie dans
-l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10), à corriger ou à
-quantifier avant les campagnes. Le rejet des valeurs non finies
+Le jeu dû aux contacts multiples est caractérisé sur des bancs de test dans la PR #48.
+L'indicateur `2 × jeu moyen / diamètre` est de l'ordre de 4 × 10⁻⁵ pour 60 agents
+comprimés à Δt = 0,01 s ; il ne constitue pas une borne du biais de densité au goulot.
+La décroissance annoncée avec Δt est réfutée : le banc est très sensible à de petites perturbations, et une
+perturbation de 10⁻¹² m suffit à changer le jeu moyen d'un facteur dix (voir le journal).
+L'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) reste ouverte
+pour cette validation avant les campagnes. Le rejet des valeurs non finies
 ([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
 ([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés ;
 le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18))

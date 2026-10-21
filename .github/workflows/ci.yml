@@ -10,6 +10,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Les jobs Python installent les versions de `requirements.lock.txt`, comme l'image
+# Docker. Sans cela, `pip install -e ".[dev]"` prenait les versions du jour : la CI
+# validait alors un environnement que ni le conteneur ni le rendu n'utiliseront, et
+# une nouvelle version de ruff ou de NumPy pouvait faire echouer une PR sans rapport.
+# `--no-deps` empeche pip de remplacer une version figee pour satisfaire pyproject ;
+# `pip check` echoue si le fichier fige ne respecte plus les bornes de pyproject.
+# Les dernieres versions restent surveillees a part, par derive-dependances.yml.
+
 jobs:
   qualite:
     name: Style et format
@@ -20,7 +28,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -e ".[dev]"
+          cache-dependency-path: requirements.lock.txt
+      - name: Installer les versions figees
+        run: |
+          pip install -r requirements.lock.txt
+          pip install --no-deps -e .
+          pip check
       - name: ruff check
         run: ruff check --output-format=github .
       - name: ruff format
@@ -35,7 +48,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -e ".[dev]"
+          cache-dependency-path: requirements.lock.txt
+      - name: Installer les versions figees
+        run: |
+          pip install -r requirements.lock.txt
+          pip install --no-deps -e .
+          pip check
 
       - name: Suite de tests
         run: pytest -m "not slow" --cov=viscocrowd --cov-report=term-missing
@@ -58,7 +76,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -e ".[dev]"
+          cache-dependency-path: requirements.lock.txt
+      - name: Installer les versions figees
+        run: |
+          pip install -r requirements.lock.txt
+          pip install --no-deps -e .
+          pip check
 
       - name: Produire les figures
         run: python -m viscocrowd.cli valider-moteur --figures --sortie figures
@@ -80,8 +103,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # L'image n'a ni depot ni git : le commit construit lui est transmis, pour que
+      # les archives produites dans le conteneur restent rattachees a leur code.
       - name: Construire l'image
-        run: docker build -t viscocrowd:ci .
+        run: docker build --build-arg VISCOCROWD_COMMIT=${{ github.sha }} -t viscocrowd:ci .
 
       # `make valider` est la commande que documentent le README et la spec.
       # Elle appelle $(VISCO_PY), que l'image fixe a `python` faute de .venv.
@@ -95,5 +120,5 @@ jobs:
         run: |
           docker run --rm viscocrowd:ci sh -c '
             viscocrowd simuler experiments/bille_boite.yaml --sortie /tmp/bille.npz &&
-            python -c "from viscocrowd.io.trajectoires import lire_trajectoire; print(lire_trajectoire(\"/tmp/bille.npz\").x.shape)"
+            python -c "from viscocrowd.io.trajectoires import lire_trajectoire; t = lire_trajectoire(\"/tmp/bille.npz\"); print(t.x.shape, t.metadonnees[\"code\"]); assert t.metadonnees[\"code\"][\"commit\"] == \"${{ github.sha }}\""
           '

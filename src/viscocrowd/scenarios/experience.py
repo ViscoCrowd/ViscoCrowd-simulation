@@ -9,6 +9,7 @@ import numpy as np
 
 from viscocrowd import __version__
 from viscocrowd.io.configuration import lire_configuration
+from viscocrowd.io.provenance import provenance_code
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
 from viscocrowd.scenarios.bille_boite import ParametresBille, simuler_bille
 from viscocrowd.scenarios.couloir import ParametresCouloir, simuler_couloir
@@ -58,6 +59,7 @@ def _parametres(config: dict) -> ParametresBille | ParametresTassement | Paramet
 
 def executer_configuration(configuration: str | Path, sortie: str | Path) -> Trajectoire:
     """Archive uniquement un calcul fini, confine et converge ; aucun affichage."""
+    code = provenance_code()
     config = lire_configuration(configuration)
     p = _parametres(config)
     if Path(sortie).exists():
@@ -94,6 +96,11 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     validation["violation_paroi_max_m"] = parois
     effectifs = json.loads(json.dumps(asdict(p), default=lambda v: v.tolist(), allow_nan=False))
     effectifs.pop("graine", None)
+    if provenance_code() != code:
+        raise ValueError(
+            "la provenance du code a change pendant le calcul ; "
+            "relancer avec un depot stable avant d'archiver"
+        )
     donnees = Trajectoire(
         t=resultat.t,
         x=resultat.x,
@@ -106,6 +113,7 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
                 "python": platform.python_version(),
                 "numpy": np.__version__,
             },
+            "code": code,
             "unites": {"t": "s", "x": "m", "v": "m/s", "rayons": "m"},
             "validation": validation,
         },

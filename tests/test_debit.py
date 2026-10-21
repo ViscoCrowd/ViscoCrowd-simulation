@@ -217,19 +217,22 @@ class TestWeidmann:
         assert np.all(np.diff(weidmann.vitesse(rho)) < 0)
 
     def test_le_debit_forme_une_colline(self):
-        """Nul aux deux extremites, maximum d'environ 1,22 pers/m/s vers 1,75 pers/m^2.
+        """Nul aux deux extremites, sommet publie par la source primaire (issue #12).
 
-        C'est la valeur publiee pour le diagramme de Weidmann, et elle tombe
-        dans la fourchette de debit de goulot de la spec (1,2 a 1,4 pers/m/s).
+        Weidmann (1993), fig. 59 p. 63 et p. 64 : M_max = 1,225 P/(s m), atteint a
+        D = 1,75 P/m^2 et v = 0,70 m/s. La fonction codee le retrouve a
+        1,22492 P/(s m), 1,7507 P/m^2 et 0,6997 m/s. La valeur tombe dans la
+        fourchette de debit de goulot de la spec (1,2 a 1,4 pers/m/s).
         """
-        rho = np.linspace(0.0, weidmann.RHO_MAX, 10_001)
+        rho = np.linspace(0.0, weidmann.RHO_MAX, 100_001)
         debit = weidmann.debit_specifique(rho)
         sommet = int(np.argmax(debit))
 
         assert debit[0] == 0.0
         assert debit[-1] == 0.0
-        assert debit[sommet] == pytest.approx(1.22, abs=0.01)
-        assert rho[sommet] == pytest.approx(1.75, abs=0.01)
+        assert debit[sommet] == pytest.approx(1.225, abs=5e-4)
+        assert rho[sommet] == pytest.approx(1.75, abs=5e-3)
+        assert weidmann.vitesse(rho[sommet]) == pytest.approx(0.70, abs=2e-3)
 
 
 class TestContactSansTraversee:
