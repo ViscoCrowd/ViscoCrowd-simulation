@@ -47,3 +47,31 @@ choisit le dernier instant archivé inférieur ou égal au temps demandé ; le G
 le dernier instant. Lire/Pause, vitesse de lecture et export PNG/GIF ne modifient pas
 la dynamique. Les archives gardent tous les agents et tous les pas en mémoire : elles
 ne constituent ni une reprise de calcul ni un état de sortie absorbant.
+
+\subsection{Mesure de la densité}
+
+Compter les agents d'une zone $M$ donne une densité en paliers de $1/|M|$. Nous
+suivons plutôt Steffen et Seyfried~\cite{steffen2010} : chaque agent $i$ reçoit sa
+cellule de Voronoï $C_i$, la densité locale y vaut $1/|C_i|$, et
+\[
+\densite_V=\frac{1}{|M|}\sum_i\frac{|C_i\cap M|}{|C_i|},\qquad
+v_V=\frac{1}{|M|}\sum_i\norm{\vit_i}\,|C_i\cap M|.
+\]
+Les cellules du bord sont bornées par la salle, en ajoutant le reflet de chaque agent
+par rapport aux quatre murs : pour une salle rectangulaire, les cellules obtenues pavent
+exactement la salle. Le calcul des cellules utilise \texttt{scipy.spatial.Voronoi} ;
+le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
+
+La méthode retrouve exactement les densités de réseaux connus : \num{4}~P/m$^2$
+pour un réseau carré de pas \SI{0.5}{\metre}, $2/(\sqrt3\,a^2)$ pour un réseau hexagonal,
+à \num{1e-9} près. Sur 300 nuages uniformes, elle retrouve la densité moyenne comme le
+comptage, avec une dispersion 1,34 fois plus faible. Quand un agent entre dans la zone,
+le comptage saute de $1/|M|$ et la densité de Voronoï de moins de \SI{5}{\percent} de ce saut.
+
+Elle sert aussi à mesurer l'effet de la tolérance de projection sur la densité (issue~10).
+Comme la foule comprimée est chaotique, nous comparons des distributions sur huit graines
+appariées, et non des configurations. Passer la tolérance de \num{1e-6} à
+\SI{1e-9}{\metre} change la densité de Voronoï contre la paroi de \SI{0.22}{\percent} en
+moyenne, avec une erreur standard de \SI{0.5}{\percent}. L'effet est indiscernable de zéro
+et inférieur à la dispersion entre graines (\SI{2.1}{\percent}). La mesure reste à refaire
+au goulot du scénario cible.

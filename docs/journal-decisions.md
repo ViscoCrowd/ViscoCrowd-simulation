@@ -88,6 +88,32 @@ figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est 
 
 ---
 
+## 2026-10-21 — Mesurer la densité par cellules de Voronoï (M1) et le biais de la tolérance (#10)
+
+**Décision (proposée dans #19, à confirmer).** La densité suit Steffen & Seyfried (2010) :
+`ρ_V = (1/|M|) Σᵢ |Cᵢ ∩ M| / |Cᵢ|`, et la vitesse `v_V = (1/|M|) Σᵢ |vᵢ| |Cᵢ ∩ M|`.
+Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
+quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;
+le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
+Si Voronoï est refusé, `densite_comptage` (N dans M sur |M|) prend le relais, avec la même
+interface.
+
+**Validation** (`tests/test_densite.py`). Réseau carré de pas 0,5 m : 4 pers/m² exactement ;
+réseau hexagonal de pas 0,4 m : `2/(√3 a²)` à 10⁻⁹ près ; salle entière : N/|salle|
+exactement ; les cellules pavent la salle. Sur 300 nuages uniformes, Voronoï et comptage
+retrouvent la densité moyenne, Voronoï 1,34 fois moins dispersé ; un agent qui entre dans la
+zone fait sauter le comptage de 1/|M| et la densité de Voronoï de moins de 5 % de ce saut.
+
+**Biais de densité dû à la tolérance (#10).** La foule comprimée étant chaotique (PR #48),
+on compare des distributions, pas des configurations. 60 agents poussés contre une paroi puis
+arrêtés, 8 graines appariées, densité de Voronoï contre la paroi (environ 6,5 pers/m²) :
+tolérance 10⁻⁶ contre 10⁻⁹ m, différence moyenne +0,0146 pers/m² (+0,22 %), erreur
+standard 0,034, soit un effet indiscernable de zéro, borné à 1,3 % à environ 95 %, et
+inférieur à la dispersion entre graines (2,1 %). Il reste à refaire cette mesure sur la
+géométrie cible (goulot, E0) avant de conclure #10.
+
+---
+
 ## 2026-10-21 — Assembler guidage et milieux au début du pas
 
 **Décision d'implémentation (PR #30, suivi #26).** Le guidage fournit une direction
