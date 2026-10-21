@@ -1,0 +1,28 @@
+# Banc demonstrateur G1/G5 ; valeurs illustratives, aucune calibration piscine.
+version: 1
+scenario: couloir
+graine: 20262027
+parametres:
+  longueur: 12.0          # m, section de sortie ; domaine prolonge en aval
+  largeur: 3.0            # m
+  n_agents: 24
+  colonnes: 6
+  rayon: 0.2              # m
+  espacement: 0.55        # m entre centres initiaux
+  origine_x: 0.5          # m, centre de la premiere colonne
+  bruit: 0.02             # m, perturbation bornee par coordonnee
+  dt: 0.01                # s
+  duree: 14.0             # s
+  tolerance: 1.0e-6       # m
+  facteur_vitesse: 1.0
+  frontieres: [4.0, 8.0]  # m ; chaque frontiere appartient au milieu a droite
+  milieux: [SEC, MOUILLE, SEC]
+  parametres_milieux:
+    SEC:
+      relaxation: 0.3         # s
+      acceleration_max: 3.0   # m/s^2
+      vitesse: 1.5            # m/s
+    MOUILLE:
+      relaxation: 0.6
+      acceleration_max: 0.7
+      vitesse: 1.0

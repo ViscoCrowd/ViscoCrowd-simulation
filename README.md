@@ -128,6 +128,29 @@ Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 sur le poste de Lenny, Python 3.14.4 (2 scénarios lents exclus). La validation du moteur
 affiche son propre temps ; les durées varient selon la machine et les dépendances.
 
+### Premier banc de foule guidée
+
+```bash
+viscocrowd simuler experiments/couloir.yaml --sortie data/couloir.npz
+```
+
+Ce banc G1/G5 fait avancer **24 agents** dans un couloir de **12 × 3 m**, avec une
+bande mouillée entre x = 4 et 8 m. Le guidage, la carte des milieux et l'exclusion
+sont couplés au moteur ; la projection interrompt le calcul si elle ne converge pas.
+Tous les paramètres sont explicites dans le YAML, y compris le placement et sa graine.
+Les vitesses et adhérences sont **illustratives** : ce banc ne calibre pas la piscine.
+
+La sortie est une section de mesure, de toute la largeur du couloir. Les agents
+continuent en aval entre les parois latérales ; ils restent dans l'archive. Un passage
+ne constitue donc pas encore une évacuation définitive (#11). Ce cas sans obstacle
+valide le guidage rectiligne G1 et un premier couplage G5 ; le champ eikonal G2,
+le goulot étroit et les franchissements aquatiques restent à construire.
+
+Le pas doit être inférieur aux temps de relaxation et le déplacement par pas rester
+au plus égal à un cinquième du rayon. Le scénario contrôle ce dernier critère aussi
+sur les vitesses obtenues après projection. Raffiner Δt reste nécessaire pour mesurer
+l'erreur : ce contrôle seul ne prouve pas la convergence du modèle.
+
 ### Aperçu de la piscine
 
 ```bash

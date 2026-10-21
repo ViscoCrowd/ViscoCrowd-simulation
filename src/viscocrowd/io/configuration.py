@@ -38,8 +38,8 @@ def lire_configuration(chemin: str | Path) -> dict:
         raise ValueError("configuration attendue : version, scenario, graine, parametres")
     if type(config["version"]) is not int or config["version"] != 1:
         raise ValueError("version de configuration non prise en charge (attendu : 1)")
-    if config["scenario"] not in ("bille_boite", "tassement"):
-        raise ValueError("scenario attendu : bille_boite ou tassement")
+    if config["scenario"] not in ("bille_boite", "tassement", "couloir"):
+        raise ValueError("scenario attendu : bille_boite, tassement ou couloir")
     if not isinstance(config["parametres"], dict):
         raise ValueError("parametres doit etre une table YAML")
     graine = config["graine"]
@@ -47,5 +47,5 @@ def lire_configuration(chemin: str | Path) -> dict:
         if graine is not None:
             raise ValueError("graine doit etre null pour bille_boite, scenario deterministe")
     elif type(graine) is not int or graine < 0:
-        raise ValueError("graine doit etre un entier positif ou nul pour tassement")
+        raise ValueError("graine doit etre un entier positif ou nul pour ce scenario")
     return config

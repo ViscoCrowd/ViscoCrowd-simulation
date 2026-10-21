@@ -1,5 +1,6 @@
 """Configuration -> banc d'essai existant -> archive exploitable hors ligne."""
 
+import json
 import platform
 from dataclasses import asdict
 from pathlib import Path
@@ -10,6 +11,7 @@ from viscocrowd import __version__
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
 from viscocrowd.scenarios.bille_boite import ParametresBille, simuler_bille
+from viscocrowd.scenarios.couloir import ParametresCouloir, simuler_couloir
 from viscocrowd.scenarios.tassement import (
     ParametresTassement,
     positions_initiales,
@@ -17,7 +19,12 @@ from viscocrowd.scenarios.tassement import (
 )
 
 
-def _parametres(config: dict) -> ParametresBille | ParametresTassement:
+def _parametres(config: dict) -> ParametresBille | ParametresTassement | ParametresCouloir:
+    if config["scenario"] == "couloir":
+        try:
+            return ParametresCouloir(**config["parametres"], graine=config["graine"])
+        except TypeError as erreur:
+            raise ValueError(f"parametres de couloir manquants ou inconnus : {erreur}") from erreur
     classe = ParametresBille if config["scenario"] == "bille_boite" else ParametresTassement
     valeurs = asdict(classe())
     valeurs.pop("graine", None)
@@ -58,16 +65,20 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     if Path(sortie).suffix != ".npz":
         raise ValueError("la trajectoire doit porter l'extension .npz")
     # Une projection ne doit pas masquer une configuration initiale inadmissible.
-    if isinstance(p, ParametresTassement):
+    if isinstance(p, ParametresCouloir):
+        initiales = np.empty((0, 2))  # placement deja controle par ParametresCouloir
+    elif isinstance(p, ParametresTassement):
         initiales = positions_initiales(p)
     else:
         c, s = np.cos(p.theta0), np.sin(p.theta0)
         initiales = np.asarray(p.position_initiale) @ np.array([[c, -s], [s, c]])
-    if np.any(np.abs(initiales) + p.rayon > p.demi_largeur):
+    if not isinstance(p, ParametresCouloir) and np.any(
+        np.abs(initiales) + p.rayon > p.demi_largeur
+    ):
         raise ValueError("positions initiales hors de la boite")
 
-    if isinstance(p, ParametresTassement):
-        resultat = simuler_tassement(p)
+    if isinstance(p, (ParametresTassement, ParametresCouloir)):
+        resultat = simuler_couloir(p) if isinstance(p, ParametresCouloir) else simuler_tassement(p)
         resultat.projection.verifier_convergence()
         parois = resultat.violation_paroi_max()
         validation = {
@@ -81,7 +92,7 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     if not parois <= 1e-14:
         raise ValueError(f"violation des parois : {parois} m > 1e-14 m")
     validation["violation_paroi_max_m"] = parois
-    effectifs = {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in asdict(p).items()}
+    effectifs = json.loads(json.dumps(asdict(p), default=lambda v: v.tolist(), allow_nan=False))
     effectifs.pop("graine", None)
     donnees = Trajectoire(
         t=resultat.t,
