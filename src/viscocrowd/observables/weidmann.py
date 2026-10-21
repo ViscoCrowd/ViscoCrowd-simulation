@@ -29,8 +29,10 @@ completee, Schriftenreihe des IVT Nr. 90, ETH Zurich, mars 1993.
   - p. 43 : v0 = 1,34 m/s est la moyenne de 52 valeurs de la litterature,
     etendue de 0,97 a 1,65 m/s, la plupart (28) entre 1,25 et 1,45 m/s.
   - p. 53 : vitesses distribuees normalement, ecart-type 0,26 m/s, soit 19,3 %
-    de la moyenne (17 valeurs, 12 sources). A reprendre dans la discussion des
-    ecarts : une vitesse libre de 1,08 a 1,60 m/s reste a un ecart-type.
+    de la moyenne (moyenne de 17 estimations d'ecart-type, 12 sources). Cette
+    dispersion ne mesure pas l'incertitude sur les 52 moyennes de la p. 43 et
+    ne fixe pas un seuil de validation du modele. La comparaison exige un
+    protocole, des effectifs et des incertitudes compatibles.
 
 CE QUE CETTE COURBE VALIDE, ET CE QU'ELLE NE VALIDE PAS
 -------------------------------------------------------
