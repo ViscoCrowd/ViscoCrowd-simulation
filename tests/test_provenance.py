@@ -10,6 +10,7 @@ import yaml
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.provenance import VARIABLE_COMMIT, provenance_code
 from viscocrowd.io.trajectoires import lire_trajectoire
+from viscocrowd.scenarios import experience
 from viscocrowd.scenarios.experience import executer_configuration
 
 EXEMPLE = Path(__file__).parents[1] / "experiments/bille_boite.yaml"
@@ -112,3 +113,25 @@ def test_l_archive_enregistre_la_provenance(tmp_path, monkeypatch):
     executer_configuration(fichier, tmp_path / "bille.npz")
     code = lire_trajectoire(tmp_path / "bille.npz").metadonnees["code"]
     assert code == {"commit": SHA, "modifications_locales": True, "source": "git"}
+
+
+@pytest.mark.parametrize("changement", [{"commit": "a" * 40}, {"modifications_locales": True}])
+def test_changement_de_code_pendant_le_calcul_refuse_l_archive(tmp_path, monkeypatch, changement):
+    courant = {"commit": SHA, "modifications_locales": False, "source": "git"}
+    monkeypatch.setattr(experience, "provenance_code", lambda: courant.copy())
+    simuler = experience.simuler_bille
+
+    def calcul_avec_changement(p):
+        resultat = simuler(p)
+        courant.update(changement)  # commit ou edition intervenus pendant le calcul
+        return resultat
+
+    monkeypatch.setattr(experience, "simuler_bille", calcul_avec_changement)
+    config = lire_configuration(EXEMPLE)
+    config["parametres"]["duree"] = 0.05
+    fichier = tmp_path / "bille.yaml"
+    fichier.write_text(yaml.safe_dump(config))
+    sortie = tmp_path / "bille.npz"
+    with pytest.raises(ValueError, match=r"provenance.*pendant"):
+        executer_configuration(fichier, sortie)
+    assert not sortie.exists()

@@ -106,6 +106,11 @@ diagnostics de validation et **provenance du code** (`code`) : commit Git comple
 dépôt, le commit vient de `VISCOCROWD_COMMIT`, à fixer à la construction
 (`VISCOCROWD_COMMIT=$(git rev-parse HEAD) docker compose build`) ; sinon il est noté
 inconnu (`null`), jamais deviné. Une simulation non convergée n'est pas sauvegardée.
+La provenance est relevée avant la lecture de la configuration et vérifiée à la fin :
+si le commit ou l'indicateur de modifications change pendant le calcul, l'archivage
+est refusé. Cet indicateur n'est pas une empreinte des fichiers : deux états déjà
+modifiés ne sont pas distingués, et un changement temporaire annulé peut échapper au
+contrôle. Un résultat marqué modifié ne suffit donc pas à reconstruire le code utilisé.
 La lecture vérifie version, formes, valeurs finies et temps strictement croissants,
 avec `allow_pickle=False` : aucun objet Python n'est chargé.
 
