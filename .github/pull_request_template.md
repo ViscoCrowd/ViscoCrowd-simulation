@@ -47,3 +47,15 @@ Sensibilite verifiee : <!-- dt divise par 2 et 4 ? N augmente ? plusieurs graine
 - [ ] Aucune dependance specialisee ajoutee (moteur physique, moteur de jeu, code de foule)
 - [ ] Aucun appel direct a `numpy.random` (tout passe par `viscocrowd.core.rng`)
 - [ ] **Je saurais reexpliquer et modifier ce code en soutenance**
+
+## Publication de jalon (uniquement pour une PR vers main)
+
+<!-- Pour une contribution vers dev, supprimer cette section. -->
+
+- Jalon de la spec §9, périmètre terminé et tag prévu :
+- PR constitutives et preuves de relecture croisée :
+- Limites connues et travaux qui restent sur dev :
+- [ ] Toute la CI de cette PR est verte
+- [ ] Le registre `docs/livraisons.md` et les notes de release sont prêts
+- [ ] Après fusion : tag annoté sur le SHA exact de main, release du même nom
+- [ ] Après publication : PR sync/main-jalon-N vers dev, fusionnée avec un merge commit
