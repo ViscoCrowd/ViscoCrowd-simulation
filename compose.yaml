@@ -1,6 +1,11 @@
 services:
   viscocrowd:
-    build: .
+    build:
+      context: .
+      args:
+        # Commit enregistre dans les archives produites par l'image :
+        #   VISCOCROWD_COMMIT=$(git rev-parse HEAD) docker compose build
+        VISCOCROWD_COMMIT: ${VISCOCROWD_COMMIT:-}
     image: viscocrowd:0.1.0
     working_dir: /app
     volumes:

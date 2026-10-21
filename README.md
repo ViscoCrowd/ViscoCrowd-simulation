@@ -99,8 +99,18 @@ les valeurs non finies et les paramètres physiques invalides sont refusés. Une
 existante n'est jamais écrasée : choisir un autre nom pour une nouvelle expérience.
 
 L'archive NPZ v1 contient `t` (P,), `x` et `v` (P, N, 2), `rayons` (N,), ainsi que
-des métadonnées JSON : configuration effective, unités, versions Python/NumPy/ViscoCrowd
-et diagnostics de validation. Une simulation non convergée n'est pas sauvegardée.
+des métadonnées JSON : configuration effective, unités, versions Python/NumPy/ViscoCrowd,
+diagnostics de validation et **provenance du code** (`code`) : commit Git complet, et
+`modifications_locales` vrai si `src/`, `experiments/`, `pyproject.toml` ou
+`requirements.lock.txt` différaient de ce commit au moment du calcul. Dans l'image, sans
+dépôt, le commit vient de `VISCOCROWD_COMMIT`, à fixer à la construction
+(`VISCOCROWD_COMMIT=$(git rev-parse HEAD) docker compose build`) ; sinon il est noté
+inconnu (`null`), jamais deviné. Une simulation non convergée n'est pas sauvegardée.
+La provenance est relevée avant la lecture de la configuration et vérifiée à la fin :
+si le commit ou l'indicateur de modifications change pendant le calcul, l'archivage
+est refusé. Cet indicateur n'est pas une empreinte des fichiers : deux états déjà
+modifiés ne sont pas distingués, et un changement temporaire annulé peut échapper au
+contrôle. Un résultat marqué modifié ne suffit donc pas à reconstruire le code utilisé.
 La lecture vérifie version, formes, valeurs finies et temps strictement croissants,
 avec `allow_pickle=False` : aucun objet Python n'est chargé.
 
