@@ -11,6 +11,38 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Définir la géométrie commune de la piscine et son guidage jusqu'à la porte (C6)
+
+**Décision (proposée dans #26, à valider par l'équipe).** `geometry/piscine.py` reprend les
+dimensions de la maquette `DimensionsPlan` : bassin de 25 × 12,5 m, emprise de 48 × 20,5 m,
+porte de 1,2 m au milieu du mur de droite. Le bord du bassin est un mur pour les deux
+populations ; on ne le passe que par un **site de franchissement** : deux échelles sur les
+grands côtés, à 90 % de leur longueur, et 118 sites de rebord, un tous les 0,6 m, hors coins
+et échelles. Le côté d'un agent se lit sur son centre ; la plage est l'union de l'emprise
+réduite d'un rayon et du couloir de la porte (projection exacte sur une union de convexes),
+puis le bassin est repoussé comme un obstacle. `CartePiscine` (dans `model/`) donne EAU dans
+le bassin, MOUILLE à moins de L = 3 m de son bord, SEC au-delà. Toutes les valeurs passent
+par la configuration : rien n'est figé dans le code.
+
+**Guidage.** Deux champs de Fast Marching. Sur la plage, `φ_plage` est le temps jusqu'à la
+porte. Dans l'eau, chaque site est une source de temps initial `T_site + φ_plage(arrivée)` :
+`φ_eau` est le temps total jusqu'à la porte, et chaque point choisit le site qui le
+minimise. Le Fast Marching accepte pour cela des temps initiaux aux sources.
+
+**Mesures** (`tests/test_piscine_geometrie.py`). Les champs se calculent en 0,20 s (pas de
+0,1 m). Le bassin étant convexe, le temps exact depuis un point de l'eau est le minimum, sur
+les sites, de la nage en ligne droite plus le temps restant : `φ_eau` le retrouve à 0,182 s
+près au plus (0,108 s au pas de 0,05 m), en le surestimant, sur 200 points. Sur une grille de
+départs, la part qui choisit une échelle vaut 0 % si T_échelle ≥ T_rebord = 4 s, 14,7 % pour
+2 s et 36 % pour 0 s : le partage **émerge** des durées et de la géométrie (spec § 2.6).
+
+**Limites.** Le champ est statique : il ignore l'attente devant un site occupé. Aux montants
+de la porte, l'union de rectangles est un peu plus stricte que l'ensemble exact. Les vitesses
+de C6 (eau 0,69 m/s, mouillé et sec 1,34 m/s) et les durées (4 s et 2 s) sont la proposition
+de #26, à confirmer.
+
+---
+
 ## 2026-10-21 — Imposer l'obstacle dans la projection et l'intégrer au banc de couloir (G2/G5)
 
 **Décision.** Un obstacle rectangulaire devient une contrainte du domaine, comme une paroi :
