@@ -121,6 +121,9 @@ class TestEtatInitial:
         {"pas_guidage": 0.3},
         {"bruit_direction": -0.1},
         {"correlation_bruit": 0.0},
+        {"temps_espacement": 0.0},
+        {"temps_espacement": "0.3"},
+        {"temps_espacement": np.nan},
         {"n_agents": 1.5},
         {"duree": np.nan},
     ],
@@ -248,7 +251,8 @@ class TestStatut:
 
     def test_non_convergence_ne_leve_plus(self):
         """Projection permissive : la campagne continue et classe la simulation a part."""
-        p = parametres(n_agents=12, duree=3.0, tolerance=1e-15)
+        # Sans la regle d'espacement, les contacts sont assez serres pour manquer 1e-15 m.
+        p = parametres(n_agents=12, duree=3.0, tolerance=1e-15, temps_espacement=None)
         r = simuler_goulot(p)
         assert r.projection.non_convergences > 0
         assert r.statut == "non_convergence"
@@ -319,3 +323,28 @@ class TestBruitInitial:
             i, j = np.triu_indices(x.shape[0], 1)
             jeu = np.linalg.norm(x[i] - x[j], axis=1) - r[i] - r[j]
             assert np.min(jeu) >= 0.0, f"graine {graine}"
+
+
+@pytest.mark.slow
+def test_e0_avec_espacement_proche_de_seyfried():
+    """Proposition E0, T = 0,35 s : moyenne sur trois graines a 15 % de Seyfried (N = 60).
+
+    Critere fixe d'apres la reference, pas d'apres la sortie du modele : a largeur
+    fixee, les mesures de Seyfried pour N = 20, 40 et 60 different deja de 8 a 28 %
+    (tableau 2). Un ecart sous 15 % reste donc dans la dispersion experimentale. Ecart
+    mesure, estimateur de la publication : -7 a +3 % (journal). La foule etant sensible
+    aux perturbations initiales et aux arrondis, on ne fige pas les valeurs exactes.
+    """
+    resultats = etalonner(lire_configuration(EXEMPLE), [0.8, 1.0, 1.2], [1, 2, 3])
+    for b, mesures in resultats.items():
+        assert all(m.statut == "ecoulement" for m in mesures), f"b = {b} m"
+        moyenne = np.mean([m.debit for m in mesures])
+        assert moyenne == pytest.approx(reference_seyfried(60, b), rel=0.15)
+
+
+def test_configuration_sans_temps_espacement_acceptee():
+    """Cle facultative : une configuration ecrite avant la proposition reste valable."""
+    config = lire_configuration(EXEMPLE)
+    del config["parametres"]["temps_espacement"]
+    p = ParametresGoulot(**config["parametres"], graine=config["graine"])
+    assert p.temps_espacement is None

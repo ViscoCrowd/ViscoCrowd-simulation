@@ -11,6 +11,116 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Proposer une relation vitesse–espacement étalonnée sur E0
+
+**Décision (proposée dans #57, à valider par l'équipe).** E0 montre un débit 1,9 à 2,5 fois
+trop élevé, faute de relation vitesse–espacement (entrée suivante). On reprend la fonction
+de vitesse optimale du modèle de Tordeux, Chraibi et Seyfried (2016) : derrière un meneur,
+la vitesse souhaitée devient V(s) = min(v0, max(0, s/T)), où s est le jeu entre les deux
+disques et T un temps d'espacement. La direction de guidage n'est pas modifiée, et la
+projection reste seule à imposer l'exclusion. `model/espacement.py` porte la règle ;
+`pas_libre_milieux(..., temps_espacement=T, avancement=φ)` l'active, et None (par défaut)
+laisse le modèle inchangé, bit pour bit. Seul le banc E0 l'utilise pour l'instant
+(`temps_espacement: 0.35`, clé facultative).
+
+**Meneur.** Le meneur de i est le plus proche des agents j qui vérifient trois conditions :
+
+- j est devant i : e_i·(x_j − x_i) > 0 ;
+- j est à moins de r_i + r_j de l'axe de la direction de i, soit un couloir de
+  **demi-largeur** r_i + r_j, comme chez Tordeux et al. (ℓ = diamètre) ;
+- j est plus avancé : son temps de parcours restant φ, donné par le champ eikonal, est
+  plus court.
+
+La troisième condition est la nôtre. φ ordonne strictement les agents : la relation
+« suivre » ne peut former **aucun cycle**, de quelque longueur que ce soit, et l'agent le plus
+avancé d'un groupe n'a jamais de meneur. Seuls les meneurs à moins de T·v0 changent la
+vitesse ; on ne cherche donc que parmi les paires proches (`paires_candidates`), à coût
+linéaire, avec le même résultat que la recherche exhaustive (vérifié par un test).
+
+**Pistes écartées.**
+
+- *La règle telle quelle.* Deux agents qui convergent vers l'entrée du goulot se voient
+  chacun « devant » et s'arrêtent tous les deux, pour toujours : le goulot se bouchait sur
+  toutes les largeurs, pour T = 0,5 et 1 s.
+- *Exclure les paires mutuelles* (première version de #58). Cela supprimait ce blocage,
+  mais la revue de Shaleena a montré qu'un cycle de trois agents ou plus (A suit B, B suit
+  C, C suit A) restait possible. L'ordre par φ les exclut tous ; un test construit un
+  tel cycle.
+- *Exiger e_i·e_j > 0* (piste de la revue). Cela ne casse que les cycles d'agents de
+  directions opposées ; l'ordre par φ est plus général.
+
+**Étalonnage sur N = 60 (ajustement).** J_s en pers/(m·s), estimateur de la publication
+(premier au dernier passage, revue de Lenny sur #56), graines 1 à 3, foule symétrique, moins
+d'une minute par campagne ; 15 écoulements sur 15 pour chaque T :
+
+| T (s) | 0,8 | 0,9 | 1,0 | 1,1 | 1,2 | écart moyen |
+| --- | --- | --- | --- | --- | --- | --- |
+| sans règle | 2,99 | 3,94 | 4,13 | 4,37 | 4,96 | 119 % |
+| 0,3 | 1,78 | 2,00 | 2,10 | 2,05 | 1,89 | 7,8 % |
+| **0,35** | **1,66** | **1,85** | **1,95** | **1,92** | **1,83** | **2,8 %** |
+| 0,4 | 1,57 | 1,81 | 1,87 | 1,86 | 1,76 | 4,2 % |
+| 0,45 | 1,49 | 1,67 | 1,84 | 1,75 | 1,65 | 9,3 % |
+| 0,5 | 1,42 | 1,63 | 1,76 | 1,72 | 1,59 | 12 % |
+| Seyfried, N = 60 | 1,61 | 1,86 | 1,90 | 1,93 | 1,97 | |
+
+L'écart moyen est la moyenne des écarts relatifs absolus aux cinq largeurs ; T est choisi sur
+une grille de pas 0,05 s. **T = 0,35 s** donne un écart de −7 à +3 % selon la largeur. C'est
+une **qualité d'ajustement** sur les données qui ont servi à choisir T, pas une validation.
+Au-delà de b = 1,1 m, le débit simulé cesse de croître alors que la mesure croît encore un
+peu.
+
+Une première version de cet étalonnage comparait le débit des 80 % centraux des passages à
+la référence. C'est un autre estimateur, et la revue de Lenny l'a relevé : à T = 0,35 s,
+graine 1, b = 1 m, 1,88 contre 1,95 avec l'estimateur de la publication. Cette version
+annonçait −5 à +1 % ; elle est remplacée, mais le choix T = 0,35 s ne change pas.
+
+**Validation sur N = 40 et N = 20 (données non utilisées).** Même T = 0,35 s, même protocole,
+graines 1 à 3 ; 15 écoulements sur 15 dans chaque cas :
+
+| b (m) | 0,8 | 0,9 | 1,0 | 1,1 | 1,2 | écart moyen |
+| --- | --- | --- | --- | --- | --- | --- |
+| N = 40, modèle | 1,70 | 1,81 | 1,98 | 2,14 | 1,96 | 6,6 % |
+| N = 40, Seyfried | 1,77 | 1,91 | 2,08 | 1,93 | 1,81 | |
+| N = 20, modèle | 1,75 | 2,07 | 2,07 | 2,15 | 1,95 | 9,7 % |
+| N = 20, Seyfried | 1,86 | 2,06 | 2,19 | 1,78 | 2,31 | |
+
+Les écarts vont de −5 à +11 % pour N = 40 et de −16 à +21 % pour N = 20. Les mesures de
+Seyfried sont des expériences uniques par couple (b, N), non monotones en b pour N = 20
+(1,78 à 1,1 m, 2,31 à 1,2 m). Le modèle retrouve en revanche le niveau moyen sur les cinq
+largeurs : 2,00 contre 2,04 pour N = 20, 1,92 contre 1,90 pour N = 40, 1,84 contre 1,85 pour
+N = 60. Il retrouve aussi la tendance du débit à croître quand N diminue. C'est une
+validation partielle : un seul protocole, sol sec, trois graines.
+
+**Sensibilité au pas de temps** (T = 0,35 s, N = 60). Avec Δt = 0,005 s : 1,65, 1,86, 1,92, 1,96
+et 1,87, contre 1,66, 1,85, 1,95, 1,92 et 1,83 avec Δt = 0,01 s. L'écart le plus fort, 0,04 à
+b = 1,1 et 1,2 m, reste de l'ordre de l'écart-type entre graines (0,03 à 0,08). Une étude à
+Δt/4, avec plus de graines, reste à faire (M9).
+
+**Limites.**
+
+- T n'est pas un temps de réaction : notre modèle est du second ordre (relaxation
+  τ = 0,5 s), ce qui ajoute un retard que le modèle du premier ordre de Tordeux n'a pas. Les
+  deux T ne se comparent donc pas directement.
+- L'ajustement porte sur un seul protocole (N = 60, sec) et trois graines, la validation
+  sur deux autres effectifs du même protocole ; la seule foule initiale déplaçait déjà les
+  moyennes sans règle de 15 %.
+- Le meneur est cherché en ligne droite, sans tenir compte des murs (revue de #58). Près
+  des angles du goulot, un agent peut ralentir derrière un agent déjà engagé de l'autre côté
+  de l'angle. L'étalonnage de T inclut cet effet. Il faudra le traiter avant de généraliser
+  la règle à la piscine, au moins en restreignant les meneurs à la même population (eau ou
+  plage), puisque le bord du bassin est un mur.
+- Ce réglage corrige un écart de débit sur le goulot sec. Il ne dit rien, à lui seul, des
+  temps d'évacuation de la piscine ni de la robustesse des effets relatifs : l'un et l'autre
+  restent à mesurer sur le scénario cible (revue de Lenny sur #56).
+
+**À décider par l'équipe.** Si la proposition est acceptée, la même règle et le même T
+s'appliquent à tous les milieux, eau comprise, puisque T est un trait de comportement et
+non une propriété du sol. Il faudra alors l'ajouter aux paramètres du couloir et de la
+piscine. Si elle est refusée, `temps_espacement: null` (ou l'absence de la clé) rend au
+banc le modèle sans réglage.
+
+---
+
 ## 2026-10-21 — Mesurer le débit d'un goulot sec sur le protocole de Seyfried (E0)
 
 **Décision.** Avant toute campagne piscine, on compare le modèle à une mesure connue :

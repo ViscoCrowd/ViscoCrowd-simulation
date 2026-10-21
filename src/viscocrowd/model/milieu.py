@@ -42,6 +42,7 @@ import numpy as np
 from viscocrowd.core.integrator import VitesseLibre
 from viscocrowd.core.state import State
 from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
+from viscocrowd.model.espacement import facteur_espacement
 
 
 def _verifier_parametre(nom: str, valeur: np.ndarray | float, n: int) -> np.ndarray:
@@ -164,6 +165,8 @@ def pas_libre_milieux(
     parametres: Mapping[Milieu, ParametresMilieu],
     *,
     facteur_vitesse: float = 1.0,
+    temps_espacement: float | None = None,
+    avancement: Callable[[np.ndarray], np.ndarray] | None = None,
 ) -> VitesseLibre:
     """Vitesse libre d'agents guides sur des sols differents, pour `core.integrator`.
 
@@ -194,6 +197,12 @@ def pas_libre_milieux(
             un agent sur un milieu non declare leve alors une erreur.
         facteur_vitesse: multiplie toutes les vitesses souhaitees, pour le
             niveau de panique de la spec § 2.3. Positif ou nul.
+        temps_espacement: T (s) de la relation vitesse-espacement de
+            `model.espacement` : la vitesse souhaitee est ramenee a jeu / T
+            derriere un meneur. None, par defaut, la desactive.
+        avancement: temps restant jusqu'a la sortie (N,) aux positions (N, 2),
+            en s ; ordonne les agents pour la relation vitesse-espacement, dont
+            le meneur doit etre plus avance. Exige si `temps_espacement` est donne.
 
     Returns:
         Une fonction (etat, dt) -> v_libre, a passer a `pas_semi_implicite`,
@@ -209,6 +218,11 @@ def pas_libre_milieux(
     exiger_scalaire_fini("facteur_vitesse", facteur_vitesse)
     if not facteur_vitesse >= 0.0:
         raise ValueError(f"facteur_vitesse doit etre positif ou nul, recu {facteur_vitesse}")
+    if temps_espacement is not None:
+        exiger_scalaire_fini("temps_espacement", temps_espacement, strictement_positif=True)
+        if avancement is None:
+            # Sans ordre d'avancement, des cycles d'attente redeviendraient possibles.
+            raise ValueError("temps_espacement exige une fonction avancement")
 
     # Tables indexees par la valeur du milieu. NaN pour un milieu non declare :
     # jamais lu, puisque `declare` est controle avant toute indexation.
@@ -236,7 +250,13 @@ def pas_libre_milieux(
                 f"{non_unitaires[:5].tolist()} — gradient non normalise ?"
             )
 
-        u = (facteur_vitesse * s[m])[:, None] * e
+        vitesse = facteur_vitesse * s[m]
+        if temps_espacement is not None:
+            avance = np.asarray(avancement(etat.x), dtype=float)
+            vitesse = vitesse * facteur_espacement(
+                etat.x, etat.r, e, avance, vitesse, temps_espacement
+            )
+        u = vitesse[:, None] * e
         return vitesse_libre(etat.v, u, tau[m], a_max[m], dt)
 
     return _vitesse

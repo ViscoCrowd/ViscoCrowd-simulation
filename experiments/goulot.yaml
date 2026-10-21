@@ -1,5 +1,6 @@
 # Etalonnage E0 : protocole de Seyfried et al. (2009), sol sec seul.
-# Geometrie et etat initial du protocole ; dynamique sans reglage (voir journal, E0).
+# Geometrie et etat initial du protocole. Seul reglage : le temps d'espacement,
+# propose a l'equipe (journal, E0) ; temps_espacement: null rend le modele sans reglage.
 version: 1
 scenario: goulot
 graine: 1
@@ -18,6 +19,7 @@ parametres:
   dispersion_rayon: 0.0     # rayons uniformes dans [r (1 - d), r (1 + d)]
   bruit_direction: 0.0      # rad, ecart-type stationnaire de l'angle de direction
   correlation_bruit: 0.5    # s, temps de correlation de ce bruit
+  temps_espacement: 0.35    # s, relation vitesse-espacement (proposition E0) ; null la desactive
   position_mesure: 0.4      # m apres l'entree du goulot, ligne de comptage du protocole
   dt: 0.01                  # s
   duree: 60.0               # s
