@@ -90,3 +90,10 @@ jobs:
 
       - name: Verifier la commande par defaut de l'image
         run: docker run --rm viscocrowd:ci
+
+      - name: Executer une configuration et relire la trajectoire dans l'image
+        run: |
+          docker run --rm viscocrowd:ci sh -c '
+            viscocrowd simuler experiments/bille_boite.yaml --sortie /tmp/bille.npz &&
+            python -c "from viscocrowd.io.trajectoires import lire_trajectoire; print(lire_trajectoire(\"/tmp/bille.npz\").x.shape)"
+          '

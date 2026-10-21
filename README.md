@@ -79,6 +79,48 @@ pip install -e ".[dev]"
 viscocrowd valider-moteur --figures
 ```
 
+### Exécuter une configuration et relire une trajectoire
+
+Les deux bancs d'essai disposent de configurations YAML en unités SI :
+
+```bash
+viscocrowd simuler experiments/bille_boite.yaml --sortie data/bille.npz
+viscocrowd simuler experiments/tassement.yaml --sortie data/tassement.npz
+# Même commande dans l'image, avec l'archive conservée dans ./data :
+docker compose run --rm viscocrowd viscocrowd simuler experiments/tassement.yaml --sortie data/tassement.npz
+```
+
+Chaque configuration déclare `version: 1`, `scenario`, `graine` et `parametres`.
+La graine est un entier positif ou nul pour le tassement, et `null` pour la bille
+déterministe. Les paramètres omis reprennent les valeurs du banc d'essai ; **toutes les
+valeurs effectives sont enregistrées dans l'archive**. Les clés inconnues ou dupliquées,
+les valeurs non finies et les paramètres physiques invalides sont refusés. Une sortie
+existante n'est jamais écrasée : choisir un autre nom pour une nouvelle expérience.
+
+L'archive NPZ v1 contient `t` (P,), `x` et `v` (P, N, 2), `rayons` (N,), ainsi que
+des métadonnées JSON : configuration effective, unités, versions Python/NumPy/ViscoCrowd
+et diagnostics de validation. Une simulation non convergée n'est pas sauvegardée.
+La lecture vérifie version, formes, valeurs finies et temps strictement croissants,
+avec `allow_pickle=False` : aucun objet Python n'est chargé.
+
+```python
+from viscocrowd.io.trajectoires import lire_trajectoire
+from viscocrowd.observables.energie import energie_mecanique
+
+donnees = lire_trajectoire("data/bille.npz")
+p = donnees.metadonnees["configuration"]["parametres"]
+energie = energie_mecanique(donnees.x, donnees.v, masse=p["masse"], gravite=p["gravite"])
+```
+
+Les tests vérifient l'égalité exacte des tableaux à graine fixée et après relecture,
+dans un même environnement. Cette garantie ne porte pas sur les octets du fichier ZIP
+ni sur l'égalité entre versions de dépendances. Le format conserve une population fixe
+et tous les pas en mémoire ; ce n'est pas une reprise de calcul ni un état d'évacuation.
+Le dernier instant peut dépasser la durée demandée de moins d'un pas, conformément
+à l'intégrateur existant. La commande `valider-moteur --figures` conserve ses bancs de
+validation actuels ; l'exploitation automatique des archives par les futures campagnes
+reste à raccorder. Ces deux configurations ne produisent pas de nouvelles figures du rapport.
+
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
@@ -232,6 +274,7 @@ continue.
 ```
 src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
+├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables

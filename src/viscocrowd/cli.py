@@ -194,7 +194,29 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     interface.set_defaults(fonction=commande_interface)
 
+    simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
+    simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
+    simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
+    simuler.set_defaults(fonction=commande_simuler)
+
     return analyseur
+
+
+def commande_simuler(args: argparse.Namespace) -> int:
+    """Produit une trajectoire relisible, ou un diagnostic sans archive exploitable."""
+    from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.scenarios.experience import executer_configuration
+
+    try:
+        donnees = executer_configuration(args.configuration, args.sortie)
+    except (OSError, ValueError, ProjectionNonConvergee) as erreur:
+        print(f"Simulation refusee : {erreur}", file=sys.stderr)
+        return 1
+    print(
+        f"Trajectoire : {args.sortie} — {donnees.x.shape[1]} agent(s), "
+        f"{donnees.t.size} instants, t_final = {donnees.t[-1]:.6g} s"
+    )
+    return 0
 
 
 def commande_interface(_args: argparse.Namespace) -> int:
