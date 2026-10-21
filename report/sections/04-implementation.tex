@@ -74,9 +74,10 @@ appariées, à des tolérances de projection de \num{1e-6} et \SI{1e-9}{\metre}
 constitue pas une preuve de chaos. La première exécution rapporte une différence
 moyenne de \num{0.0146}~P/m$^2$, avec une erreur standard estimée de
 \num{0.034}~P/m$^2$. La revue sur macOS arm64 obtient respectivement
-\num{0.035154} et \num{0.059588}~P/m$^2$ : son test lent échoue au critère
-$|\text{moyenne}|+2\,\text{erreur standard}<\num{0.13}$~P/m$^2$.
-Ces statistiques sont descriptives : deux erreurs standard sur huit graines ne
-donnent pas une borne garantie, et une absence de différence détectée ne prouve
-pas l'absence d'effet. Le protocole, les hypothèses d'incertitude et le critère
-d'acceptation restent à justifier avant validation, puis à appliquer au goulot cible.
+\num{0.035154} et \num{0.059588}~P/m$^2$. Ces statistiques sont descriptives : deux
+erreurs standard sur huit graines ne donnent pas une borne garantie. Nous retenons donc
+un critère sans hypothèse de normalité, le test de permutation exact sur les huit
+différences appariées (les $2^8$ choix de signes) : il ne détecte pas de différence au
+seuil de \SI{5}{\percent}, avec $p=\num{0.633}$ et $p=\num{0.539}$ pour les deux
+exécutions. Une absence de différence détectée ne prouve pas l'absence d'effet ; borner
+l'effet demandera davantage de graines, sur le goulot cible.

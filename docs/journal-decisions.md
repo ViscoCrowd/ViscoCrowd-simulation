@@ -112,9 +112,16 @@ rapporte une différence moyenne de +0,0146 pers/m² et une erreur standard esti
 et 0,059588 pers/m² : |moyenne| + 2 SE = 0,15433, au-dessus du critère 0,13 du test lent.
 La conclusion initiale de borne à 1,3 % est retirée. Deux erreurs standard sur huit
 graines ne donnent pas un intervalle garanti ; ne pas détecter de différence ne prouve
-pas l'absence d'effet. Le test reste en échec, sans seuil relevé : protocole, hypothèses
-d'incertitude et critère restent à justifier avant fusion de #53, puis à appliquer à la
-géométrie cible (goulot, E0). #10 reste ouverte.
+pas l'absence d'effet.
+
+**Critère retenu.** La borne de 2 % n'était pas justifiée : avec huit graines, la
+demi-largeur d'un intervalle à 95 % vaut déjà 1,2 à 2,2 % de la densité, selon
+l'exécution. Le test lent vérifie désormais seulement qu'un **test de permutation exact**
+sur les huit différences appariées (les 2⁸ = 256 choix de signes, sans hypothèse de
+normalité) ne détecte pas de différence au seuil de 5 % : p = 0,633 sur x86-64 et 0,539
+pour les mesures de la revue sur macOS. C'est l'absence de détection à cet effectif, pas
+une borne. Borner l'effet demandera plus de graines, sur la géométrie cible (goulot, E0) ;
+l'issue #10 reste ouverte.
 
 La revue corrige séparément les centres confondus ou fusionnés par Qhull : compter deux
 fois une même cellule faussait aussi la vitesse uniforme. Ces entrées et les partitions
