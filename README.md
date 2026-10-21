@@ -63,6 +63,10 @@ groupe. Aucun moteur physique, moteur de jeu ou code de simulation de foule prê
 
 ## Démarrage
 
+**Version publiée : jalon 2.** Voir les [notes et mesures de cette version](docs/releases/jalon-2.md).
+Les développements suivants (guidage, milieux et couloir) restent sur
+[`dev`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/tree/dev) jusqu'à la clôture de leur jalon.
+
 ### Avec Docker — reproductibilité garantie
 
 ```bash
@@ -82,8 +86,9 @@ viscocrowd valider-moteur --figures
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
-**Temps d'exécution typique** — validation complète du moteur avec figures : **≈ 8 s** sur un
-portable récent. La suite de tests : **≈ 5 s**.
+**Mesures du 21 octobre 2026** — 282 tests rapides en **17,64 s** ; validation avec les six
+figures en **48,9 s**, sur le poste de Lenny (Python 3.14.4). Deux tests lents sont exclus de
+la suite rapide ; les durées varient selon la machine et les dépendances.
 
 ### Aperçu de la piscine
 
@@ -156,8 +161,8 @@ Cette validation conserve la limite de contacts multiples suivie dans
 l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10), à corriger ou à
 quantifier avant les campagnes. Le rejet des valeurs non finies
 ([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
-([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) restent des prérequis au
-jalon 3 ; le lancement Docker est suivi dans [#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18).
+([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés dans cette version ;
+le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18)) est vérifié en CI.
 
 Le [planning détaillé et daté 2026–2027](docs/planning/README.md) est la référence pour le suivi
 des tâches ; ses modifications sont relisibles dans les pull requests.

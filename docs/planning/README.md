@@ -1,6 +1,9 @@
 # Planning ViscoCrowd 2026–2027
 
-**État au 13 octobre 2026.** Ce document est la source de référence du planning : tâches,
+**Instantané publié du jalon 2.** Planning du 13 octobre, complété le 21 octobre pour les
+prérequis livrés C3–C5. Pour les travaux ultérieurs, consulter le
+[planning courant sur dev](https://github.com/ViscoCrowd/ViscoCrowd-simulation/blob/dev/docs/planning/README.md).
+Ce document conserve les tâches,
 dates, responsabilités et suivi sont modifiés ici, avec un diff relisible en pull request.
 Les créneaux futurs et les affectations marquées **(proposé)** sont une proposition de travail,
 à confirmer selon les disponibilités du groupe ; ils ne constituent pas un accord déjà obtenu.
@@ -88,9 +91,9 @@ mesures de densité, de l'étalonnage E0, de la maîtrise du biais #10 et de la 
 |---|---|---|---|---|---|---|---|
 | C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | 13–19/10/2026 | Lenny (coordination du suivi) | À compléter ; conditionne M1 et les chutes, pas J3 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
 | C2 | Organisation | Confirmer les responsables S2–S7 et les périodes d'entreprise/congés ; ajuster la charge | S2 | 13–19/10/2026 | Lenny (coordination), accord des trois membres à recueillir | À faire | [#20], calendrier ci-dessus |
-| C3 | Moteur | Rejeter les valeurs non finies ; tests en projection stricte et permissive | S2–S3 | 13–26/10/2026 | Hamza (proposé) | À faire avant J3 | [#16] |
-| C4 | Moteur | Protéger les tableaux de State ; tester les alias d'entrée et entre états | S2–S3 | 13–26/10/2026 | Hamza (proposé) | À faire avant J3 | [#17] |
-| C5 | Reproductibilité | Aligner l'interpréteur Docker/Makefile ; exécuter valider et figures dans le conteneur | S3 | 20–26/10/2026 | Lenny (proposé) | À faire ; diagnostic Docker non confirmé par exécution | [#18] |
+| C3 | Moteur | Rejeter les valeurs non finies ; tests en projection stricte et permissive | S2–S3 | Livré 19–20/10/2026 | Hamza ; compléments Shaleena | Livré dans J2, issue clôturée | [#16], PR #21 et correctifs #28 |
+| C4 | Moteur | Protéger les tableaux de State ; tester les alias d'entrée et entre états | S2 | Livré 19/10/2026 | Hamza | Livré dans J2, issue clôturée | [#17], PR #22 |
+| C5 | Reproductibilité | Aligner l'interpréteur Docker/Makefile ; exécuter valider et figures dans le conteneur | S2–S3 | Livré 19/10 ; revérifié 21/10 | Hamza ; compléments outillage Shaleena | Livré dans J2 ; contrôlé par la CI du candidat | [#18], PR #22 et #28 |
 | C6 | J3 | Définir la géométrie commune moteur/affichage, les paramètres des trois milieux avec unités et les critères de guidage | S4 | 27/10–02/11/2026 | Hamza (proposé) | À faire avant intégration | [Spécification §2](../superpowers/specs/2026-10-06-viscocrowd-design.md) |
 | C7 | Reproductibilité | Lire les configurations YAML et sauvegarder les trajectoires .npz ; vérifier leur relecture à graine fixée | S5 | 03–09/11/2026 | Lenny (proposé) | À faire avant les campagnes | [Spécification §7](../superpowers/specs/2026-10-06-viscocrowd-design.md) |
 
