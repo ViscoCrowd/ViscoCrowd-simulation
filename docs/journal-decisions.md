@@ -69,6 +69,13 @@ du banc devront être explicites dans son YAML, avec des tests de convergence s�
 
 ## 2026-10-21 — Séparer les effets du sol mouillé, un paramètre à la fois
 
+**Contrat précisé en revue (#50).** Le banc exige SEC / MOUILLE / SEC, sans obstacle.
+Chaque agent doit franchir l'entrée et la sortie de bande puis la section finale,
+et le seuil de freinage doit être observé dans la bande. Sinon la comparaison est
+refusée avant publication d'un tableau ou d'une figure : ne pas moyenner une
+sous-population censurée. Le seuil utilise la consigne effective, facteur de vitesse
+inclus ; la distance est échantillonnée à un déplacement par pas près.
+
 **Décision de protocole.** Le démonstrateur du couloir change à la fois `s`, `τ` et `a_max`
 dans la bande mouillée : ses mesures ne permettent d'attribuer un effet à aucun d'eux.
 `viscocrowd comparer-mouille` part d'une référence où le mouillé est identique au sec, puis

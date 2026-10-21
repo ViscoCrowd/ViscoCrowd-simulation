@@ -119,9 +119,10 @@ def test_freinage_plus_long_que_la_bande_refuse():
         mesurer(p)
 
 
-def test_duree_insuffisante_refusee_sans_figure(tmp_path, capsys):
+@pytest.mark.parametrize("duree", [5.0, 8.5])
+def test_duree_insuffisante_refusee_sans_figure(tmp_path, capsys, duree):
     """Revue #50 : pas de moyenne silencieuse sur les seuls agents arrives."""
-    config = _petit_banc(duree=5.0)
+    config = _petit_banc(duree=duree)
     with pytest.raises(ProtocoleIncomplet, match="allonger la duree"):
         comparer(config, [1])
     fichier = tmp_path / "court.yaml"

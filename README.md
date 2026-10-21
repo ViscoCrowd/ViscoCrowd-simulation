@@ -169,6 +169,11 @@ population et cinq graines, et `--figure report/figures` produit la figure 7 du 
 À vitesse souhaitée constante, relaxation et adhérence seules n'ont aucun effet ; seule la
 vitesse retarde et comprime la file, et l'inertie allonge le freinage tout en réduisant la
 compression dans ce couloir droit (environ 17 s de calcul).
+Le protocole exige une bande mouillée entre deux bandes sèches, sans obstacle,
+et une durée suffisante pour que tous les agents traversent les trois sections.
+Le seuil de freinage tient compte du facteur de vitesse. Une mesure incomplète
+est refusée avant le tableau ou la figure ; aucun agent ni aucune graine n'est
+écarté silencieusement de la moyenne. La distance est échantillonnée au pas de temps.
 
 Le [guide du banc](docs/couloir.md) donne les mesures de référence et la commande pour
 les recalculer depuis l'archive. La méthode et la convergence sont rédigées dans les

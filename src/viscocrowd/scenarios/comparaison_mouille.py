@@ -14,10 +14,10 @@ Mesures, par graine :
   - distance de freinage moyenne, en m : au-dela de l'entree dans la bande,
     distance parcourue avant que la vitesse ne redescende a moins de 5 cm/s de
     la consigne du mouille, facteur de vitesse compris, comme dans le moteur
-    (nulle si l'agent n'a pas a ralentir) ;
+    (echantillonnee a un deplacement par pas pres, meme sans freinage) ;
   - contacts dans la bande, en paires x s : duree cumulee des paires d'agents,
-    tous deux dans la bande, a moins de 1 mm du contact. C'est la mesure de la
-    compression.
+    tous deux dans la bande, a moins de 1 mm du contact. C'est un indicateur de
+    contact, pas une mesure de densite.
 
 Toutes les mesures portent sur tous les agents : une simulation trop courte
 pour que chacun termine le protocole est refusee (`ProtocoleIncomplet`), au lieu
@@ -89,6 +89,8 @@ class ProtocoleIncomplet(ValueError):  # noqa: N818 - nommage francais du projet
 
 def _bande_mouillee(p: ParametresCouloir) -> tuple[float, float]:
     """Frontieres de l'unique bande MOUILLE, encadree de SEC des deux cotes."""
+    if getattr(p, "obstacles", ()):
+        raise ValueError("le protocole SEC / MOUILLE / SEC attend un couloir sans obstacle")
     if p.milieux.count("MOUILLE") != 1:
         raise ValueError("le protocole exige exactement une bande MOUILLE")
     k = p.milieux.index("MOUILLE")
