@@ -204,14 +204,27 @@ par extrapolation, se lit immédiatement comme une vitesse parasite.
 \subsection{Limites connues du schéma}
 
 \begin{itemize}
-\item \textbf{Contacts mutuels.} Trois disques qui se touchent deux à deux,
-  corrigés dans le même balayage, finissent écartés d'environ
-  \SI{1.7e-3}{\metre} au-delà du contact, sans mouvement résiduel. Chaque
-  correction est exacte isolément, pas leur somme. Ce jeu ne décroît pas avec
-  $\dt$ (\SI{1.69e-3}{\metre} à $\dt=\SI{4e-3}{\second}$ comme à
-  \SI{2e-3}{\second}), contrairement à celui d'un tas, qui décroît en $\dt^2$
-  (\SI{2.5e-5}{\metre} puis \SI{5.0e-6}{\metre}). Il peut biaiser la densité
-  mesurée au goulot ; son influence doit être bornée avant les campagnes.
+\item \textbf{Vitesse parasite liée à la tolérance.} La projection s'arrête dès
+  que le recouvrement passe sous $\varepsilon$. Au pas suivant, une poussée
+  infime le fait repasser au-dessus, et un balayage le corrige au-delà de ce
+  qu'il était : la relecture \eqref{eq:relecture} transforme cet excès en une
+  vitesse sortante de 0,15 à 0,37 fois $\varepsilon/\dt$. Sans rien pour
+  l'amortir, trois disques lancés l'un vers l'autre sans frottement
+  s'écartent alors lentement : \SI{1.0e-3}{\metre} après \SI{1.6}{\second} à
+  $\varepsilon=\SI{1e-6}{\metre}$, \SI{4.1e-6}{\metre} à
+  $\varepsilon=\SI{1e-8}{\metre}$. Nous avions d'abord pris ce jeu pour un
+  défaut de position propre aux contacts mutuels, insensible à $\dt$ ; la mesure
+  de sa croissance linéaire et de sa proportionnalité à $\varepsilon$ l'a
+  requalifié. Une foule qui pousse vers sa cible n'en garde aucune trace.
+\item \textbf{Biais de densité.} Le jeu entre agents au contact d'une foule
+  comprimée puis arrêtée ne dépend presque pas de $\varepsilon$ ; il décroît à
+  peu près comme $\dt^2$, comme celui d'un tas (\SI{2.5e-5}{\metre} puis
+  \SI{5.0e-6}{\metre} quand $\dt$ passe de \num{4e-3} à \SI{2e-3}{\second}),
+  ce qui le rattache au déplacement imposé à chaque pas plutôt qu'à l'arrêt
+  à la tolérance. Pour 60 agents de rayons 0,18 à
+  \SI{0.22}{\metre} poussés contre une paroi, il vaut \SI{8.2e-6}{\metre} en
+  moyenne à $\dt=\SI{0.01}{\second}$, soit un biais relatif de densité de
+  \num{4.1e-5}, négligeable devant la mesure de densité elle-même.
 \item \textbf{Chaînes longues.} Seules accélérées, elles gardent une restitution
   de l'ordre de \num{1e-6} de l'énergie d'arrivée.
 \item \textbf{Empilement maximal.} Au-delà d'environ \SI{75}{\percent} de surface
