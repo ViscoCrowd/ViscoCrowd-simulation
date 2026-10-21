@@ -176,6 +176,85 @@ pas d'attribuer séparément un effet à l'adhérence ; ce n'est pas une campagn
 
 ---
 
+## 2026-10-21 — Requalifier le « jeu des contacts mutuels » et mesurer le jeu local (#10)
+
+**Diagnostic corrigé.** Le jeu de 1,7·10⁻³ m du triangle (entrée du 12 octobre) n'est pas
+un défaut de position propre aux corrections simultanées de Jacobi. Après le choc, les trois
+disques gardent une **vitesse sortante** de 3,7·10⁻⁴ m/s : la projection s'arrête dès que le
+recouvrement passe sous la tolérance, une poussée infime le fait repasser au-dessus au pas
+suivant, et un balayage le corrige au-delà de ce qu'il était. La relecture `v = Δx/Δt`
+transforme ces quelques 10⁻⁷ m en vitesse, que rien n'amortit dans ce test sans frottement :
+le jeu croît **linéairement** avec le temps (6,47·10⁻⁴ m/s sur le côté, constant entre
+0,2 et 3,6 s après le choc).
+
+| Mesure (v₀ = 1 m/s) | Valeur |
+|---|---|
+| Vitesse résiduelle, Δt = 10⁻³ puis 5·10⁻⁴ s | 3,7·10⁻⁴ puis 7,1·10⁻⁴ m/s, soit 0,15 à 0,37 × tolérance/Δt |
+| Jeu à 2000 pas, tolérance 10⁻⁶ / 10⁻⁷ / 10⁻⁸ m | 1,0·10⁻³ / 6,5·10⁻⁵ / 4,1·10⁻⁶ m |
+| Avec un désir vers le centre (τ = 0,5 s) | recouvrement résiduel 8,1·10⁻⁷ m, aucun jeu |
+
+La « saturation en Δt » venait du protocole à **2000 pas fixes** : la vitesse parasite double
+quand Δt est divisé par deux, mais la durée simulée est divisée par deux aussi.
+
+**Jeu local, première étape de l'issue.** Foule de 60 agents (rayons 0,18 à 0,22 m)
+poussée contre une paroi à 1,5 m/s puis arrêtée, paramètres du sec du couloir, tolérance
+10⁻⁶ m. Les mesures initiales annonçaient 8,2·10⁻⁶ m puis 2,2·10⁻⁶ m de jeu moyen
+après l'arrêt pour Δt = 0,01 puis 0,005 s. **La revue ne reproduit pas cette décroissance** :
+deux exécutions donnent les valeurs suivantes, avec les mêmes dépendances figées
+(macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1).
+
+| Δt (s) | Paires proches | Jeu moyen (m) | Jeu maximal (m) | Indicateur 2 × jeu / diamètre |
+|---|---|---|---|---|
+| 0,01 | 101 | 7,576·10⁻⁶ | 9,011·10⁻⁵ | 3,776·10⁻⁵ |
+| 0,005 | 101 | 4,272·10⁻⁵ | 8,458·10⁻⁴ | 2,130·10⁻⁴ |
+
+Le ratio des jeux moyens vaut 0,177, contre un seuil de test supérieur à 3.
+
+**Diagnostic après la revue : forte sensibilité à de petites perturbations.** Déplacer un seul agent
+de 10⁻¹² m au départ écarte les trajectoires de plus de 10⁻⁶ m dès les premiers chocs
+(t ≈ 1,7 s), puis de 9,1·10⁻⁵ m à la fin pour Δt = 0,005 s : une amplification de 10⁸.
+Cette sensibilité rend plausible une influence des arrondis entre environnements,
+mais elle n’isole pas leur rôle exact et ne démontre pas un chaos dynamique. Le nombre de paires
+à moins de 1 mm reste stable (101 et 102), mais leur partage entre contacts effectifs (jeu de
+l'ordre de la tolérance) et quasi-contacts (10⁻⁵ à 10⁻³ m) change, et le jeu moyen avec lui :
+
+| Δt = 0,005 s (x86-64) | Quasi-contacts (≥ 10⁻⁵ m) | Jeu moyen (m) |
+|---|---|---|
+| sans perturbation | 8 | 2,2·10⁻⁶ |
+| un agent déplacé de +10⁻¹² m | 11 | 1,2·10⁻⁵ |
+| un agent déplacé de −10⁻¹² m | 31 | 3,85·10⁻⁵ |
+
+La dernière ligne retrouve l'ordre de grandeur de la revue. Sur quatre graines, le nombre de
+quasi-contacts varie de 3 à 68. Même restreint aux paires sous 10 × tolérance, le jeu ne suit
+aucune loi en Δt, et la sélection dépend elle-même de la tolérance. **L'hypothèse d'une
+décroissance en Δt² est donc réfutée, pas assouplie** : le jeu moyen n'est pas une observable
+de convergence. Le test lent qui la portait est remplacé par un test qui vérifie la sensibilité
+aux arrondis (écart final > 10⁻⁶ m pour une perturbation de 10⁻¹² m) et le maintien de plus de 80 paires proches, sans garantir les mêmes arêtes
+du réseau de contacts. L'indicateur sans dimension est de l'ordre de 4·10⁻⁵ à Δt = 0,01 s sur x86-64.
+Son interprétation comme
+variation relative de densité suppose une dilatation isotrope homogène, non vérifiée ici.
+Les paires sont sélectionnées à moins de 10⁻³ m du contact : les vides entre groupes
+ne sont pas mesurés. Aucune densité de référence ni incertitude de Voronoï/comptage
+n'est évaluée ; ce résultat ne permet pas de déclarer le biais au goulot négligeable.
+
+**Décision : caractériser avant de modifier le moteur.** Ces bancs motivent la poursuite
+de la piste 1, mais n'écartent pas définitivement les pistes 2 (sous-relaxation) et 3
+(résolution locale exacte) pour d'autres configurations. Les
+tests vérifient désormais le triangle tangent à 10⁻⁵ m près (au lieu de 3·10⁻³ m),
+la dépendance à la tolérance, l'absence de jeu sur le triangle sous poussée et l'indicateur
+de jeu local ; `TestNonInterpenetration` reste inchangé. La revue de #48 conserve #10
+ouverte : il reste à mesurer le biais de densité, statistiquement sur plusieurs graines et
+avec l'observable de densité elle-même (M1), sur la géométrie cible. Le rapport présente
+ces résultats comme des mesures de jeu, avec cette limite.
+
+**Conséquence pour les campagnes.** Choisir la tolérance telle que `tolérance/Δt` reste petit
+devant les vitesses étudiées. Le coefficient observé sur le triangle suggère un ordre
+de grandeur de 4·10⁻⁵ m/s pour 10⁻⁶ m et Δt = 0,01 s ; ce n'est pas une borne universelle.
+Mesurer le biais de densité du scénario cible avant les campagnes et étudier sa
+sensibilité au pas, à la tolérance et à la population.
+
+---
+
 ## 2026-10-21 — Valider le guidage sur un couloir prolongé en aval
 
 **Décision d'implémentation (G1, suivi #34).** Le premier banc guidé est un couloir
@@ -406,6 +485,8 @@ contact tangentes à 5,0·10⁻⁶ m près.
   indépendant de l'extrapolation : le triangle finit tangent à 1,7·10⁻³ m près, sans mouvement
   résiduel. Ce défaut sature et ne décroît **pas** avec Δt, contrairement au jeu du tas
   (5,0·10⁻⁶ m à Δt = 2·10⁻³ s contre 2,5·10⁻⁵ m à Δt = 4·10⁻³ s, soit une décroissance en Δt²).
+  *Diagnostic corrigé le 21 octobre (#10) : c'est une vitesse résiduelle liée à la tolérance,
+  pas un défaut de position ; voir l'entrée correspondante.*
 - Le critère Δt de la spec (|v|·Δt ≪ r) reste à la charge du scénario : à Δt = 4·10⁻² s les
   disques traversent leurs voisins et la projection ne peut plus rien.
 - L'invariant d'énergie du tassement est **peu sensible** : la dissipation d'ensemble (14 J) masque
