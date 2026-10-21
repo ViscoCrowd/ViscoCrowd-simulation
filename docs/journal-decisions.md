@@ -11,6 +11,38 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Simuler l'évacuation complète de la piscine (jalon 4)
+
+**Décision d'implémentation.** `scenarios/piscine.py` enchaîne quatre états par agent :
+EAU → FRANCHISSEMENT → PLAGE → SORTI. Les agents dans l'eau et sur la plage sont actifs : guidage
+de leur côté, pas libre des milieux, projection. Un agent à moins de `portee` du point
+d'attente d'un site **libre** l'occupe et reste immobilisé sur le bord pendant la durée du
+site ; il est réintroduit au point d'arrivée **dès qu'il est libre**, et le site reste
+occupé jusque-là (capacité 1, spec § 2.7). La porte est un **état absorbant**, proposé dans
+l'issue #11 : l'agent qui passe sa ligne est retiré, et son instant de sortie est interpolé. Les
+quatre effectifs sont vérifiés à chaque pas ; franchissements et sorties sont archivés comme
+événements dans les métadonnées.
+
+**Ce qui n'a pas marché d'abord.** Avec une portée de 0,1 m, 6 agents sur 100 ne sortaient
+jamais : deux agents serrés de part et d'autre d'une échelle se touchaient exactement au point
+d'attente et s'y bloquaient mutuellement, à 0,200 m chacun, sans pouvoir l'atteindre. La
+portée vaut désormais 0,25 m, la demi-largeur d'une échelle, et doit rester sous la moitié de
+l'espacement du rebord pour que deux sites ne se disputent pas un agent.
+
+**Mesures** (`experiments/piscine.yaml`, 100 agents, 5 graines). t₅₀ = 34,1 ± 0,8 s,
+t₉₀ = 42,3 ± 0,5 s, t₁₀₀ = 46,8 ± 1,0 s ; 14 agents en moyenne sortent par les échelles ;
+attente maximale sur un site occupé de 1,8 à 5,4 s ; recouvrement ≤ 10⁻⁶ m, parois à
+7·10⁻¹⁶ m, aucune non-convergence ; 5 à 9 s de calcul. Les tests vérifient sur 20 agents que
+les états ne reviennent jamais en arrière, qu'il y a exactement un franchissement par agent,
+d'une durée au moins égale à celle du site, sans chevauchement sur un même site, et qu'un
+agent sorti ne revient pas.
+
+**À étalonner (E0).** Le débit à la porte entre t₁₀ et t₉₀ vaut 3,55 ± 0,25 pers/m/s, au-dessus
+du débit de goulot de la littérature (1,2 à 1,9). Rien ne prouve encore que la porte soit
+saturée : c'est l'objet de l'étalonnage E0, sur un goulot sec alimenté en continu.
+
+---
+
 ## 2026-10-21 — Définir la géométrie commune de la piscine et son guidage jusqu'à la porte (C6)
 
 **Décision (proposée dans #26, à valider par l'équipe).** `geometry/piscine.py` reprend les
