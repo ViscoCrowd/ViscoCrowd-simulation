@@ -80,8 +80,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # L'image n'a ni depot ni git : le commit construit lui est transmis, pour que
+      # les archives produites dans le conteneur restent rattachees a leur code.
       - name: Construire l'image
-        run: docker build -t viscocrowd:ci .
+        run: docker build --build-arg VISCOCROWD_COMMIT=${{ github.sha }} -t viscocrowd:ci .
 
       # `make valider` est la commande que documentent le README et la spec.
       # Elle appelle $(VISCO_PY), que l'image fixe a `python` faute de .venv.
@@ -95,5 +97,5 @@ jobs:
         run: |
           docker run --rm viscocrowd:ci sh -c '
             viscocrowd simuler experiments/bille_boite.yaml --sortie /tmp/bille.npz &&
-            python -c "from viscocrowd.io.trajectoires import lire_trajectoire; print(lire_trajectoire(\"/tmp/bille.npz\").x.shape)"
+            python -c "from viscocrowd.io.trajectoires import lire_trajectoire; t = lire_trajectoire(\"/tmp/bille.npz\"); print(t.x.shape, t.metadonnees[\"code\"]); assert t.metadonnees[\"code\"][\"commit\"] == \"${{ github.sha }}\""
           '
