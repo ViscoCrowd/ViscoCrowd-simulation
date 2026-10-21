@@ -8,7 +8,7 @@ import pytest
 from viscocrowd.core.rng import generateur
 from viscocrowd.geometry.piscine import Piscine
 from viscocrowd.model.carte import CartePiscine
-from viscocrowd.model.eikonal import GrilleReguliere, fast_marching
+from viscocrowd.model.eikonal import ChampEikonal, GrilleReguliere, fast_marching
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu
 
@@ -80,6 +80,20 @@ class TestGeometrie:
 
 
 class TestProjection:
+    @pytest.mark.parametrize(
+        "dimension",
+        ["plage_gauche", "plage_verticale", "plage_sortie", "longueur_bassin", "largeur_bassin"],
+    )
+    def test_geometrie_trop_etroite_pour_le_disque_refusee(self, dimension):
+        piscine = replace(PISCINE, **{dimension: 0.1})
+        x, r = np.array([[0.05, 10.0]]), np.array([R])
+        with pytest.raises(ValueError, match="diametre"):
+            piscine.projeter(x, r, 0.0)
+        with pytest.raises(ValueError, match="diametre"):
+            piscine.violation(x, r, 0.0)
+        with pytest.raises(ValueError, match="diametre"):
+            GuidagePiscine(piscine, MILIEUX, R, 0.1, DUREES)
+
     def test_chaque_centre_reste_de_son_cote_et_respecte_les_murs(self):
         x = generateur(1).uniform([-1.0, -1.0], [49.5, 21.5], size=(5000, 2))
         r = np.full(5000, R)
@@ -121,6 +135,17 @@ def test_sources_a_temps_initial_differents():
 
 
 class TestGuidage:
+    @pytest.mark.parametrize("cote", ["haut", "bas", "gauche", "droite"])
+    def test_site_trop_pres_du_coin_refuse(self, cote):
+        piscine = replace(PISCINE, echelles=((cote, 0.001),))
+        with pytest.raises(ValueError, match=r"site.*admissible"):
+            GuidagePiscine(piscine, MILIEUX, R, 0.1, DUREES)
+
+    def test_absence_de_site_refusee(self):
+        piscine = replace(PISCINE, echelles=(), pas_rebord=100.0)
+        with pytest.raises(ValueError, match="site"):
+            GuidagePiscine(piscine, MILIEUX, R, 0.1, DUREES)
+
     def test_plage_vers_la_porte(self, guidage):
         porte = np.array([[48.0, 10.25]])
         assert guidage.plage.temps(porte)[0] == pytest.approx(0.0, abs=1e-9)
@@ -176,3 +201,18 @@ class TestGuidage:
             GuidagePiscine(PISCINE, MILIEUX, R, 0.1, {"rebord": 4.0})
         with pytest.raises(ValueError, match="manquants"):
             GuidagePiscine(PISCINE, {Milieu.SEC: MILIEUX[Milieu.SEC]}, R, 0.1, DUREES)
+
+
+@pytest.mark.parametrize("champ", ["vitesse", "sortie", "temps_initial", "tous"])
+def test_tableaux_incompatibles_avec_la_grille_refuses(champ):
+    grille = GrilleReguliere(0.0, 0.0, 1.0, 4, 2)
+    tableaux = {
+        "vitesse": np.ones(grille.forme),
+        "sortie": np.ones(grille.forme, dtype=bool),
+        "temps_initial": np.zeros(grille.forme),
+    }
+    for nom in tableaux:
+        if champ in (nom, "tous"):
+            tableaux[nom] = tableaux[nom][:2]
+    with pytest.raises(ValueError, match="grille"):
+        ChampEikonal.depuis_tableaux(grille, **tableaux)

@@ -24,6 +24,12 @@ puis le bassin est repoussé comme un obstacle. `CartePiscine` (dans `model/`) d
 le bassin, MOUILLE à moins de L = 3 m de son bord, SEC au-delà. Toutes les valeurs passent
 par la configuration : rien n'est figé dans le code.
 
+**Contrôles de géométrie.** Pour chaque rayon, les plages doivent mesurer au moins
+un diamètre, le bassin et la porte davantage. Le guidage refuse un site dont le
+point d'attente dans l'eau ou d'arrivée sur la plage est inadmissible, avant tout
+rabattement sur la grille. Les champs refusent aussi les tableaux dont la forme
+diffère de celle de la grille. Ces contrôles couvrent les contre-exemples de revue.
+
 **Guidage.** Deux champs de Fast Marching. Sur la plage, `φ_plage` est le temps jusqu'à la
 porte. Dans l'eau, chaque site est une source de temps initial `T_site + φ_plage(arrivée)` :
 `φ_eau` est le temps total jusqu'à la porte, et chaque point choisit le site qui le
