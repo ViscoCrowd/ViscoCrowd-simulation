@@ -207,7 +207,55 @@ def construire_analyseur() -> argparse.ArgumentParser:
     rejouer.add_argument("--vitesse", type=float, default=1.0, help="facteur de vitesse de lecture")
     rejouer.set_defaults(fonction=commande_rejouer)
 
+    comparer = sous.add_parser(
+        "comparer-mouille",
+        help="effet du sol mouille sur le couloir, un parametre a la fois",
+    )
+    comparer.add_argument("configuration", type=Path, help="configuration YAML du couloir")
+    comparer.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines du placement (defaut : celle de la configuration, puis 1 a 4)",
+    )
+    comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
+    comparer.set_defaults(fonction=commande_comparer_mouille)
+
     return analyseur
+
+
+def commande_comparer_mouille(args: argparse.Namespace) -> int:
+    """Tableau, et figure facultative, de la comparaison sec / mouille."""
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.scenarios.comparaison_mouille import MESURES, UNITES, comparer
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        if configuration["scenario"] != "couloir":
+            raise ValueError("la comparaison attend une configuration du scenario couloir")
+        graines = args.graines or [configuration["graine"], 1, 2, 3, 4]
+        resultats = comparer(configuration, graines)
+    except (OSError, KeyError, ValueError) as erreur:
+        print(f"Comparaison refusee : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"Sol mouille, un parametre a la fois — {n_agents} agents, graines {graines}")
+    print(f"{'variante':>18} " + " ".join(f"{m + ' (' + UNITES[m] + ')':>22}" for m in MESURES))
+    for nom, valeurs in resultats.items():
+        cellules = []
+        for k in range(len(MESURES)):
+            moyenne = np.nanmean(valeurs[:, k])
+            ecart = np.nanstd(valeurs[:, k], ddof=1) if len(graines) > 1 else 0.0
+            cellules.append(f"{moyenne:>12.3f} ± {ecart:<7.3f}")
+        print(f"{nom:>18} " + " ".join(cellules))
+    if args.figure:
+        from viscocrowd.viz.figures import figure_comparaison_mouille
+
+        print(f"Figure : {figure_comparaison_mouille(resultats, n_agents, args.figure)}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
 
 
 def commande_simuler(args: argparse.Namespace) -> int:
