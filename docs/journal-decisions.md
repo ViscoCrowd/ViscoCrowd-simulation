@@ -40,15 +40,15 @@ la géométrie et non de la foule ; ce n'était pas un résultat.
 | J_s simulé (pers/(m·s)) | 3,33 ± 0,19 | 3,62 ± 0,17 | 4,14 ± 0,40 | 4,33 ± 0,33 | 4,51 ± 0,06 |
 | Seyfried, N = 60 | 1,61 | 1,86 | 1,90 | 1,93 | 1,97 |
 
-Le débit croît avec b comme dans l'expérience, mais il vaut **2,1 à 2,3 fois** la mesure.
+Le débit croît avec b comme dans l'expérience, mais il vaut **1,9 à 2,3 fois** la mesure.
 
 **Analyse.** Le modèle n'a pas de relation vitesse–espacement : un agent marche à sa vitesse
-souhaitée jusqu'au contact, que seule la projection arrête. Dans le goulot, les disques
-avancent donc presque au contact, à près de 1,34 m/s. L'écart temporel entre deux
-personnes d'une même file vaut environ 0,3 s, alors que les piétons réels en gardent un
-d'environ une seconde. Changer seulement le rayon ne suffit pas : à 3,3 pers/m², le réseau
-initial interdit r > 0,27 m, très loin de ce qu'il faudrait. Baisser la vitesse souhaitée
-fausserait la marche libre (1,34 m/s, Weidmann).
+souhaitée jusqu'au contact, que seule la projection arrête. Rien ne le fait ralentir
+derrière celui qui le précède. Au contact et à 1,34 m/s, deux disques successifs ne sont
+séparés que de 0,4/1,34 ≈ 0,3 s. Le débit mesuré par Seyfried implique des écarts environ
+deux fois plus grands. Agrandir le rayon a une portée limitée : à 3,3 pers/m², le réseau
+initial interdit r > 0,27 m. Baisser la vitesse souhaitée fausserait la marche libre
+(1,34 m/s, Weidmann).
 
 **Conséquence pour la suite.** Les temps d'évacuation absolus de la piscine seraient trop
 courts d'un facteur proche de 2. Les comparaisons relatives (sec / mouillé, L, a_max)
