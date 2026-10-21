@@ -133,19 +133,30 @@ class GrilleReguliere:
         return np.stack(np.meshgrid(x, y, indexing="ij"), axis=-1)
 
 
-def fast_marching(vitesse: np.ndarray, sortie: np.ndarray, pas: float) -> np.ndarray:
+def fast_marching(
+    vitesse: np.ndarray,
+    sortie: np.ndarray,
+    pas: float,
+    temps_initial: np.ndarray | None = None,
+) -> np.ndarray:
     """Temps de parcours minimal phi jusqu'a la sortie, en s, aux noeuds d'une grille.
 
     Args:
         vitesse: F aux noeuds, de forme (nx, ny), en m/s. Finie et positive ou
             nulle ; 0 marque un noeud infranchissable.
-        sortie: noeuds ou phi = 0, booleens de forme (nx, ny). Au moins un, et
+        sortie: noeuds sources, booleens de forme (nx, ny). Au moins un, et
             aucun sur un noeud infranchissable.
         pas: h, distance entre deux noeuds voisins, en m.
+        temps_initial: phi impose aux sources, (nx, ny), en s, fini et positif
+            ou nul ; 0 par defaut. Il represente le temps qui reste APRES la
+            source, par exemple franchir un rebord puis rejoindre la porte :
+            phi devient alors le temps total jusqu'a la sortie finale, et chaque
+            point choisit la source qui le minimise.
 
     Returns:
-        phi, de forme (nx, ny), en s : 0 sur la sortie, +inf sur les noeuds
-        infranchissables ou qu'aucun chemin ne relie a la sortie.
+        phi, de forme (nx, ny), en s : temps impose sur les sources (sauf si une
+        autre source fait mieux), +inf sur les noeuds infranchissables ou qu'aucun
+        chemin ne relie a une source.
 
     Raises:
         ValueError: si une entree est mal formee, non finie ou incoherente.
@@ -165,6 +176,14 @@ def fast_marching(vitesse: np.ndarray, sortie: np.ndarray, pas: float) -> np.nda
         raise ValueError("aucun noeud de sortie : le temps de parcours n'est pas defini")
     if np.any(S & (F == 0.0)):
         raise ValueError("un noeud de sortie est infranchissable (vitesse nulle)")
+    if temps_initial is None:
+        T0 = np.zeros(F.shape)
+    else:
+        T0 = np.asarray(temps_initial, dtype=float)
+        if T0.shape != F.shape:
+            raise ValueError(f"temps_initial doit etre de forme {F.shape}, recu {T0.shape}")
+        if not (np.all(np.isfinite(T0[S])) and np.all(T0[S] >= 0.0)):
+            raise ValueError("temps_initial doit etre fini et positif ou nul sur les sources")
 
     nx, ny = F.shape
     # Listes Python plutot que tableaux : la boucle accede element par element, et
@@ -192,9 +211,10 @@ def fast_marching(vitesse: np.ndarray, sortie: np.ndarray, pas: float) -> np.nda
             return a + f
         return 0.5 * (a + b + math.sqrt(2.0 * f * f - (b - a) ** 2))
 
-    tas = [(0.0, p) for p in np.flatnonzero(S.ravel()).tolist()]
-    for _, p in tas:
-        phi[p] = 0.0
+    depart = T0.ravel()
+    tas = [(float(depart[p]), p) for p in np.flatnonzero(S.ravel()).tolist()]
+    for valeur, p in tas:
+        phi[p] = valeur
     heapq.heapify(tas)
     while tas:
         _, p = heapq.heappop(tas)
@@ -247,23 +267,52 @@ class ChampEikonal:
         phi: temps de parcours aux noeuds, (nx, ny), en s, en lecture seule.
     """
 
-    def __init__(self, grille: GrilleReguliere, vitesse: ChampVitesse, sortie: ZoneSortie) -> None:
+    def __init__(
+        self,
+        grille: GrilleReguliere,
+        vitesse: ChampVitesse,
+        sortie: ZoneSortie,
+        temps_sortie: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> None:
         """
         Args:
             grille: noeuds de calcul. Elle doit couvrir le domaine parcouru : un
                 agent hors de la grille recoit la direction du bord le plus proche.
             vitesse: F aux points (M, 2), en m/s ; 0 hors des zones praticables.
             sortie: vrai aux points (M, 2) de la sortie.
+            temps_sortie: temps restant (M,), en s, aux points de la sortie ; 0
+                par defaut. Voir `fast_marching`.
         """
         points = grille.noeuds().reshape(-1, 2)
         F = np.asarray(vitesse(points), dtype=float)
         S = np.asarray(sortie(points))
         if F.shape != (points.shape[0],) or S.shape != (points.shape[0],):
             raise ValueError("vitesse et sortie doivent rendre une valeur par point")
+        T0 = None
+        if temps_sortie is not None:
+            T0 = np.zeros(points.shape[0])
+            T0[S] = np.asarray(temps_sortie(points[S]), dtype=float)
+            T0 = T0.reshape(grille.forme)
+        self._initialiser(grille, F.reshape(grille.forme), S.reshape(grille.forme), T0)
+
+    def _initialiser(self, grille, F, S, T0) -> None:
         self.grille = grille
-        self.phi = fast_marching(F.reshape(grille.forme), S.reshape(grille.forme), grille.pas)
+        self.phi = fast_marching(F, S, grille.pas, T0)
         self.phi.flags.writeable = False
         self._gradient = _gradient_amont(self.phi, grille.pas)
+
+    @classmethod
+    def depuis_tableaux(
+        cls,
+        grille: GrilleReguliere,
+        vitesse: np.ndarray,
+        sortie: np.ndarray,
+        temps_initial: np.ndarray | None = None,
+    ) -> ChampEikonal:
+        """Champ calcule a partir de F, des sources et de leurs temps, deja aux noeuds (nx, ny)."""
+        champ = cls.__new__(cls)
+        champ._initialiser(grille, vitesse, sortie, temps_initial)
+        return champ
 
     def direction(self, x: np.ndarray) -> np.ndarray:
         """Direction de guidage (N, 2) aux positions x (N, 2) : unitaire, ou nulle."""
@@ -303,6 +352,34 @@ class ChampEikonal:
         return np.where(
             (norme > 0.0)[:, None], -gradient / np.where(norme > 0.0, norme, 1.0)[:, None], 0.0
         )
+
+    def temps(self, x: np.ndarray) -> np.ndarray:
+        """phi (N,), en s, interpole bilineairement aux positions x (N, 2).
+
+        Seuls les noeuds de phi fini comptent, poids renormalises : pres d'un
+        obstacle, le temps n'est pas tire vers l'infini. +inf si aucun des quatre
+        noeuds n'est atteignable.
+        """
+        x = np.asarray(x, dtype=float)
+        if x.ndim != 2 or x.shape[1] != 2:
+            raise ValueError(f"x doit etre de forme (N, 2), recu {x.shape}")
+        exiger_fini("Positions transmises au champ.", x=x)
+        g = self.grille
+        u = (x[:, 0] - g.x_min) / g.pas
+        w = (x[:, 1] - g.y_min) / g.pas
+        i = np.clip(np.floor(u), 0, g.nx - 2).astype(np.int64)
+        j = np.clip(np.floor(w), 0, g.ny - 2).astype(np.int64)
+        tu = np.clip(u - i, 0.0, 1.0)
+        tw = np.clip(w - j, 0.0, 1.0)
+        valeurs = np.stack(
+            (self.phi[i, j], self.phi[i + 1, j], self.phi[i, j + 1], self.phi[i + 1, j + 1]), axis=1
+        )
+        poids = np.stack(((1 - tu) * (1 - tw), tu * (1 - tw), (1 - tu) * tw, tu * tw), axis=1)
+        poids = np.where(np.isfinite(valeurs), poids, 0.0)
+        total = poids.sum(axis=1)
+        somme = np.sum(poids * np.where(np.isfinite(valeurs), valeurs, 0.0), axis=1)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            return np.where(total > 0.0, somme / total, np.inf)
 
     def __call__(self, etat: State) -> np.ndarray:
         return self.direction(etat.x)
