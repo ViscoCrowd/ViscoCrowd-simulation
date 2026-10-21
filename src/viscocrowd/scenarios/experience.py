@@ -9,6 +9,7 @@ import numpy as np
 
 from viscocrowd import __version__
 from viscocrowd.io.configuration import lire_configuration
+from viscocrowd.io.provenance import provenance_code
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
 from viscocrowd.scenarios.bille_boite import ParametresBille, simuler_bille
 from viscocrowd.scenarios.couloir import ParametresCouloir, simuler_couloir
@@ -106,6 +107,9 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
                 "python": platform.python_version(),
                 "numpy": np.__version__,
             },
+            # Le numero de version ne change pas a chaque correction : seul le
+            # commit identifie le code exact qui a produit ces tableaux.
+            "code": provenance_code(),
             "unites": {"t": "s", "x": "m", "v": "m/s", "rayons": "m"},
             "validation": validation,
         },
