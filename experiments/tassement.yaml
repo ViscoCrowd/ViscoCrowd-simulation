@@ -1,0 +1,12 @@
+# Banc de validation J2 ; ces valeurs ne calibrent pas le scenario piscine.
+version: 1
+scenario: tassement
+graine: 1
+parametres:
+  n_agents: 36
+  demi_largeur: 1.0      # m
+  rayon: 0.07           # m
+  dt: 2.0e-3            # s
+  duree: 2.5            # s
+  tolerance: 1.0e-6     # m
+  gravite: [0.0, -9.81]  # m/s^2
