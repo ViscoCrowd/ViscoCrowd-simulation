@@ -215,11 +215,18 @@ class TestEntreesInvalides:
         with pytest.raises(ValueError, match=r"zone|milieu"):
             libre(etat([[0.0, 0.0], [1.0, 0.0]], [[0.0, 0.0]] * 2), 1e-3)
 
-    def test_direction_non_normalisee_refusee(self):
+    @pytest.mark.parametrize("norme", [0.5, 1e-12, 2.0])
+    def test_direction_non_normalisee_refusee(self, norme):
         """Un gradient non normalise multiplierait la vitesse souhaitee sans rien signaler."""
-        libre = pas_libre_milieux(lambda etat: np.array([[2.0, 0.0]]), partout(Milieu.SEC), TOUS)
+        libre = pas_libre_milieux(lambda etat: np.array([[norme, 0.0]]), partout(Milieu.SEC), TOUS)
         with pytest.raises(ValueError, match="unitaire"):
             libre(etat([[0.0, 0.0]], [[0.0, 0.0]]), 1e-3)
+
+    def test_direction_unitaire_a_l_arrondi_pres_admise(self):
+        libre = pas_libre_milieux(
+            lambda etat: np.array([[1.0 - 5e-10, 0.0]]), partout(Milieu.SEC), TOUS
+        )
+        assert libre(etat([[0.0, 0.0]], [[0.0, 0.0]]), 1e-3)[0, 0] > 0.0
 
     @pytest.mark.parametrize(
         "direction", [np.array([[np.nan, 0.0]]), np.array([1.0, 0.0])], ids=["NaN", "forme"]

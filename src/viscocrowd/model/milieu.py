@@ -185,8 +185,8 @@ def pas_libre_milieux(
 
     Args:
         direction: guidage, (N, 2) vecteurs unitaires ou nuls (un agent arrive
-            peut ne plus avoir de direction). Une norme superieure a 1 est
-            refusee : elle trahit un gradient non normalise, qui multiplierait
+            peut ne plus avoir de direction). Toute norme non nulle differente
+            de 1 a 1e-9 pres est refusee : un gradient non normalise multiplierait
             la vitesse souhaitee sans que rien ne le signale.
         zone: milieu sous chaque agent, (N,) entiers parmi les valeurs de `Milieu`.
         parametres: les parametres de chaque milieu utilise. Un scenario peut
@@ -226,11 +226,14 @@ def pas_libre_milieux(
         if e.shape != (etat.n, 2):
             raise ValueError(f"direction doit etre de forme ({etat.n}, 2), recu {e.shape}")
         exiger_fini("Le guidage a rendu une direction non finie.", direction=e)
-        trop_longues = np.flatnonzero(np.linalg.norm(e, axis=1) > 1.0 + _TOLERANCE_UNITAIRE)
-        if trop_longues.size:
+        normes = np.hypot(e[:, 0], e[:, 1])
+        non_unitaires = np.flatnonzero(
+            (normes != 0.0) & (np.abs(normes - 1.0) > _TOLERANCE_UNITAIRE)
+        )
+        if non_unitaires.size:
             raise ValueError(
-                f"direction doit etre unitaire ou nulle : norme > 1 pour les agents "
-                f"{trop_longues[:5].tolist()} — gradient non normalise ?"
+                f"direction doit etre unitaire ou nulle pour les agents "
+                f"{non_unitaires[:5].tolist()} — gradient non normalise ?"
             )
 
         u = (facteur_vitesse * s[m])[:, None] * e

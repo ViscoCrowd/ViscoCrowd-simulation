@@ -1,5 +1,29 @@
 # Journal des décisions
 
+## 2026-10-21 — Assembler guidage et milieux au début du pas
+
+**Décision d'implémentation (PR #30, suivi #26).** Le guidage fournit une direction
+unitaire ou exactement nulle ; la carte fournit le milieu sous chaque agent. L'assemblage
+forme `U = facteur_vitesse × vitesse_du_milieu × direction` puis applique l'accélération
+bornée avant la projection. Une direction non nulle de norme différente de 1 (à 10⁻⁹ près)
+est rejetée : accepter un gradient trop court modifierait silencieusement la vitesse voulue.
+
+Le milieu est évalué en `xⁿ`, au début du pas explicite. Un changement de sol s'applique
+donc au pas suivant. Découper le pas exactement à chaque frontière demanderait un contrat
+géométrique supplémentaire ; ce n'est pas retenu dans cet assemblage. Le test de freinage
+sec → mouillé mesure l'erreur en raffinant Δt, car le contraste d'adhérence l'amplifie.
+Pour les valeurs illustratives du test, le point d'arrêt analytique est 0,540 m et l'erreur
+reste sous `(8 m/s) × Δt` pour Δt = 2·10⁻³, 10⁻³ et 5·10⁻⁴ s.
+
+**Portée.** Les valeurs de test ne sont pas une calibration. La géométrie, le vrai guidage
+et les valeurs physiques restent suivis en C6/G1/G2 ; G3 n'est pas terminé. La classe
+`model.milieu.ParametresMilieu` exige des valeurs complètes et valides ; la classe d'affichage
+`ui.parametres.ParametresMilieu` accepte encore des champs non renseignés pour la maquette.
+Leur raccordement reste à faire avec C6, sans rendre facultatifs les paramètres du moteur.
+Cette entrée décrit le code intégré et ne présume pas une validation collective du modèle.
+
+---
+
 Les décisions de modélisation un peu structurantes, les options écartées, et les pistes qui
 n'ont pas abouti.
 
