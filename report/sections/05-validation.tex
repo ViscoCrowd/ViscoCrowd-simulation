@@ -19,12 +19,78 @@
 
 \subsection{Invariants du modele de foule}
 
-% Non-interpenetration, non-sortie du domaine, conservation du nombre d'agents.
-% Donner l'ecart mesure, pas seulement une affirmation.
+\paragraph{Banc guidé en couloir.}
+Le domaine est $x\geq0$, $|y|\leq W/2$, avec $W=\SI{3}{\metre}$.
+Pour un disque de rayon $r$, les centres respectent $x\geq r$ et
+$|y|\leq W/2-r$. La section $x=L=\SI{12}{\metre}$ sert à compter les passages ;
+le domaine et les agents continuent en aval. Le guidage est $(1,0)$, direction
+analytique du temps de parcours pour une vitesse positive dépendant seulement de $x$
+dans un couloir sans obstacle. Le calcul eikonal avec obstacle reste à valider séparément.
+
+Le fichier \texttt{experiments/couloir.yaml}, graine 20262027, initialise 24 disques
+de rayon \SI{0.2}{\metre}, sur quatre rangées et six colonnes. L'espacement est
+\SI{0.55}{\metre} et la perturbation est bornée par \SI{0.02}{\metre} par coordonnée.
+La bande mouillée occupe $4\leq x<8$ (m) entre deux zones sèches.
+Les paramètres illustratifs $(\tau,a_{\max},s)$ valent respectivement
+$(0{,}3\,;\,3\,;\,1{,}5)$ sur le sec et $(0{,}6\,;\,0{,}7\,;\,1)$ sur le mouillé,
+en secondes, mètres par seconde carrée et mètres par seconde.
+
+Avec $\dt=\SI{0.01}{\second}$ et une durée de \SI{14}{\second}, le calcul conserve
+\num{1401} instants et les 24 agents. Les mesures du 21 octobre 2026 sont :
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Grandeur & Mesure \\
+\midrule
+Recouvrement maximal entre deux disques & \SI{9.99457e-7}{\metre} \\
+Tolérance d'exclusion & \SI{1e-6}{\metre} \\
+Violation maximale des parois & \SI{0}{\metre} \\
+Projections non convergées & 0 \\
+Agents distincts ayant franchi la section & 24 sur 24 \\
+Premier et dernier passage interpolés & \SI{7.225}{\second} et \SI{9.228}{\second} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Les distances entre centres confirment des contacts effectifs ; l'absence de
+recouvrement n'est donc pas obtenue en gardant tous les agents isolés.
+Le test d'invariant vérifie toutes les paires à tous les instants archivés.
+Un second test égalise exactement les paramètres des deux sols : la trajectoire
+devient identique à celle d'un sol uniforme, sans effet artificiel de la frontière.
 
 \subsection{Sensibilite a la discretisation}
 
-% $\dt$ divise par 2 puis par 4 ; $N$ croissant ; plusieurs graines.
+Pour isoler l'erreur temporelle, un seul agent part au repos en $x_0=\SI{0.5}{\metre}$,
+sur un sol uniforme, avec $s=\SI{1}{\metre\per\second}$ et $\tau=\SI{0.5}{\second}$.
+La borne $a_{\max}=\SI{100}{\metre\per\second\squared}$ évite la saturation ; aucun
+contact ne se produit. La solution de $\dot v=(s-v)/\tau$ est
+\[
+v(t)=s(1-e^{-t/\tau}),\qquad
+x(t)=x_0+s\bigl[t-\tau(1-e^{-t/\tau})\bigr].
+\]
+À $T=\SI{2}{\second}$, l'erreur de position mesurée donne :
+\begin{center}
+\begin{tabular}{rrr}
+\toprule
+$\dt$ (s) & $|x_{\mathrm{num}}(T)-x(T)|$ (m) & Rapport à l'erreur précédente \\
+\midrule
+0,020 & 0,01893993 & -- \\
+0,010 & 0,00946027 & 0,49949 \\
+0,005 & 0,00472770 & 0,49974 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Diviser le pas par deux divise l'erreur par environ deux, conformément à l'ordre un
+attendu. Le test \texttt{test\_agent\_isole\_converge\_vers\_la\_solution\_analytique}
+reproduit ces trois calculs et vérifie leurs rapports.
+
+Cette validation concerne le banc et ce régime de relaxation. Elle ne démontre pas
+la convergence de la foule dense, ni la calibration de la piscine. La bande mouillée
+change simultanément vitesse souhaitée, relaxation et accélération maximale : les
+mesures ne permettent pas d'attribuer un effet à la seule adhérence. Le banc n'a
+ni rétrécissement de sortie, ni extraction aquatique, ni état absorbant. Le nombre de
+passages n'est donc pas un nombre d'évacués définitifs. Les campagnes en population,
+graines et pas de temps, ainsi que le biais de contacts multiples suivi dans l'issue 10,
+restent à étudier avant de conclure sur la problématique.
 
 \subsection{Comparaison a un resultat connu}
 

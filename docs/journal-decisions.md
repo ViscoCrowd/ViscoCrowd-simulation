@@ -11,6 +11,22 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Relire le couloir à partir des archives
+
+**Réalisation (PR #37).** La vue du couloir lit les positions, rayons et instants du
+NPZ sans appeler le simulateur. Lire/Pause et le curseur servent à examiner un contact
+ou une transition ; les exports GIF/PNG permettent de partager la démonstration sans
+environnement graphique. Le compteur reprend l'observable de passage et ne prétend
+pas mesurer une évacuation définitive. Les paramètres affichés restent illustratifs.
+
+L'échantillonnage de la lecture utilise le dernier instant archivé inférieur ou égal
+au temps demandé, même pour des archives irrégulières ; le dernier instant est inclus
+dans le GIF. La résolution du GIF est fixée explicitement : un test a révélé sa dépendance
+aux réglages globaux des figures scientifiques. Les contrôles de lecture sont testés
+sans fenêtre et les exports inspectés ; la fenêtre native reste à essayer sur les postes.
+
+---
+
 ## 2026-10-21 — Coupler la foule guidée aux milieux et à l'exclusion
 
 **Réalisation (suivi #34).** Le banc `experiments/couloir.yaml` initialise une grille

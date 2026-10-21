@@ -81,7 +81,7 @@ viscocrowd valider-moteur --figures
 
 ### Exécuter une configuration et relire une trajectoire
 
-Les deux bancs d'essai disposent de configurations YAML en unités SI :
+Les bancs `bille_boite`, `tassement` et `couloir` disposent de configurations YAML en unités SI :
 
 ```bash
 viscocrowd simuler experiments/bille_boite.yaml --sortie data/bille.npz
@@ -91,9 +91,10 @@ docker compose run --rm viscocrowd viscocrowd simuler experiments/tassement.yaml
 ```
 
 Chaque configuration déclare `version: 1`, `scenario`, `graine` et `parametres`.
-La graine est un entier positif ou nul pour le tassement, et `null` pour la bille
-déterministe. Les paramètres omis reprennent les valeurs du banc d'essai ; **toutes les
-valeurs effectives sont enregistrées dans l'archive**. Les clés inconnues ou dupliquées,
+La graine est un entier positif ou nul pour le tassement et le couloir, et `null` pour la bille
+déterministe. Les paramètres omis reprennent les valeurs des bancs bille/tassement ; le couloir
+exige tous ses paramètres explicitement. **Toutes les valeurs effectives sont enregistrées
+dans l'archive**. Les clés inconnues ou dupliquées,
 les valeurs non finies et les paramètres physiques invalides sont refusés. Une sortie
 existante n'est jamais écrasée : choisir un autre nom pour une nouvelle expérience.
 
@@ -119,12 +120,12 @@ et tous les pas en mémoire ; ce n'est pas une reprise de calcul ni un état d'�
 Le dernier instant peut dépasser la durée demandée de moins d'un pas, conformément
 à l'intégrateur existant. La commande `valider-moteur --figures` conserve ses bancs de
 validation actuels ; l'exploitation automatique des archives par les futures campagnes
-reste à raccorder. Ces deux configurations ne produisent pas de nouvelles figures du rapport.
+reste à raccorder. Ces configurations ne produisent pas de nouvelles figures du rapport.
 
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
-**Temps d'exécution mesuré le 21 octobre 2026** — suite rapide : **382 tests en 34 s**
+**Temps d'exécution mesuré le 21 octobre 2026** — suite rapide : **430 tests en 24 s**
 sur le poste de Lenny, Python 3.14.4 (2 scénarios lents exclus). La validation du moteur
 affiche son propre temps ; les durées varient selon la machine et les dépendances.
 
@@ -161,6 +162,11 @@ Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
 le banc `couloir` ; la maquette piscine reste disponible séparément via `interface`.
+
+Le [guide du banc](docs/couloir.md) donne les mesures de référence et la commande pour
+les recalculer depuis l'archive. La méthode et la convergence sont rédigées dans les
+sections [implémentation](report/sections/04-implementation.tex) et
+[validation](report/sections/05-validation.tex) du rapport.
 
 ### Aperçu de la piscine
 
@@ -240,10 +246,10 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | En cours : adhérence et assemblage livrés ; géométrie, calibration et guidage à terminer |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal avec obstacles, géométrie piscine et calibration restent ouverts |
 | 4 | Scénario piscine complet, franchissements | ⏳ À développer |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
-| 6 | Rapport, figures finales, transparents | ⏳ À finaliser |
+| 6 | Rapport, figures finales, transparents | Rédaction commencée : chaîne de calcul, validation du couloir et outils ; analyse finale à venir |
 
 Le statut du sujet et les questions encore ouvertes sont centralisés dans la
 [fiche de cadrage](docs/validation-sujet.md#trace-de-validation). Les choix collectifs du jalon 2
@@ -257,10 +263,13 @@ quantifier avant les campagnes. Le rejet des valeurs non finies
 ([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés ;
 le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18))
 est vérifié par la CI. L'assemblage des milieux est livré dans la
-[PR #30](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/30) ; le raccordement à la
-géométrie et au guidage réels reste ouvert dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26).
+[PR #30](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/30), puis raccordé à une carte
+et un guidage réels sur le couloir dans les PR [#35](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/35)
+et [#36](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/36).
+Le cas piscine reste suivi dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26).
 Les configurations YAML et archives de trajectoires C7 sont livrées pour les bancs d'essai
-dans la [PR #32](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/32).
+dans la [PR #32](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/32), étendues au couloir
+dans #36, puis à sa relecture animée dans [#37](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/37).
 
 Le [planning détaillé et daté 2026–2027](docs/planning/README.md) est la référence pour le suivi
 des tâches ; ses modifications sont relisibles dans les pull requests.
@@ -316,10 +325,11 @@ src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
 ├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
+├── model/         guidage, carte des milieux et accélération bornée
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
-├── ui/            aperçu graphique de la piscine, indépendant du moteur
+├── ui/            aperçu piscine et relecture hors ligne des archives de couloir
 └── cli.py
 
 tests/             unitaires · invariants physiques (tournent à chaque PR)
