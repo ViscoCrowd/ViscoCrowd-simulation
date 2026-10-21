@@ -132,6 +132,9 @@ affiche son propre temps ; les durées varient selon la machine et les dépendan
 
 ```bash
 viscocrowd simuler experiments/couloir.yaml --sortie data/couloir.npz
+viscocrowd rejouer data/couloir.npz
+# Exports sans fenetre, egalement utilisables dans Docker :
+viscocrowd rejouer data/couloir.npz --gif figures/couloir.gif --image figures/couloir.png --instant 4.5
 ```
 
 Ce banc G1/G5 fait avancer **24 agents** dans un couloir de **12 × 3 m**, avec une
@@ -150,6 +153,14 @@ Le pas doit être inférieur aux temps de relaxation et le déplacement par pas 
 au plus égal à un cinquième du rayon. Le scénario contrôle ce dernier critère aussi
 sur les vitesses obtenues après projection. Raffiner Δt reste nécessaire pour mesurer
 l'erreur : ce contrôle seul ne prouve pas la convergence du modèle.
+
+La relecture ouvre une fenêtre avec **Lire/Pause**, un curseur de temps et un compteur
+de passages vers l'aval. Les disques gardent leur rayon en mètres ; l'horloge utilise
+les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux.
+Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
+toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
+Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
+le banc `couloir` ; la maquette piscine reste disponible séparément via `interface`.
 
 ### Aperçu de la piscine
 

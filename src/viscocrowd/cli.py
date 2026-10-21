@@ -199,6 +199,14 @@ def construire_analyseur() -> argparse.ArgumentParser:
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
     simuler.set_defaults(fonction=commande_simuler)
 
+    rejouer = sous.add_parser("rejouer", help="relit une trajectoire de couloir, sans recalcul")
+    rejouer.add_argument("archive", type=Path)
+    rejouer.add_argument("--gif", type=Path, help="export GIF hors ecran")
+    rejouer.add_argument("--image", type=Path, help="export PNG hors ecran")
+    rejouer.add_argument("--instant", type=float, default=0.0, help="instant du PNG, en secondes")
+    rejouer.add_argument("--vitesse", type=float, default=1.0, help="facteur de vitesse de lecture")
+    rejouer.set_defaults(fonction=commande_rejouer)
+
     return analyseur
 
 
@@ -217,6 +225,50 @@ def commande_simuler(args: argparse.Namespace) -> int:
         f"{donnees.t.size} instants, t_final = {donnees.t[-1]:.6g} s"
     )
     return 0
+
+
+def commande_rejouer(args: argparse.Namespace) -> int:
+    import matplotlib
+
+    if args.gif or args.image:
+        matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.backends import backend_registry
+
+    from viscocrowd.io.trajectoires import lire_trajectoire
+    from viscocrowd.ui.relecture import LecteurCouloir
+
+    lecteur = None
+    try:
+        for chemin, extension in ((args.gif, ".gif"), (args.image, ".png")):
+            if chemin and (chemin.exists() or chemin.suffix.lower() != extension):
+                raise ValueError(f"choisir un nouveau fichier {extension} : {chemin}")
+        lecteur = LecteurCouloir(
+            lire_trajectoire(args.archive),
+            interactif=not (args.gif or args.image),
+            vitesse=args.vitesse,
+        )
+        lecteur.aller_au_temps(args.instant)
+        if args.image:
+            args.image.parent.mkdir(parents=True, exist_ok=True)
+            lecteur.figure.savefig(args.image, dpi=140)
+            print(f"Image : {args.image}")
+        if args.gif:
+            args.gif.parent.mkdir(parents=True, exist_ok=True)
+            lecteur.exporter_gif(args.gif)
+            print(f"Animation : {args.gif}")
+        if not (args.gif or args.image):
+            if backend_registry.resolve_backend(plt.get_backend())[1] is None:
+                raise ValueError("affichage local requis ; utiliser --gif ou --image hors ecran")
+            lecteur.basculer()
+            plt.show(block=True)
+        return 0
+    except (OSError, ValueError) as erreur:
+        print(f"Relecture refusee : {erreur}", file=sys.stderr)
+        return 1
+    finally:
+        if lecteur is not None:
+            plt.close(lecteur.figure)
 
 
 def commande_interface(_args: argparse.Namespace) -> int:
