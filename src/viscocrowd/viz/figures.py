@@ -426,8 +426,8 @@ def figure_comparaison_mouille(
     for axe, (mesure, titre, apparie) in zip(axes, panneaux, strict=True):
         k = MESURES.index(mesure)
         series = [resultats[nom][:, k] - (reference[:, k] if apparie else 0.0) for nom in noms]
-        moyennes = [np.nanmean(s) for s in series]
-        ecarts = [np.nanstd(s, ddof=1) if n_graines > 1 else 0.0 for s in series]
+        moyennes = [np.mean(s) for s in series]
+        ecarts = [np.std(s, ddof=1) if n_graines > 1 else 0.0 for s in series]
         axe.barh(range(len(noms)), moyennes, xerr=ecarts, color="#4daeb9", capsize=3)
         axe.set_xlabel(titre)
         axe.axvline(0.0, color="0.3", lw=0.8)

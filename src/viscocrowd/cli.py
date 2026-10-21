@@ -246,8 +246,8 @@ def commande_comparer_mouille(args: argparse.Namespace) -> int:
     for nom, valeurs in resultats.items():
         cellules = []
         for k in range(len(MESURES)):
-            moyenne = np.nanmean(valeurs[:, k])
-            ecart = np.nanstd(valeurs[:, k], ddof=1) if len(graines) > 1 else 0.0
+            moyenne = np.mean(valeurs[:, k])
+            ecart = np.std(valeurs[:, k], ddof=1) if len(graines) > 1 else 0.0
             cellules.append(f"{moyenne:>12.3f} ± {ecart:<7.3f}")
         print(f"{nom:>18} " + " ".join(cellules))
     if args.figure:
