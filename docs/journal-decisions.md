@@ -11,6 +11,52 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Mesurer le débit d'un goulot sec sur le protocole de Seyfried (E0)
+
+**Décision.** Avant toute campagne piscine, on compare le modèle à une mesure connue :
+le débit spécifique J_s = ΔN/(Δt·b) d'un goulot, sur le protocole de
+Seyfried et al. (2009, tableau 2, vérifié sur le texte de l'article). Le banc
+(`scenarios/goulot.py`, `experiments/goulot.yaml`) reprend la géométrie et l'état initial :
+goulot de 2,8 m, largeur b de 0,8 à 1,2 m, 60 personnes sur un réseau hexagonal à
+3,3 pers/m² dont le centre est à 3 m de l'entrée, comptage à 0,4 m dans le goulot. La
+dynamique est celle du modèle, sans réglage : disques de 0,2 m, vitesse souhaitée de
+1,34 m/s (Weidmann), τ = 0,5 s. Le débit est mesuré sur les 80 % centraux des passages.
+Une foule qui ne passe pas en 60 s est comptée à part : moyenner son débit partiel avec les
+autres mélangerait écoulement et bouchage. Commande : `viscocrowd etalonner-goulot
+experiments/goulot.yaml`.
+
+**Piste écartée : le coin vif.** Une première géométrie, union de la salle et du goulot
+réduits d'un rayon, donnait un coin vif à chaque angle d'entrée. La foule s'y bouchait
+toujours (3 graines sur 3) à b = 0,8 et 1,0 m, en arches statiques. Un bruit sur la direction
+(processus d'Ornstein-Uhlenbeck, σ jusqu'à 0,3 rad) ne les cassait pas. Le mur percé est
+désormais fait de deux blocs repoussés exactement, coins arrondis compris, comme le pilier
+de G2 : **plus aucun bouchage**, sur aucune largeur. Le bouchage venait donc d'un artefact de
+la géométrie et non de la foule ; ce n'était pas un résultat.
+
+**Mesure** (graines 1 à 3, 223 s) :
+
+| b (m) | 0,8 | 0,9 | 1,0 | 1,1 | 1,2 |
+| --- | --- | --- | --- | --- | --- |
+| J_s simulé (pers/(m·s)) | 3,33 ± 0,19 | 3,62 ± 0,17 | 4,14 ± 0,40 | 4,33 ± 0,33 | 4,51 ± 0,06 |
+| Seyfried, N = 60 | 1,61 | 1,86 | 1,90 | 1,93 | 1,97 |
+
+Le débit croît avec b comme dans l'expérience, mais il vaut **2,1 à 2,3 fois** la mesure.
+
+**Analyse.** Le modèle n'a pas de relation vitesse–espacement : un agent marche à sa vitesse
+souhaitée jusqu'au contact, que seule la projection arrête. Dans le goulot, les disques
+avancent donc presque au contact, à près de 1,34 m/s. L'écart temporel entre deux
+personnes d'une même file vaut environ 0,3 s, alors que les piétons réels en gardent un
+d'environ une seconde. Changer seulement le rayon ne suffit pas : à 3,3 pers/m², le réseau
+initial interdit r > 0,27 m, très loin de ce qu'il faudrait. Baisser la vitesse souhaitée
+fausserait la marche libre (1,34 m/s, Weidmann).
+
+**Conséquence pour la suite.** Les temps d'évacuation absolus de la piscine seraient trop
+courts d'un facteur proche de 2. Les comparaisons relatives (sec / mouillé, L, a_max)
+restent interprétables, mais le choix d'un réglage relève du groupe. Il est proposé dans
+une issue dédiée, avec des mesures ; ce banc ne règle rien, il mesure.
+
+---
+
 ## 2026-10-21 — Définir la géométrie commune de la piscine et son guidage jusqu'à la porte (C6)
 
 **Décision (proposée dans #26, à valider par l'équipe).** `geometry/piscine.py` reprend les

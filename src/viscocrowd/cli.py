@@ -221,7 +221,60 @@ def construire_analyseur() -> argparse.ArgumentParser:
     comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
     comparer.set_defaults(fonction=commande_comparer_mouille)
 
+    etalonner = sous.add_parser(
+        "etalonner-goulot",
+        help="E0 : debit specifique d'un goulot sec, compare a Seyfried et al. (2009)",
+    )
+    etalonner.add_argument("configuration", type=Path, help="configuration YAML du goulot")
+    etalonner.add_argument(
+        "--largeurs",
+        type=float,
+        nargs="+",
+        default=[0.8, 0.9, 1.0, 1.1, 1.2],
+        help="largeurs b du goulot, en m (defaut : celles du protocole)",
+    )
+    etalonner.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines (defaut : celle de la configuration, puis 2 et 3)",
+    )
+    etalonner.set_defaults(fonction=commande_etalonner_goulot)
+
     return analyseur
+
+
+def commande_etalonner_goulot(args: argparse.Namespace) -> int:
+    """Tableau du debit specifique simule face aux mesures de Seyfried et al. (2009)."""
+    from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.scenarios.goulot import SEYFRIED_2009_N60, etalonner
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        graines = args.graines or [configuration["graine"], 2, 3]
+        resultats = etalonner(configuration, args.largeurs, graines)
+    except (OSError, KeyError, ValueError, ProjectionNonConvergee) as erreur:
+        print(f"Etalonnage refuse : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"E0, goulot sec — {n_agents} agents, graines {graines}")
+    print(f"{'b (m)':>6} {'bouches':>8} {'J_s simule (pers/(m.s))':>24} {'Seyfried N=60':>14}")
+    for b, debits in resultats.items():
+        passes = debits[np.isfinite(debits)]
+        if passes.size:
+            ecart = np.std(passes, ddof=1) if passes.size > 1 else 0.0
+            simule = f"{np.mean(passes):.2f} ± {ecart:.2f}"
+        else:
+            simule = "-"
+        reference = SEYFRIED_2009_N60.get(round(b, 2))
+        reference = f"{reference:.2f}" if reference is not None else "-"
+        bouches = f"{debits.size - passes.size}/{debits.size}"
+        print(f"{b:>6.2f} {bouches:>8} {simule:>24} {reference:>14}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
 
 
 def commande_comparer_mouille(args: argparse.Namespace) -> int:
