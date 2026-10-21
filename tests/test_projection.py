@@ -403,7 +403,7 @@ class TestChocMultiple:
         assert np.all(cotes >= 0.2 - 1e-8)  # jamais d'interpenetration
         np.testing.assert_allclose(cotes, 0.2, atol=1e-5)
 
-    def test_le_jeu_du_triangle_vient_de_la_tolerance_et_non_du_pas_de_temps(self):
+    def test_jeu_du_triangle_et_vitesse_residuelle_selon_la_tolerance(self):
         """Diagnostic de l'issue #10, chiffre.
 
         La projection s'arrete des que le recouvrement passe sous la tolerance. Le
@@ -494,18 +494,21 @@ class TestChocMultiple:
         )
 
 
-class TestBiaisDeDensite:
-    """Issue #10 : de combien les contacts multiples faussent-ils la densite d'une foule ?
+class TestJeuDeContact:
+    """Issue #10 : caracterisation locale du jeu, avant la validation de densite.
 
     Une foule de 60 agents (rayons 0,18 a 0,22 m) est poussee contre une paroi a
     1,5 m/s, puis s'arrete, avec les parametres du sec du banc de couloir. On
-    mesure le jeu des paires en contact : la densite variant comme 1/d^2, le biais
-    relatif de densite vaut environ 2 x jeu moyen / diametre.
+    mesure le jeu des paires proches et l'indicateur 2 x jeu moyen / diametre.
+    Ce dernier n'est une variation de densite que sous une hypothese de
+    dilatation isotrope homogene. Ce banc ne mesure aucune densite de reference
+    et ne borne pas le biais au goulot ; les paires eloignees sont exclues.
 
-    Mesures apres l'arret (tolerance 1e-6 m) : jeu moyen 8,2e-6 m a dt = 0,01 s,
-    2,2e-6 m a dt = 5e-3 s, soit une decroissance proche de dt^2 comme le tas ;
-    presque rien ne change a la tolerance 1e-7 m. Biais de densite : 4,1e-5 puis
-    1,1e-5.
+    La decroissance en dt^2 annoncee initialement n'est pas reproduite lors de
+    la revue : jeux moyens 7,576e-6 puis 4,272e-5 m a dt = 0,01 puis 0,005 s
+    (macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1). Le test lent
+    conserve son assertion et echoue ; la sensibilite doit etre expliquee
+    avant de valider ce banc. Voir le journal et la review de la PR #48.
     """
 
     @staticmethod
@@ -539,12 +542,13 @@ class TestBiaisDeDensite:
         jeux, diametre = self._jeux_en_contact(0.01)
         assert jeux.size > 80  # une vraie foule au contact : mesure 101 paires
         assert jeux.min() >= -TOLERANCE  # jamais d'interpenetration
-        biais = 2 * jeux.mean() / diametre
-        assert 0.0 <= biais < 1e-4  # mesure : 4,1e-5 ; negligeable devant la mesure de densite
+        indicateur = 2 * jeux.mean() / diametre
+        assert 0.0 <= indicateur < 1e-4  # mesure : 4,1e-5 ; pas une borne de densite
         assert jeux.max() < 5e-4  # mesure : 1,5e-4 m, soit 0,07 % du diametre
 
     @pytest.mark.slow
-    def test_le_biais_decroit_avec_le_pas_de_temps(self):
+    def test_le_jeu_decroit_avec_le_pas_de_temps(self):
+        # Hypothese non validee : echec reproduit en revue, ne pas assouplir le seuil.
         grossier, _ = self._jeux_en_contact(0.01)
         fin, _ = self._jeux_en_contact(0.005)
         assert grossier.mean() / fin.mean() > 3  # mesure : 3,7 (ordre 2 : 4)

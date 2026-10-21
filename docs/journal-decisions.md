@@ -47,7 +47,7 @@ pas d'attribuer séparément un effet à l'adhérence ; ce n'est pas une campagn
 
 ---
 
-## 2026-10-21 — Requalifier le « jeu des contacts mutuels » et borner le biais de densité (#10)
+## 2026-10-21 — Requalifier le « jeu des contacts mutuels » et mesurer le jeu local (#10)
 
 **Diagnostic corrigé.** Le jeu de 1,7·10⁻³ m du triangle (entrée du 12 octobre) n'est pas
 un défaut de position propre aux corrections simultanées de Jacobi. Après le choc, les trois
@@ -67,24 +67,43 @@ le jeu croît **linéairement** avec le temps (6,47·10⁻⁴ m/s sur le côté,
 La « saturation en Δt » venait du protocole à **2000 pas fixes** : la vitesse parasite double
 quand Δt est divisé par deux, mais la durée simulée est divisée par deux aussi.
 
-**Biais de densité, la question de l'issue.** Foule de 60 agents (rayons 0,18 à 0,22 m)
+**Jeu local, première étape de l'issue.** Foule de 60 agents (rayons 0,18 à 0,22 m)
 poussée contre une paroi à 1,5 m/s puis arrêtée, paramètres du sec du couloir, tolérance
-10⁻⁶ m : 101 paires au contact. Pendant la poussée, jeu moyen 7,5·10⁻⁶ m à Δt = 0,01 s et
-1,6·10⁻⁶ m à Δt = 5·10⁻³ s ; après l'arrêt, 8,2·10⁻⁶ m et 2,2·10⁻⁶ m, pour un maximum de
-1,5·10⁻⁴ m puis 2,6·10⁻⁵ m. Le jeu décroît à peu près comme Δt², comme celui du tas, et
-change à peine à la tolérance 10⁻⁷ m. Le biais relatif de densité, environ
-2 × jeu moyen / diamètre, vaut **4,1·10⁻⁵** à Δt = 0,01 s : négligeable devant toute mesure
-de densité par cellules de Voronoï ou par comptage.
+10⁻⁶ m. Les mesures initiales annonçaient 8,2·10⁻⁶ m puis 2,2·10⁻⁶ m de jeu moyen
+après l'arrêt pour Δt = 0,01 puis 0,005 s. **La revue ne reproduit pas cette décroissance** :
+deux exécutions donnent les valeurs suivantes, avec les mêmes dépendances figées
+(macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1).
 
-**Décision : piste 1 de l'issue, rien à changer dans le moteur.** Les pistes 2 (sous-relaxation)
-et 3 (résolution locale exacte) corrigeraient un défaut que la foule ne présente pas. Les
+| Δt (s) | Paires proches | Jeu moyen (m) | Jeu maximal (m) | Indicateur 2 × jeu / diamètre |
+|---|---|---|---|---|
+| 0,01 | 101 | 7,576·10⁻⁶ | 9,011·10⁻⁵ | 3,776·10⁻⁵ |
+| 0,005 | 101 | 4,272·10⁻⁵ | 8,458·10⁻⁴ | 2,130·10⁻⁴ |
+
+Le ratio des jeux moyens vaut 0,177, contre un seuil de test supérieur à 3.
+Le test lent reste **en échec**, avec son assertion conservée. Il est exclu de la
+CI rapide : son succès ne peut donc pas être déduit d'une CI verte. La cause de
+cette sensibilité reste à déterminer ; aucun ordre de convergence n'est établi
+pour ce banc. L'indicateur sans dimension est de l'ordre de 4·10⁻⁵ à Δt = 0,01 s.
+Son interprétation comme
+variation relative de densité suppose une dilatation isotrope homogène, non vérifiée ici.
+Les paires sont sélectionnées à moins de 10⁻³ m du contact : les vides entre groupes
+ne sont pas mesurés. Aucune densité de référence ni incertitude de Voronoï/comptage
+n'est évaluée ; ce résultat ne permet pas de déclarer le biais au goulot négligeable.
+
+**Décision : caractériser avant de modifier le moteur.** Ces bancs motivent la poursuite
+de la piste 1, mais n'écartent pas définitivement les pistes 2 (sous-relaxation) et 3
+(résolution locale exacte) pour d'autres configurations. Les
 tests vérifient désormais le triangle tangent à 10⁻⁵ m près (au lieu de 3·10⁻³ m),
-la proportionnalité à la tolérance, l'absence de jeu sous poussée, et la borne du biais de
-densité ; `TestNonInterpenetration` reste inchangé. Le rapport déclare ce biais.
+la dépendance à la tolérance, l'absence de jeu sur le triangle sous poussée et l'indicateur
+de jeu local ; `TestNonInterpenetration` reste inchangé. La revue de #48 conserve #10
+ouverte : il reste à expliquer le test lent et à mesurer le biais au goulot. Le rapport
+présente ces résultats comme des mesures de jeu, avec cette limite.
 
 **Conséquence pour les campagnes.** Choisir la tolérance telle que `tolérance/Δt` reste petit
-devant les vitesses étudiées : 10⁻⁶ m avec Δt = 0,01 s donne au plus 4·10⁻⁵ m/s de vitesse
-parasite. Remesurer le biais si une campagne descend sous Δt = 10⁻³ s.
+devant les vitesses étudiées. Le coefficient observé sur le triangle suggère un ordre
+de grandeur de 4·10⁻⁵ m/s pour 10⁻⁶ m et Δt = 0,01 s ; ce n'est pas une borne universelle.
+Mesurer le biais de densité du scénario cible avant les campagnes et étudier sa
+sensibilité au pas, à la tolérance et à la population.
 
 ---
 

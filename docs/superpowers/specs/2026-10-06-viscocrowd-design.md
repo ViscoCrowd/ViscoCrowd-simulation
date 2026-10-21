@@ -198,10 +198,13 @@ une vitesse parasite de 0,15 à 0,37 × tolérance/Δt : un triangle qui s'effon
 s'en écarte lentement, d'environ 10⁻³ m après 1,6 s à la tolérance 10⁻⁶ m, et ce jeu est
 proportionnel à la tolérance. Il avait d'abord été pris pour un défaut de position propre aux
 contacts mutuels, insensible à Δt ; l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10)
-l'a requalifié. Une foule qui pousse n'en garde rien. Le biais qui compte pour le diagramme
-fondamental, celui d'une foule comprimée puis arrêtée, est mesuré à **4,1·10⁻⁵ en densité
-relative** à Δt = 0,01 s et décroît à peu près comme Δt² (`TestBiaisDeDensite`, journal du
-21 octobre 2026).
+l'a requalifié sur ces bancs. Dans le test de trois disques poussés vers leur centre,
+ce jeu n'est pas observé. Pour 60 agents comprimés puis arrêtés, l'indicateur
+`2 × jeu moyen / diamètre` est de l'ordre de **4·10⁻⁵** à Δt = 0,01 s. La décroissance
+annoncée en Δt² n'est pas reproduite en revue : le test lent échoue
+(`TestJeuDeContact`, journal du 21 octobre 2026).
+Cet indicateur ne mesure ni ne borne le biais de densité au goulot : il faudrait une
+référence et une comparaison de densités sur la géométrie cible. L'issue #10 reste ouverte.
 
 **Ce que l'algorithme ne garantit pas.** La projection sur l'ensemble linéarisé est unique, mais
 l'algorithme n'est pas construit pour la calculer. Des corrections découplées, répétées jusqu'à
