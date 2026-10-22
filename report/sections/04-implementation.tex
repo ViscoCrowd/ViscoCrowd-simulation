@@ -47,3 +47,44 @@ choisit le dernier instant archivé inférieur ou égal au temps demandé ; le G
 le dernier instant. Lire/Pause, vitesse de lecture et export PNG/GIF ne modifient pas
 la dynamique. Les archives gardent tous les agents et tous les pas en mémoire : elles
 ne constituent ni une reprise de calcul ni un état de sortie absorbant.
+
+\subsection{Mesure de la densité}
+
+Compter les agents d'une zone $M$ donne une densité en paliers de $1/|M|$. Nous
+suivons plutôt Steffen et Seyfried~\cite{steffen2010} : chaque agent $i$ reçoit sa
+cellule de Voronoï $C_i$, la densité locale y vaut $1/|C_i|$, et
+\[
+\densite_V=\frac{1}{|M|}\sum_i\frac{|C_i\cap M|}{|C_i|},\qquad
+v_V=\frac{1}{|M|}\sum_i\norm{\vit_i}\,|C_i\cap M|.
+\]
+Les cellules du bord sont bornées par la salle, en ajoutant le reflet de chaque agent
+par rapport aux quatre murs : pour une salle rectangulaire, les cellules obtenues pavent
+exactement la salle. Le calcul des cellules utilise \texttt{scipy.spatial.Voronoi} ;
+le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
+Cette construction suppose une salle rectangulaire contenant tous les agents. Elle ne
+s'applique pas telle quelle à la salle du goulot, qui n'est pas convexe, ni au couloir
+ouvert en aval : écarter les agents sortis du rectangle créerait un faux mur, et la
+densité serait sous-estimée près de la coupe. La zone de mesure devra en rester éloignée,
+ou les cellules être découpées par le vrai domaine.
+
+La méthode retrouve exactement les densités de réseaux connus : \num{4}~P/m$^2$
+pour un réseau carré de pas \SI{0.5}{\metre}, $2/(\sqrt3\,a^2)$ pour un réseau hexagonal,
+à \num{1e-9} près. Sur 300 nuages uniformes, elle retrouve la densité moyenne comme le
+comptage, avec une dispersion 1,34 fois plus faible. Quand un agent entre dans la zone,
+le comptage saute de $1/|M|$ et la densité de Voronoï de moins de \SI{5}{\percent} de ce saut.
+
+Un essai exploratoire compare aussi la densité contre une paroi sur huit graines
+appariées, à des tolérances de projection de \num{1e-6} et \SI{1e-9}{\metre}
+(issue~10). La sensibilité des arrangements motive cette comparaison ; elle ne
+constitue pas une preuve de chaos. La première exécution rapporte une différence
+moyenne de \num{0.0146}~P/m$^2$, avec une erreur standard estimée de
+\num{0.034}~P/m$^2$. La revue sur macOS arm64 obtient respectivement
+\num{0.035154} et \num{0.059588}~P/m$^2$. Ces statistiques sont descriptives : deux
+erreurs standard sur huit graines ne donnent pas une borne garantie. Nous retenons donc
+un critère sans hypothèse de normalité, le test de permutation exact sur les huit
+différences appariées (les $2^8$ choix de signes) : il ne détecte pas de différence au
+seuil de \SI{5}{\percent}, avec $p=\num{0.633}$ et $p=\num{0.539}$ pour les deux
+exécutions. Ce test est exact sous l'hypothèse nulle d'échangeabilité des deux
+résultats d'une même graine, les graines étant indépendantes, c'est-à-dire de
+différences symétriques autour de zéro ; c'est plus que la seule égalité des moyennes. Une absence de différence détectée ne prouve pas l'absence d'effet ; borner
+l'effet demandera davantage de graines, sur le goulot cible.
