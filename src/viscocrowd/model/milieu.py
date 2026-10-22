@@ -41,7 +41,11 @@ import numpy as np
 
 from viscocrowd.core.integrator import VitesseLibre
 from viscocrowd.core.state import State
-from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
+from viscocrowd.core.verifications import (
+    TOLERANCE_UNITAIRE,
+    exiger_fini,
+    exiger_scalaire_fini,
+)
 
 
 def _verifier_parametre(nom: str, valeur: np.ndarray | float, n: int) -> np.ndarray:
@@ -155,7 +159,7 @@ Direction = Callable[[State], np.ndarray]
 CarteZones = Callable[[np.ndarray], np.ndarray]
 
 # Tolerance sur la norme d'une direction : un gradient non normalise doit etre refuse.
-_TOLERANCE_UNITAIRE = 1e-9
+_TOLERANCE_UNITAIRE = TOLERANCE_UNITAIRE
 
 
 def pas_libre_milieux(

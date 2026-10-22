@@ -1,4 +1,9 @@
-"""Archives NPZ v1 : tableaux SI et metadonnees JSON, lisibles sans pickle."""
+"""Archives NPZ v1 : tableaux SI et metadonnees JSON, lisibles sans pickle.
+
+Un scenario a etats (piscine) ajoute un tableau `etats` (P, N) d'entiers. Sans lui,
+un agent sorti ou en franchissement, pose hors de la foule active, serait relu comme
+un disque actif ; sa legende est dans les metadonnees, cle `etats`.
+"""
 
 import json
 from dataclasses import dataclass
@@ -8,16 +13,22 @@ import numpy as np
 
 from viscocrowd.core.verifications import exiger_fini
 
+_CHAMPS = {"version", "t", "x", "v", "rayons", "metadonnees"}
+
 
 @dataclass
 class Trajectoire:
-    """Population fixe : t (P,), x/v (P, N, 2), rayons (N,), en s, m et m/s."""
+    """Population fixe : t (P,), x/v (P, N, 2), rayons (N,), en s, m et m/s.
+
+    `etats` (P, N), facultatif : code entier de l'etat de chaque agent a chaque instant.
+    """
 
     t: np.ndarray
     x: np.ndarray
     v: np.ndarray
     rayons: np.ndarray
     metadonnees: dict
+    etats: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         for nom in ("t", "x", "v", "rayons"):
@@ -34,6 +45,13 @@ class Trajectoire:
         exiger_fini(t=self.t, x=self.x, v=self.v, rayons=self.rayons)
         if np.any(self.rayons <= 0):
             raise ValueError("rayons doit etre strictement positif")
+        if self.etats is not None:
+            etats = np.asarray(self.etats)
+            if etats.dtype.kind not in "iu" or etats.shape != self.x.shape[:2]:
+                raise ValueError("etats doit etre un tableau d'entiers de forme (P, N)")
+            if np.any(etats < 0):
+                raise ValueError("etats doit contenir des codes positifs ou nuls")
+            self.etats = etats.astype(np.int64)
         if not isinstance(self.metadonnees, dict):
             raise ValueError("metadonnees doit etre un objet JSON")
         # Verifie aussi les valeurs non finies et les objets non serialisables.
@@ -47,6 +65,7 @@ def ecrire_trajectoire(chemin: str | Path, donnees: Trajectoire) -> None:
     if chemin.suffix != ".npz":
         raise ValueError("la trajectoire doit porter l'extension .npz")
     contenu = json.dumps(donnees.metadonnees, ensure_ascii=False, sort_keys=True, allow_nan=False)
+    facultatifs = {} if donnees.etats is None else {"etats": donnees.etats}
     chemin.parent.mkdir(parents=True, exist_ok=True)
     # Un fichier ouvert evite que NumPy ajoute silencieusement une extension.
     with chemin.open("xb") as fichier:
@@ -58,13 +77,14 @@ def ecrire_trajectoire(chemin: str | Path, donnees: Trajectoire) -> None:
             v=donnees.v,
             rayons=donnees.rayons,
             metadonnees=np.array(contenu),
+            **facultatifs,
         )
 
 
 def lire_trajectoire(chemin: str | Path) -> Trajectoire:
     """Relit et controle les formes, valeurs finies et version avant les observables."""
     with np.load(chemin, allow_pickle=False) as archive:
-        if set(archive.files) != {"version", "t", "x", "v", "rayons", "metadonnees"}:
+        if set(archive.files) not in (_CHAMPS, _CHAMPS | {"etats"}):
             raise ValueError("champs d'archive NPZ invalides")
         version = archive["version"]
         if version.shape != () or version.dtype.kind not in "iu" or version.item() != 1:
@@ -78,4 +98,5 @@ def lire_trajectoire(chemin: str | Path) -> Trajectoire:
             v=archive["v"],
             rayons=archive["rayons"],
             metadonnees=json.loads(meta.item()),
+            etats=archive["etats"] if "etats" in archive.files else None,
         )

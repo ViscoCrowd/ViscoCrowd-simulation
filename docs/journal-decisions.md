@@ -113,6 +113,60 @@ mesure.
 
 ---
 
+## 2026-10-21 — Simuler l'évacuation complète de la piscine (jalon 4)
+
+**Décision d'implémentation.** `scenarios/piscine.py` enchaîne quatre états par agent :
+EAU → FRANCHISSEMENT → PLAGE → SORTI. Les agents dans l'eau et sur la plage sont actifs : guidage
+de leur côté, pas libre des milieux, projection. Un agent à moins de `portee` du point
+d'attente d'un site **libre** l'occupe et reste immobilisé sur le bord pendant la durée du
+site ; il est réintroduit au point d'arrivée **dès qu'il est libre**, et le site reste
+occupé jusque-là (capacité 1, spec § 2.7). La porte est un **état absorbant**, proposé dans
+l'issue #11 : l'agent qui passe sa ligne est retiré, et son instant de sortie est interpolé.
+Franchissements et sorties sont archivés comme événements dans les métadonnées, et l'état de
+chaque agent à chaque instant dans un tableau `etats` de l'archive, avec sa légende.
+
+**Corrections de la revue de Shaleena (#55).**
+
+- *Cohérence vérifiée à chaque pas.* La première version testait que les quatre effectifs
+  somment à N, ce qui est toujours vrai : `etat` a N éléments. Désormais, chaque site occupé
+  doit l'être par un agent en franchissement, et chaque agent en franchissement doit occuper
+  exactement un site. Un agent EAU doit avoir son centre dans le bassin, un agent PLAGE hors
+  du bassin. Chaque incohérence construite à la main est détectée par un test.
+- *Déplacement mesuré.* Le contrôle de Δt ne portait que sur la vitesse souhaitée, alors que
+  la projection peut déplacer un agent plus vite. Comme dans le couloir, le déplacement
+  réellement mesuré doit rester sous r/5 par pas ; c'est ce qui garantit qu'aucun centre ne
+  franchit le bord du bassin.
+- *Attribution des sites.* Le premier agent par indice prenait le site, même si un autre en
+  était plus proche. Les couples (agent, site) à portée sont maintenant servis du plus proche
+  au plus loin : l'ordre de sortie dépend des positions, pas de la numérotation.
+- *Coins du bassin.* Les points d'attente des premiers sites de deux côtés voisins sont à
+  0,15 m : un agent peut y être à portée de deux sites, mais l'attribution ne lui en donne
+  qu'un. Ce qui doit tenir partout est désormais contrôlé : deux agents immobilisés sur le
+  bord, hors projection, ne se recouvrent pas (sites à 0,437 m au plus près, contre un
+  diamètre de 0,4 m).
+- `temps_evacuation` délègue à `Sorties`, qui refuse une fraction hors de ]0, 1] ; des
+  `durees`, `parametres_milieux` ou `geometrie` donnés en liste lèvent `ValueError`.
+
+**Ce qui n'a pas marché d'abord.** Avec une portée de 0,1 m, 6 agents sur 100 ne sortaient
+jamais : deux agents serrés de part et d'autre d'une échelle se touchaient exactement au point
+d'attente et s'y bloquaient mutuellement, à 0,200 m chacun, sans pouvoir l'atteindre. La
+portée vaut désormais 0,25 m, la demi-largeur d'une échelle. Elle doit rester sous la moitié
+de l'espacement du rebord : le long d'un côté, un agent n'est alors à portée que d'un site.
+
+**Mesures** (`experiments/piscine.yaml`, 100 agents, 5 graines ; refaites après les corrections de revue, inchangées à l'arrondi près, sans déclenchement du contrôle de déplacement). t₅₀ = 34,1 ± 0,8 s,
+t₉₀ = 42,3 ± 0,5 s, t₁₀₀ = 46,8 ± 1,0 s ; 14 agents en moyenne sortent par les échelles ;
+attente maximale sur un site occupé de 1,8 à 5,4 s ; recouvrement ≤ 10⁻⁶ m, parois à
+7·10⁻¹⁶ m, aucune non-convergence ; 5 à 9 s de calcul. Les tests vérifient sur 20 agents que
+les états ne reviennent jamais en arrière, qu'il y a exactement un franchissement par agent,
+d'une durée au moins égale à celle du site, sans chevauchement sur un même site, et qu'un
+agent sorti ne revient pas.
+
+**À étalonner (E0).** Le débit à la porte entre t₁₀ et t₉₀ vaut 3,55 ± 0,25 pers/m/s, au-dessus
+du débit de goulot de la littérature (1,2 à 1,9). Rien ne prouve encore que la porte soit
+saturée : c'est l'objet de l'étalonnage E0, sur un goulot sec alimenté en continu.
+
+---
+
 ## 2026-10-21 — Définir la géométrie commune de la piscine et son guidage jusqu'à la porte (C6)
 
 **Décision (proposée dans #26, à valider par l'équipe).** `geometry/piscine.py` reprend les
@@ -469,6 +523,63 @@ aussi le rejeu à partir des paramètres archivés, la relecture et l'énergie c
 en mémoire. Le format ne constitue ni une reprise de calcul ni un état d'évacuation. Le futur
 scénario piscine et les campagnes devront utiliser cette chaîne. Les bancs de production des
 figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est ajoutée.
+
+---
+
+## 2026-10-21 — Mesurer la densité par cellules de Voronoï (M1) et le biais de la tolérance (#10)
+
+**Décision (proposée dans #19, à confirmer).** La densité suit Steffen & Seyfried (2010) :
+`ρ_V = (1/|M|) Σᵢ |Cᵢ ∩ M| / |Cᵢ|`, et la vitesse `v_V = (1/|M|) Σᵢ |vᵢ| |Cᵢ ∩ M|`.
+Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
+quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;
+le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
+Si Voronoï est refusé, `densite_comptage(x, zone)` (N dans M sur |M|) prend le relais ; il ne
+demande pas de salle, sa signature diffère donc de `densite_voronoi(x, salle, zone)`.
+`mesures_voronoi` rend densité et vitesse d'un même calcul de cellules, pour le diagramme
+fondamental ; une boîte englobante évite de découper les cellules entièrement dans M ou
+entièrement dehors.
+
+**Limite de portée (revue de #53).** La salle doit être un rectangle aligné sur les axes,
+avec tous les agents strictement dedans. Les reflets valent pour tout polygone convexe, mais
+la salle du goulot n'est pas convexe et le couloir est ouvert en aval. Écarter les agents
+sortis du rectangle y créerait un faux mur : les cellules voisines de la coupe seraient trop
+grandes, et la densité sous-estimée. Avant M8, il faudra une zone de mesure loin de toute
+coupe, ou un découpage des cellules par le vrai domaine.
+
+**Validation** (`tests/test_densite.py`). Réseau carré de pas 0,5 m : 4 pers/m² exactement ;
+réseau hexagonal de pas 0,4 m : `2/(√3 a²)` à 10⁻⁹ près ; salle entière : N/|salle|
+exactement ; les cellules pavent la salle. Sur 300 nuages uniformes, Voronoï et comptage
+retrouvent la densité moyenne, Voronoï 1,34 fois moins dispersé ; un agent qui entre dans la
+zone fait sauter le comptage de 1/|M| et la densité de Voronoï de moins de 5 % de ce saut.
+
+**Biais de densité dû à la tolérance (#10), essai exploratoire.** La sensibilité des
+arrangements (#48) motive une comparaison appariée sur huit graines, sans démontrer un
+chaos. Pour 60 agents poussés contre une paroi puis arrêtés, la première exécution
+rapporte une différence moyenne de +0,0146 pers/m² et une erreur standard estimée de
+0,034 entre les tolérances 10⁻⁶ et 10⁻⁹ m. Sur macOS arm64, la revue mesure +0,035154
+et 0,059588 pers/m² : |moyenne| + 2 SE = 0,15433, au-dessus du critère 0,13 du test lent.
+La conclusion initiale de borne à 1,3 % est retirée. Deux erreurs standard sur huit
+graines ne donnent pas un intervalle garanti ; ne pas détecter de différence ne prouve
+pas l'absence d'effet.
+
+**Critère retenu.** La borne de 2 % n'était pas justifiée : avec huit graines, la
+demi-largeur d'un intervalle à 95 % vaut déjà 1,2 à 2,2 % de la densité, selon
+l'exécution. Le test lent vérifie désormais seulement qu'un **test de permutation exact**
+sur les huit différences appariées (les 2⁸ = 256 choix de signes, sans hypothèse de
+normalité) ne détecte pas de différence au seuil de 5 % : p = 0,633 sur x86-64 et 0,539
+pour les mesures de la revue sur macOS. Le test est exact sous l'hypothèse nulle
+d'**échangeabilité** des deux résultats d'une même graine, les graines étant indépendantes :
+chaque différence est alors symétrique autour de zéro. C'est plus que la seule égalité des
+moyennes (c'est l'hypothèse de `scipy.stats.permutation_test`, `permutation_type="samples"`).
+C'est l'absence de détection à cet effectif, pas une borne, et ce diagnostic reste distinct
+du futur critère de biais acceptable sur E0. Borner l'effet demandera plus de graines, sur la géométrie cible (goulot, E0) ;
+l'issue #10 reste ouverte.
+
+La revue corrige séparément les centres confondus ou fusionnés par Qhull : compter deux
+fois une même cellule faussait aussi la vitesse uniforme. Ces entrées et les partitions
+dégénérées sont refusées, toutes par `ValueError`, y compris une cellule non bornée. Une
+direction de mesure n'est unitaire qu'à 10⁻⁹ près, la tolérance du guidage, désormais
+partagée par `core.verifications`. Les 23 tests rapides de densité passent.
 
 ---
 
