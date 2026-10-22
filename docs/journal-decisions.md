@@ -20,7 +20,15 @@ Seyfried et al. (2009, tableau 2, vérifié sur le texte de l'article). Le banc
 goulot de 2,8 m, largeur b de 0,8 à 1,2 m, 60 personnes sur un réseau hexagonal à
 3,3 pers/m² dont le centre est à 3 m de l'entrée, comptage à 0,4 m dans le goulot. La
 dynamique est celle du modèle, sans réglage : disques de 0,2 m, vitesse souhaitée de
-1,34 m/s (Weidmann), τ = 0,5 s. Le débit est mesuré sur les 80 % centraux des passages.
+1,34 m/s (Weidmann), τ = 0,5 s.
+
+**Estimateur (revue de Lenny).** Le débit est calculé **comme dans la publication** (§ 3.1 et
+légende du tableau 2) : J_s = ΔN/(Δt·b), où Δt sépare le premier et le dernier passage à
+0,4 m, et ΔN est le nombre de personnes (colonnes « ΔN = 20, 40, 60 »). L'intervalle ne
+contient que ΔN − 1 écarts : compter ΔN − 1 donnerait 1,7 % de moins pour N = 60, mais on
+suit la publication puisqu'on s'y compare. La première version mesurait les 80 % centraux
+des passages, un autre estimateur : à graine 1, b = 0,8 m, 3,44 contre 3,57 pers/(m·s)
+(revue). Il reste affiché comme diagnostic.
 Commande : `viscocrowd etalonner-goulot experiments/goulot.yaml`.
 
 Chaque simulation est classée dans un régime, et seul un **écoulement** donne un débit.
@@ -51,7 +59,17 @@ mélangerait des régimes différents.
 - *Duplication.* La salle E0 et le couloir partagent `geometry/bande.py` : contrôles
   d'entrée (dont l'instant t, que la salle ne vérifiait pas), projection et violation.
 
-**Piste écartée : le coin vif.** Une première géométrie, union de la salle et du goulot
+**Corrections de la revue de Lenny (#56).**
+
+- *Estimateur.* Le débit comparé est celui de la publication (voir « Estimateur »
+  ci-dessus) ; toutes les mesures ci-dessous sont refaites avec lui.
+- *Bruit initial.* Le bruit est tiré sur x et y : un centre bouge d'au plus √2·bruit, et deux
+  voisins obliques se rapprochent d'au plus 2√2·bruit. L'ancienne borne a − 2·bruit ne
+  valait que pour des voisins alignés sur un axe. Avec la graine 5 et un bruit de 0,09 m,
+  elle laissait 3,3 cm de recouvrement initial, que la projection aurait réparé en silence
+  en modifiant le protocole. La borne est désormais a − 2√2·bruit ≥ 2 r_max. Un test vérifie
+  ce cas, ainsi que l'absence de recouvrement sur 30 graines juste sous la borne.
+- *Portée.* Les conclusions sont limitées à ce que le banc mesure (paragraphe « Portée »). Une première géométrie, union de la salle et du goulot
 réduits d'un rayon, donnait un coin vif à chaque angle d'entrée. La foule s'y bouchait
 toujours (3 graines sur 3) à b = 0,8 et 1,0 m, en arches statiques. Un bruit sur la direction
 (processus d'Ornstein-Uhlenbeck, σ jusqu'à 0,3 rad) ne les cassait pas. Le mur percé est
@@ -59,16 +77,19 @@ désormais fait de deux blocs repoussés exactement, coins arrondis compris, com
 de G2 : **plus aucun bouchage**, sur aucune largeur. Le bouchage venait donc d'un artefact de
 la géométrie et non de la foule ; ce n'était pas un résultat.
 
-**Mesure** (graines 1 à 3, foule symétrique, 216 s ; 15 écoulements sur 15, aucune
+**Mesure** (graines 1 à 3, foule symétrique, 223 s ; 15 écoulements sur 15, aucune
 non-convergence) :
 
 | b (m) | 0,8 | 0,9 | 1,0 | 1,1 | 1,2 |
 | --- | --- | --- | --- | --- | --- |
-| J_s simulé (pers/(m·s)) | 2,82 ± 0,11 | 3,84 ± 0,27 | 4,01 ± 0,58 | 4,29 ± 0,21 | 4,93 ± 0,21 |
+| J_s simulé, estimateur de Seyfried | 2,99 ± 0,10 | 3,94 ± 0,27 | 4,13 ± 0,52 | 4,37 ± 0,19 | 4,96 ± 0,19 |
+| diagnostic : 80 % centraux | 2,82 ± 0,11 | 3,84 ± 0,27 | 4,01 ± 0,58 | 4,29 ± 0,21 | 4,93 ± 0,21 |
 | Seyfried, N = 60 | 1,61 | 1,86 | 1,90 | 1,93 | 1,97 |
 
-Le débit croît avec b comme dans l'expérience, mais il vaut **1,8 à 2,5 fois** la mesure.
-Avec la première foule, asymétrique, on mesurait 3,33 à 4,51 : changer seulement la
+Le débit croît avec b comme dans l'expérience, mais il vaut **1,9 à 2,5 fois** la mesure.
+L'estimateur central sous-estimait le débit de Seyfried de 0,03 à 0,17 pers/(m·s) selon b :
+l'écart n'est pas constant, d'où l'importance d'employer le même estimateur. Avec la première
+foule, asymétrique, l'estimateur central donnait 3,33 à 4,51 : changer seulement la
 disposition initiale déplace ces moyennes de trois graines de 15 % au plus. Trois graines
 ne suffisent donc pas à une conclusion fine ; les campagnes en demanderont au moins 10
 (spec § 4).
@@ -81,10 +102,14 @@ deux fois plus grands. Agrandir le rayon a une portée limitée : à 3,3 pers/m�
 initial interdit r > 0,27 m. Baisser la vitesse souhaitée fausserait la marche libre
 (1,34 m/s, Weidmann).
 
-**Conséquence pour la suite.** Les temps d'évacuation absolus de la piscine seraient trop
-courts d'un facteur proche de 2. Les comparaisons relatives (sec / mouillé, L, a_max)
-restent interprétables, mais le choix d'un réglage relève du groupe. Il est proposé dans
-une issue dédiée, avec des mesures ; ce banc ne règle rien, il mesure.
+**Portée de la conclusion (revue de Lenny).** E0 révèle un écart de débit sur ce banc, et
+seulement sur ce banc. Il n'établit ni un biais des temps d'évacuation de la piscine, que
+peuvent dominer la marche dans l'eau, la durée et la capacité des franchissements ou une
+porte alimentée par intermittence, ni la robustesse des effets relatifs entre
+configurations (sec / mouillé, L, a_max), qu'un changement de dynamique peut aussi
+modifier. L'un et l'autre restent à mesurer sur le scénario cible. Le choix d'un réglage
+relève du groupe ; il est proposé dans #57, avec des mesures. Ce banc ne règle rien, il
+mesure.
 
 ---
 

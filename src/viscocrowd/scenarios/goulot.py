@@ -98,10 +98,14 @@ class ParametresGoulot:
             raise ValueError("dt trop grand : dt <= tau et deplacement par pas <= rayon/5")
         if self.pas_guidage > rayon_min:
             raise ValueError("pas_guidage doit etre inferieur ou egal au plus petit rayon")
+        # Le bruit est tire sur x ET y : un centre bouge d'au plus sqrt(2) * bruit, et deux
+        # voisins du reseau (pas a, dans n'importe quelle direction) se rapprochent d'au plus
+        # 2 sqrt(2) bruit. Une borne a - 2 bruit ne valait que pour des voisins alignes sur
+        # un axe : graine 5 et bruit 0,09 donnaient 3,3 cm de recouvrement initial (revue).
         a = self.pas_reseau
-        if a - 2 * self.bruit < 2 * self.rayon_max:
+        if a - 2 * np.sqrt(2) * self.bruit < 2 * self.rayon_max:
             raise ValueError(
-                "densite initiale trop forte pour ce rayon : les disques se recouvrent"
+                "densite initiale ou bruit trop forts pour ce rayon : les disques se recouvrent"
             )
         _reseau_attente(self)  # controle la place disponible dans la salle
 
@@ -180,7 +184,8 @@ class ResultatGoulot:
     x: np.ndarray
     rayons: np.ndarray
     passages: np.ndarray  # (N,) instant de passage de la ligne de mesure, NaN sinon
-    debit_specifique: float  # pers/(m.s), fenetre centrale de 80 % des passages
+    debit_specifique: float  # pers/(m.s), convention de Seyfried : premier au dernier passage
+    debit_central: float  # pers/(m.s), fenetre centrale de 80 %, diagnostic seulement
     projection: ProjectionExclusion
     parametres: ParametresGoulot
 
@@ -195,7 +200,8 @@ class ResultatGoulot:
         - "non_convergence" : la projection a manque sa tolerance au moins une fois ; la
           trajectoire n'est pas exploitable, quel que soit son debit ;
         - "bouchage" : tous les agents n'ont pas passe la ligne en `duree` ;
-        - "insuffisant" : tous ont passe, mais trop peu de passages pour un debit ;
+        - "insuffisant" : tous ont passe, mais trop peu de passages pour un debit
+          (moins de deux, ou tous au meme instant) ;
         - "ecoulement" : debit exploitable.
         """
         if self.projection.non_convergences:
@@ -298,16 +304,41 @@ def simuler_goulot(p: ParametresGoulot, champ: ChampEikonal | None = None) -> Re
         if sens > 0 and np.isnan(passages[agent]):
             passages[agent] = instant
     return ResultatGoulot(
-        t, trajectoire, r, passages, debit_central(passages, g.largeur_goulot), projection, p
+        t,
+        trajectoire,
+        r,
+        passages,
+        debit_seyfried(passages, g.largeur_goulot),
+        debit_central(passages, g.largeur_goulot),
+        projection,
+        p,
     )
 
 
+def debit_seyfried(passages: np.ndarray, largeur: float) -> float:
+    """Debit specifique J_s = DeltaN / (Delta t b), en pers/(m.s), comme Seyfried et al.
+
+    Meme estimateur que le tableau 2 de la publication (section 3.1 et legende) :
+    Delta t separe le passage du PREMIER et du DERNIER agent a la ligne de mesure, et
+    DeltaN est le nombre de personnes (les colonnes du tableau sont « DeltaN = 20, 40,
+    60 »). Cet intervalle ne contient que DeltaN - 1 ecarts : compter DeltaN - 1 donnerait
+    un debit plus faible d'un facteur (N - 1) / N, soit 1,7 % pour N = 60. On suit la
+    publication, puisque c'est a elle qu'on se compare. NaN si moins de deux passages.
+    """
+    instants = passages[np.isfinite(passages)]
+    if instants.size < 2 or np.ptp(instants) <= 0.0:
+        return float("nan")
+    return float(instants.size / np.ptp(instants) / largeur)
+
+
 def debit_central(passages: np.ndarray, largeur: float, fraction: float = 0.8) -> float:
-    """Debit specifique (pers/(m.s)) sur la fenetre centrale des passages.
+    """Debit specifique (pers/(m.s)) sur la fenetre centrale des passages : un DIAGNOSTIC.
 
     Les premiers et derniers passages, avant que la file ne se forme et quand elle se
     vide, ne sont pas stationnaires. On garde les passages entre les quantiles
-    (1 - fraction)/2 et (1 + fraction)/2, comme une fenetre stationnaire simple.
+    (1 - fraction)/2 et (1 + fraction)/2. Ce n'est PAS l'estimateur de Seyfried et al. :
+    la comparaison E0 utilise `debit_seyfried`. Les deux different des que la cadence
+    des passages n'est pas uniforme.
     """
     instants = np.sort(passages[np.isfinite(passages)])
     if instants.size < 3:
@@ -336,11 +367,16 @@ def reference_seyfried(n_agents: int, largeur: float) -> float | None:
 
 @dataclass(frozen=True)
 class Mesure:
-    """Une simulation de la campagne : sa graine, son regime et son debit (NaN si inexploitable)."""
+    """Une simulation de la campagne : graine, regime et debits (NaN si inexploitable).
+
+    `debit` suit la convention de Seyfried (premier au dernier passage) et sert a la
+    comparaison ; `debit_central` (80 % centraux) n'est qu'un diagnostic.
+    """
 
     graine: int
     statut: str
     debit: float
+    debit_central: float
 
 
 def parametres_goulot(config: dict, **changements) -> ParametresGoulot:
@@ -373,7 +409,14 @@ def etalonner(config: dict, largeurs, graines) -> dict[float, list[Mesure]]:
         for graine in graines:
             p = parametres_goulot(config | {"graine": graine}, largeur_goulot=b)
             r = simuler_goulot(p, champ)
-            debit = r.debit_specifique if r.statut == "ecoulement" else float("nan")
-            mesures.append(Mesure(graine, r.statut, debit))
+            exploitable = r.statut == "ecoulement"
+            mesures.append(
+                Mesure(
+                    graine,
+                    r.statut,
+                    r.debit_specifique if exploitable else float("nan"),
+                    r.debit_central if exploitable else float("nan"),
+                )
+            )
         resultats[b] = mesures
     return resultats

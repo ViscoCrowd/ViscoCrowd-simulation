@@ -17,6 +17,7 @@ from viscocrowd.scenarios.goulot import (
     ResultatGoulot,
     champ_goulot,
     debit_central,
+    debit_seyfried,
     etalonner,
     reference_seyfried,
     simuler_goulot,
@@ -30,7 +31,8 @@ R = 0.2
 
 def parametres(**changements):
     config = lire_configuration(EXEMPLE)
-    return ParametresGoulot(**(config["parametres"] | changements), graine=config["graine"])
+    graine = changements.pop("graine", config["graine"])
+    return ParametresGoulot(**(config["parametres"] | changements), graine=graine)
 
 
 class TestSalleGoulot:
@@ -230,7 +232,8 @@ class TestStatut:
             x=np.zeros((1, passages.size, 2)),
             rayons=np.full(passages.size, 0.2),
             passages=passages,
-            debit_specifique=debit_central(passages, 1.0),
+            debit_specifique=debit_seyfried(passages, 1.0),
+            debit_central=debit_central(passages, 1.0),
             projection=projection,
             parametres=None,
         )
@@ -238,7 +241,8 @@ class TestStatut:
     def test_regimes(self):
         assert self.resultat(np.arange(10) * 0.5).statut == "ecoulement"
         assert self.resultat([*range(9), np.nan]).statut == "bouchage"
-        assert self.resultat([1.0, 2.0]).statut == "insuffisant"  # tous passes, trop peu
+        assert self.resultat([1.0]).statut == "insuffisant"  # tous passes, un seul passage
+        assert self.resultat([2.0, 2.0]).statut == "insuffisant"  # aucun intervalle
         assert self.resultat(np.arange(10) * 0.5, 1).statut == "non_convergence"
         assert set(STATUTS) == {"ecoulement", "bouchage", "insuffisant", "non_convergence"}
 
@@ -276,3 +280,42 @@ def test_petit_agent_contre_un_mur_a_une_direction():
     )
     e = champ_goulot(p)(etat)
     assert np.all(np.isfinite(e)) and np.all(np.hypot(*e.T) > 0.99)
+
+
+class TestEstimateurSeyfried:
+    """La comparaison E0 utilise l'estimateur du tableau 2 de Seyfried et al. (2009)."""
+
+    def test_premier_au_dernier_passage_et_delta_n_egal_a_n(self):
+        """Delta N = N (colonnes du tableau 2), Delta t du premier au dernier passage."""
+        passages = np.arange(20) * 0.5  # 20 personnes, 19 intervalles de 0,5 s
+        assert debit_seyfried(passages, 1.0) == pytest.approx(20 / 9.5)
+        assert debit_seyfried(passages, 0.8) == pytest.approx(20 / 9.5 / 0.8)
+
+    def test_differe_du_debit_central_quand_la_cadence_varie(self):
+        """Dix passages reguliers puis un retardataire : les deux mesures divergent."""
+        passages = np.append(np.arange(10) * 0.5, 20.0)
+        assert debit_seyfried(passages, 1.0) == pytest.approx(11 / 20.0)
+        assert debit_central(passages, 1.0) == pytest.approx(8 / 4.0)
+
+    def test_trop_peu_de_passages(self):
+        assert np.isnan(debit_seyfried(np.array([1.0, np.nan]), 1.0))
+        assert np.isnan(debit_seyfried(np.array([2.0, 2.0]), 1.0))
+
+
+class TestBruitInitial:
+    """Le bruit est tire en 2D : la borne doit valoir pour des voisins obliques."""
+
+    def test_cas_de_la_revue_refuse(self):
+        """Graine 5, bruit 0,09 m : 3,3 cm de recouvrement initial avec l'ancienne borne."""
+        with pytest.raises(ValueError, match="recouvrent"):
+            parametres(bruit=0.09, graine=5)
+
+    def test_bruit_admis_jamais_de_recouvrement(self):
+        p = parametres()
+        limite = (p.pas_reseau - 2 * p.rayon_max) / (2 * np.sqrt(2))
+        for graine in range(30):
+            q = parametres(bruit=float(round(limite - 1e-3, 6)), graine=graine)
+            x, r, _ = tirages_initiaux(q)
+            i, j = np.triu_indices(x.shape[0], 1)
+            jeu = np.linalg.norm(x[i] - x[j], axis=1) - r[i] - r[j]
+            assert np.min(jeu) >= 0.0, f"graine {graine}"

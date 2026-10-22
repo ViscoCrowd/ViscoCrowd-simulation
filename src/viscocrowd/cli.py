@@ -244,6 +244,15 @@ def construire_analyseur() -> argparse.ArgumentParser:
     return analyseur
 
 
+def _moyenne_ecart(valeurs: list[float]) -> str:
+    """« moyenne ± ecart-type » sur les valeurs finies, ou « - » s'il n'y en a aucune."""
+    valeurs = np.array([v for v in valeurs if np.isfinite(v)])
+    if valeurs.size == 0:
+        return "-"
+    ecart = np.std(valeurs, ddof=1) if valeurs.size > 1 else 0.0
+    return f"{np.mean(valeurs):.2f} ± {ecart:.2f}"
+
+
 def commande_etalonner_goulot(args: argparse.Namespace) -> int:
     """Tableau du debit specifique simule face aux mesures de Seyfried et al. (2009)."""
     from viscocrowd.io.configuration import lire_configuration
@@ -262,22 +271,20 @@ def commande_etalonner_goulot(args: argparse.Namespace) -> int:
     n_agents = configuration["parametres"]["n_agents"]
     print(f"E0, goulot sec — {n_agents} agents, graines {graines}")
     print("Regimes par largeur : e ecoulement, b bouchage, i insuffisant, n non convergence.")
+    print("J_s comme Seyfried (premier au dernier passage) ; 80 % centraux : diagnostic.")
     print(
         f"{'b (m)':>6} {'e/b/i/n':>9} {'J_s simule (pers/(m.s))':>24} "
-        f"{f'Seyfried N={n_agents}':>15}"
+        f"{'80 % centraux':>14} {f'Seyfried N={n_agents}':>15}"
     )
     for b, mesures in resultats.items():
         regimes = "/".join(str(sum(m.statut == s for m in mesures)) for s in STATUTS)
-        debits = np.array([m.debit for m in mesures if m.statut == "ecoulement"])
-        if debits.size:
-            ecart = np.std(debits, ddof=1) if debits.size > 1 else 0.0
-            simule = f"{np.mean(debits):.2f} ± {ecart:.2f}"
-        else:
-            simule = "-"
+        ecoulements = [m for m in mesures if m.statut == "ecoulement"]
+        simule = _moyenne_ecart([m.debit for m in ecoulements])
+        central = _moyenne_ecart([m.debit_central for m in ecoulements])
         # Seyfried n'a mesure que N = 20, 40 et 60 : pas de reference pour un autre N.
         reference = reference_seyfried(n_agents, b)
         reference = f"{reference:.2f}" if reference is not None else "-"
-        print(f"{b:>6.2f} {regimes:>9} {simule:>24} {reference:>15}")
+        print(f"{b:>6.2f} {regimes:>9} {simule:>24} {central:>14} {reference:>15}")
     print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
     return 0
 
