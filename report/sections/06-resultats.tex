@@ -3,8 +3,63 @@
 % Les reponses a la question posee en introduction.
 
 \subsection{Diagramme fondamental de reference}
+\label{sec:e0}
 
-% Campagne E0 : goulot sec seul.
+Avant d'interpréter une évacuation, on compare le modèle à une mesure connue, en
+sol sec seul : le débit spécifique $J_s=\Delta N/(\Delta t\,b)$ d'un goulot de
+largeur $b$, mesuré par Seyfried et al.~\cite{seyfried2009}. Le banc reprend leur protocole :
+goulot de \SI{2.8}{\metre} de long, $b$ de 0,8 à \SI{1.2}{\metre}, 60 personnes
+réparties à \num{3.3} personnes par mètre carré dans une zone d'attente dont le
+centre est à \SI{3}{\metre} de l'entrée, comptage à \SI{0.4}{\metre} dans le goulot.
+La dynamique est celle du modèle, sans réglage : disques de rayon \SI{0.2}{\metre},
+vitesse souhaitée de \SI{1.34}{\metre\per\second}~\cite{weidmann1993},
+$\tau=\SI{0.5}{\second}$. Le débit est calculé comme dans la publication :
+$\Delta N$ est le nombre de personnes et $\Delta t$ sépare le premier et le dernier
+passage à la ligne de mesure. Un débit sur les \SI{80}{\percent} centraux des
+passages, hors mise en place et vidange de la file, n'est conservé que comme
+diagnostic : les deux mesures diffèrent dès que la cadence des passages varie.
+
+\begin{table}[ht]
+\centering
+\caption{Débit spécifique du goulot, en personnes par mètre et par seconde.
+Estimateur de la publication, du premier au dernier passage. Moyenne et
+écart-type sur trois graines ; les 15 simulations sont des écoulements, sans
+bouchage ni projection non convergée.
+Reproduction : \texttt{viscocrowd etalonner-goulot experiments/goulot.yaml}.}
+\label{tab:e0}
+\begin{tabular}{lrrrrr}
+\toprule
+$b$ (m) & 0,8 & 0,9 & 1,0 & 1,1 & 1,2 \\
+\midrule
+Modèle & 2,99 (0,10) & 3,94 (0,27) & 4,13 (0,52) & 4,37 (0,19) & 4,96 (0,19) \\
+Seyfried et al.~\cite{seyfried2009}, $N=60$ & 1,61 & 1,86 & 1,90 & 1,93 & 1,97 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le débit croît avec $b$, comme dans l'expérience, mais il vaut 1,9 à 2,5 fois
+la mesure (tableau~\ref{tab:e0}). Ces moyennes de trois graines restent
+sensibles à l'état initial : une première foule, non symétrique par rapport à
+l'axe du goulot, les déplaçait jusqu'à \SI{15}{\percent}. Les campagnes
+utiliseront au moins dix graines. L'écart tient au modèle : un agent marche à sa
+vitesse souhaitée jusqu'au contact, que seule la projection arrête, et rien ne le
+fait ralentir derrière celui qui le précède. Au contact et à
+\SI{1.34}{\metre\per\second}, deux disques successifs ne sont séparés que de
+$0{,}4/1{,}34\approx\SI{0.3}{\second}$ ; le débit mesuré implique des écarts
+environ deux fois plus grands. Agrandir le rayon a une portée limitée, puisque
+la densité initiale interdit $r>\SI{0.27}{\metre}$, et baisser la vitesse
+souhaitée fausserait la marche libre. E0 révèle donc un écart de débit sur ce
+banc, et seulement sur ce banc. Il n'établit ni un biais des temps d'évacuation de
+la piscine, que peuvent dominer la marche dans l'eau, la durée et la capacité des
+franchissements ou une porte alimentée par intermittence, ni la robustesse des
+effets relatifs entre configurations : l'un et l'autre restent à mesurer sur le
+scénario cible.
+
+Une première géométrie raccordait la salle et le goulot par un coin vif. Les
+foules s'y bouchaient en arches statiques à $b\leq\SI{1}{\metre}$, et un bruit
+sur la direction ne les cassait pas. Avec des angles d'entrée arrondis,
+calculés exactement par la projection, aucun bouchage n'apparaît : ce blocage
+était un artefact de la géométrie, non un comportement de la foule.
 
 \subsection{Effet de l'extraction repartie}
 
