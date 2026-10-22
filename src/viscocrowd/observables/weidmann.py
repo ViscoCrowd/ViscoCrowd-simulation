@@ -11,23 +11,38 @@ et le debit specifique s'en deduit par J = rho * v.
 Lecture : a faible densite, chacun marche a sa vitesse libre v0, mais il passe
 peu de monde. Plus la foule est dense, plus il passe de monde... jusqu'a ce que
 la gene ralentisse tout le monde. A rho_max, plus personne n'avance. Le debit
-trace en fonction de la densite forme donc une colline, de sommet environ
-1,22 pers/m/s vers 1,75 pers/m^2.
+trace en fonction de la densite forme donc une colline, de sommet 1,225 pers/m/s
+vers 1,75 pers/m^2, ou l'on marche a 0,70 m/s.
 
-Source
-------
+Source, verifiee sur l'original (issue #12)
+------------------------------------------
 
-Weidmann, U. (1993), *Transporttechnik der Fussgaenger*, 2e edition, IVT,
-ETH Zurich, section 4.31.1, p. 62 : v0 = 1,34 m/s, gamma = 1,913 pers/m^2,
-rho_max = 5,4 pers/m^2. Reference localisee a la page pres en relecture de la
-PR #9 ; le scan diffuse n'a pas de couche texte, donc a recopier depuis la
-source lors de la redaction de la bibliographie.
+Weidmann, U. (1993), *Transporttechnik der Fussgaenger. Transporttechnische
+Eigenschaften des Fussgaengerverkehrs (Literaturauswertung)*, 2e edition
+completee, Schriftenreihe des IVT Nr. 90, ETH Zurich, mars 1993.
+
+  - Section 4.31.1, p. 62, eq. (15) : fonction de Kladek, reprise par Weidmann,
+    v = v_F,hf [1 - exp(-gamma (1/D - 1/D_max))], exactement la forme codee ici ;
+    eq. (16) : v_F,hf = 1,34 m/s, D_max = 5,4 P/m^2, gamma = 1,913 P/m^2.
+  - p. 63 (fig. 59) et p. 64 : debit maximal 1,225 P/(s m), « etwa 1,23 », a
+    D = 1,75 P/m^2 et v = 0,70 m/s.
+  - p. 43 : v0 = 1,34 m/s est la moyenne de 52 valeurs de la litterature,
+    etendue de 0,97 a 1,65 m/s, la plupart (28) entre 1,25 et 1,45 m/s.
+  - p. 53 : vitesses distribuees normalement, ecart-type 0,26 m/s, soit 19,3 %
+    de la moyenne (moyenne de 17 estimations d'ecart-type, 12 sources). Cette
+    dispersion ne mesure pas l'incertitude sur les 52 moyennes de la p. 43 et
+    ne fixe pas un seuil de validation du modele. La comparaison exige un
+    protocole, des effectifs et des incertitudes compatibles.
 
 CE QUE CETTE COURBE VALIDE, ET CE QU'ELLE NE VALIDE PAS
 -------------------------------------------------------
 
-La section citee traite de la **marche unidirectionnelle en terrain plat**, en
-conditions normales (p. 64). C'est donc une reference pour la partie PIETONNE
+La section citee traite de la **marche unidirectionnelle en terrain plat**
+(« Richtungsverkehr », « in der Ebene »), et ses relations valent « unter
+Normalbedingungen, in welchen die Fussgaenger keinem aeusseren Zwang
+unterliegen » (p. 64) : sans contrainte exterieure. La meme page rapporte des
+debits bien plus eleves quand on presse les sujets (2,25 puis 3,1 P/(s m),
+jusqu'a 4,33). C'est donc une reference pour la partie PIETONNE
 de notre modele — le carrelage mouille, le goulot, la zone sous l'echelle — et
 pour elle seulement.
 

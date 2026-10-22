@@ -111,6 +111,10 @@ l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19) et 
 
 | Question | Réponse consignée | Conséquence tant que la réponse manque |
 |---|---|---|
-| SciPy pour Voronoï | Aucune réponse explicite disponible | SciPy est déjà une dépendance ; cela ne prouve pas l'accord pédagogique. Confirmer cet usage avant de développer la densité Voronoï ; en cas de refus, revoir la méthode et son calendrier avant les campagnes. |
+| SciPy pour Voronoï | Hamza rapporte un accord sur SciPy le 21 octobre ; réponse spécifique sur Voronoï inconnue | Consigner date et canal de l'accord rapporté. La PR #53 propose une observable et un repli par comptage ; son acceptation pédagogique et sa validation restent distinctes. Confirmer l'usage Voronoï avant les campagnes ; en cas de refus, adopter le repli et ajuster le protocole. |
 | Dimensionnement du sujet | Acceptation générale rapportée, détail de la réponse absent | Présenter le périmètre principal sans le module de chutes et confirmer qu'il est tenable. |
 | Extension aux chutes et au relevage | Addendum encore « à valider par le groupe » | Extension non programmée ; accord du groupe et avis de l'enseignant requis avant toute intégration au planning. |
+
+Le [compte rendu du 21 octobre dans #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19#issuecomment-6315308420)
+est la source de cette mise à jour. Il ne donne ni date ni canal de l'échange avec
+l'enseignant ; l'issue reste ouverte pour ces éléments et les réponses restantes.
