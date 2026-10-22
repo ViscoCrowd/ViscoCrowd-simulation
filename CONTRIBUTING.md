@@ -251,7 +251,18 @@ Trois niveaux :
 |---|---|---|
 | *(aucune)* | unitaire — une fonction, un comportement | ✅ |
 | `invariant` | propriété physique vraie à chaque pas de temps | ✅ |
-| `slow` | scénario complet, campagne de simulation | ❌ (manuel) |
+| `slow` | scénario complet, campagne de simulation | Après intégration sur `dev`, Linux/macOS ; aussi hebdomadaire et manuel après publication du workflow sur `main` |
+
+La CI rapide porte sur **toutes les PR**, y compris celles empilées sur une branche
+`feat/*`. Les tests lents s'exécutent à chaque push sur `dev`, sans ralentir chaque
+relecture. Le workflow `tests-lents.yml` conserve les résultats JUnit et les versions
+pendant 30 jours. Un échec doit être corrigé avant de publier un jalon ; il ne faut
+pas relever un seuil pour le faire disparaître.
+
+Après présence de ce workflow sur `main`, GitHub active aussi le lancement manuel
+(`gh workflow run tests-lents.yml --ref dev`) et le lundi à 05:23 UTC sur `dev`.
+Avant cette publication, le déclenchement par push reste actif. La planification
+GitHub peut être retardée ; elle ne remplace pas la vérification avant livraison.
 
 **Les invariants sont la garde rapprochée du projet.** Non-interpénétration, non-sortie du
 domaine, conservation du nombre d'agents, décroissance de l'énergie en domaine fixe : ils
