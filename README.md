@@ -189,7 +189,24 @@ les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facte
 Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
-le banc `couloir` ; la maquette piscine reste disponible séparément via `interface`.
+les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
+
+Pour relire une évacuation réelle, avec les états et les occupations des sites :
+
+```bash
+viscocrowd simuler experiments/piscine.yaml --sortie data/piscine.npz
+viscocrowd rejouer data/piscine.npz
+viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
+viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
+```
+
+Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
+Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
+fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
+interpoler des états entre deux images. Le fond représente la carte des milieux réelle.
+Les positions, les dimensions et les états viennent de l'archive ; aucune simulation
+n'est relancée. Le réglage physique reste à valider : cette vue ne remplace pas E0.
+Voir [le contrat de relecture piscine](docs/relecture-piscine.md).
 
 Pour séparer les effets du sol mouillé, `viscocrowd comparer-mouille experiments/couloir.yaml`
 reprend **un seul paramètre du mouillé à la fois** (vitesse, relaxation, adhérence), sur la même
@@ -373,7 +390,7 @@ src/viscocrowd/
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
-├── ui/            aperçu piscine et relecture hors ligne des archives de couloir
+├── ui/            aperçu piscine et relecture hors ligne couloir/piscine
 └── cli.py
 
 tests/             unitaires · invariants physiques (tournent à chaque PR)
