@@ -206,10 +206,12 @@ est refusée avant le tableau ou la figure ; aucun agent ni aucune graine n'est
 Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
 experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
 b = 0,8 à 1,2 m sur trois graines, et affiche le débit spécifique simulé à côté du débit
-mesuré pour le même nombre de personnes (environ 4 min de calcul). Chaque simulation est
-classée : écoulement, bouchage, débit insuffisant ou projection non convergée. Seuls les
-écoulements entrent dans la moyenne. `--largeurs` et `--graines` restreignent ou étendent
-la campagne ; les doublons sont refusés.
+mesuré pour le même nombre de personnes. Chaque simulation est classée : écoulement,
+bouchage, débit insuffisant ou projection non convergée. Seuls les écoulements entrent dans
+la moyenne. `--largeurs` et `--graines` restreignent ou étendent la campagne ; les doublons
+sont refusés. La configuration active la relation vitesse–espacement proposée
+(`temps_espacement: 0.35`, environ 1 min de calcul) ; `temps_espacement: null` rend le
+modèle sans réglage (environ 4 min).
 
 Le [guide du banc](docs/couloir.md) donne les mesures de référence et la commande pour
 les recalculer depuis l'archive. La méthode et la convergence sont rédigées dans les

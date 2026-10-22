@@ -8,7 +8,8 @@ l'entree du goulot. Mesures : J_s de 1,61 a 2,31 pers/(m.s) selon b et N.
 
 Ce banc reproduit ce protocole pour comparer notre modele a une mesure connue, en
 sol sec seul, avant toute campagne piscine (spec § 4, E0). Il n'ajuste rien : il
-mesure. Le choix d'un eventuel reglage (rayon, vitesse) releve du groupe.
+mesure. Le seul reglage, le temps d'espacement de `model.espacement`, vient de la
+configuration ; sa valeur est une proposition soumise au groupe.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ import numpy as np
 from viscocrowd.core.integrator import pas_semi_implicite
 from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
+from viscocrowd.core.verifications import exiger_scalaire_fini
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.geometry.salle import SalleGoulot
 from viscocrowd.model.eikonal import ChampEikonal, GrilleReguliere
@@ -52,6 +54,9 @@ class ParametresGoulot:
     tolerance: float
     pas_guidage: float
     graine: int
+    # s, T de model.espacement. Facultatif : une configuration sans cette cle garde le
+    # modele sans reglage, comme avant la proposition E0.
+    temps_espacement: float | None = None
 
     def __post_init__(self) -> None:
         if type(self.n_agents) is not int or self.n_agents < 2:
@@ -84,6 +89,13 @@ class ParametresGoulot:
             peut_etre_nul = nom in ("bruit", "dispersion_rayon", "bruit_direction")
             if valeur < 0 or (not peut_etre_nul and valeur == 0):
                 raise ValueError(f"{nom} hors domaine")
+        if self.temps_espacement is not None:
+            # Une chaine YAML comme "0.3" ferait echouer np.isfinite par TypeError.
+            if type(self.temps_espacement) not in (int, float):
+                raise ValueError("temps_espacement doit etre null ou un nombre reel")
+            exiger_scalaire_fini(
+                "temps_espacement", self.temps_espacement, strictement_positif=True
+            )
         if self.dispersion_rayon >= 1.0:
             raise ValueError("dispersion_rayon doit etre inferieure a 1")
         sec = self.sec if isinstance(self.sec, ParametresMilieu) else ParametresMilieu(**self.sec)
@@ -270,7 +282,12 @@ def simuler_goulot(p: ParametresGoulot, champ: ChampEikonal | None = None) -> Re
         return np.full(points.shape[0], Milieu.SEC, dtype=np.int64)
 
     libre_pas = pas_libre_milieux(
-        direction, partout, {Milieu.SEC: p.sec}, facteur_vitesse=p.facteur_vitesse
+        direction,
+        partout,
+        {Milieu.SEC: p.sec},
+        facteur_vitesse=p.facteur_vitesse,
+        temps_espacement=p.temps_espacement,
+        avancement=champ.temps,
     )
     # Mode permissif : une non-convergence ne doit pas faire perdre toute une campagne.
     # Elle est comptee, et la simulation classee "non_convergence", inexploitable.
