@@ -147,14 +147,15 @@ def test_archive_avec_evenements(tmp_path):
 def test_evacuation_de_reference():
     """100 agents (experiments/piscine.yaml) : tous sortent, sans non-convergence.
 
-    La foule etant chaotique (PR #48), on ne fige pas l'instant exact, qui depend
-    des arrondis : seules ses bornes physiques sont testees. Mesures sur cinq
-    graines dans le journal du 21 octobre 2026.
+    La foule etant sensible aux perturbations initiales et aux arrondis (PR #48), on
+    ne fige pas l'instant exact : seules ses bornes physiques sont testees. Mesures
+    sur cinq graines dans le journal du 21 octobre 2026.
     """
     r = simuler_piscine(parametres())
     assert np.all(np.isfinite(r.sorties))
     assert r.projection.non_convergences == 0
-    # Borne basse : nager, franchir et marcher sans attendre ; borne haute : file a la porte.
+    # Borne basse : marcher dans le petit bain, franchir et marcher sans attendre ;
+    # borne haute : file a la porte.
     assert 30.0 < r.temps_evacuation() < 90.0  # mesure : 45,6 s
 
 
