@@ -11,6 +11,60 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-21 — Simuler l'évacuation complète de la piscine (jalon 4)
+
+**Décision d'implémentation.** `scenarios/piscine.py` enchaîne quatre états par agent :
+EAU → FRANCHISSEMENT → PLAGE → SORTI. Les agents dans l'eau et sur la plage sont actifs : guidage
+de leur côté, pas libre des milieux, projection. Un agent à moins de `portee` du point
+d'attente d'un site **libre** l'occupe et reste immobilisé sur le bord pendant la durée du
+site ; il est réintroduit au point d'arrivée **dès qu'il est libre**, et le site reste
+occupé jusque-là (capacité 1, spec § 2.7). La porte est un **état absorbant**, proposé dans
+l'issue #11 : l'agent qui passe sa ligne est retiré, et son instant de sortie est interpolé.
+Franchissements et sorties sont archivés comme événements dans les métadonnées, et l'état de
+chaque agent à chaque instant dans un tableau `etats` de l'archive, avec sa légende.
+
+**Corrections de la revue de Shaleena (#55).**
+
+- *Cohérence vérifiée à chaque pas.* La première version testait que les quatre effectifs
+  somment à N, ce qui est toujours vrai : `etat` a N éléments. Désormais, chaque site occupé
+  doit l'être par un agent en franchissement, et chaque agent en franchissement doit occuper
+  exactement un site. Un agent EAU doit avoir son centre dans le bassin, un agent PLAGE hors
+  du bassin. Chaque incohérence construite à la main est détectée par un test.
+- *Déplacement mesuré.* Le contrôle de Δt ne portait que sur la vitesse souhaitée, alors que
+  la projection peut déplacer un agent plus vite. Comme dans le couloir, le déplacement
+  réellement mesuré doit rester sous r/5 par pas ; c'est ce qui garantit qu'aucun centre ne
+  franchit le bord du bassin.
+- *Attribution des sites.* Le premier agent par indice prenait le site, même si un autre en
+  était plus proche. Les couples (agent, site) à portée sont maintenant servis du plus proche
+  au plus loin : l'ordre de sortie dépend des positions, pas de la numérotation.
+- *Coins du bassin.* Les points d'attente des premiers sites de deux côtés voisins sont à
+  0,15 m : un agent peut y être à portée de deux sites, mais l'attribution ne lui en donne
+  qu'un. Ce qui doit tenir partout est désormais contrôlé : deux agents immobilisés sur le
+  bord, hors projection, ne se recouvrent pas (sites à 0,437 m au plus près, contre un
+  diamètre de 0,4 m).
+- `temps_evacuation` délègue à `Sorties`, qui refuse une fraction hors de ]0, 1] ; des
+  `durees`, `parametres_milieux` ou `geometrie` donnés en liste lèvent `ValueError`.
+
+**Ce qui n'a pas marché d'abord.** Avec une portée de 0,1 m, 6 agents sur 100 ne sortaient
+jamais : deux agents serrés de part et d'autre d'une échelle se touchaient exactement au point
+d'attente et s'y bloquaient mutuellement, à 0,200 m chacun, sans pouvoir l'atteindre. La
+portée vaut désormais 0,25 m, la demi-largeur d'une échelle. Elle doit rester sous la moitié
+de l'espacement du rebord : le long d'un côté, un agent n'est alors à portée que d'un site.
+
+**Mesures** (`experiments/piscine.yaml`, 100 agents, 5 graines ; refaites après les corrections de revue, inchangées à l'arrondi près, sans déclenchement du contrôle de déplacement). t₅₀ = 34,1 ± 0,8 s,
+t₉₀ = 42,3 ± 0,5 s, t₁₀₀ = 46,8 ± 1,0 s ; 14 agents en moyenne sortent par les échelles ;
+attente maximale sur un site occupé de 1,8 à 5,4 s ; recouvrement ≤ 10⁻⁶ m, parois à
+7·10⁻¹⁶ m, aucune non-convergence ; 5 à 9 s de calcul. Les tests vérifient sur 20 agents que
+les états ne reviennent jamais en arrière, qu'il y a exactement un franchissement par agent,
+d'une durée au moins égale à celle du site, sans chevauchement sur un même site, et qu'un
+agent sorti ne revient pas.
+
+**À étalonner (E0).** Le débit à la porte entre t₁₀ et t₉₀ vaut 3,55 ± 0,25 pers/m/s, au-dessus
+du débit de goulot de la littérature (1,2 à 1,9). Rien ne prouve encore que la porte soit
+saturée : c'est l'objet de l'étalonnage E0, sur un goulot sec alimenté en continu.
+
+---
+
 ## 2026-10-21 — Définir la géométrie commune de la piscine et son guidage jusqu'à la porte (C6)
 
 **Décision (proposée dans #26, à valider par l'équipe).** `geometry/piscine.py` reprend les

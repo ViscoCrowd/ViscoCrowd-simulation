@@ -13,6 +13,12 @@ from viscocrowd.io.provenance import provenance_code
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
 from viscocrowd.scenarios.bille_boite import ParametresBille, simuler_bille
 from viscocrowd.scenarios.couloir import ParametresCouloir, simuler_couloir
+from viscocrowd.scenarios.piscine import (
+    NOMS_ETATS,
+    ParametresPiscine,
+    ResultatPiscine,
+    simuler_piscine,
+)
 from viscocrowd.scenarios.tassement import (
     ParametresTassement,
     positions_initiales,
@@ -20,12 +26,17 @@ from viscocrowd.scenarios.tassement import (
 )
 
 
-def _parametres(config: dict) -> ParametresBille | ParametresTassement | ParametresCouloir:
-    if config["scenario"] == "couloir":
-        try:
-            return ParametresCouloir(**config["parametres"], graine=config["graine"])
-        except TypeError as erreur:
-            raise ValueError(f"parametres de couloir manquants ou inconnus : {erreur}") from erreur
+def _parametres(
+    config: dict,
+) -> ParametresBille | ParametresTassement | ParametresCouloir | ParametresPiscine:
+    for nom, classe in (("couloir", ParametresCouloir), ("piscine", ParametresPiscine)):
+        if config["scenario"] == nom:
+            try:
+                return classe(**config["parametres"], graine=config["graine"])
+            except TypeError as erreur:
+                raise ValueError(
+                    f"parametres de {nom} manquants ou inconnus : {erreur}"
+                ) from erreur
     classe = ParametresBille if config["scenario"] == "bille_boite" else ParametresTassement
     valeurs = asdict(classe())
     valeurs.pop("graine", None)
@@ -67,20 +78,27 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     if Path(sortie).suffix != ".npz":
         raise ValueError("la trajectoire doit porter l'extension .npz")
     # Une projection ne doit pas masquer une configuration initiale inadmissible.
-    if isinstance(p, ParametresCouloir):
-        initiales = np.empty((0, 2))  # placement deja controle par ParametresCouloir
+    if isinstance(p, (ParametresCouloir, ParametresPiscine)):
+        initiales = np.empty((0, 2))  # placement deja controle par les parametres
     elif isinstance(p, ParametresTassement):
         initiales = positions_initiales(p)
     else:
         c, s = np.cos(p.theta0), np.sin(p.theta0)
         initiales = np.asarray(p.position_initiale) @ np.array([[c, -s], [s, c]])
-    if not isinstance(p, ParametresCouloir) and np.any(
+    if not isinstance(p, (ParametresCouloir, ParametresPiscine)) and np.any(
         np.abs(initiales) + p.rayon > p.demi_largeur
     ):
         raise ValueError("positions initiales hors de la boite")
 
-    if isinstance(p, (ParametresTassement, ParametresCouloir)):
-        resultat = simuler_couloir(p) if isinstance(p, ParametresCouloir) else simuler_tassement(p)
+    evenements = None
+    if isinstance(p, (ParametresTassement, ParametresCouloir, ParametresPiscine)):
+        if isinstance(p, ParametresPiscine):
+            resultat = simuler_piscine(p)
+            evenements = _evenements_piscine(resultat)
+        elif isinstance(p, ParametresCouloir):
+            resultat = simuler_couloir(p)
+        else:
+            resultat = simuler_tassement(p)
         resultat.projection.verifier_convergence()
         parois = resultat.violation_paroi_max()
         validation = {
@@ -94,8 +112,16 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     if not parois <= 1e-14:
         raise ValueError(f"violation des parois : {parois} m > 1e-14 m")
     validation["violation_paroi_max_m"] = parois
-    effectifs = json.loads(json.dumps(asdict(p), default=lambda v: v.tolist(), allow_nan=False))
+    brut = p.en_dictionnaire() if isinstance(p, ParametresPiscine) else asdict(p)
+    effectifs = json.loads(json.dumps(brut, default=lambda v: v.tolist(), allow_nan=False))
     effectifs.pop("graine", None)
+    metadonnees_evenements = {} if evenements is None else {"evenements": evenements}
+    etats = None
+    if isinstance(p, ParametresPiscine):
+        # Sans les etats, un sorti pose au point `dehors` ou un agent pose sur le bord
+        # serait relu comme un disque actif par un controle hors ligne.
+        etats = resultat.etats
+        metadonnees_evenements["etats"] = list(NOMS_ETATS)  # nom du code k : etats[k]
     if provenance_code() != code:
         raise ValueError(
             "la provenance du code a change pendant le calcul ; "
@@ -116,7 +142,27 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
             "code": code,
             "unites": {"t": "s", "x": "m", "v": "m/s", "rayons": "m"},
             "validation": validation,
+            **metadonnees_evenements,
         },
+        etats=etats,
     )
     ecrire_trajectoire(sortie, donnees)
     return donnees
+
+
+def _evenements_piscine(resultat: ResultatPiscine) -> dict:
+    """Franchissements et sorties en JSON ; un agent jamais sorti a une sortie nulle."""
+    return {
+        "franchissements": [
+            {
+                "agent": int(a),
+                "site": int(k),
+                "nature": resultat.natures[int(k)],
+                "debut": d,
+                "fin": f,
+            }
+            for a, k, d, f in resultat.franchissements.tolist()
+        ],
+        "sorties": [float(s) if np.isfinite(s) else None for s in resultat.sorties],
+        "unites": {"debut": "s", "fin": "s", "sorties": "s"},
+    }
