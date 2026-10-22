@@ -329,11 +329,13 @@ class TestBruitInitial:
 def test_e0_avec_espacement_proche_de_seyfried():
     """Proposition E0, T = 0,35 s : moyenne sur trois graines a 15 % de Seyfried (N = 60).
 
-    Critere fixe d'apres la reference, pas d'apres la sortie du modele : a largeur
-    fixee, les mesures de Seyfried pour N = 20, 40 et 60 different deja de 8 a 28 %
-    (tableau 2). Un ecart sous 15 % reste donc dans la dispersion experimentale. Ecart
-    mesure, estimateur de la publication : -7 a +3 % (journal). La foule etant sensible
-    aux perturbations initiales et aux arrondis, on ne fige pas les valeurs exactes.
+    Le seuil de 15 % est une convention de non-regression du projet, pas une
+    incertitude experimentale ni une preuve de validation physique. Les ecarts entre
+    N = 20, 40 et 60 changent l'effectif : ils ne mesurent pas la dispersion de
+    repetitions a N = 60. Le seuil reste inchange lors du changement d'estimateur.
+    Ecart mesure, estimateur de la publication : -7 a +3 % (journal). La foule etant
+    sensible aux perturbations initiales et aux arrondis, on ne fige pas les valeurs
+    exactes. La validation sur les autres effectifs est presentee separement.
     """
     resultats = etalonner(lire_configuration(EXEMPLE), [0.8, 1.0, 1.2], [1, 2, 3])
     for b, mesures in resultats.items():

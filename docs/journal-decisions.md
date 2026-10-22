@@ -96,6 +96,14 @@ et 1,87, contre 1,66, 1,85, 1,95, 1,92 et 1,83 avec Δt = 0,01 s. L'écart le pl
 b = 1,1 et 1,2 m, reste de l'ordre de l'écart-type entre graines (0,03 à 0,08). Une étude à
 Δt/4, avec plus de graines, reste à faire (M9).
 
+**Critère du test lent (revue du 22 octobre).** Le seuil de 15 % est une convention de
+non-régression du projet ; il reste inchangé après correction de l'estimateur. La première
+justification invoquait les écarts entre N = 20, 40 et 60 dans la référence. Ces effectifs
+correspondent à des conditions différentes, pas à des répétitions à N = 60 : leur étendue
+ne fournit donc pas une incertitude expérimentale ni un seuil de validation physique.
+Réussir ce test reste distinct de l'ajustement et des essais sur les autres effectifs
+présentés ci-dessus.
+
 **Limites.**
 
 - T n'est pas un temps de réaction : notre modèle est du second ordre (relaxation
