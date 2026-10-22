@@ -237,7 +237,7 @@ def construire_analyseur() -> argparse.ArgumentParser:
         "--graines",
         type=int,
         nargs="+",
-        help="graines (defaut : celle de la configuration, puis 2 et 3)",
+        help="graines distinctes (defaut : celle de la configuration et les deux suivantes)",
     )
     etalonner.set_defaults(fonction=commande_etalonner_goulot)
 
@@ -246,33 +246,38 @@ def construire_analyseur() -> argparse.ArgumentParser:
 
 def commande_etalonner_goulot(args: argparse.Namespace) -> int:
     """Tableau du debit specifique simule face aux mesures de Seyfried et al. (2009)."""
-    from viscocrowd.geometry.projection import ProjectionNonConvergee
     from viscocrowd.io.configuration import lire_configuration
-    from viscocrowd.scenarios.goulot import SEYFRIED_2009_N60, etalonner
+    from viscocrowd.scenarios.goulot import STATUTS, etalonner, reference_seyfried
 
     debut = time.perf_counter()
     try:
         configuration = lire_configuration(args.configuration)
-        graines = args.graines or [configuration["graine"], 2, 3]
+        graine = configuration["graine"]
+        graines = args.graines or [graine, graine + 1, graine + 2]
         resultats = etalonner(configuration, args.largeurs, graines)
-    except (OSError, KeyError, ValueError, ProjectionNonConvergee) as erreur:
+    except (OSError, KeyError, TypeError, ValueError) as erreur:
         print(f"Etalonnage refuse : {erreur}", file=sys.stderr)
         return 1
 
     n_agents = configuration["parametres"]["n_agents"]
     print(f"E0, goulot sec — {n_agents} agents, graines {graines}")
-    print(f"{'b (m)':>6} {'bouches':>8} {'J_s simule (pers/(m.s))':>24} {'Seyfried N=60':>14}")
-    for b, debits in resultats.items():
-        passes = debits[np.isfinite(debits)]
-        if passes.size:
-            ecart = np.std(passes, ddof=1) if passes.size > 1 else 0.0
-            simule = f"{np.mean(passes):.2f} ± {ecart:.2f}"
+    print("Regimes par largeur : e ecoulement, b bouchage, i insuffisant, n non convergence.")
+    print(
+        f"{'b (m)':>6} {'e/b/i/n':>9} {'J_s simule (pers/(m.s))':>24} "
+        f"{f'Seyfried N={n_agents}':>15}"
+    )
+    for b, mesures in resultats.items():
+        regimes = "/".join(str(sum(m.statut == s for m in mesures)) for s in STATUTS)
+        debits = np.array([m.debit for m in mesures if m.statut == "ecoulement"])
+        if debits.size:
+            ecart = np.std(debits, ddof=1) if debits.size > 1 else 0.0
+            simule = f"{np.mean(debits):.2f} ± {ecart:.2f}"
         else:
             simule = "-"
-        reference = SEYFRIED_2009_N60.get(round(b, 2))
+        # Seyfried n'a mesure que N = 20, 40 et 60 : pas de reference pour un autre N.
+        reference = reference_seyfried(n_agents, b)
         reference = f"{reference:.2f}" if reference is not None else "-"
-        bouches = f"{debits.size - passes.size}/{debits.size}"
-        print(f"{b:>6.2f} {bouches:>8} {simule:>24} {reference:>14}")
+        print(f"{b:>6.2f} {regimes:>9} {simule:>24} {reference:>15}")
     print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
     return 0
 

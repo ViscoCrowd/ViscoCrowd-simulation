@@ -21,9 +21,35 @@ goulot de 2,8 m, largeur b de 0,8 à 1,2 m, 60 personnes sur un réseau hexagona
 3,3 pers/m² dont le centre est à 3 m de l'entrée, comptage à 0,4 m dans le goulot. La
 dynamique est celle du modèle, sans réglage : disques de 0,2 m, vitesse souhaitée de
 1,34 m/s (Weidmann), τ = 0,5 s. Le débit est mesuré sur les 80 % centraux des passages.
-Une foule qui ne passe pas en 60 s est comptée à part : moyenner son débit partiel avec les
-autres mélangerait écoulement et bouchage. Commande : `viscocrowd etalonner-goulot
-experiments/goulot.yaml`.
+Commande : `viscocrowd etalonner-goulot experiments/goulot.yaml`.
+
+Chaque simulation est classée dans un régime, et seul un **écoulement** donne un débit.
+Une foule qui ne passe pas en 60 s est **bouchée** ; une foule entièrement passée avec
+moins de trois passages est **insuffisante** ; une trajectoire où la projection a manqué sa
+tolérance est **non convergée**, donc inexploitable. Moyenner ces débits avec les autres
+mélangerait des régimes différents.
+
+**Corrections de la revue de Shaleena (#56).**
+
+- *Non-convergence.* La projection était stricte : un seul pas non convergé levait une
+  exception et faisait perdre toute la campagne. Elle est désormais permissive, et la
+  simulation est classée « non convergée ».
+- *Masque du guidage.* Il est construit au plus petit rayon tiré. Avec le rayon nominal, un
+  petit agent plaqué contre un mur pouvait recevoir une direction nulle, et la foule aurait
+  été comptée bouchée sans arche.
+- *Foule initiale symétrique.* Un tri stable sur x seul prenait toujours les rangées basses :
+  pour N = 60, quatre rangées de 8 et quatre de 7, de part et d'autre de l'axe. Le réseau a
+  maintenant un nombre impair de rangées centrées sur l'axe, et les nœuds sont pris par
+  paires symétriques, à un agent près quand N l'impose. Les mesures ci-dessous sont celles
+  de cette foule.
+- *Références.* La référence de Seyfried n'est affichée que pour le N qu'il a mesuré (20, 40
+  ou 60), puisque son débit dépend de N.
+- *Doublons.* Les largeurs ou graines en double sont refusées, et les graines par défaut
+  (celle du YAML et les deux suivantes) sont toujours distinctes.
+- *Coût.* Le champ de guidage est calculé une fois par largeur, au lieu d'une fois par
+  simulation.
+- *Duplication.* La salle E0 et le couloir partagent `geometry/bande.py` : contrôles
+  d'entrée (dont l'instant t, que la salle ne vérifiait pas), projection et violation.
 
 **Piste écartée : le coin vif.** Une première géométrie, union de la salle et du goulot
 réduits d'un rayon, donnait un coin vif à chaque angle d'entrée. La foule s'y bouchait
@@ -33,14 +59,19 @@ désormais fait de deux blocs repoussés exactement, coins arrondis compris, com
 de G2 : **plus aucun bouchage**, sur aucune largeur. Le bouchage venait donc d'un artefact de
 la géométrie et non de la foule ; ce n'était pas un résultat.
 
-**Mesure** (graines 1 à 3, 223 s) :
+**Mesure** (graines 1 à 3, foule symétrique, 216 s ; 15 écoulements sur 15, aucune
+non-convergence) :
 
 | b (m) | 0,8 | 0,9 | 1,0 | 1,1 | 1,2 |
 | --- | --- | --- | --- | --- | --- |
-| J_s simulé (pers/(m·s)) | 3,33 ± 0,19 | 3,62 ± 0,17 | 4,14 ± 0,40 | 4,33 ± 0,33 | 4,51 ± 0,06 |
+| J_s simulé (pers/(m·s)) | 2,82 ± 0,11 | 3,84 ± 0,27 | 4,01 ± 0,58 | 4,29 ± 0,21 | 4,93 ± 0,21 |
 | Seyfried, N = 60 | 1,61 | 1,86 | 1,90 | 1,93 | 1,97 |
 
-Le débit croît avec b comme dans l'expérience, mais il vaut **1,9 à 2,3 fois** la mesure.
+Le débit croît avec b comme dans l'expérience, mais il vaut **1,8 à 2,5 fois** la mesure.
+Avec la première foule, asymétrique, on mesurait 3,33 à 4,51 : changer seulement la
+disposition initiale déplace ces moyennes de trois graines de 15 % au plus. Trois graines
+ne suffisent donc pas à une conclusion fine ; les campagnes en demanderont au moins 10
+(spec § 4).
 
 **Analyse.** Le modèle n'a pas de relation vitesse–espacement : un agent marche à sa vitesse
 souhaitée jusqu'au contact, que seule la projection arrête. Rien ne le fait ralentir

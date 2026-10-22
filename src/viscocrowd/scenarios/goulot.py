@@ -110,6 +110,10 @@ class ParametresGoulot:
         return self.rayon * (1 + self.dispersion_rayon)
 
     @property
+    def rayon_min(self) -> float:
+        return self.rayon * (1 - self.dispersion_rayon)
+
+    @property
     def pas_reseau(self) -> float:
         """Pas du reseau hexagonal de densite `densite_initiale`, en m."""
         return float(np.sqrt(2.0 / (np.sqrt(3.0) * self.densite_initiale)))
@@ -122,27 +126,34 @@ class ParametresGoulot:
 def _reseau_attente(p: ParametresGoulot) -> np.ndarray:
     """Les N noeuds d'un reseau hexagonal les plus proches du centre de la zone d'attente.
 
-    Le reseau couvre la largeur de la zone ; on garde les N noeuds de plus petit ecart
-    en x au centre. La zone a ainsi la densite voulue et son centre a la distance
-    voulue du goulot, quel que soit N, sans arrondi de profondeur a gerer.
+    Le reseau a un nombre impair de rangees, centrees sur l'axe du goulot : les rangees
+    j et -j ont le meme decalage, et le reseau est symetrique par rapport a l'axe. On
+    garde les N noeuds de plus petit ecart en x au centre, puis de plus petit ecart a
+    l'axe, en prenant les noeuds symetriques par paires. La zone a ainsi la densite
+    voulue, son centre a la distance voulue du goulot, et la foule est symetrique par
+    rapport a l'axe a un agent pres quand N l'impose. (Un tri stable sur x seul
+    prenait toujours les rangees basses en premier.)
     """
     a = p.pas_reseau
     h = a * np.sqrt(3) / 2
-    centre_x = p.longueur - p.distance_attente
-    y_min = p.largeur / 2 - p.largeur_attente / 2
-    y_max = p.largeur / 2 + p.largeur_attente / 2
-    lignes = np.arange(y_min + h / 2, y_max, h)
-    if lignes.size == 0:
+    centre = np.array([p.longueur - p.distance_attente, p.largeur / 2])
+    m = int(np.floor((p.largeur_attente / 2 - h / 2) / h + 1e-9))
+    if m < 0:
         raise ValueError("la zone d'attente est plus etroite qu'une rangee")
-    demi = p.n_agents / lignes.size / 2 * a + a
-    points = [
-        [x, y]
-        for k, y in enumerate(lignes)
-        for x in np.arange(centre_x - demi + (a / 2 if k % 2 else 0.0), centre_x + demi, a)
-    ]
-    points = np.array(points)
-    garde = np.argsort(np.abs(points[:, 0] - centre_x), kind="stable")[: p.n_agents]
-    points = points[garde]
+    rangees = np.arange(-m, m + 1)
+    k = int(np.ceil(p.n_agents / rangees.size / 2)) + 1
+    points = np.array(
+        [
+            [centre[0] + (i + 0.5 * (j % 2)) * a, centre[1] + j * h]
+            for j in rangees
+            for i in range(-k, k + 1)
+        ]
+    )
+    dx, dy = points[:, 0] - centre[0], points[:, 1] - centre[1]
+    # Dernier critere en premier pour lexsort : |dx|, puis |dy|, puis dx et dy pour que
+    # les noeuds de meme |dx| et |dy| viennent par paires symetriques (y, -y).
+    garde = np.lexsort((dy, dx, np.round(np.abs(dy), 12), np.round(np.abs(dx), 12)))
+    points = points[garde[: p.n_agents]]
     marge = p.rayon_max + p.bruit
     bas, haut = points.min(axis=0), points.max(axis=0)
     if np.any(bas < marge) or np.any(haut > np.array([p.longueur, p.largeur]) - marge):
@@ -177,20 +188,58 @@ class ResultatGoulot:
         g = self.parametres.geometrie
         return max(g.violation(x, self.rayons, t) for x, t in zip(self.x, self.t, strict=True))
 
+    @property
+    def statut(self) -> str:
+        """Regime de la simulation, pour ne jamais melanger des debits de nature differente.
 
-def simuler_goulot(p: ParametresGoulot) -> ResultatGoulot:
-    """Simule le banc jusqu'a ce que tous aient quitte le goulot ou jusqu'a `duree`."""
+        - "non_convergence" : la projection a manque sa tolerance au moins une fois ; la
+          trajectoire n'est pas exploitable, quel que soit son debit ;
+        - "bouchage" : tous les agents n'ont pas passe la ligne en `duree` ;
+        - "insuffisant" : tous ont passe, mais trop peu de passages pour un debit ;
+        - "ecoulement" : debit exploitable.
+        """
+        if self.projection.non_convergences:
+            return "non_convergence"
+        if not np.all(np.isfinite(self.passages)):
+            return "bouchage"
+        if not np.isfinite(self.debit_specifique):
+            return "insuffisant"
+        return "ecoulement"
+
+
+STATUTS = ("ecoulement", "bouchage", "insuffisant", "non_convergence")
+
+
+def champ_goulot(p: ParametresGoulot) -> ChampEikonal:
+    """Champ de guidage du banc : temps de parcours jusqu'au bout du goulot.
+
+    Les noeuds admissibles le sont pour le PLUS PETIT rayon tire : un petit agent
+    plaque contre un mur ne doit pas tomber dans une cellule sans noeud admissible,
+    ou il recevrait une direction nulle et s'arreterait sans qu'il y ait d'arche.
+    Le champ ne depend que de la geometrie, des rayons et de la vitesse : une
+    campagne le calcule une fois par largeur, pour toutes ses graines.
+    """
     g = p.geometrie
     sortie_x = g.longueur + g.longueur_goulot
     grille = GrilleReguliere.couvrant(0.0, sortie_x, 0.0, g.largeur, p.pas_guidage)
     noeuds = grille.noeuds().reshape(-1, 2)
-    libre = g.admissible(noeuds, p.rayon)
-    F = np.where(libre, p.facteur_vitesse * p.sec.vitesse, 0.0)
-    champ = ChampEikonal.depuis_tableaux(
+    libre = g.admissible(noeuds, p.rayon_min)
+    vitesse = np.where(libre, p.facteur_vitesse * p.sec.vitesse, 0.0)
+    return ChampEikonal.depuis_tableaux(
         grille,
-        F.reshape(grille.forme),
+        vitesse.reshape(grille.forme),
         (libre & (noeuds[:, 0] >= sortie_x - 1e-9)).reshape(grille.forme),
     )
+
+
+def simuler_goulot(p: ParametresGoulot, champ: ChampEikonal | None = None) -> ResultatGoulot:
+    """Simule le banc jusqu'a ce que tous aient quitte le goulot ou jusqu'a `duree`.
+
+    `champ` : guidage deja calcule par `champ_goulot` pour ces parametres, ou None.
+    """
+    g = p.geometrie
+    sortie_x = g.longueur + g.longueur_goulot
+    champ = champ_goulot(p) if champ is None else champ
 
     x, r, rng = tirages_initiaux(p)
     # Angle de fluctuation de chaque agent : processus d'Ornstein-Uhlenbeck d'ecart-type
@@ -217,7 +266,9 @@ def simuler_goulot(p: ParametresGoulot) -> ResultatGoulot:
     libre_pas = pas_libre_milieux(
         direction, partout, {Milieu.SEC: p.sec}, facteur_vitesse=p.facteur_vitesse
     )
-    projection = ProjectionExclusion(g.projeter, tolerance=p.tolerance, strict=True)
+    # Mode permissif : une non-convergence ne doit pas faire perdre toute une campagne.
+    # Elle est comptee, et la simulation classee "non_convergence", inexploitable.
+    projection = ProjectionExclusion(g.projeter, tolerance=p.tolerance, strict=False)
 
     v = np.zeros_like(x)
     historique_t, historique_x = [0.0], [x.copy()]
@@ -268,8 +319,28 @@ def debit_central(passages: np.ndarray, largeur: float, fraction: float = 0.8) -
     return float((k1 - k0) / (instants[k1] - instants[k0]) / largeur)
 
 
-# Seyfried et al. (2009), tableau 2 : debit specifique J_s, en pers/(m.s), pour N = 60.
-SEYFRIED_2009_N60 = {0.8: 1.61, 0.9: 1.86, 1.0: 1.90, 1.1: 1.93, 1.2: 1.97}
+# Seyfried et al. (2009), tableau 2 : debit specifique J_s, en pers/(m.s), selon N puis b (m).
+# Le debit depend de N : une reference n'est comparable qu'au meme nombre de personnes.
+SEYFRIED_2009 = {
+    60: {0.8: 1.61, 0.9: 1.86, 1.0: 1.90, 1.1: 1.93, 1.2: 1.97},
+    40: {0.8: 1.77, 0.9: 1.91, 1.0: 2.08, 1.1: 1.93, 1.2: 1.81},
+    20: {0.8: 1.86, 0.9: 2.06, 1.0: 2.19, 1.1: 1.78, 1.2: 2.31},
+}
+SEYFRIED_2009_N60 = SEYFRIED_2009[60]
+
+
+def reference_seyfried(n_agents: int, largeur: float) -> float | None:
+    """J_s mesure par Seyfried et al. pour ce N et cette largeur, ou None s'il n'existe pas."""
+    return SEYFRIED_2009.get(n_agents, {}).get(round(float(largeur), 2))
+
+
+@dataclass(frozen=True)
+class Mesure:
+    """Une simulation de la campagne : sa graine, son regime et son debit (NaN si inexploitable)."""
+
+    graine: int
+    statut: str
+    debit: float
 
 
 def parametres_goulot(config: dict, **changements) -> ParametresGoulot:
@@ -282,21 +353,27 @@ def parametres_goulot(config: dict, **changements) -> ParametresGoulot:
         raise ValueError(f"parametres du goulot manquants ou inconnus : {erreur}") from erreur
 
 
-def etalonner(config: dict, largeurs, graines) -> dict[float, np.ndarray]:
-    """J_s par largeur de goulot et par graine ; NaN quand la foule ne passe pas en entier.
+def etalonner(config: dict, largeurs, graines) -> dict[float, list[Mesure]]:
+    """Mesures par largeur de goulot, une par graine, avec leur regime (voir `statut`).
 
-    Une foule qui ne passe pas en `duree` est comptee a part : moyenner son debit
-    partiel avec les autres melangerait deux regimes, l'ecoulement et le bouchage.
+    Seul un "ecoulement" donne un debit : moyenner le debit partiel d'une foule bouchee,
+    ou celui d'une trajectoire non convergee, melangerait des regimes differents. Une
+    non-convergence n'interrompt pas la campagne : elle est classee a part. Les largeurs
+    et les graines en double sont refusees, car elles compteraient deux fois la meme
+    simulation dans la moyenne et l'ecart-type.
     """
+    largeurs = [float(b) for b in largeurs]
+    graines = list(graines)
+    if len(set(largeurs)) != len(largeurs) or len(set(graines)) != len(graines):
+        raise ValueError("largeurs et graines doivent etre distinctes")
     resultats = {}
     for b in largeurs:
-        debits = []
+        champ = champ_goulot(parametres_goulot(config, largeur_goulot=b))
+        mesures = []
         for graine in graines:
-            r = simuler_goulot(
-                parametres_goulot(config | {"graine": graine}, largeur_goulot=float(b))
-            )
-            r.projection.verifier_convergence()
-            passe = np.all(np.isfinite(r.passages))
-            debits.append(r.debit_specifique if passe else np.nan)
-        resultats[float(b)] = np.array(debits)
+            p = parametres_goulot(config | {"graine": graine}, largeur_goulot=b)
+            r = simuler_goulot(p, champ)
+            debit = r.debit_specifique if r.statut == "ecoulement" else float("nan")
+            mesures.append(Mesure(graine, r.statut, debit))
+        resultats[b] = mesures
     return resultats

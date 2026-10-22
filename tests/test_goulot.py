@@ -1,5 +1,6 @@
 """Banc E0 : salle et goulot, etat initial du protocole de Seyfried et al. (2009), debit."""
 
+import types
 from pathlib import Path
 
 import numpy as np
@@ -7,11 +8,17 @@ import pytest
 import yaml
 
 from viscocrowd.cli import main
+from viscocrowd.core.state import State
 from viscocrowd.geometry.salle import SalleGoulot
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.scenarios.goulot import (
+    STATUTS,
     ParametresGoulot,
+    ResultatGoulot,
+    champ_goulot,
     debit_central,
+    etalonner,
+    reference_seyfried,
     simuler_goulot,
     tirages_initiaux,
 )
@@ -163,14 +170,20 @@ def test_meme_graine_meme_simulation():
     np.testing.assert_array_equal(a.x, b.x)
 
 
-def test_commande_etalonner_affiche_le_debit_et_la_reference(tmp_path, capsys):
+@pytest.mark.parametrize(("n_agents", "reference"), [(8, "-"), (20, "2.31")])
+def test_commande_etalonner_affiche_regimes_et_reference_du_meme_n(
+    tmp_path, capsys, n_agents, reference
+):
+    """La reference de Seyfried n'est affichee que pour le N qu'il a mesure."""
     config = yaml.safe_load(EXEMPLE.read_text(encoding="utf-8"))
-    config["parametres"] |= {"n_agents": 8, "duree": 15.0}
+    config["parametres"] |= {"n_agents": n_agents, "duree": 25.0}
     fichier = tmp_path / "goulot.yaml"
     fichier.write_text(yaml.safe_dump(config), encoding="utf-8")
     assert main(["etalonner-goulot", str(fichier), "--largeurs", "1.2", "--graines", "1"]) == 0
-    ligne = next(ligne for ligne in capsys.readouterr().out.splitlines() if "1.20" in ligne)
-    assert ligne.split()[1] == "0/1" and ligne.split()[-1] == "1.97"
+    sortie = capsys.readouterr().out
+    ligne = next(ligne for ligne in sortie.splitlines() if ligne.split()[:1] == ["1.20"])
+    assert ligne.split()[1] == "1/0/0/0" and ligne.split()[-1] == reference
+    assert f"Seyfried N={n_agents}" in sortie
 
 
 def test_commande_etalonner_refuse_un_autre_scenario(capsys):
@@ -183,3 +196,83 @@ def test_simuler_refuse_le_banc_goulot_sans_archive(tmp_path, capsys):
     assert main(["simuler", str(EXEMPLE), "--sortie", str(tmp_path / "e0.npz")]) == 1
     assert "etalonner-goulot" in capsys.readouterr().err
     assert not (tmp_path / "e0.npz").exists()
+
+
+@pytest.mark.parametrize("doublon", [{"largeurs": [1.0, 1.0]}, {"graines": [4, 4]}])
+def test_etalonner_refuse_les_doublons(doublon):
+    """Une meme simulation comptee deux fois fausserait moyenne et ecart-type."""
+    arguments = {"largeurs": [1.0], "graines": [1]} | doublon
+    with pytest.raises(ValueError, match="distinctes"):
+        etalonner(lire_configuration(EXEMPLE), **arguments)
+
+
+def test_etalonner_calcule_le_guidage_une_fois_par_largeur(monkeypatch):
+    import viscocrowd.scenarios.goulot as module
+
+    appels = []
+    vrai = module.champ_goulot
+    monkeypatch.setattr(module, "champ_goulot", lambda p: appels.append(p) or vrai(p))
+    config = lire_configuration(EXEMPLE)
+    config["parametres"] |= {"n_agents": 4, "duree": 2.0}
+    resultats = etalonner(config, [1.0, 1.2], [1, 2, 3])
+    assert len(appels) == 2
+    assert [m.graine for m in resultats[1.2]] == [1, 2, 3]
+
+
+class TestStatut:
+    """Chaque regime est classe a part ; seul l'ecoulement donne un debit."""
+
+    def resultat(self, passages, non_convergences=0):
+        projection = types.SimpleNamespace(non_convergences=non_convergences)
+        passages = np.array(passages, dtype=float)
+        return ResultatGoulot(
+            t=np.zeros(1),
+            x=np.zeros((1, passages.size, 2)),
+            rayons=np.full(passages.size, 0.2),
+            passages=passages,
+            debit_specifique=debit_central(passages, 1.0),
+            projection=projection,
+            parametres=None,
+        )
+
+    def test_regimes(self):
+        assert self.resultat(np.arange(10) * 0.5).statut == "ecoulement"
+        assert self.resultat([*range(9), np.nan]).statut == "bouchage"
+        assert self.resultat([1.0, 2.0]).statut == "insuffisant"  # tous passes, trop peu
+        assert self.resultat(np.arange(10) * 0.5, 1).statut == "non_convergence"
+        assert set(STATUTS) == {"ecoulement", "bouchage", "insuffisant", "non_convergence"}
+
+    def test_non_convergence_ne_leve_plus(self):
+        """Projection permissive : la campagne continue et classe la simulation a part."""
+        p = parametres(n_agents=12, duree=3.0, tolerance=1e-15)
+        r = simuler_goulot(p)
+        assert r.projection.non_convergences > 0
+        assert r.statut == "non_convergence"
+
+
+def test_references_de_seyfried_par_nombre_de_personnes():
+    assert reference_seyfried(40, 1.0) == 2.08
+    assert reference_seyfried(60, 1.2) == 1.97
+    assert reference_seyfried(50, 1.0) is None
+    assert reference_seyfried(60, 0.85) is None
+
+
+def test_foule_initiale_symetrique_par_rapport_a_l_axe():
+    """Un tri stable sur x seul prenait toujours les rangees basses en premier."""
+    for n in (59, 60, 61):
+        p = parametres(n_agents=n, bruit=0.0)
+        x, _, _ = tirages_initiaux(p)
+        miroir = x * [1.0, -1.0] + [0.0, p.largeur]
+        cles = {tuple(np.round(point, 9)) for point in x}
+        sans_image = sum(tuple(np.round(point, 9)) not in cles for point in miroir)
+        assert sans_image <= 1, f"N = {n}"
+
+
+def test_petit_agent_contre_un_mur_a_une_direction():
+    """Masque du guidage au plus petit rayon : un agent de 0,18 m colle au mur avance."""
+    p = parametres(dispersion_rayon=0.1)
+    etat = State(
+        x=np.array([[2.0, 0.181], [4.0, 4.819]]), v=np.zeros((2, 2)), r=np.full(2, 0.18), t=0.0
+    )
+    e = champ_goulot(p)(etat)
+    assert np.all(np.isfinite(e)) and np.all(np.hypot(*e.T) > 0.99)
