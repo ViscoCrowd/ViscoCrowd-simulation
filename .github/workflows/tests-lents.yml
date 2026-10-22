@@ -1,0 +1,59 @@
+name: Tests lents
+
+# Les pushes vers dev assurent l'execution des l'integration de ce fichier.
+# GitHub n'active schedule/workflow_dispatch qu'une fois le workflow present
+# sur la branche par defaut (main). Le cron relit alors explicitement dev.
+on:
+  push:
+    branches: [dev]
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lents-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scenarios:
+    name: Scenarios lents (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'dev' || github.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.lock.txt
+      - name: Installer les versions figees
+        run: |
+          pip install -r requirements.lock.txt
+          pip install --no-deps -e .
+          pip check
+      - name: Consigner le code et l'environnement
+        run: |
+          git rev-parse HEAD > environnement.txt
+          python --version >> environnement.txt
+          pip freeze >> environnement.txt
+      - name: Executer les scenarios lents
+        env:
+          MPLBACKEND: Agg
+        run: pytest -m slow -v --junitxml=resultats-lents.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tests-lents-${{ matrix.os }}
+          path: |
+            resultats-lents.xml
+            environnement.txt
+          retention-days: 30
