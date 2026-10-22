@@ -110,7 +110,8 @@ make lint && make test
 
 **Fusion** — `Squash and merge` vers `dev`, pour un historique lisible, une ligne par
 contribution. La branche de travail peut être supprimée après fusion, **jamais `main` ni `dev`**.
-Seule exception : les PR de synchronisation `sync/` conservent leurs commits de fusion (§ 3.4).
+Deux exceptions gardent un commit de fusion (§ 3.4) : la PR de publication `dev` → `main`,
+et les PR de synchronisation `sync/`.
 
 **Vous pouvez fusionner votre propre PR.** GitHub n'exige pas d'approbation : nous travaillons en
 alternance, et une approbation bloquante immobiliserait une branche plusieurs jours dès que nos
@@ -140,8 +141,25 @@ Les travaux du jalon suivant attendent sur leurs branches jusqu'à la publicatio
    constitutives peuvent servir de preuve si leurs corrections sont incluses sans modification ;
    tout changement supplémentaire doit être relu. Une revue automatisée ne vaut pas accord collectif.
 
-Fusionner par **squash vers `main`**, puis publier un **tag annoté `jalon-N` sur le commit
-exact résultant de cette fusion**. Une **GitHub Release du même nom** accompagne ce tag :
+Fusionner vers `main` avec **Create a merge commit** (`gh pr merge <numero> --merge`),
+**jamais squash ni rebase**, puis publier un **tag annoté `jalon-N` sur le commit de fusion
+exact**.
+
+> **Pourquoi pas de squash vers `main`.** La page *Contributors* de GitHub, et le graphe
+> de contributions de chaque profil, ne comptent que les commits de la branche par défaut,
+> `main`, et les attribuent à leur **auteur**. Un squash réduit tout le jalon à un seul commit,
+> signé par la personne qui publie : le jalon 2 a ainsi été attribué en entier à une seule
+> personne, et Shaleena, qui avait 9 commits sur `dev`, n'apparaissait nulle part. Un commit
+> de fusion amène sur `main` tous les commits de `dev` avec leurs auteurs. L'historique de
+> `dev` reste lisible, puisque chaque contribution y est déjà squashée en une ligne.
+> Fusionner une PR n'est jamais compté comme une contribution, quel que soit le mode : le
+> commit porte le nom de l'auteur de la PR.
+>
+> **Prérequis.** La protection de `main` doit autoriser les commits de fusion : un
+> administrateur désactive *Require linear history* dans *Settings → Branches → main*,
+> sans toucher aux autres règles (PR obligatoire, CI verte, conversations résolues,
+> force-push et suppression bloqués). Tant que ce n'est pas fait, GitHub refuse la fusion :
+> ne pas revenir au squash pour contourner le refus. Une **GitHub Release du même nom** accompagne ce tag :
 elle contient le périmètre, les commandes de reproduction, les résultats et les limites.
 Le tag est le repère Git ; la release est sa fiche de livraison. Ils sont complémentaires.
 
@@ -160,9 +178,10 @@ git push origin refs/tags/jalon-N
 gh release create jalon-N --verify-tag --title "Jalon N — <intitule>" --notes-file notes.md
 ```
 
-**Resynchroniser par PR, sans push direct.** Le squash crée un nouveau commit sur `main` ;
-il doit devenir un ancêtre de `dev` pour que la prochaine promotion n'inclue pas à nouveau
-l'ancien jalon. Depuis un arbre propre :
+**Resynchroniser par PR, sans push direct.** La publication crée sur `main` un commit de
+fusion qui n'existe pas sur `dev` ; il doit devenir un ancêtre de `dev` pour que `main` reste
+toujours contenue dans `dev` et que la prochaine promotion ne porte que le nouveau jalon.
+Depuis un arbre propre :
 
 ```bash
 git switch -c sync/main-jalon-N origin/dev
