@@ -424,6 +424,63 @@ figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est 
 
 ---
 
+## 2026-10-21 — Mesurer la densité par cellules de Voronoï (M1) et le biais de la tolérance (#10)
+
+**Décision (proposée dans #19, à confirmer).** La densité suit Steffen & Seyfried (2010) :
+`ρ_V = (1/|M|) Σᵢ |Cᵢ ∩ M| / |Cᵢ|`, et la vitesse `v_V = (1/|M|) Σᵢ |vᵢ| |Cᵢ ∩ M|`.
+Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
+quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;
+le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
+Si Voronoï est refusé, `densite_comptage(x, zone)` (N dans M sur |M|) prend le relais ; il ne
+demande pas de salle, sa signature diffère donc de `densite_voronoi(x, salle, zone)`.
+`mesures_voronoi` rend densité et vitesse d'un même calcul de cellules, pour le diagramme
+fondamental ; une boîte englobante évite de découper les cellules entièrement dans M ou
+entièrement dehors.
+
+**Limite de portée (revue de #53).** La salle doit être un rectangle aligné sur les axes,
+avec tous les agents strictement dedans. Les reflets valent pour tout polygone convexe, mais
+la salle du goulot n'est pas convexe et le couloir est ouvert en aval. Écarter les agents
+sortis du rectangle y créerait un faux mur : les cellules voisines de la coupe seraient trop
+grandes, et la densité sous-estimée. Avant M8, il faudra une zone de mesure loin de toute
+coupe, ou un découpage des cellules par le vrai domaine.
+
+**Validation** (`tests/test_densite.py`). Réseau carré de pas 0,5 m : 4 pers/m² exactement ;
+réseau hexagonal de pas 0,4 m : `2/(√3 a²)` à 10⁻⁹ près ; salle entière : N/|salle|
+exactement ; les cellules pavent la salle. Sur 300 nuages uniformes, Voronoï et comptage
+retrouvent la densité moyenne, Voronoï 1,34 fois moins dispersé ; un agent qui entre dans la
+zone fait sauter le comptage de 1/|M| et la densité de Voronoï de moins de 5 % de ce saut.
+
+**Biais de densité dû à la tolérance (#10), essai exploratoire.** La sensibilité des
+arrangements (#48) motive une comparaison appariée sur huit graines, sans démontrer un
+chaos. Pour 60 agents poussés contre une paroi puis arrêtés, la première exécution
+rapporte une différence moyenne de +0,0146 pers/m² et une erreur standard estimée de
+0,034 entre les tolérances 10⁻⁶ et 10⁻⁹ m. Sur macOS arm64, la revue mesure +0,035154
+et 0,059588 pers/m² : |moyenne| + 2 SE = 0,15433, au-dessus du critère 0,13 du test lent.
+La conclusion initiale de borne à 1,3 % est retirée. Deux erreurs standard sur huit
+graines ne donnent pas un intervalle garanti ; ne pas détecter de différence ne prouve
+pas l'absence d'effet.
+
+**Critère retenu.** La borne de 2 % n'était pas justifiée : avec huit graines, la
+demi-largeur d'un intervalle à 95 % vaut déjà 1,2 à 2,2 % de la densité, selon
+l'exécution. Le test lent vérifie désormais seulement qu'un **test de permutation exact**
+sur les huit différences appariées (les 2⁸ = 256 choix de signes, sans hypothèse de
+normalité) ne détecte pas de différence au seuil de 5 % : p = 0,633 sur x86-64 et 0,539
+pour les mesures de la revue sur macOS. Le test est exact sous l'hypothèse nulle
+d'**échangeabilité** des deux résultats d'une même graine, les graines étant indépendantes :
+chaque différence est alors symétrique autour de zéro. C'est plus que la seule égalité des
+moyennes (c'est l'hypothèse de `scipy.stats.permutation_test`, `permutation_type="samples"`).
+C'est l'absence de détection à cet effectif, pas une borne, et ce diagnostic reste distinct
+du futur critère de biais acceptable sur E0. Borner l'effet demandera plus de graines, sur la géométrie cible (goulot, E0) ;
+l'issue #10 reste ouverte.
+
+La revue corrige séparément les centres confondus ou fusionnés par Qhull : compter deux
+fois une même cellule faussait aussi la vitesse uniforme. Ces entrées et les partitions
+dégénérées sont refusées, toutes par `ValueError`, y compris une cellule non bornée. Une
+direction de mesure n'est unitaire qu'à 10⁻⁹ près, la tolérance du guidage, désormais
+partagée par `core.verifications`. Les 23 tests rapides de densité passent.
+
+---
+
 ## 2026-10-21 — Assembler guidage et milieux au début du pas
 
 **Décision d'implémentation (PR #30, suivi #26).** Le guidage fournit une direction
