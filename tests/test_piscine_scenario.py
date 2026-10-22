@@ -12,10 +12,13 @@ from viscocrowd.scenarios.experience import executer_configuration
 from viscocrowd.scenarios.piscine import (
     EAU,
     FRANCHISSEMENT,
+    NOMS_ETATS,
     PLAGE,
     SORTI,
     ParametresPiscine,
+    _attribuer_sites,
     simuler_piscine,
+    verifier_coherence,
 )
 
 EXEMPLE = Path(__file__).parents[1] / "experiments/piscine.yaml"
@@ -50,13 +53,15 @@ def test_exclusion_murs_et_cotes_a_chaque_instant(evacuation):
 
 
 @pytest.mark.invariant
-def test_etats_a_sens_unique_et_conservation(evacuation):
-    """EAU -> FRANCHISSEMENT -> PLAGE -> SORTI, sans retour ; N toujours conserve."""
+def test_etats_a_sens_unique(evacuation):
+    """EAU -> FRANCHISSEMENT -> PLAGE -> SORTI, sans retour ni etape sautee."""
     etats = evacuation.etats
+    assert np.all((etats >= EAU) & (etats <= SORTI))
     assert np.all(np.diff(etats, axis=0) >= 0)
     assert np.all(np.diff(etats, axis=0) <= 1)  # aucune etape sautee
-    assert np.all(np.bincount(etats.ravel(), minlength=4).sum() == etats.size)
     assert np.all(etats[-1] == SORTI)  # tous sortis avant la duree maximale
+    # Jamais plus d'agents en franchissement que de sites.
+    assert np.max(np.sum(etats == FRANCHISSEMENT, axis=1)) <= len(evacuation.natures)
 
 
 def test_franchissements_un_par_agent_capacite_et_duree(evacuation):
@@ -114,6 +119,9 @@ def test_le_partage_vers_les_echelles_suit_leur_duree():
             }
         },
         {"geometrie": {"longueur_bassin": 25.0}},
+        {"durees": [4.0, 2.0]},  # liste au lieu d'une table YAML
+        {"parametres_milieux": [1, 2, 3]},
+        {"geometrie": [25.0]},
     ],
 )
 def test_parametres_invalides(changement):
@@ -148,3 +156,112 @@ def test_evacuation_de_reference():
     assert r.projection.non_convergences == 0
     # Borne basse : nager, franchir et marcher sans attendre ; borne haute : file a la porte.
     assert 30.0 < r.temps_evacuation() < 90.0  # mesure : 45,6 s
+
+
+class TestCoherence:
+    """Chaque incoherence leve une erreur : le controle peut vraiment echouer."""
+
+    @pytest.fixture
+    def coherent(self):
+        p = parametres(n_agents=4)
+        b = p.piscine.bassin
+        x = np.array(
+            [
+                [b.x_min + 2.0, b.y_min + 2.0],  # eau
+                [b.x_min + 3.0, b.y_min],  # franchissement, pose sur le bord
+                [b.x_min - 1.5, b.y_min - 1.0],  # plage
+                [100.0, 10.0],  # sorti
+            ]
+        )
+        etat = np.array([EAU, FRANCHISSEMENT, PLAGE, SORTI])
+        occupant = np.full(len(p.piscine.sites()), -1)
+        occupant[7] = 1
+        site_agent = np.array([-1, 7, 3, 5])
+        return etat, occupant, site_agent, x, p.piscine
+
+    def test_etat_coherent_accepte(self, coherent):
+        verifier_coherence(*coherent)
+
+    @pytest.mark.parametrize(
+        "corruption",
+        [
+            lambda e, o, s, x: e.__setitem__(0, 4),  # etat inconnu
+            lambda e, o, s, x: o.__setitem__(7, -1),  # franchissement sans site
+            lambda e, o, s, x: o.__setitem__(8, 0),  # site occupe par un agent dans l'eau
+            lambda e, o, s, x: o.__setitem__(8, 1),  # un agent sur deux sites
+            lambda e, o, s, x: s.__setitem__(1, 6),  # l'agent designe un autre site
+            lambda e, o, s, x: x.__setitem__(0, x[2]),  # agent de l'eau sur la plage
+            lambda e, o, s, x: x.__setitem__(2, x[0]),  # agent de la plage dans l'eau
+        ],
+    )
+    def test_incoherence_detectee(self, coherent, corruption):
+        etat, occupant, site_agent, x, piscine = coherent
+        corruption(etat, occupant, site_agent, x)
+        with pytest.raises(RuntimeError):
+            verifier_coherence(etat, occupant, site_agent, x, piscine)
+
+
+class TestAttribution:
+    def test_le_plus_proche_servi_d_abord(self):
+        """L'agent 0 a le plus petit indice, mais l'agent 1 est plus pres du site 0."""
+        distances = np.array([[0.2, 0.1], [0.05, 0.3]])
+        assert sorted(_attribuer_sites(distances, 0.25)) == [(0, 1), (1, 0)]
+        distances = np.array([[0.2, 0.5], [0.05, 0.6]])
+        assert _attribuer_sites(distances, 0.25) == [(1, 0)]  # l'agent 0 attend
+
+    def test_independant_de_la_numerotation(self):
+        rng = np.random.default_rng(0)
+        distances = rng.uniform(0.0, 0.3, size=(6, 5))
+        couples = set(_attribuer_sites(distances, 0.25))
+        ordre = rng.permutation(6)
+        permutes = {(ordre[a], s) for a, s in _attribuer_sites(distances[ordre], 0.25)}
+        assert permutes == couples
+
+    def test_un_agent_a_portee_de_deux_sites_n_en_prend_qu_un(self):
+        """Cas des coins du bassin : deux points d'attente a 0,15 m."""
+        assert _attribuer_sites(np.array([[0.1, 0.12]]), 0.25) == [(0, 0)]
+
+
+def test_coins_du_bassin_sites_a_plus_d_un_diametre():
+    """Valeurs de reference : sites des coins a 0,437 m sur le bord ; un rayon de 0,22 m est refuse."""
+    p = parametres()
+    bords = np.array([s.position for s in p.piscine.sites()])
+    i, j = np.triu_indices(len(bords), 1)
+    assert np.min(np.hypot(*(bords[i] - bords[j]).T)) == pytest.approx(0.4366, abs=1e-4)
+    with pytest.raises(ValueError, match="diametre"):
+        parametres(rayon=0.22)
+
+
+def test_deplacement_mesure_trop_grand_refuse(monkeypatch):
+    """Une correction de contact qui deplace un agent de plus de r/5 arrete le calcul."""
+    import viscocrowd.scenarios.piscine as module
+
+    vrai_pas = module.pas_semi_implicite
+
+    def pas_pousse(etat, *args):
+        nouveau = vrai_pas(etat, *args)
+        return type(nouveau)(
+            x=nouveau.x + np.array([0.05, 0.0]), v=nouveau.v, r=nouveau.r, t=nouveau.t
+        )
+
+    monkeypatch.setattr(module, "pas_semi_implicite", pas_pousse)
+    with pytest.raises(ValueError, match="deplacement mesure"):
+        simuler_piscine(parametres(n_agents=3, duree=1.0))
+
+
+@pytest.mark.parametrize("fraction", [0.0, -1.0, 1.5, np.nan])
+def test_temps_evacuation_refuse_une_fraction_invalide(evacuation, fraction):
+    with pytest.raises(ValueError, match="fraction"):
+        evacuation.temps_evacuation(fraction)
+
+
+def test_archive_conserve_les_etats(tmp_path):
+    config = lire_configuration(EXEMPLE)
+    config["parametres"].update(n_agents=4, duree=12.0)
+    fichier = tmp_path / "piscine.yaml"
+    fichier.write_text(yaml.safe_dump(config))
+    executer_configuration(fichier, tmp_path / "piscine.npz")
+    relue = lire_trajectoire(tmp_path / "piscine.npz")
+    assert relue.etats.shape == relue.x.shape[:2]
+    assert relue.metadonnees["etats"] == list(NOMS_ETATS)
+    assert np.any(relue.etats == FRANCHISSEMENT)  # les poses sur le bord sont reperables

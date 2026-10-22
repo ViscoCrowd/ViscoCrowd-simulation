@@ -13,7 +13,12 @@ from viscocrowd.io.provenance import provenance_code
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
 from viscocrowd.scenarios.bille_boite import ParametresBille, simuler_bille
 from viscocrowd.scenarios.couloir import ParametresCouloir, simuler_couloir
-from viscocrowd.scenarios.piscine import ParametresPiscine, ResultatPiscine, simuler_piscine
+from viscocrowd.scenarios.piscine import (
+    NOMS_ETATS,
+    ParametresPiscine,
+    ResultatPiscine,
+    simuler_piscine,
+)
 from viscocrowd.scenarios.tassement import (
     ParametresTassement,
     positions_initiales,
@@ -111,6 +116,12 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     effectifs = json.loads(json.dumps(brut, default=lambda v: v.tolist(), allow_nan=False))
     effectifs.pop("graine", None)
     metadonnees_evenements = {} if evenements is None else {"evenements": evenements}
+    etats = None
+    if isinstance(p, ParametresPiscine):
+        # Sans les etats, un sorti pose au point `dehors` ou un agent pose sur le bord
+        # serait relu comme un disque actif par un controle hors ligne.
+        etats = resultat.etats
+        metadonnees_evenements["etats"] = list(NOMS_ETATS)  # nom du code k : etats[k]
     if provenance_code() != code:
         raise ValueError(
             "la provenance du code a change pendant le calcul ; "
@@ -133,6 +144,7 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
             "validation": validation,
             **metadonnees_evenements,
         },
+        etats=etats,
     )
     ecrire_trajectoire(sortie, donnees)
     return donnees

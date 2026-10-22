@@ -22,8 +22,17 @@ Chaque agent passe par quatre etats :
     passe la ligne de la porte est retire de la projection et du guidage ; il ne
     peut plus gener la porte. Son instant de sortie est interpole sur la ligne.
 
-Conservation : a chaque pas, les quatre effectifs somment a N ; une violation leve
-une erreur. Les franchissements et les sorties sont enregistres comme evenements.
+Quand plusieurs agents sont a portee de sites libres, les couples (agent, site)
+sont servis du plus proche au plus loin : l'attribution depend des positions, pas
+de la numerotation des agents.
+
+Coherence, verifiee a chaque pas (une violation leve une erreur) :
+  - chaque site occupe l'est par un agent en FRANCHISSEMENT, et chaque agent en
+    FRANCHISSEMENT occupe exactement un site ;
+  - un agent EAU a son centre dans le bassin, un agent PLAGE hors du bassin ;
+  - le deplacement MESURE d'un agent actif reste sous r/5 par pas, corrections de
+    contact comprises : c'est ce qui garantit qu'aucun centre ne passe le bord.
+Les franchissements et les sorties sont enregistres comme evenements.
 """
 
 from __future__ import annotations
@@ -40,8 +49,10 @@ from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.observables.sortie import Sorties
 
 EAU, FRANCHISSEMENT, PLAGE, SORTI = 0, 1, 2, 3
+# Legende des codes d'etat, archivee avec les etats pour la relecture hors ligne.
 NOMS_ETATS = ("eau", "franchissement", "plage", "sorti")
 
 
@@ -86,6 +97,9 @@ class ParametresPiscine:
                 raise ValueError(f"{nom} doit etre un nombre reel fini")
             if valeur < 0 or (nom != "bruit" and valeur == 0):
                 raise ValueError(f"{nom} hors domaine")
+        for nom in ("geometrie", "parametres_milieux", "durees"):
+            if not isinstance(getattr(self, nom), dict):
+                raise ValueError(f"{nom} doit etre une table YAML (cle: valeur)")
         try:
             geometrie = dict(self.geometrie)
             geometrie["echelles"] = tuple(tuple(e) for e in geometrie["echelles"])
@@ -94,7 +108,7 @@ class ParametresPiscine:
                 Milieu[nom]: p if isinstance(p, ParametresMilieu) else ParametresMilieu(**p)
                 for nom, p in self.parametres_milieux.items()
             }
-        except (KeyError, TypeError) as erreur:
+        except (KeyError, TypeError, AttributeError) as erreur:
             raise ValueError(f"geometrie ou milieux incomplets : {erreur}") from erreur
         if set(milieux) != {Milieu.EAU, Milieu.MOUILLE, Milieu.SEC}:
             raise ValueError("parametres_milieux doit declarer EAU, MOUILLE et SEC")
@@ -111,10 +125,18 @@ class ParametresPiscine:
             raise ValueError("dt trop grand : deplacement souhaite par pas > rayon/5")
         if self.pas_guidage > self.rayon:
             raise ValueError("pas_guidage doit etre inferieur ou egal au rayon")
-        # Au-dela de la moitie de l'espacement du rebord, deux sites voisins se
-        # disputeraient le meme agent.
+        # Le long d'un cote, un agent n'est ainsi a portee que d'un site. Aux coins du
+        # bassin, les points d'attente des premiers sites de deux cotes voisins sont
+        # plus proches (0,15 m avec les valeurs de reference) : un agent peut y etre a
+        # portee de deux sites, mais l'attribution du plus proche ne lui en donne qu'un.
         if self.portee >= piscine.pas_rebord / 2:
             raise ValueError("portee doit rester sous la moitie de pas_rebord")
+        # Ce qui doit tenir partout, coins compris : deux agents immobilises sur le
+        # bord, hors de la projection, ne se recouvrent pas.
+        bords = np.array([s.position for s in piscine.sites()])
+        i, j = np.triu_indices(len(bords), 1)
+        if np.min(np.hypot(*(bords[i] - bords[j]).T)) < 2 * self.rayon:
+            raise ValueError("deux sites de franchissement sont a moins d'un diametre")
         if self.espacement - 2 * self.bruit < 2 * self.rayon:
             raise ValueError("espacement insuffisant pour garantir le non-recouvrement initial")
         object.__setattr__(self, "piscine", piscine)
@@ -194,10 +216,59 @@ class ResultatPiscine:
         return pire
 
     def temps_evacuation(self, fraction: float = 1.0) -> float:
-        """Instant ou la fraction donnee de la population est sortie ; +inf sinon."""
-        rang = max(1, int(np.ceil(fraction * self.sorties.size - 1e-12)))
-        instants = np.sort(self.sorties[np.isfinite(self.sorties)])
-        return float(instants[rang - 1]) if rang <= instants.size else float("inf")
+        """Instant ou la fraction donnee de la population est sortie ; +inf sinon.
+
+        Delegue a `observables.sortie.Sorties`, qui controle aussi `fraction`.
+        """
+        return Sorties(self.sorties).temps_evacuation(fraction)
+
+
+def _attribuer_sites(distances: np.ndarray, portee: float) -> list[tuple[int, int]]:
+    """Couples (ligne, colonne) a portee, du plus proche au plus loin, chacun pris une fois.
+
+    `distances` (A, S) separe A agents candidats de S sites libres. On sert d'abord le
+    couple le plus proche, puis le suivant parmi les agents et sites restants : le
+    resultat depend des positions, pas de l'ordre des agents (indices en dernier
+    recours, pour les egalites exactes).
+    """
+    lignes, colonnes = np.nonzero(distances <= portee)
+    ordre = np.lexsort((colonnes, lignes, distances[lignes, colonnes]))
+    pris_lignes, pris_colonnes, couples = set(), set(), []
+    for k in ordre:
+        a, s = int(lignes[k]), int(colonnes[k])
+        if a not in pris_lignes and s not in pris_colonnes:
+            pris_lignes.add(a)
+            pris_colonnes.add(s)
+            couples.append((a, s))
+    return couples
+
+
+def verifier_coherence(
+    etat: np.ndarray, occupant: np.ndarray, site_agent: np.ndarray, x: np.ndarray, piscine
+) -> None:
+    """Leve RuntimeError si les etats, les sites et les positions se contredisent.
+
+    Args:
+        etat: (N,) etat de chaque agent.
+        occupant: (S,) agent qui occupe chaque site, -1 si libre.
+        site_agent: (N,) site occupe ou dernier site occupe par chaque agent.
+        x: (N, 2) positions, en m.
+        piscine: la geometrie, pour le cote du bord ou se trouve chaque centre.
+    """
+    if np.any((etat < EAU) | (etat > SORTI)):
+        raise RuntimeError("etat inconnu : un agent n'est dans aucun des quatre etats")
+    occupes = np.flatnonzero(occupant >= 0)
+    en_franchissement = np.flatnonzero(etat == FRANCHISSEMENT)
+    if not np.array_equal(np.sort(occupant[occupes]), en_franchissement):
+        raise RuntimeError(
+            "sites et franchissements incoherents : un site occupe sans agent en "
+            "franchissement, un agent en franchissement sans site, ou deux sites par agent"
+        )
+    if np.any(site_agent[occupant[occupes]] != occupes):
+        raise RuntimeError("un agent en franchissement ne designe pas le site qu'il occupe")
+    dans = piscine.dans_bassin(x)
+    if not np.all(dans[etat == EAU]) or np.any(dans[etat == PLAGE]):
+        raise RuntimeError("un agent est du mauvais cote du bord du bassin pour son etat")
 
 
 def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
@@ -245,6 +316,14 @@ def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
             nouveau = pas_semi_implicite(
                 State(x=x[actifs], v=v[actifs], r=r[actifs], t=t), p.dt, libre, projection
             )
+            # Deplacement MESURE, corrections de contact comprises : le controle de dt
+            # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
+            deplacement = np.max(np.hypot(*(nouveau.x - x[actifs]).T))
+            if deplacement > p.rayon / 5 * (1 + 1e-12):
+                raise ValueError(
+                    f"deplacement mesure de {deplacement:.3g} m en un pas, > rayon/5 a "
+                    f"t = {t:.2f} s ; reduire dt"
+                )
             x[actifs], v[actifs] = nouveau.x, nouveau.v
         t = pas * p.dt  # sans accumulation d'arrondis : les durees restent exactes
 
@@ -268,7 +347,8 @@ def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
             occupant[k] = -1
             evenements.append([i, k, debut_agent[i], t])
 
-        # Debuts de franchissement : un agent de l'eau pres du point d'attente d'un site libre.
+        # Debuts de franchissement : un agent de l'eau pres du point d'attente d'un site
+        # libre. Les couples les plus proches sont servis d'abord.
         dans_l_eau = np.flatnonzero(etat == EAU)
         libres = np.flatnonzero(occupant < 0)
         if dans_l_eau.size and libres.size:
@@ -276,16 +356,13 @@ def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
                 x[dans_l_eau, None, 0] - attentes[None, libres, 0],
                 x[dans_l_eau, None, 1] - attentes[None, libres, 1],
             )
-            for a, i in enumerate(dans_l_eau):
-                proches = np.flatnonzero((distances[a] <= p.portee) & (occupant[libres] < 0))
-                if proches.size:
-                    k = libres[proches[np.argmin(distances[a, proches])]]
-                    occupant[k], fin[k] = i, t + durees[k]
-                    etat[i], debut_agent[i], site_agent[i] = FRANCHISSEMENT, t, k
-                    x[i], v[i] = positions_bord[k], 0.0
+            for a, s in _attribuer_sites(distances, p.portee):
+                i, k = dans_l_eau[a], libres[s]
+                occupant[k], fin[k] = i, t + durees[k]
+                etat[i], debut_agent[i], site_agent[i] = FRANCHISSEMENT, t, k
+                x[i], v[i] = positions_bord[k], 0.0
 
-        if np.bincount(etat, minlength=4).sum() != n:
-            raise RuntimeError("conservation violee : un agent a disparu ou s'est dedouble")
+        verifier_coherence(etat, occupant, site_agent, x, piscine)
         historique_t.append(t)
         historique_x.append(x.copy())
         historique_v.append(v.copy())
