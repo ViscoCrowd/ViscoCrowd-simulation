@@ -185,7 +185,8 @@ def test_biais_de_densite_de_la_tolerance_indiscernable_sur_huit_graines():
     2,4 erreurs standard) vaut deja 1,2 a 2,2 % ; elle echouait sur macOS. Le test
     ne verifie plus qu'une chose, avec un critere sans hypothese de normalite : un
     test de permutation EXACT sur les huit differences appariees (les 2^8 signes
-    possibles) ne detecte pas de difference au seuil de 5 %. Ce n'est pas une
+    possibles, exact sous l'hypothese d'echangeabilite des deux resultats d'une meme
+    graine) ne detecte pas de difference au seuil de 5 %. Ce n'est pas une
     preuve d'absence d'effet, seulement l'absence de detection a cet effectif ;
     borner l'effet demanderait davantage de graines, sur la geometrie cible (#10).
     """
@@ -227,9 +228,12 @@ def test_biais_de_densite_de_la_tolerance_indiscernable_sur_huit_graines():
 def valeur_p_permutation_appariee(ecarts: np.ndarray) -> float:
     """Valeur p bilaterale exacte du test de permutation sur des differences appariees.
 
-    Sous l'hypothese nulle (aucun effet), chaque difference est aussi probable avec
-    l'un ou l'autre signe. On enumere les 2^n signes et on compte la part des
-    moyennes au moins aussi eloignees de zero que la moyenne observee.
+    Hypothese nulle : les deux resultats d'une meme graine sont ECHANGEABLES (les
+    graines etant independantes), donc chaque difference est symetrique autour de
+    zero. Ce n'est pas la seule egalite des moyennes. On enumere alors les 2^n signes
+    et on compte la part des moyennes au moins aussi eloignees de zero que la moyenne
+    observee. C'est le test de scipy.stats.permutation_test avec
+    permutation_type="samples", ecrit ici pour rester lisible et exact.
     """
     n = len(ecarts)
     signes = 1 - 2 * ((np.arange(2**n)[:, None] >> np.arange(n)) & 1)

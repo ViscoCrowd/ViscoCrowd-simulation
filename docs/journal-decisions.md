@@ -129,8 +129,12 @@ demi-largeur d'un intervalle à 95 % vaut déjà 1,2 à 2,2 % de la densité, se
 l'exécution. Le test lent vérifie désormais seulement qu'un **test de permutation exact**
 sur les huit différences appariées (les 2⁸ = 256 choix de signes, sans hypothèse de
 normalité) ne détecte pas de différence au seuil de 5 % : p = 0,633 sur x86-64 et 0,539
-pour les mesures de la revue sur macOS. C'est l'absence de détection à cet effectif, pas
-une borne. Borner l'effet demandera plus de graines, sur la géométrie cible (goulot, E0) ;
+pour les mesures de la revue sur macOS. Le test est exact sous l'hypothèse nulle
+d'**échangeabilité** des deux résultats d'une même graine, les graines étant indépendantes :
+chaque différence est alors symétrique autour de zéro. C'est plus que la seule égalité des
+moyennes (c'est l'hypothèse de `scipy.stats.permutation_test`, `permutation_type="samples"`).
+C'est l'absence de détection à cet effectif, pas une borne, et ce diagnostic reste distinct
+du futur critère de biais acceptable sur E0. Borner l'effet demandera plus de graines, sur la géométrie cible (goulot, E0) ;
 l'issue #10 reste ouverte.
 
 La revue corrige séparément les centres confondus ou fusionnés par Qhull : compter deux
