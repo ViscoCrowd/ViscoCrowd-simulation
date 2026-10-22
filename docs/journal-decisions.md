@@ -95,8 +95,18 @@ figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est 
 Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
 quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;
 le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
-Si Voronoï est refusé, `densite_comptage` (N dans M sur |M|) prend le relais, avec la même
-interface.
+Si Voronoï est refusé, `densite_comptage(x, zone)` (N dans M sur |M|) prend le relais ; il ne
+demande pas de salle, sa signature diffère donc de `densite_voronoi(x, salle, zone)`.
+`mesures_voronoi` rend densité et vitesse d'un même calcul de cellules, pour le diagramme
+fondamental ; une boîte englobante évite de découper les cellules entièrement dans M ou
+entièrement dehors.
+
+**Limite de portée (revue de #53).** La salle doit être un rectangle aligné sur les axes,
+avec tous les agents strictement dedans. Les reflets valent pour tout polygone convexe, mais
+la salle du goulot n'est pas convexe et le couloir est ouvert en aval. Écarter les agents
+sortis du rectangle y créerait un faux mur : les cellules voisines de la coupe seraient trop
+grandes, et la densité sous-estimée. Avant M8, il faudra une zone de mesure loin de toute
+coupe, ou un découpage des cellules par le vrai domaine.
 
 **Validation** (`tests/test_densite.py`). Réseau carré de pas 0,5 m : 4 pers/m² exactement ;
 réseau hexagonal de pas 0,4 m : `2/(√3 a²)` à 10⁻⁹ près ; salle entière : N/|salle|
@@ -125,7 +135,9 @@ l'issue #10 reste ouverte.
 
 La revue corrige séparément les centres confondus ou fusionnés par Qhull : compter deux
 fois une même cellule faussait aussi la vitesse uniforme. Ces entrées et les partitions
-dégénérées sont refusées ; les 17 tests rapides de densité passent.
+dégénérées sont refusées, toutes par `ValueError`, y compris une cellule non bornée. Une
+direction de mesure n'est unitaire qu'à 10⁻⁹ près, la tolérance du guidage, désormais
+partagée par `core.verifications`. Les 23 tests rapides de densité passent.
 
 ---
 

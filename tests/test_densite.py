@@ -11,6 +11,7 @@ from viscocrowd.observables.densite import (
     decouper,
     densite_comptage,
     densite_voronoi,
+    mesures_voronoi,
     vitesse_voronoi,
 )
 
@@ -48,6 +49,29 @@ class TestGeometrie:
         moitie = decouper(carre, Rectangle(1.0, 5.0, -1.0, 5.0))
         assert aire_polygone(moitie) == pytest.approx(2.0)
         assert decouper(carre, Rectangle(3.0, 4.0, 3.0, 4.0)).shape[0] == 0
+
+    def test_listes_acceptees_formes_invalides_refusees(self):
+        assert aire_polygone([[0, 0], [1, 0], [1, 1]]) == 0.5
+        assert aire_polygone(decouper([[0, 0], [2, 0], [2, 2]], Rectangle(0, 1, 0, 3))) == 0.5
+        assert aire_polygone([]) == 0.0
+        with pytest.raises(ValueError, match="forme"):
+            aire_polygone([0.0, 1.0, 2.0])
+        with pytest.raises(ValueError, match="non fini"):
+            decouper([[0, 0], [np.nan, 0], [1, 1]], SALLE)
+
+    def test_cellule_non_bornee_leve_value_error(self, monkeypatch):
+        """Tous les cas degeneres levent ValueError, y compris une cellule infinie."""
+        import viscocrowd.observables.densite as module
+
+        class VoronoiInfini:
+            def __init__(self, points):
+                self.point_region = np.arange(points.shape[0])
+                self.regions = [[-1, 0, 1]] * points.shape[0]
+                self.vertices = np.zeros((2, 2))
+
+        monkeypatch.setattr(module, "Voronoi", VoronoiInfini)
+        with pytest.raises(ValueError, match="non bornee"):
+            cellules(np.array([[2.0, 3.0], [8.0, 3.0]]), SALLE)
 
     def test_les_cellules_pavent_la_salle(self):
         x = generateur(1).uniform([0.1, 0.1], [9.9, 5.9], size=(200, 2))
@@ -111,10 +135,21 @@ class TestVitesse:
         assert vitesse_voronoi(x, v, SALLE, zone) == pytest.approx(1.3, rel=1e-12)
         assert vitesse_voronoi(x, v, SALLE, zone, direction=[1.0, 0.0]) == pytest.approx(1.2)
 
-    def test_direction_non_unitaire_refusee(self):
+    @pytest.mark.parametrize("norme", [2.0, 1.000009, 1.0 + 1e-8])
+    def test_direction_non_unitaire_refusee(self, norme):
+        """Meme tolerance que le guidage (1e-9) : 1,000009 n'est pas unitaire."""
         x = reseau_carre(1.0)
         with pytest.raises(ValueError, match="unitaire"):
-            vitesse_voronoi(x, np.zeros_like(x), SALLE, SALLE, direction=[2.0, 0.0])
+            vitesse_voronoi(x, np.zeros_like(x), SALLE, SALLE, direction=[norme, 0.0])
+
+    def test_mesures_conjointes_identiques_aux_mesures_separees(self):
+        rng = generateur(5)
+        x = rng.uniform([0.1, 0.1], [9.9, 5.9], size=(90, 2))
+        v = rng.normal(size=(90, 2))
+        zone = Rectangle(2.5, 6.5, 1.5, 4.5)
+        rho, vit = mesures_voronoi(x, v, SALLE, zone, direction=[0.0, 1.0])
+        assert rho == densite_voronoi(x, SALLE, zone)
+        assert vit == vitesse_voronoi(x, v, SALLE, zone, direction=[0.0, 1.0])
 
 
 @pytest.mark.parametrize(
@@ -199,7 +234,10 @@ def valeur_p_permutation_appariee(ecarts: np.ndarray) -> float:
     n = len(ecarts)
     signes = 1 - 2 * ((np.arange(2**n)[:, None] >> np.arange(n)) & 1)
     moyennes = np.abs(signes @ ecarts) / n
-    return float(np.mean(moyennes >= abs(ecarts.mean()) - 1e-15))
+    # Egalites a l'arrondi pres, relativement a l'echelle des ecarts : une tolerance
+    # absolue fixe deviendrait trop stricte si les ecarts grandissaient.
+    tolerance = 1e-12 * np.abs(ecarts).mean()
+    return float(np.mean(moyennes >= abs(ecarts.mean()) - tolerance))
 
 
 def test_permutation_appariee():
@@ -219,6 +257,12 @@ def test_permutation_appariee():
         ]
     )
     assert valeur_p_permutation_appariee(revue_macos) > 0.05
+    # Invariante par changement d'echelle : la tolerance suit la taille des ecarts.
+    for echelle in (1e-6, 1e6):
+        assert valeur_p_permutation_appariee(echelle * revue_macos) == pytest.approx(
+            valeur_p_permutation_appariee(revue_macos)
+        )
+        assert valeur_p_permutation_appariee(np.full(8, echelle)) == pytest.approx(2 / 256)
 
 
 def test_rectangle_degenere_refuse():

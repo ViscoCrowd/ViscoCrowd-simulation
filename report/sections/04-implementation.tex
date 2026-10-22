@@ -61,6 +61,11 @@ Les cellules du bord sont bornées par la salle, en ajoutant le reflet de chaque
 par rapport aux quatre murs : pour une salle rectangulaire, les cellules obtenues pavent
 exactement la salle. Le calcul des cellules utilise \texttt{scipy.spatial.Voronoi} ;
 le découpage par la zone de mesure, les aires et les moyennes sont écrits par le groupe.
+Cette construction suppose une salle rectangulaire contenant tous les agents. Elle ne
+s'applique pas telle quelle à la salle du goulot, qui n'est pas convexe, ni au couloir
+ouvert en aval : écarter les agents sortis du rectangle créerait un faux mur, et la
+densité serait sous-estimée près de la coupe. La zone de mesure devra en rester éloignée,
+ou les cellules être découpées par le vrai domaine.
 
 La méthode retrouve exactement les densités de réseaux connus : \num{4}~P/m$^2$
 pour un réseau carré de pas \SI{0.5}{\metre}, $2/(\sqrt3\,a^2)$ pour un réseau hexagonal,
