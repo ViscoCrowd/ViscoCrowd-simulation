@@ -177,6 +177,7 @@ dissipation d'ensemble ne peut les masquer.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from numbers import Integral
 
 import numpy as np
@@ -195,6 +196,16 @@ _DISTANCE_MIN = 1e-12
 # Au-dela, seules les longues chaines de contacts sont accelerees, et la rampe
 # repart de zero. Valeur justifiee par mesure, cf. la section « extrapolation ».
 _RANG_EXTRAPOLATION = 80
+
+
+@dataclass
+class InstantaneProjection:
+    """Entree et sortie d'un seul appel ; indices locaux a la projection."""
+
+    x_libre: np.ndarray
+    x_residu: np.ndarray
+    rayons: np.ndarray
+    instant: float
 
 
 class ProjectionNonConvergee(RuntimeError):  # noqa: N818 - nommage francais du projet
@@ -218,6 +229,7 @@ class ProjectionNonConvergee(RuntimeError):  # noqa: N818 - nommage francais du 
         self.residu = residu
         self.tolerance = tolerance
         self.iterations = iterations
+        self.instantane: InstantaneProjection | None = None
 
 
 def _corriger_contacts(x: np.ndarray, r: np.ndarray, paires: np.ndarray) -> None:
@@ -327,8 +339,10 @@ class ProjectionExclusion:
         self.iterations_max = 0
         self.n_appels = 0
         self.non_convergences = 0
+        self.pire_echec: ProjectionNonConvergee | None = None
 
     def __call__(self, x: np.ndarray, r: np.ndarray, t: float) -> np.ndarray:
+        entree = x
         x = np.array(x, dtype=float, copy=True)
         # Une entree non finie est une ERREUR, pas une non-convergence : elle leve dans
         # les deux modes. Le mode permissif sert a mesurer un echec de convergence, pas
@@ -351,8 +365,21 @@ class ProjectionExclusion:
         self.recouvrement_max = max(self.recouvrement_max, residu)
         if residu > self.tolerance:
             self.non_convergences += 1
+            erreur = ProjectionNonConvergee(residu, self.tolerance, n_iterations)
+            # Aucun tableau supplementaire sur le chemin convergent. Un seul
+            # instantane conserve, meme si le mode permissif accumule les echecs.
+            pire = self.pire_echec is None or residu > self.pire_echec.residu
+            if pire or self.strict:
+                erreur.instantane = InstantaneProjection(
+                    np.array(entree, dtype=float, copy=True),
+                    x.copy(),
+                    np.array(r, dtype=float, copy=True),
+                    float(t),
+                )
+            if pire:
+                self.pire_echec = erreur
             if self.strict:
-                raise ProjectionNonConvergee(residu, self.tolerance, n_iterations)
+                raise erreur
         return x
 
     def verifier_convergence(self) -> None:
@@ -364,7 +391,8 @@ class ProjectionExclusion:
         pouvoir alimenter une figure ou un tableau du rapport.
         """
         if self.non_convergences:
-            raise ProjectionNonConvergee(self.recouvrement_max, self.tolerance, self.iterations_max)
+            assert self.pire_echec is not None
+            raise self.pire_echec
 
     def _iterer(self, x: np.ndarray, r: np.ndarray, t: float) -> tuple[np.ndarray, int, float]:
         # Les disques bougent pendant les balayages : on detecte donc les paires avec

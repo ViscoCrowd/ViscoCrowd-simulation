@@ -221,6 +221,9 @@ def construire_analyseur() -> argparse.ArgumentParser:
     comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
     comparer.set_defaults(fonction=commande_comparer_mouille)
 
+    from viscocrowd.io.diagnostic_projection import ajouter_commande
+
+    ajouter_commande(sous)
     return analyseur
 
 
@@ -267,6 +270,8 @@ def commande_simuler(args: argparse.Namespace) -> int:
         donnees = executer_configuration(args.configuration, args.sortie)
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Simulation refusee : {erreur}", file=sys.stderr)
+        for note in getattr(erreur, "__notes__", []):
+            print(note, file=sys.stderr)
         return 1
     print(
         f"Trajectoire : {args.sortie} — {donnees.x.shape[1]} agent(s), "

@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from viscocrowd import __version__
+from viscocrowd.geometry.projection import ProjectionNonConvergee
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.provenance import provenance_code
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
@@ -92,14 +93,25 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
 
     evenements = None
     if isinstance(p, (ParametresTassement, ParametresCouloir, ParametresPiscine)):
-        if isinstance(p, ParametresPiscine):
-            resultat = simuler_piscine(p)
-            evenements = _evenements_piscine(resultat)
-        elif isinstance(p, ParametresCouloir):
-            resultat = simuler_couloir(p)
-        else:
-            resultat = simuler_tassement(p)
-        resultat.projection.verifier_convergence()
+        try:
+            if isinstance(p, ParametresPiscine):
+                resultat = simuler_piscine(p)
+                evenements = _evenements_piscine(resultat)
+            elif isinstance(p, ParametresCouloir):
+                resultat = simuler_couloir(p)
+            else:
+                resultat = simuler_tassement(p)
+            resultat.projection.verifier_convergence()
+        except ProjectionNonConvergee as erreur:
+            from viscocrowd.io.diagnostic_projection import ecrire_diagnostic
+
+            diagnostic = Path(sortie).with_suffix(".diagnostic.npz")
+            try:
+                ecrire_diagnostic(diagnostic, erreur, _configuration_effective(config, p), code)
+                erreur.add_note(f"Diagnostic rejouable : {diagnostic}")
+            except (OSError, ValueError) as sauvegarde:
+                erreur.add_note(f"Diagnostic non sauvegarde : {sauvegarde}")
+            raise
         parois = resultat.violation_paroi_max()
         validation = {
             "non_convergences": resultat.projection.non_convergences,
@@ -112,9 +124,6 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     if not parois <= 1e-14:
         raise ValueError(f"violation des parois : {parois} m > 1e-14 m")
     validation["violation_paroi_max_m"] = parois
-    brut = p.en_dictionnaire() if isinstance(p, ParametresPiscine) else asdict(p)
-    effectifs = json.loads(json.dumps(brut, default=lambda v: v.tolist(), allow_nan=False))
-    effectifs.pop("graine", None)
     metadonnees_evenements = {} if evenements is None else {"evenements": evenements}
     etats = None
     if isinstance(p, ParametresPiscine):
@@ -133,7 +142,7 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
         v=resultat.v,
         rayons=np.full(resultat.x.shape[1], p.rayon),
         metadonnees={
-            "configuration": {**config, "parametres": effectifs},
+            "configuration": _configuration_effective(config, p),
             "versions": {
                 "viscocrowd": __version__,
                 "python": platform.python_version(),
@@ -148,6 +157,13 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     )
     ecrire_trajectoire(sortie, donnees)
     return donnees
+
+
+def _configuration_effective(config: dict, p) -> dict:
+    brut = p.en_dictionnaire() if isinstance(p, ParametresPiscine) else asdict(p)
+    effectifs = json.loads(json.dumps(brut, default=lambda v: v.tolist(), allow_nan=False))
+    effectifs.pop("graine", None)
+    return {**config, "parametres": effectifs}
 
 
 def _evenements_piscine(resultat: ResultatPiscine) -> dict:

@@ -133,6 +133,9 @@ validation actuels ; l'exploitation automatique des archives par les futures cam
 reste à raccorder. Ces configurations ne produisent pas de nouvelles figures du rapport.
 
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
+Une projection non convergée conserve un [diagnostic rejouable](docs/diagnostic-projection.md)
+à côté de la sortie demandée, pour examiner le résidu sans relancer toute la simulation.
+
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
 **Temps d'exécution mesuré le 21 octobre 2026** — après intégration de la géométrie
