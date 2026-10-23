@@ -295,7 +295,10 @@ def commande_rejouer(args: argparse.Namespace) -> int:
             if chemin and (chemin.exists() or chemin.suffix.lower() != extension):
                 raise ValueError(f"choisir un nouveau fichier {extension} : {chemin}")
         donnees = lire_trajectoire(args.archive)
-        scenario = donnees.metadonnees.get("configuration", {}).get("scenario")
+        configuration = donnees.metadonnees.get("configuration", {})
+        if not isinstance(configuration, dict):
+            raise ValueError("configuration de l'archive invalide")
+        scenario = configuration.get("scenario")
         classe = {"couloir": LecteurCouloir, "piscine": LecteurPiscine}.get(scenario)
         if classe is None:
             raise ValueError("la relecture attend une archive couloir ou piscine")

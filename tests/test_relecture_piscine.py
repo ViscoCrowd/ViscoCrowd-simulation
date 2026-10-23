@@ -139,3 +139,10 @@ def test_geometrie_vient_de_l_archive(donnees):
         assert donnees.metadonnees == original
     finally:
         plt.close(vue.figure)
+
+
+def test_cli_refuse_une_configuration_non_structuree(donnees, tmp_path):
+    donnees.metadonnees["configuration"] = []
+    fichier = tmp_path / "invalide.npz"
+    ecrire_trajectoire(fichier, donnees)
+    assert main(["rejouer", str(fichier), "--image", str(tmp_path / "vue.png")]) == 1
