@@ -189,12 +189,18 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     valider.set_defaults(fonction=commande_valider_moteur)
 
+    from viscocrowd.scenarios.performances import ajouter_commande
+
+    ajouter_commande(sous)
     interface = sous.add_parser(
         "interface", help="ouvre une maquette visuelle de la piscine, sans simulation"
     )
     interface.set_defaults(fonction=commande_interface)
 
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
+    simuler.add_argument(
+        "--archiver-tous", type=int, default=1, help="piscine : un instant sur K pas"
+    )
     simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
     simuler.set_defaults(fonction=commande_simuler)
@@ -329,7 +335,9 @@ def commande_simuler(args: argparse.Namespace) -> int:
     from viscocrowd.scenarios.experience import executer_configuration
 
     try:
-        donnees = executer_configuration(args.configuration, args.sortie)
+        donnees = executer_configuration(
+            args.configuration, args.sortie, archiver_tous=args.archiver_tous
+        )
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Simulation refusee : {erreur}", file=sys.stderr)
         return 1
