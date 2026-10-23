@@ -68,11 +68,17 @@ def _parametres(
     return classe(**valeurs)
 
 
-def executer_configuration(configuration: str | Path, sortie: str | Path) -> Trajectoire:
+def executer_configuration(
+    configuration: str | Path, sortie: str | Path, *, archiver_tous: int = 1
+) -> Trajectoire:
     """Archive uniquement un calcul fini, confine et converge ; aucun affichage."""
     code = provenance_code()
     config = lire_configuration(configuration)
     p = _parametres(config)
+    if type(archiver_tous) is not int or archiver_tous < 1:
+        raise ValueError("archiver_tous doit etre un entier strictement positif")
+    if archiver_tous != 1 and not isinstance(p, ParametresPiscine):
+        raise ValueError("l'archivage espace est disponible pour le scenario piscine")
     if Path(sortie).exists():
         raise FileExistsError(f"la sortie existe deja : {sortie}")
     if Path(sortie).suffix != ".npz":
@@ -93,7 +99,7 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
     evenements = None
     if isinstance(p, (ParametresTassement, ParametresCouloir, ParametresPiscine)):
         if isinstance(p, ParametresPiscine):
-            resultat = simuler_piscine(p)
+            resultat = simuler_piscine(p, archiver_tous=archiver_tous)
             evenements = _evenements_piscine(resultat)
         elif isinstance(p, ParametresCouloir):
             resultat = simuler_couloir(p)
@@ -142,6 +148,12 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
             "code": code,
             "unites": {"t": "s", "x": "m", "v": "m/s", "rayons": "m"},
             "validation": validation,
+            "archivage": {
+                "tous_les_pas": archiver_tous,
+                "dt_simulation_s": p.dt,
+                "premier_et_dernier_instants": True,
+                "validation_tous_les_pas": True,
+            },
             **metadonnees_evenements,
         },
         etats=etats,

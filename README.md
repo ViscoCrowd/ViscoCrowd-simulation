@@ -126,7 +126,10 @@ energie = energie_mecanique(donnees.x, donnees.v, masse=p["masse"], gravite=p["g
 Les tests vérifient l'égalité exacte des tableaux à graine fixée et après relecture,
 dans un même environnement. Cette garantie ne porte pas sur les octets du fichier ZIP
 ni sur l'égalité entre versions de dépendances. Le format conserve une population fixe
-et tous les pas en mémoire ; ce n'est pas une reprise de calcul ni un état d'évacuation.
+et, par défaut, tous les pas en mémoire. La piscine permet un
+[archivage moins fréquent et un banc temps/mémoire](docs/performances.md)
+avec `--archiver-tous 10`, sans changer le pas physique ni les événements de sortie.
+Ce format ne permet pas de reprendre une simulation au milieu de sa trajectoire.
 Le dernier instant peut dépasser la durée demandée de moins d'un pas, conformément
 à l'intégrateur existant. La commande `valider-moteur --figures` conserve ses bancs de
 validation actuels ; l'exploitation automatique des archives par les futures campagnes
