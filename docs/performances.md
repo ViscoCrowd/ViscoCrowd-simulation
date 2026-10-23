@@ -66,3 +66,31 @@ peuvent sauter une transition intermédiaire visible dans les événements.
 L'archivage espacé est actuellement réservé à la piscine. Le banc mesure aussi
 couloir/tassement avec `--archiver-tous 1`. Ces scénarios gardent leur contrat
 d'archive complète ; la bille seule n'est pas un banc en nombre d'agents.
+
+
+## Mesure de référence du 23 octobre 2026
+
+Mesure locale sur macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1,
+Matplotlib 3.11.2, avec les dépendances figées. Code testé propre :
+`7b8c1b4f34e77966919b62ab736bd7e696378bae`. Deux répétitions séquentielles
+par cas, aucune autre suite de tests lancée en parallèle. Les valeurs ci-dessous
+sont leurs moyennes ; [les huit mesures brutes](mesures/performances-piscine-2026-10-23.json)
+conservent aussi les paramètres, la validation et l'environnement.
+
+| N | Un instant tous les K pas | Temps calcul + validation + NPZ (s) | Pic RSS (Mio) | Tableaux conservés (Mio) | NPZ (Mio) | Instants |
+|---:|---:|---:|---:|---:|---:|---:|
+| 20 | 1 | 2.434 | 58.87 | 3.260 | 1.261 | 4231 |
+| 20 | 10 | 2.422 | 54.97 | 0.327 | 0.129 | 424 |
+| 100 | 1 | 8.122 | 114.24 | 17.454 | 6.835 | 4566 |
+| 100 | 10 | 7.978 | 57.62 | 1.751 | 0.703 | 458 |
+
+À 100 agents, K=10 divise ici la taille des tableaux par environ dix et le pic RSS
+passe d'environ 114 à 58 Mio. Les bibliothèques et le guidage expliquent qu'à
+20 agents le gain RSS reste limité. Avec seulement deux répétitions et des temps
+proches, ces mesures ne démontrent pas une accélération du solveur.
+
+Les huit calculs ont convergé. Les temps physiques finaux sont identiques entre
+K=1 et K=10 : 42,30 s à 20 agents et 45,65 s à 100 agents. La preuve d'égalité des
+positions conservées, des événements et des invariants est également automatisée
+sur une évacuation complète de 20 agents (K=37). Un test injecte une violation sur
+un pas non archivé et vérifie que la publication est refusée.
