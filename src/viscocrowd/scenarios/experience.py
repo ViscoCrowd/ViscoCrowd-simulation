@@ -3,6 +3,7 @@
 import json
 import platform
 from dataclasses import asdict
+from functools import wraps
 from pathlib import Path
 
 import numpy as np
@@ -93,25 +94,14 @@ def executer_configuration(configuration: str | Path, sortie: str | Path) -> Tra
 
     evenements = None
     if isinstance(p, (ParametresTassement, ParametresCouloir, ParametresPiscine)):
-        try:
-            if isinstance(p, ParametresPiscine):
-                resultat = simuler_piscine(p)
-                evenements = _evenements_piscine(resultat)
-            elif isinstance(p, ParametresCouloir):
-                resultat = simuler_couloir(p)
-            else:
-                resultat = simuler_tassement(p)
-            resultat.projection.verifier_convergence()
-        except ProjectionNonConvergee as erreur:
-            from viscocrowd.io.diagnostic_projection import ecrire_diagnostic
-
-            diagnostic = Path(sortie).with_suffix(".diagnostic.npz")
-            try:
-                ecrire_diagnostic(diagnostic, erreur, _configuration_effective(config, p), code)
-                erreur.add_note(f"Diagnostic rejouable : {diagnostic}")
-            except (OSError, ValueError) as sauvegarde:
-                erreur.add_note(f"Diagnostic non sauvegarde : {sauvegarde}")
-            raise
+        if isinstance(p, ParametresPiscine):
+            resultat = simuler_piscine(p)
+            evenements = _evenements_piscine(resultat)
+        elif isinstance(p, ParametresCouloir):
+            resultat = simuler_couloir(p)
+        else:
+            resultat = simuler_tassement(p)
+        resultat.projection.verifier_convergence()
         parois = resultat.violation_paroi_max()
         validation = {
             "non_convergences": resultat.projection.non_convergences,
@@ -182,3 +172,33 @@ def _evenements_piscine(resultat: ResultatPiscine) -> dict:
         "sorties": [float(s) if np.isfinite(s) else None for s in resultat.sorties],
         "unites": {"debut": "s", "fin": "s", "sorties": "s"},
     }
+
+
+def _conserver_echec(fonction):
+    """Instrumente l'execution sans changer sa signature ni les options transmises."""
+
+    @wraps(fonction)
+    def executer(configuration, sortie, **options):
+        # Figer les entrees avant le calcul, y compris si le fichier est ensuite edite.
+        config = lire_configuration(configuration)
+        code = provenance_code()
+        try:
+            return fonction(configuration, sortie, **options)
+        except ProjectionNonConvergee as erreur:
+            from viscocrowd.io.diagnostic_projection import ecrire_diagnostic
+
+            diagnostic = Path(sortie).with_suffix(".diagnostic.npz")
+            try:
+                if lire_configuration(configuration) != config:
+                    raise ValueError("configuration modifiee pendant le calcul")
+                effectifs = _configuration_effective(config, _parametres(config))
+                ecrire_diagnostic(diagnostic, erreur, effectifs, code)
+                erreur.add_note(f"Diagnostic rejouable : {diagnostic}")
+            except (OSError, ValueError) as sauvegarde:
+                erreur.add_note(f"Diagnostic non sauvegarde : {sauvegarde}")
+            raise
+
+    return executer
+
+
+executer_configuration = _conserver_echec(executer_configuration)
