@@ -251,7 +251,7 @@ Trois niveaux :
 |---|---|---|
 | *(aucune)* | unitaire — une fonction, un comportement | ✅ |
 | `invariant` | propriété physique vraie à chaque pas de temps | ✅ |
-| `slow` | scénario complet, campagne de simulation | Après intégration sur `dev`, Linux/macOS ; aussi hebdomadaire et manuel après publication du workflow sur `main` |
+| `slow` | scénario complet, campagne de simulation | Après intégration sur `dev`, Linux/macOS/Windows ; aussi hebdomadaire et manuel après publication du workflow sur `main` |
 
 La CI rapide porte sur **toutes les PR**, y compris celles empilées sur une branche
 `feat/*`. Les tests lents s'exécutent à chaque push sur `dev`, sans ralentir chaque

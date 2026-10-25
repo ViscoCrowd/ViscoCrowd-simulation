@@ -21,11 +21,18 @@ jobs:
   scenarios:
     name: Scenarios lents (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    # Windows est nettement plus lent : 11 min en local, contre moins de 3 min sur macOS.
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 40 || 20 }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Windows est le poste d'au moins un membre du groupe : les chemins, os.replace
+        # et l'absence de `resource` doivent y etre verifies, pas seulement supposes.
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    defaults:
+      run:
+        # Memes commandes sur les trois systemes, sans dependre de PowerShell.
+        shell: bash
     steps:
       - uses: actions/checkout@v4
         with:
