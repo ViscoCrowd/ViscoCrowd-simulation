@@ -9,11 +9,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+import yaml
 from PIL import Image
 
 from viscocrowd.cli import main
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.trajectoires import Trajectoire, ecrire_trajectoire
+from viscocrowd.scenarios.experience import executer_configuration
 from viscocrowd.scenarios.piscine import NOMS_ETATS, ParametresPiscine
 from viscocrowd.ui.relecture_piscine import LecteurPiscine
 
@@ -153,3 +155,20 @@ def test_cli_refuse_une_configuration_non_structuree(donnees, tmp_path):
     fichier = tmp_path / "invalide.npz"
     ecrire_trajectoire(fichier, donnees)
     assert main(["rejouer", str(fichier), "--image", str(tmp_path / "vue.png")]) == 1
+
+
+@pytest.mark.parametrize(("tous_les_pas", "instants"), [(1, 7), (2, 4)])
+def test_archive_espacee_relue_et_signalee(tmp_path, tous_les_pas, instants):
+    """Archive de #70 (un instant tous les K pas) : relue telle quelle, espacement affiche."""
+    config = lire_configuration(Path(__file__).parents[1] / "experiments/piscine.yaml")
+    config["parametres"].update(n_agents=4, duree=0.055)
+    fichier = tmp_path / "piscine.yaml"
+    fichier.write_text(yaml.safe_dump(config))
+    archive = tmp_path / "piscine.npz"
+    donnees = executer_configuration(fichier, archive, archiver_tous=tous_les_pas)
+    assert len(donnees.t) == instants  # premier et dernier pas toujours conserves
+    vue = LecteurPiscine(donnees, interactif=False)
+    try:
+        assert ("1 image tous les 2 pas" in vue.legende.get_text()) == (tous_les_pas == 2)
+    finally:
+        plt.close(vue.figure)

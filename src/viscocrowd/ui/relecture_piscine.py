@@ -190,10 +190,15 @@ class LecteurPiscine(LecteurTrajectoire):
             labelcolor="#b7c5d0",
             fontsize=9,
         )
-        self.figure.text(
+        legende = f"{self.p.n_agents} agents · graine {self.p.graine}"
+        # Une archive espacee saute des etats intermediaires : le dire a l'ecran.
+        tous_les_pas = donnees.metadonnees.get("archivage", {}).get("tous_les_pas", 1)
+        if tous_les_pas != 1:
+            legende += f" · 1 image tous les {tous_les_pas} pas"
+        self.legende = self.figure.text(
             0.07,
             0.15,
-            f"{self.p.n_agents} agents · graine {self.p.graine} · paramètres physiques à valider",
+            f"{legende} · paramètres physiques à valider",
             color="#b7c5d0",
             fontsize=9,
         )

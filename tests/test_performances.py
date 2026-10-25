@@ -1,6 +1,7 @@
 """Archivage moins frequent : meme dynamique, memes evenements, controles a chaque pas."""
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -141,3 +142,17 @@ def test_refus_avant_calcul(configuration, tmp_path):
                 configuration, tmp_path / "a.json", effectifs=effectifs, intervalles=[1]
             )
     assert not (tmp_path / "a.json").exists()
+
+
+@pytest.mark.parametrize("existant", [None, "", "autre/dossier"])
+def test_pythonpath_de_l_enfant_complete_l_existant(monkeypatch, existant):
+    """Les sources du depot passent en tete, sans retirer un PYTHONPATH deja defini."""
+    from viscocrowd.scenarios import performances
+
+    if existant is None:
+        monkeypatch.delenv("PYTHONPATH", raising=False)
+    else:
+        monkeypatch.setenv("PYTHONPATH", existant)
+    chemins = performances._pythonpath_enfant().split(os.pathsep)
+    assert Path(chemins[0]) == Path(performances.__file__).resolve().parents[2]
+    assert chemins[1:] == ([existant] if existant else [])

@@ -189,17 +189,17 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     valider.set_defaults(fonction=commande_valider_moteur)
 
-    from viscocrowd.scenarios.performances import ajouter_commande
+    # Chaque module declare sa sous-commande ; noms qualifies, les deux fonctions
+    # portant le meme nom.
+    from viscocrowd.scenarios import campagne, performances
 
-    ajouter_commande(sous)
+    performances.ajouter_commande(sous)
     interface = sous.add_parser(
         "interface", help="ouvre une maquette visuelle de la piscine, sans simulation"
     )
     interface.set_defaults(fonction=commande_interface)
 
-    from viscocrowd.scenarios.campagne import ajouter_commande
-
-    ajouter_commande(sous)
+    campagne.ajouter_commande(sous)
 
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(

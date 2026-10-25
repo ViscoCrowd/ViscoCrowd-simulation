@@ -51,6 +51,12 @@ def mesurer_cas(configuration: Path, archiver_tous: int) -> dict:
         }
 
 
+def _pythonpath_enfant() -> str:
+    """Les sources de ce depot en tete, sans retirer un PYTHONPATH deja defini."""
+    existant = os.environ.get("PYTHONPATH")
+    return os.pathsep.join(filter(None, [str(Path(__file__).resolve().parents[2]), existant]))
+
+
 def _entiers_distincts(valeurs, nom):
     if (
         not valeurs
@@ -126,8 +132,7 @@ def mesurer_performances(configuration, sortie, *, effectifs, intervalles, repet
                                 str(intervalle),
                                 str(resultat),
                             ],
-                            env=os.environ
-                            | {"PYTHONPATH": str(Path(__file__).resolve().parents[2])},
+                            env=os.environ | {"PYTHONPATH": _pythonpath_enfant()},
                             capture_output=True,
                             text=True,
                             check=False,
