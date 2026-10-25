@@ -15,7 +15,7 @@ import yaml
 
 import viscocrowd
 from viscocrowd.io.configuration import lire_configuration
-from viscocrowd.io.provenance import provenance_code
+from viscocrowd.io.provenance import CHEMINS_SUIVIS, RACINE, provenance_code
 from viscocrowd.io.trajectoires import lire_trajectoire
 from viscocrowd.scenarios.experience import _parametres, executer_configuration
 
@@ -86,10 +86,27 @@ def _plan(configurations: list[Path], graines: list[int] | None) -> list[dict]:
     return plan
 
 
+def _verifier_sortie(sortie: Path) -> None:
+    """Refuse un dossier sous un chemin suivi par la provenance, avant d'y rien ecrire.
+
+    Le verrou, le suivi et les configurations figees n'y sont pas ignores par git : des
+    le premier fichier, `contexte()` changerait, et la campagne se croirait modifiee.
+    La reprise serait ensuite refusee elle aussi, sans issue autre que d'effacer le
+    dossier a la main.
+    """
+    for chemin in CHEMINS_SUIVIS:
+        if sortie.resolve().is_relative_to(RACINE / chemin):
+            raise ValueError(
+                f"sortie sous {chemin}/, suivi par la provenance du code : les fichiers de "
+                "la campagne y passeraient pour une modification ; utiliser data/..."
+            )
+
+
 def executer_campagne(configurations, sortie, *, graines=None, reprendre=False, progression=print):
     """Execute tous les cas ; les echecs restent explicites et rendent le bilan incomplet."""
     plan = _plan([Path(c) for c in configurations], graines)
     sortie = Path(sortie)
+    _verifier_sortie(sortie)
     attendu = {"version": 1, "contexte": contexte(), "plan": plan}
     sortie.mkdir(parents=True, exist_ok=True)
     verrou = sortie / ".verrou"

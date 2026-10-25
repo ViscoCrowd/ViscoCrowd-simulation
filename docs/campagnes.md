@@ -15,7 +15,9 @@ Pour une vraie campagne scientifique, utiliser au moins dix graines comme en spe
 la liste de trois graines ci-dessus illustre seulement la commande.
 
 Le dossier contient `campagne.json`, les configurations figées `0001.yaml`, etc., et une
-archive NPZ par calcul. Le suivi est remplacé atomiquement après chaque cas. Une archive
+archive NPZ par calcul. Il doit se trouver hors de `src/` et `experiments/`, sous `data/`
+par exemple. Ces deux dossiers sont suivis par la provenance du code : les fichiers de la
+campagne y passeraient pour une modification. Un tel dossier est refusé avant toute écriture. Le suivi est remplacé atomiquement après chaque cas. Une archive
 n'est réutilisée que si le cas est terminé, son empreinte SHA-256 est intacte et sa lecture
 réussit. Les autres cas sont recalculés ; les anciennes archives incomplètes/corrompues
 sont conservées sous `0001.invalide-1.npz`, etc. Aucun fichier extérieur n'est touché.

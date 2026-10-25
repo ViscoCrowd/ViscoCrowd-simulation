@@ -8,6 +8,7 @@ import yaml
 
 from viscocrowd.cli import main
 from viscocrowd.io.configuration import lire_configuration
+from viscocrowd.io.provenance import RACINE
 from viscocrowd.scenarios import campagne
 
 
@@ -115,6 +116,19 @@ def test_verrou_et_doublons_refuses(configurations, tmp_path):
         campagne.executer_campagne(configurations, sortie, graines=[1, 1])
     with pytest.raises(ValueError, match="identiques"):
         campagne.executer_campagne([configurations[0]] * 2, sortie)
+
+
+@pytest.mark.parametrize("suivi", ["experiments", "src"])
+def test_sortie_sous_un_chemin_suivi_refusee_avant_toute_ecriture(configurations, suivi, capsys):
+    """Sinon le verrou et le suivi passent pour une modification du code (revue de #68).
+
+    Reproduit avant correction : premier lancement refuse sans calcul, puis reprise
+    refusee aussi ; seule issue, effacer le dossier a la main.
+    """
+    sortie = RACINE / suivi / "campagne-refusee"
+    assert main(["campagne", str(configurations[0]), "--sortie", str(sortie)]) == 1
+    assert f"sous {suivi}/" in capsys.readouterr().err
+    assert not sortie.exists()
 
 
 def test_cli_reprise_explicite_et_repertoire_non_vide(configurations, tmp_path):
