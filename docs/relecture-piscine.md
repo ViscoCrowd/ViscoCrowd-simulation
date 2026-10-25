@@ -12,7 +12,8 @@ dans les états affichés, contrôlés contre les instants de sortie archivés.
 
 La case d'un site occupé est déduite de la position de l'agent immobilisé sur ce site.
 Cela couvre aussi les franchissements inachevés, absents de la liste des événements
-terminés. Une occupation hors site ou multiple sur un site est refusée à l'affichage.
+terminés. Une occupation hors site ou multiple sur un site est refusée dès l'ouverture,
+sur tous les instants : elle ne peut pas interrompre une lecture ou un GIF en cours.
 Les marqueurs carrés identifient les échelles ; les petits points identifient le rebord.
 Le fond sec/mouillé/eau emploie la même carte géométrique que le scénario, sans guidage.
 

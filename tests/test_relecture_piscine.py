@@ -93,14 +93,21 @@ def test_archive_incoherente_refusee(donnees, defaut):
         LecteurPiscine(donnees, interactif=False)
 
 
-def test_franchissement_hors_site_refuse(donnees):
-    vue = LecteurPiscine(donnees, interactif=False)
-    try:
-        donnees.x[1, 0] += 0.1
-        with pytest.raises(ValueError, match="occupation"):
-            vue.afficher(1)
-    finally:
-        plt.close(vue.figure)
+def test_franchissement_hors_site_refuse_des_l_ouverture(donnees):
+    """L'instant fautif (t = 0,2 s) n'est jamais affiche : le refus vient de l'ouverture."""
+    donnees.x[1, 0] += 0.1
+    figures = plt.get_fignums()
+    with pytest.raises(ValueError, match=r"occupation.*t = 0\.20 s"):
+        LecteurPiscine(donnees, interactif=False)
+    assert plt.get_fignums() == figures  # aucune figure laissee ouverte
+
+
+def test_site_partage_refuse_des_l_ouverture(donnees):
+    """Deux agents en franchissement sur le meme site : capacite unitaire violee."""
+    donnees.x[1, 1] = donnees.x[1, 0]
+    donnees.etats[1:, 1] = [1, 2, 2]
+    with pytest.raises(ValueError, match="occupation"):
+        LecteurPiscine(donnees, interactif=False)
 
 
 def test_exports_cli_png_gif_et_refus_ecrasement(donnees, tmp_path):

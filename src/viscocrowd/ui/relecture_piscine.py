@@ -21,6 +21,42 @@ from viscocrowd.ui.relecture import LecteurTrajectoire
 COULEURS = ("#61c6ed", "#ffb454", "#f4f8fb", "#91a2b4")
 
 
+def occupations_sites(
+    x: np.ndarray, etats: np.ndarray, positions_sites: np.ndarray, t: np.ndarray
+) -> np.ndarray:
+    """Sites occupes (P, S) a chaque instant, deduits des agents en franchissement.
+
+    Le scenario pose un agent en franchissement exactement sur son site : chacun doit
+    donc s'y trouver a 1e-9 m pres, et un site ne porte qu'un agent a la fois.
+
+    Raises:
+        ValueError: au premier instant ou un agent est hors site ou partage son site.
+    """
+    instants, agents = np.nonzero(etats == FRANCHISSEMENT)
+    occupations = np.zeros((len(t), len(positions_sites)), dtype=bool)
+    if instants.size == 0:
+        return occupations
+    # Deux tableaux (K, S) plutot qu'un (K, S, 2) : moitie moins de memoire sur une
+    # longue archive.
+    px, py = x[instants, agents].T
+    distances = np.hypot(px[:, None] - positions_sites[:, 0], py[:, None] - positions_sites[:, 1])
+    sites = np.argmin(distances, axis=1)
+    hors_site = np.min(distances, axis=1) > 1e-9
+    _, premier, nombre = np.unique(
+        instants * len(positions_sites) + sites, return_index=True, return_counts=True
+    )
+    partage = np.zeros(instants.size, dtype=bool)
+    partage[premier[nombre > 1]] = True
+    fautifs = np.flatnonzero(hors_site | partage)
+    if fautifs.size:
+        raise ValueError(
+            "occupation des sites incoherente avec les positions archivees "
+            f"a t = {t[instants[fautifs].min()]:.2f} s"
+        )
+    occupations[instants, sites] = True
+    return occupations
+
+
 class LecteurPiscine(LecteurTrajectoire):
     """L'etat archive fait foi ; aucun etat n'est invente entre deux echantillons."""
 
@@ -66,6 +102,9 @@ class LecteurPiscine(LecteurTrajectoire):
         g = self.p.piscine
         self.sites = g.sites()
         self.positions_sites = np.array([s.position for s in self.sites])
+        # Controle une seule fois, avant la figure : une incoherence tardive ne doit pas
+        # surgir en pleine lecture, ni interrompre un GIF deja commence.
+        self.occupations = occupations_sites(donnees.x, etats, self.positions_sites, donnees.t)
         self.figure = plt.figure(figsize=(12, 7), dpi=100, facecolor="#101923")
         self.figure.text(0.07, 0.93, "ViscoCrowd", color="white", fontsize=25, weight="bold")
         self.figure.text(0.07, 0.875, "ÉVACUATION PISCINE  /  RELECTURE", color="#7dd3d8")
@@ -164,14 +203,7 @@ class LecteurPiscine(LecteurTrajectoire):
     def afficher(self, index: int) -> None:
         self.index = int(np.clip(index, 0, len(self.donnees.t) - 1))
         x, etats = self.donnees.x[self.index], self.donnees.etats[self.index]
-        en_cours = x[etats == FRANCHISSEMENT]
-        self.occupes = np.zeros(len(self.sites), dtype=bool)
-        if en_cours.size:
-            distances = np.linalg.norm(en_cours[:, None] - self.positions_sites, axis=2)
-            indices = np.argmin(distances, axis=1)
-            if np.any(np.min(distances, axis=1) > 1e-9) or len(np.unique(indices)) != len(indices):
-                raise ValueError("occupation des sites incoherente avec les positions archivees")
-            self.occupes[indices] = True
+        self.occupes = self.occupations[self.index]
         for disque, position, etat in zip(self.disques, x, etats, strict=True):
             disque.set_center(position)
             disque.set_facecolor(COULEURS[etat])
