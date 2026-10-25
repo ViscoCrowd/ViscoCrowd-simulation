@@ -138,6 +138,11 @@ reste à raccorder. Ces configurations ne produisent pas de nouvelles figures du
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
+Pour exécuter plusieurs configurations et reprendre les calculs manquants après une
+interruption, utiliser `viscocrowd campagne ... --sortie data/campagne`, puis la même
+commande avec `--reprendre`. Le [guide des campagnes](docs/campagnes.md) décrit le plan,
+les graines, le contrôle de provenance et le suivi explicite des échecs.
+
 **Temps d'exécution mesuré le 21 octobre 2026** — après intégration de la géométrie
 piscine (#54), la suite complète passe : **598 tests en 105 s, tests lents compris**
 (`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). La CI rapide
@@ -192,7 +197,24 @@ les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facte
 Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
-le banc `couloir` ; la maquette piscine reste disponible séparément via `interface`.
+les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
+
+Pour relire une évacuation réelle, avec les états et les occupations des sites :
+
+```bash
+viscocrowd simuler experiments/piscine.yaml --sortie data/piscine.npz
+viscocrowd rejouer data/piscine.npz
+viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
+viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
+```
+
+Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
+Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
+fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
+interpoler des états entre deux images. Le fond représente la carte des milieux réelle.
+Les positions, les dimensions et les états viennent de l'archive ; aucune simulation
+n'est relancée. Le réglage physique reste à valider : cette vue ne remplace pas E0.
+Voir [le contrat de relecture piscine](docs/relecture-piscine.md).
 
 Pour séparer les effets du sol mouillé, `viscocrowd comparer-mouille experiments/couloir.yaml`
 reprend **un seul paramètre du mouillé à la fois** (vitesse, relaxation, adhérence), sur la même
@@ -205,6 +227,16 @@ et une durée suffisante pour que tous les agents traversent les trois sections.
 Le seuil de freinage tient compte du facteur de vitesse. Une mesure incomplète
 est refusée avant le tableau ou la figure ; aucun agent ni aucune graine n'est
 écarté silencieusement de la moyenne. La distance est échantillonnée au pas de temps.
+
+Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
+experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
+b = 0,8 à 1,2 m sur trois graines, et affiche le débit spécifique simulé à côté du débit
+mesuré pour le même nombre de personnes. Chaque simulation est classée : écoulement,
+bouchage, débit insuffisant ou projection non convergée. Seuls les écoulements entrent dans
+la moyenne. `--largeurs` et `--graines` restreignent ou étendent la campagne ; les doublons
+sont refusés. La configuration active la relation vitesse–espacement proposée
+(`temps_espacement: 0.35`, environ 1 min de calcul) ; `temps_espacement: null` rend le
+modèle sans réglage (environ 4 min).
 
 Le [guide du banc](docs/couloir.md) donne les mesures de référence et la commande pour
 les recalculer depuis l'archive. La méthode et la convergence sont rédigées dans les
@@ -376,7 +408,7 @@ src/viscocrowd/
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
-├── ui/            aperçu piscine et relecture hors ligne des archives de couloir
+├── ui/            aperçu piscine et relecture hors ligne couloir/piscine
 └── cli.py
 
 tests/             unitaires · invariants physiques (tournent à chaque PR)

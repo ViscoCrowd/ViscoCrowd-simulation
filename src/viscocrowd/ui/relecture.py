@@ -22,7 +22,71 @@ def indices_animation(t: np.ndarray, fps: int, vitesse: float) -> np.ndarray:
     return np.clip(np.searchsorted(t, cibles, side="right") - 1, 0, len(t) - 1)
 
 
-class LecteurCouloir:
+class LecteurTrajectoire:
+    """Commandes communes aux vues hors ligne, indexees par les instants archives."""
+
+    def _installer_commandes(self, interactif: bool) -> None:
+        self.timer = self.figure.canvas.new_timer(interval=30)
+        self.timer.add_callback(self._tic)
+        self.figure.canvas.mpl_connect("close_event", lambda event: self.timer.stop())
+        if interactif and len(self.donnees.t) > 1:
+            self.slider = Slider(
+                self.figure.add_axes((0.28, 0.08, 0.65, 0.035)),
+                "Temps (s)",
+                self.donnees.t[0],
+                self.donnees.t[-1],
+                valinit=self.donnees.t[0],
+                color="#4daeb9",
+            )
+            self.slider.label.set_color("white")
+            self.slider.valtext.set_color("white")
+            self.slider.on_changed(self.aller_au_temps)
+            self.bouton = Button(
+                self.figure.add_axes((0.07, 0.065, 0.12, 0.065)),
+                "Lire",
+                color="#7dd3d8",
+                hovercolor="#b8eff1",
+            )
+            self.bouton.on_clicked(self.basculer)
+
+    def aller_au_temps(self, t: float) -> None:
+        if not np.isfinite(t) or not self.donnees.t[0] <= t <= self.donnees.t[-1]:
+            raise ValueError("instant hors de l'intervalle archive")
+        self.afficher(np.searchsorted(self.donnees.t, t, side="right") - 1)
+        self._origine_murale, self._origine_simulee = time.monotonic(), self.donnees.t[self.index]
+
+    def basculer(self, _event=None) -> None:
+        self.en_lecture = not self.en_lecture
+        if self.en_lecture:
+            if self.index == len(self.donnees.t) - 1:
+                self.afficher(0)
+            self._origine_murale, self._origine_simulee = (
+                time.monotonic(),
+                self.donnees.t[self.index],
+            )
+            self.timer.start()
+        else:
+            self.timer.stop()
+        if self.bouton is not None:
+            self.bouton.label.set_text("Pause" if self.en_lecture else "Lire")
+
+    def _tic(self) -> None:
+        if not self.en_lecture:
+            return
+        t = self._origine_simulee + self.vitesse * (time.monotonic() - self._origine_murale)
+        self.afficher(np.searchsorted(self.donnees.t, t, side="right") - 1)
+        if t >= self.donnees.t[-1]:
+            self.basculer()
+
+    def exporter_gif(self, chemin, fps: int = 20) -> None:
+        indices = indices_animation(self.donnees.t, fps, self.vitesse)
+        animation = FuncAnimation(
+            self.figure, self.afficher, frames=indices, interval=1000 / fps, repeat=False
+        )
+        animation.save(chemin, writer=PillowWriter(fps=fps), dpi=100)
+
+
+class LecteurCouloir(LecteurTrajectoire):
     """Vue a echelle metrique, indexee exclusivement par les donnees archivees."""
 
     def __init__(self, donnees: Trajectoire, *, interactif: bool = True, vitesse: float = 1.0):
@@ -140,28 +204,7 @@ class LecteurCouloir:
             color="#b7c5d0",
             fontsize=9,
         )
-        self.timer = self.figure.canvas.new_timer(interval=30)
-        self.timer.add_callback(self._tic)
-        self.figure.canvas.mpl_connect("close_event", lambda event: self.timer.stop())
-        if interactif and len(donnees.t) > 1:
-            self.slider = Slider(
-                self.figure.add_axes((0.28, 0.08, 0.65, 0.035)),
-                "Temps (s)",
-                donnees.t[0],
-                donnees.t[-1],
-                valinit=donnees.t[0],
-                color="#4daeb9",
-            )
-            self.slider.label.set_color("white")
-            self.slider.valtext.set_color("white")
-            self.slider.on_changed(self.aller_au_temps)
-            self.bouton = Button(
-                self.figure.add_axes((0.07, 0.065, 0.12, 0.065)),
-                "Lire",
-                color="#7dd3d8",
-                hovercolor="#b8eff1",
-            )
-            self.bouton.on_clicked(self.basculer)
+        self._installer_commandes(interactif)
         self.afficher(0)
 
     def afficher(self, index: int) -> None:
@@ -177,39 +220,3 @@ class LecteurCouloir:
             self.slider.set_val(t)
             self.slider.eventson = True
         self.figure.canvas.draw_idle()
-
-    def aller_au_temps(self, t: float) -> None:
-        if not np.isfinite(t) or not self.donnees.t[0] <= t <= self.donnees.t[-1]:
-            raise ValueError("instant hors de l'intervalle archive")
-        self.afficher(np.searchsorted(self.donnees.t, t, side="right") - 1)
-        self._origine_murale, self._origine_simulee = time.monotonic(), self.donnees.t[self.index]
-
-    def basculer(self, _event=None) -> None:
-        self.en_lecture = not self.en_lecture
-        if self.en_lecture:
-            if self.index == len(self.donnees.t) - 1:
-                self.afficher(0)
-            self._origine_murale, self._origine_simulee = (
-                time.monotonic(),
-                self.donnees.t[self.index],
-            )
-            self.timer.start()
-        else:
-            self.timer.stop()
-        if self.bouton is not None:
-            self.bouton.label.set_text("Pause" if self.en_lecture else "Lire")
-
-    def _tic(self) -> None:
-        if not self.en_lecture:
-            return
-        t = self._origine_simulee + self.vitesse * (time.monotonic() - self._origine_murale)
-        self.afficher(np.searchsorted(self.donnees.t, t, side="right") - 1)
-        if t >= self.donnees.t[-1]:
-            self.basculer()
-
-    def exporter_gif(self, chemin, fps: int = 20) -> None:
-        indices = indices_animation(self.donnees.t, fps, self.vitesse)
-        animation = FuncAnimation(
-            self.figure, self.afficher, frames=indices, interval=1000 / fps, repeat=False
-        )
-        animation.save(chemin, writer=PillowWriter(fps=fps), dpi=100)
