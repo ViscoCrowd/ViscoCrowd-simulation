@@ -199,7 +199,9 @@ def construire_analyseur() -> argparse.ArgumentParser:
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
     simuler.set_defaults(fonction=commande_simuler)
 
-    rejouer = sous.add_parser("rejouer", help="relit une trajectoire de couloir, sans recalcul")
+    rejouer = sous.add_parser(
+        "rejouer", help="relit une trajectoire couloir ou piscine, sans recalcul"
+    )
     rejouer.add_argument("archive", type=Path)
     rejouer.add_argument("--gif", type=Path, help="export GIF hors ecran")
     rejouer.add_argument("--image", type=Path, help="export PNG hors ecran")
@@ -350,14 +352,23 @@ def commande_rejouer(args: argparse.Namespace) -> int:
 
     from viscocrowd.io.trajectoires import lire_trajectoire
     from viscocrowd.ui.relecture import LecteurCouloir
+    from viscocrowd.ui.relecture_piscine import LecteurPiscine
 
     lecteur = None
     try:
         for chemin, extension in ((args.gif, ".gif"), (args.image, ".png")):
             if chemin and (chemin.exists() or chemin.suffix.lower() != extension):
                 raise ValueError(f"choisir un nouveau fichier {extension} : {chemin}")
-        lecteur = LecteurCouloir(
-            lire_trajectoire(args.archive),
+        donnees = lire_trajectoire(args.archive)
+        configuration = donnees.metadonnees.get("configuration", {})
+        if not isinstance(configuration, dict):
+            raise ValueError("configuration de l'archive invalide")
+        scenario = configuration.get("scenario")
+        classe = {"couloir": LecteurCouloir, "piscine": LecteurPiscine}.get(scenario)
+        if classe is None:
+            raise ValueError("la relecture attend une archive couloir ou piscine")
+        lecteur = classe(
+            donnees,
             interactif=not (args.gif or args.image),
             vitesse=args.vitesse,
         )
