@@ -223,7 +223,72 @@ def construire_analyseur() -> argparse.ArgumentParser:
     comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
     comparer.set_defaults(fonction=commande_comparer_mouille)
 
+    etalonner = sous.add_parser(
+        "etalonner-goulot",
+        help="E0 : debit specifique d'un goulot sec, compare a Seyfried et al. (2009)",
+    )
+    etalonner.add_argument("configuration", type=Path, help="configuration YAML du goulot")
+    etalonner.add_argument(
+        "--largeurs",
+        type=float,
+        nargs="+",
+        default=[0.8, 0.9, 1.0, 1.1, 1.2],
+        help="largeurs b du goulot, en m (defaut : celles du protocole)",
+    )
+    etalonner.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines distinctes (defaut : celle de la configuration et les deux suivantes)",
+    )
+    etalonner.set_defaults(fonction=commande_etalonner_goulot)
+
     return analyseur
+
+
+def _moyenne_ecart(valeurs: list[float]) -> str:
+    """« moyenne ± ecart-type » sur les valeurs finies, ou « - » s'il n'y en a aucune."""
+    valeurs = np.array([v for v in valeurs if np.isfinite(v)])
+    if valeurs.size == 0:
+        return "-"
+    ecart = np.std(valeurs, ddof=1) if valeurs.size > 1 else 0.0
+    return f"{np.mean(valeurs):.2f} ± {ecart:.2f}"
+
+
+def commande_etalonner_goulot(args: argparse.Namespace) -> int:
+    """Tableau du debit specifique simule face aux mesures de Seyfried et al. (2009)."""
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.scenarios.goulot import STATUTS, etalonner, reference_seyfried
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        graine = configuration["graine"]
+        graines = args.graines or [graine, graine + 1, graine + 2]
+        resultats = etalonner(configuration, args.largeurs, graines)
+    except (OSError, KeyError, TypeError, ValueError) as erreur:
+        print(f"Etalonnage refuse : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"E0, goulot sec — {n_agents} agents, graines {graines}")
+    print("Regimes par largeur : e ecoulement, b bouchage, i insuffisant, n non convergence.")
+    print("J_s comme Seyfried (premier au dernier passage) ; 80 % centraux : diagnostic.")
+    print(
+        f"{'b (m)':>6} {'e/b/i/n':>9} {'J_s simule (pers/(m.s))':>24} "
+        f"{'80 % centraux':>14} {f'Seyfried N={n_agents}':>15}"
+    )
+    for b, mesures in resultats.items():
+        regimes = "/".join(str(sum(m.statut == s for m in mesures)) for s in STATUTS)
+        ecoulements = [m for m in mesures if m.statut == "ecoulement"]
+        simule = _moyenne_ecart([m.debit for m in ecoulements])
+        central = _moyenne_ecart([m.debit_central for m in ecoulements])
+        # Seyfried n'a mesure que N = 20, 40 et 60 : pas de reference pour un autre N.
+        reference = reference_seyfried(n_agents, b)
+        reference = f"{reference:.2f}" if reference is not None else "-"
+        print(f"{b:>6.2f} {regimes:>9} {simule:>24} {central:>14} {reference:>15}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
 
 
 def commande_comparer_mouille(args: argparse.Namespace) -> int:

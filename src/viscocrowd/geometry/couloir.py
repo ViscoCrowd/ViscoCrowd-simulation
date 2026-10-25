@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from viscocrowd.core.verifications import exiger_fini, exiger_scalaire_fini
+from viscocrowd.core.verifications import exiger_scalaire_fini
+from viscocrowd.geometry.bande import disques, projeter_bande, violation_bande
 from viscocrowd.geometry.obstacle import ObstacleRectangle
 
 
@@ -41,11 +42,7 @@ class Couloir:
         object.__setattr__(self, "obstacles", obstacles)
 
     def _entrees(self, x, r, t):
-        x, r = np.asarray(x, dtype=float), np.asarray(r, dtype=float)
-        if x.ndim != 2 or x.shape[1] != 2 or r.shape != (x.shape[0],):
-            raise ValueError("x et r doivent etre de formes (N, 2) et (N,)")
-        exiger_fini(x=x, r=r)
-        exiger_scalaire_fini("t", t)
+        x, r = disques(x, r, t)
         if np.any((r <= 0) | (2 * r > self.largeur)):
             raise ValueError("chaque rayon doit etre positif et tenir dans le couloir")
         return x, r
@@ -53,23 +50,12 @@ class Couloir:
     def projeter(self, x: np.ndarray, r: np.ndarray, t: float) -> np.ndarray:
         """Projection exacte sur les trois demi-plans, puis hors des obstacles."""
         x, r = self._entrees(x, r, t)
-        resultat = x.copy()
-        resultat[:, 0] = np.maximum(x[:, 0], r)
-        resultat[:, 1] = np.clip(x[:, 1], -self.largeur / 2 + r, self.largeur / 2 - r)
-        for obstacle in self.obstacles:
-            resultat = obstacle.repousser(resultat, r)
-        return resultat
+        return projeter_bande(x, r, -self.largeur / 2, self.largeur / 2, self.obstacles)
 
     def violation(self, x: np.ndarray, r: np.ndarray, t: float) -> float:
         """Depassement maximal des parois et des obstacles (m), nul si tous les disques tiennent."""
         x, r = self._entrees(x, r, t)
-        return float(
-            max(
-                np.max(r - x[:, 0], initial=0.0),
-                np.max(np.abs(x[:, 1]) + r - self.largeur / 2, initial=0.0),
-                *(obstacle.violation(x, r) for obstacle in self.obstacles),
-            )
-        )
+        return violation_bande(x, r, -self.largeur / 2, self.largeur / 2, self.obstacles)
 
     @property
     def section_sortie(self) -> tuple[np.ndarray, np.ndarray]:

@@ -408,13 +408,15 @@ contraintes et les conditions aux limites sont écrits par le groupe, conformém
 
 ### 8.2 Branches
 
-`main` protégée : pas de push direct, PR obligatoire, CI verte, historique linéaire (squash),
-force-push et suppression bloqués, conversations de revue résolues avant fusion.
+`main` protégée : pas de push direct, PR obligatoire, CI verte, force-push et suppression
+bloqués, conversations de revue résolues avant fusion.
 
 Les contributions vont d'abord dans `dev` par PR squashée. Un jalon terminé est promu
-vers `main`, puis identifié par un tag annoté et une GitHub Release. La resynchronisation
-de `main` vers `dev` passe par une PR avec commit de fusion : c'est l'exception nécessaire
-au squash des contributions. La procédure complète et le rattrapage d'anciens jalons sont
+vers `main` par une PR fusionnée avec un **commit de fusion**, puis identifié par un tag
+annoté et une GitHub Release. Le commit de fusion amène sur `main` chaque contribution avec
+son auteur : GitHub ne compte que les commits de `main` dans ses statistiques de
+contributeurs, et un squash attribuait tout le jalon à la personne qui le publiait. La
+resynchronisation de `main` vers `dev` passe elle aussi par une PR avec commit de fusion. La procédure complète et le rattrapage d'anciens jalons sont
 définis dans [CONTRIBUTING § 3.4](../../../CONTRIBUTING.md#34-passer-de-dev-à-main).
 
 **L'approbation d'un pair n'est pas exigée techniquement**, et chacun peut fusionner sa propre

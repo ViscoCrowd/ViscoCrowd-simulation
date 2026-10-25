@@ -29,6 +29,11 @@ from viscocrowd.scenarios.tassement import (
 def _parametres(
     config: dict,
 ) -> ParametresBille | ParametresTassement | ParametresCouloir | ParametresPiscine:
+    if config["scenario"] == "goulot":
+        raise ValueError(
+            "le goulot est un banc de mesure (E0) sans archive : "
+            "utiliser la commande etalonner-goulot"
+        )
     for nom, classe in (("couloir", ParametresCouloir), ("piscine", ParametresPiscine)):
         if config["scenario"] == nom:
             try:

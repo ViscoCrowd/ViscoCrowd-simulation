@@ -74,6 +74,17 @@
   year    = {2009}
 }
 
+@incollection{tordeux2016,
+  author    = {Tordeux, Antoine and Chraibi, Mohcine and Seyfried, Armin},
+  title     = {Collision-free speed model for pedestrian dynamics},
+  booktitle = {Traffic and Granular Flow '15},
+  editor    = {Knoop, Victor L. and Daamen, Winnie},
+  publisher = {Springer},
+  pages     = {225--232},
+  year      = {2016},
+  doi       = {10.1007/978-3-319-33482-0_29}
+}
+
 @book{hairer2006,
   author    = {Hairer, Ernst and Lubich, Christian and Wanner, Gerhard},
   title     = {Geometric Numerical Integration: Structure-Preserving Algorithms
@@ -131,6 +142,61 @@
   year    = {2023},
   note    = {70 sujets, surfaces de piscine mouillees pieds nus ;
              DCOF <= 0,34 percu glissant, >= 0,60 percu non glissant}
+}
+
+% Vitesse dans l'eau (C6, issue #26). Verifiee le 25/10/2026 sur la version acceptee
+% (White Rose eprint 160043), eq. (1), page 10 du PDF : V = 0,53 M^(-0,19), M = v^2 d / g + d^2 / 2
+% en m^2. Formule de Bernardini et al. (2017b) et Postacchini et al. (2018), NON lus :
+% citer la formule « d'apres shirvani2020 ».
+@article{shirvani2020,
+  author  = {Shirvani, Mohammad and Kesserwani, Georges and Richmond, Paul},
+  title   = {Agent-based modelling of pedestrian responses during flood emergency:
+             mobility behavioural rules and implications for flood risk analysis},
+  journal = {Journal of Hydroinformatics},
+  volume  = {22},
+  number  = {5},
+  pages   = {1078--1092},
+  year    = {2020},
+  doi     = {10.2166/hydro.2020.031}
+}
+
+% Meme formule, eq. (4.1), page 82 du PDF : confirme M = v^2 d / g + d^2 / 2. Coefficients a, b
+% de Bernardini et al. (2020) par age, marche et course : eq. (4.8) et tableau 4.5,
+% pages 100-101 du PDF.
+@phdthesis{shirvani2021these,
+  author  = {Shirvani, Mohammad},
+  title   = {Flood-pedestrian simulator: an agent-based modelling framework for
+             urban evacuation planning},
+  school  = {University of Sheffield, Department of Civil and Structural Engineering},
+  year    = {2021},
+  url     = {https://etheses.whiterose.ac.uk/30174/}
+}
+
+% Eq. (2) p. 3179 ecrit M = V^2 h / g + h^2 / g : coquille probable, les deux sources
+% ci-dessus ecrivent d^2 / 2. Ne pas recopier. Tableau 3 identique au tableau 4.5.
+@article{shirvani2021nhess,
+  author  = {Shirvani, Mohammad and Kesserwani, Georges},
+  title   = {Flood--pedestrian simulator for modelling human response dynamics
+             during flood-induced evacuation: {Hillsborough} stadium case study},
+  journal = {Natural Hazards and Earth System Sciences},
+  volume  = {21},
+  pages   = {3175--3198},
+  year    = {2021},
+  doi     = {10.5194/nhess-21-3175-2021}
+}
+
+% NON consultee (acces bloque) : coefficients repris via shirvani2021these.
+% Eau calme, profondeurs de 0,2 a 0,7 m, plus de 200 volontaires, marche et course.
+@article{bernardini2020,
+  author  = {Bernardini, Gabriele and Quagliarini, Enrico and D'Orazio, Marco and
+             Brocchini, Maurizio},
+  title   = {Towards the simulation of flood evacuation in urban scenarios:
+             experiments to estimate human motion speed in floodwaters},
+  journal = {Safety Science},
+  volume  = {123},
+  pages   = {104563},
+  year    = {2020},
+  doi     = {10.1016/j.ssci.2019.104563}
 }
 
 @article{chatterjee2022,
