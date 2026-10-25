@@ -21,7 +21,7 @@ parametres:
   espacement: 1.0              # m entre emplacements initiaux
   bruit: 0.1                   # m, perturbation bornee
   parametres_milieux:
-    EAU:                       # petit bain de 0,7 m : V = 0,53 (d^2/2)^-0,19
+    EAU:                       # petit bain de 0,7 m, eau calme : V = 0,53 (d^2/2)^-0,19 (shirvani2020)
       relaxation: 0.5          # s (Helbing et al. 2000)
       acceleration_max: 1.6    # m/s^2 : 0,34 g x poids apparent ~0,5 (hypothese)
       vitesse: 0.69            # m/s

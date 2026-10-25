@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Inclut les PR empilees vers une branche feat/* : le filtre de base excluait
+  # leurs tests jusqu'au reciblage vers dev (cas de la PR #58).
   pull_request:
-    branches: [main, dev]
   push:
     branches: [main, dev]
 

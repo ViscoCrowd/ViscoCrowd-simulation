@@ -1,0 +1,31 @@
+# Etalonnage E0 : protocole de Seyfried et al. (2009), sol sec seul.
+# Geometrie et etat initial du protocole. Seul reglage : le temps d'espacement,
+# propose a l'equipe (journal, E0) ; temps_espacement: null rend le modele sans reglage.
+version: 1
+scenario: goulot
+graine: 1
+parametres:
+  longueur: 8.0             # m, salle
+  largeur: 5.0              # m, salle
+  largeur_goulot: 1.2       # m, b ; Seyfried mesure b = 0,8 a 1,2 m
+  longueur_goulot: 2.8      # m, protocole
+  n_agents: 60              # N ; Seyfried mesure N = 20 a 60
+  rayon: 0.2                # m
+  densite_initiale: 3.3     # pers/m^2, zone d'attente du protocole
+  distance_attente: 3.0     # m, du centre de la zone d'attente a l'entree du goulot
+  largeur_attente: 4.0      # m
+  bruit: 0.02               # m, perturbation bornee du reseau initial
+  facteur_vitesse: 1.0
+  dispersion_rayon: 0.0     # rayons uniformes dans [r (1 - d), r (1 + d)]
+  bruit_direction: 0.0      # rad, ecart-type stationnaire de l'angle de direction
+  correlation_bruit: 0.5    # s, temps de correlation de ce bruit
+  temps_espacement: 0.35    # s, relation vitesse-espacement (proposition E0) ; null la desactive
+  position_mesure: 0.4      # m apres l'entree du goulot, ligne de comptage du protocole
+  dt: 0.01                  # s
+  duree: 60.0               # s
+  tolerance: 1.0e-6         # m
+  pas_guidage: 0.05         # m
+  sec:
+    relaxation: 0.5         # s
+    acceleration_max: 5.9   # m/s^2
+    vitesse: 1.34           # m/s, Weidmann (1993)
