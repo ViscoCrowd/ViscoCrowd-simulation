@@ -24,7 +24,8 @@ la physique d'une archive : les invariants restent du ressort de la simulation/t
 La navigation prend le dernier instant archivé inférieur ou égal au temps demandé.
 Un état n'est pas interpolé : lors d'un archivage espacé, la vue n'invente pas un début
 de franchissement entre deux images. Les événements de sortie conservent leurs instants
-interpolés pour l'analyse, même quand l'affichage reste discret.
+interpolés pour l'analyse, même quand l'affichage reste discret. Une archive espacée
+(`simuler --archiver-tous K`) est signalée sous le schéma : « 1 image tous les K pas ».
 
 ## Vérification manuelle reproductible
 

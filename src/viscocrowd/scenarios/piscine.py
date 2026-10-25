@@ -203,9 +203,12 @@ class ResultatPiscine:
     sorties: np.ndarray
     projection: ProjectionExclusion
     parametres: ParametresPiscine
+    violation_tous_pas: float | None = None
 
     def violation_paroi_max(self) -> float:
         """Plus grand depassement des murs, sur tous les agents actifs et tous les instants."""
+        if self.violation_tous_pas is not None:
+            return self.violation_tous_pas
         pire = 0.0
         for x, e, t in zip(self.x, self.etats, self.t, strict=True):
             actifs = (e == EAU) | (e == PLAGE)
@@ -271,8 +274,10 @@ def verifier_coherence(
         raise RuntimeError("un agent est du mauvais cote du bord du bassin pour son etat")
 
 
-def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
+def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> ResultatPiscine:
     """Simule l'evacuation jusqu'a la sortie du dernier agent ou jusqu'a `duree`."""
+    if type(archiver_tous) is not int or archiver_tous < 1:
+        raise ValueError("archiver_tous doit etre un entier strictement positif")
     piscine = p.piscine
     guidage = GuidagePiscine(
         piscine, p.parametres_milieux, p.rayon, p.pas_guidage, p.durees, p.facteur_vitesse
@@ -309,6 +314,7 @@ def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
         [etat.copy()],
     )
     n_pas = int(np.ceil(p.duree / p.dt))
+    violation = max(0.0, piscine.violation(x, r, t))
     for pas in range(1, n_pas + 1):
         actifs = np.flatnonzero((etat == EAU) | (etat == PLAGE))
         avant = x.copy()
@@ -363,11 +369,16 @@ def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
                 x[i], v[i] = positions_bord[k], 0.0
 
         verifier_coherence(etat, occupant, site_agent, x, piscine)
-        historique_t.append(t)
-        historique_x.append(x.copy())
-        historique_v.append(v.copy())
-        historique_e.append(etat.copy())
-        if np.all(etat == SORTI):
+        actifs = (etat == EAU) | (etat == PLAGE)
+        if np.any(actifs):
+            violation = max(violation, piscine.violation(x[actifs], r[actifs], t))
+        fini = np.all(etat == SORTI)
+        if pas % archiver_tous == 0 or pas == n_pas or fini:
+            historique_t.append(t)
+            historique_x.append(x.copy())
+            historique_v.append(v.copy())
+            historique_e.append(etat.copy())
+        if fini:
             break
 
     return ResultatPiscine(
@@ -381,4 +392,5 @@ def simuler_piscine(p: ParametresPiscine) -> ResultatPiscine:
         sorties=sorties,
         projection=projection,
         parametres=p,
+        violation_tous_pas=violation,
     )
