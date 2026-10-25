@@ -135,6 +135,11 @@ reste à raccorder. Ces configurations ne produisent pas de nouvelles figures du
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
+Pour exécuter plusieurs configurations et reprendre les calculs manquants après une
+interruption, utiliser `viscocrowd campagne ... --sortie data/campagne`, puis la même
+commande avec `--reprendre`. Le [guide des campagnes](docs/campagnes.md) décrit le plan,
+les graines, le contrôle de provenance et le suivi explicite des échecs.
+
 **Temps d'exécution mesuré le 21 octobre 2026** — après intégration de la géométrie
 piscine (#54), la suite complète passe : **598 tests en 105 s, tests lents compris**
 (`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). La CI rapide

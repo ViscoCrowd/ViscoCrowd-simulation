@@ -194,6 +194,10 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     interface.set_defaults(fonction=commande_interface)
 
+    from viscocrowd.scenarios.campagne import ajouter_commande
+
+    ajouter_commande(sous)
+
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
