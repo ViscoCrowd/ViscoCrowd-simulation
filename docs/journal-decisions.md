@@ -11,6 +11,54 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
+
+**Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,
+attribuée à Bernardini et al. (2017) et Postacchini et al. (2018), citées par Shirvani et al.
+(2020). Comme pour Weidmann (#12, PR #51), on a vérifié la formule avant de la reprendre
+dans le rapport.
+
+**Ce qui a été lu.** La formule est vérifiée sur deux textes concordants :
+- Shirvani, Kesserwani et Richmond (2020), version acceptée, éq. (1) ;
+- la thèse de Shirvani (2021), éq. (4.1).
+
+Tous deux écrivent `M = v²d/g + d²/2`, en m². C'est la force spécifique par unité de
+largeur, divisée par ρg, comme chez Ishigaki. En eau calme, `M = d²/2` : à 0,7 m,
+`M = 0,245 m²`, d'où `V = 0,692 m/s`. **La valeur proposée est donc correcte.**
+
+**Ce qui n'a pas été lu.** Postacchini et al. (2018) sont des actes de congrès. Bernardini et
+al. (2017b, 2020) sont inaccessibles : l'éditeur et le dépôt de l'université refusent le
+téléchargement. Le rapport cite donc la formule **d'après `shirvani2020`**, et les
+coefficients de Bernardini et al. (2020) **d'après `shirvani2021these`**, jamais comme une
+lecture directe.
+
+**Piège relevé.** Shirvani et Kesserwani (2021, *NHESS*, éq. 2) écrivent `h²/g` au lieu de
+`d²/2`. C'est une coquille probable, puisque les deux textes précédents concordent. Avec
+`h²/g`, la vitesse changerait, d'où l'avertissement dans `references.bib`.
+
+**Interprétation.** `0,53 M^(−0,19)` décrit des sujets à qui l'on demande de marcher **le plus
+vite possible** dans un canal de laboratoire. Bernardini et al. (2020) ont mesuré en **eau
+calme, de 0,2 à 0,7 m**, avec plus de 200 volontaires, ce qui correspond mieux à une piscine.
+Leurs coefficients `V = a M^b` donnent à 0,7 m :
+
+| Âge (ans) | Marche (m/s) | Course (m/s) |
+|---|---|---|
+| 21–28 | 0,43 | 0,63 |
+| 29–36 | 0,46 | 0,73 |
+| 37–44 | 0,52 | 0,82 |
+
+Les 0,69 m/s retenus correspondent à la **course** des jeunes adultes, ce qui est défendable
+pour une foule en panique. La marche ordinaire est vers 0,45 m/s.
+
+**Conséquences.**
+- La valeur de référence `s_eau = 0,69 m/s` est conservée.
+- Proposition à valider avec #26 : balayer `s_eau` entre 0,45 et 0,75 m/s environ, soit de la
+  marche à la course.
+- **0,7 m est la borne haute** des profondeurs mesurées. Une profondeur supérieure, et en
+  particulier la nage, exigerait une autre source : elle reste hors périmètre.
+
+---
+
 ## 2026-10-21 — Proposer une relation vitesse–espacement étalonnée sur E0
 
 **Décision (proposée dans #57, à valider par l'équipe).** E0 montre un débit 1,9 à 2,5 fois
