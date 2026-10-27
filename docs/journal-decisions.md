@@ -11,6 +11,19 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Contrôle croisé de sortie absorbante et conservation par pas (#11)
+
+**Contexte.** L'issue #11 exigeait de vérifier la concordance physique entre le retrait dynamique
+des agents à la porte (état absorbant dans le moteur) et l'observable rétrospective `sorties_definitives`.
+
+**Décision.** Mettre en place un contrôle croisé automatisé dans la suite de tests du scénario piscine :
+1. Concordance stricte des effectifs sortis et des identifiants d'agents entre l'état absorbant et l'observable rétrospective.
+2. Écart maximal sur les instants de sortie borné par le pas physique dt (<= 0,01 s), dû à l'arrondi d'interpolation 1D vs 2D sur la ligne de porte.
+3. Vérification de l'invariant de conservation à chaque instant archivé : N_actifs + N_franchissement + N_sortis = N.
+4. Monotonie stricte de la courbe des sortis N_sortis(t) et irréversibilité de l'état absorbant (aucun retour dans l'emprise).
+
+---
+
 ## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
 
 **Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,
