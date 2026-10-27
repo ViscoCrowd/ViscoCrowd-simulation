@@ -11,7 +11,38 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
-## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
+## 2026-10-27 — Refuser les archives espacées pour les mesures d'observables (issue #73)
+
+**Contexte.** La PR #70 a introduit `--archiver-tous K` pour la piscine, divisant par K le
+volume des trajectoires en n'écrivant qu'une image tous les K pas physiques. Si les événements
+(franchissements et sorties) sont enregistrés à chaque pas, les positions intermédiaires sont
+perdues.
+
+**Problème physique.** Les observables calculées rétrospectivement sur la trajectoire
+(débit, vitesse de Voronoï, densité instantanée, sorties définitives) reposent sur des
+interpolations fines et la détection d'interpénétration ou de traversée de seuil. Avec $K > 1$ :
+- un franchissement de segment rapide peut être sauté ou faussé dans sa position/instant interpolé ;
+- les vitesses recalculées par différences finies $\Delta x / \Delta t$ deviennent des vitesses
+  moyennes grossières gommant les pics d'accélération/freinage ;
+- la densité de Voronoï locale perd les configurations d'empilement transitoires ;
+- les retours brefs d'un agent après sortie ne sont plus garantis d'être détectés.
+
+**Décision.**
+1. La classe `Trajectoire` expose les propriétés `pas_archivage`, `est_complete` et la méthode
+   `exiger_complete(observable=...)`.
+2. Toute fonction de calcul d'observable recevant une `Trajectoire` ou un fichier d'archive
+   (`franchissements_trajectoire`, `debit_specifique_trajectoire`, `sorties_definitives_trajectoire`,
+   `mesures_voronoi_trajectoire`, `densite_voronoi_trajectoire`, `vitesse_voronoi_trajectoire`,
+   `densite_comptage_trajectoire`, `energie_mecanique_trajectoire`) refuse strictement $K > 1$
+   avec une `ValueError` explicite.
+3. Les archives historiques sans champ `archivage` sont considérées complètes ($K = 1$).
+4. Pour l'énergie mécanique, une option explicite `autoriser_espace=True` est réservée aux analyses
+   ponctuelles conscientes de la perte des pas intermédiaires.
+
+**Conséquence.** Les campagnes automatiques et les calculs de diagramme fondamental ne risquent
+plus d'ingérer par erreur une archive allégée destinée à la seule visualisation.
+
+---
 
 **Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,
 attribuée à Bernardini et al. (2017) et Postacchini et al. (2018), citées par Shirvani et al.
