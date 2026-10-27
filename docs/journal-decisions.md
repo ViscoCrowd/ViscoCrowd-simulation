@@ -11,6 +11,32 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Protocole apparié E1/E2 de comparaison piscine sèche vs mouillée
+
+**Contexte.** Dans le cadre de l'issue #59 (jalon J5, tâche M5) et pour répondre à la question
+centrale de modélisation du projet, il est nécessaire de comparer rigoureusement l'évacuation de la
+piscine sans sol mouillé (E1, carrelage mouillé = sec) et avec sol mouillé (E2).
+
+**Décision.** Implémenter le module `scenarios.comparaison_piscine` et la commande CLI
+`viscocrowd comparer-piscine`. Le protocole :
+1. Apparie strictement les graines et les populations de départ pour chaque variante.
+2. Décline le sol mouillé en variantes isolant chaque composante physique :
+   - `reference` : sol mouillé identique au sec (E1) ;
+   - `vitesse` : seule la vitesse de consigne change ;
+   - `relaxation` : seul le temps de relaxation change ;
+   - `adherence` : seule l'accélération maximale admissible ($a_{\max}$) change ;
+   - `vitesse+adherence` : combinaison vitesse et adhérence ;
+   - `complet` : modèle complet de sol mouillé (E2).
+3. Mesure les quantiles robustes de sortie définitive ($t_{50}$, $t_{90}$, $t_{100}$ en s), le temps moyen
+   d'attente dans l'eau avant franchissement, la durée moyenne de traversée de la plage, le débit
+   spécifique à la porte et le nombre d'agents non sortis.
+
+**Pourquoi.** Isoler les paramètres un à un évite d'attribuer à l'adhérence ce qui relèverait d'un simple
+changement de vitesse de consigne ou de relaxation, prolongeant la méthodologie établie sur le banc
+de couloir (#50).
+
+---
+
 ## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
 
 **Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,
