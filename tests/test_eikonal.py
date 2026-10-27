@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 
 from viscocrowd.core.integrator import trajectoire
+from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
 from viscocrowd.geometry.couloir import Couloir
 from viscocrowd.geometry.obstacle import ObstacleRectangle
@@ -192,7 +193,7 @@ class TestDirection:
         np.testing.assert_array_equal(champ(etat), direction_aval(etat))
 
     def test_source_ponctuelle_direction_vers_la_source(self):
-        x = np.random.default_rng(0).uniform(-1.9, 1.9, size=(2000, 2))
+        x = generateur(0).uniform(-1.9, 1.9, size=(2000, 2))
         x = x[np.hypot(x[:, 0], x[:, 1]) > 0.5]
         exacte = -x / np.hypot(x[:, 0], x[:, 1])[:, None]
         ecarts = []
@@ -206,7 +207,7 @@ class TestDirection:
 
     def test_direction_unitaire_ou_nulle_et_nulle_dans_la_sortie(self):
         champ = couloir(0.1, (TOUT_SEC, {Milieu.SEC: SEC}), [OBSTACLE], 0.2, longueur=13.0)
-        x = np.random.default_rng(1).uniform([0, -W / 2], [13.5, W / 2], size=(2000, 2))
+        x = generateur(1).uniform([0, -W / 2], [13.5, W / 2], size=(2000, 2))
         normes = np.hypot(*champ.direction(x).T)
         assert np.all((normes == 0.0) | (np.abs(normes - 1.0) < 1e-12))
         assert np.all(champ.direction(np.array([[13.2, 0.0], [20.0, 1.0]])) == 0.0)
