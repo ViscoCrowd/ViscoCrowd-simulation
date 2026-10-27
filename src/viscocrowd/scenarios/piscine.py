@@ -47,6 +47,7 @@ from viscocrowd.core.state import State
 from viscocrowd.geometry.piscine import NATURES, Piscine
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
+from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
 from viscocrowd.observables.sortie import Sorties
@@ -74,9 +75,17 @@ class ParametresPiscine:
     tolerance: float
     pas_guidage: float
     graine: int
+    chutes: ParametresChutes | dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        if self.chutes is not None:
+            if isinstance(self.chutes, dict):
+                object.__setattr__(self, "chutes", ParametresChutes(**self.chutes))
+            elif not isinstance(self.chutes, ParametresChutes):
+                raise ValueError(
+                    "chutes doit etre un dictionnaire ou une instance de ParametresChutes"
+                )
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -204,6 +213,7 @@ class ResultatPiscine:
     projection: ProjectionExclusion
     parametres: ParametresPiscine
     violation_tous_pas: float | None = None
+    chutes: tuple[EvenementChute, ...] = ()
 
     def violation_paroi_max(self) -> float:
         """Plus grand depassement des murs, sur tous les agents actifs et tous les instants."""
@@ -294,6 +304,10 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     x_porte, (_, y_bas), (_, y_haut) = piscine.longueur_emprise, *piscine.porte
     dehors = np.array([x_porte + piscine.profondeur_porte, 0.5 * (y_bas + y_haut)])
 
+    gestionnaire = (
+        GestionnaireChutes(p.n_agents, p.chutes, p.graine) if p.chutes is not None else None
+    )
+
     n = p.n_agents
     x = positions_initiales(p)
     v = np.zeros((n, 2))
@@ -319,8 +333,58 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         actifs = np.flatnonzero((etat == EAU) | (etat == PLAGE))
         avant = x.copy()
         if actifs.size:
+            r_actifs = r[actifs]
+            if gestionnaire is not None:
+                r_actifs = gestionnaire.rayons_effectifs(r, instant=t)[actifs]
+                plagistes = actifs[etat[actifs] == PLAGE]
+                if plagistes.size > 0:
+                    carte = CartePiscine(piscine)
+                    milieux_sol = carte(x[plagistes])
+                    tau_p = np.array(
+                        [p.parametres_milieux[Milieu(m)].relaxation for m in milieux_sol]
+                    )
+                    amax_p = np.array(
+                        [p.parametres_milieux[Milieu(m)].acceleration_max for m in milieux_sol]
+                    )
+                    dir_nom = guidage(
+                        State(
+                            x=x[plagistes],
+                            v=v[plagistes],
+                            r=r_actifs[etat[actifs] == PLAGE],
+                            t=t,
+                        )
+                    )
+                    vit_nom = p.facteur_vitesse * np.array(
+                        [p.parametres_milieux[Milieu(m)].vitesse for m in milieux_sol]
+                    )
+                    vd_nom = vit_nom[:, None] * dir_nom
+                    gestionnaire.mettre_a_jour(
+                        instant=t,
+                        dt=p.dt,
+                        x=x[plagistes],
+                        v=v[plagistes],
+                        vitesse_desiree=vd_nom,
+                        a_max=amax_p,
+                        tau=tau_p,
+                        rayons_nominaux=r[plagistes],
+                        indices=plagistes,
+                    )
+
+            def _vitesse_libre(
+                etat_courant: State, dt: float, _actifs: np.ndarray = actifs
+            ) -> np.ndarray:
+                vl = libre(etat_courant, dt)
+                if gestionnaire is not None:
+                    vl = gestionnaire.vitesses_desirees_effectives(
+                        x=etat_courant.x,
+                        vitesse_desiree_nominale=vl,
+                        rayons_nominaux=etat_courant.r,
+                        indices=_actifs,
+                    )
+                return vl
+
             nouveau = pas_semi_implicite(
-                State(x=x[actifs], v=v[actifs], r=r[actifs], t=t), p.dt, libre, projection
+                State(x=x[actifs], v=v[actifs], r=r_actifs, t=t), p.dt, _vitesse_libre, projection
             )
             # Deplacement MESURE, corrections de contact comprises : le controle de dt
             # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
@@ -346,7 +410,12 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             i = occupant[k]
             sur_place = np.flatnonzero((etat == EAU) | (etat == PLAGE))
             if sur_place.size:
-                ecart = np.hypot(*(x[sur_place] - arrivees[k]).T) - r[sur_place] - r[i]
+                r_eff = (
+                    gestionnaire.rayons_effectifs(r, instant=t)[sur_place]
+                    if gestionnaire is not None
+                    else r[sur_place]
+                )
+                ecart = np.hypot(*(x[sur_place] - arrivees[k]).T) - r_eff - r[i]
                 if np.min(ecart) < -p.tolerance:
                     continue  # place occupee : l'agent attend sur le bord, le site reste pris
             etat[i], x[i], v[i] = PLAGE, arrivees[k], 0.0
@@ -393,4 +462,5 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         projection=projection,
         parametres=p,
         violation_tous_pas=violation,
+        chutes=gestionnaire.historique if gestionnaire is not None else (),
     )

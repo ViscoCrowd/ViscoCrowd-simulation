@@ -11,6 +11,27 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Intégration des chutes au scénario piscine et carte 2D des incidents
+
+**Contexte.** Le module `viscocrowd.model.chutes` a défini la cinématique et les probabilités
+de chute, de trébuchement en cascade et de contournement réactif. Il restait à l'intégrer
+dans la boucle de simulation temporelle complète de la piscine (`viscocrowd.scenarios.piscine`)
+et à visualiser la répartition spatiale des incidents par rapport aux carrelages mouillés et à la sortie.
+
+**Décision.**
+1. Ajouter le paramètre optionnel `chutes: ParametresChutes | dict | None` dans `ParametresPiscine`
+   et exposer `ResultatPiscine.chutes`.
+2. Interfacer le gestionnaire avec la dynamique de plage : application de la vitesse désirée modifiée
+   (contournement tangentiel + arrêt au sol) et des rayons effectifs aux agents actifs.
+3. Pour amortir la discontinuité géométrique de la projection de contact aux parois du bassin lors
+   d'une chute au sol, l'expansion du rayon d'exclusion s'étale continûment sur une courte durée
+   d'affaissement ($0{,}25\text{ s}$).
+4. Créer la fonction de visualisation `figure_carte_chutes(resultat, destination)` traçant les
+   murs d'enceinte, le bassin, la zone de carrelage mouillé, la porte et les points d'incident
+   discriminés par leur cause (glissade vs domino).
+
+---
+
 ## 2026-10-27 — Modélisation des chutes, effet domino et contournement réactif
 
 **Contexte.** Addendum à la spécification (`docs/modele-chutes.md`). Sur sol à faible adhérence
