@@ -79,6 +79,8 @@ pip install -e ".[dev]"
 viscocrowd valider-moteur --figures
 ```
 
+Sous Windows (PowerShell), un script d'aide `.\run.ps1` fournit les raccourcis équivalents au `Makefile` (`.\run.ps1 test`, `.\run.ps1 lint`, `.\run.ps1 valider`, etc.).
+
 ### Exécuter une configuration et relire une trajectoire
 
 Les bancs `bille_boite`, `tassement` et `couloir` disposent de configurations YAML en unités SI :
