@@ -47,6 +47,6 @@ ensemble chaque démonstration avant la soutenance.
 Pour chaque ligne, repartir du problème, dessiner le contre-exemple, expliquer la
 formule et ses unités, puis retrouver le test ou la mesure avec sa configuration,
 ses graines et sa limite. Relancer les tests lents explicitement lorsqu'ils portent
-la conclusion discutée ; la commande habituelle `pytest -m "not slow"` les exclut.
+la conclusion discutée ; la commande habituelle `pytest -m "not slow"` les exclut (voir le [guide des tests lents](ci-tests-lents.md)).
 Vérifier enfin que les slides décrivent la version publiée dans le
 [registre des livraisons](livraisons.md), et non toutes les propositions encore en PR.
