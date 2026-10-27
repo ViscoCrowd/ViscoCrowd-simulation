@@ -8,6 +8,7 @@ import yaml
 
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.trajectoires import lire_trajectoire
+from viscocrowd.observables.sortie import sorties_definitives
 from viscocrowd.scenarios.experience import executer_configuration
 from viscocrowd.scenarios.piscine import (
     EAU,
@@ -92,6 +93,44 @@ def test_sortie_definitive_par_la_porte(evacuation):
         assert np.all(r.etats[apres, i] == SORTI)
         assert np.all(r.x[apres, i, 0] > porte_x)  # retire, il ne revient pas
     assert r.temps_evacuation(0.5) <= r.temps_evacuation(0.9) <= r.temps_evacuation()
+
+
+def test_controle_croise_sortie_absorbante_et_observable_retrospective(evacuation):
+    """Controle croise (#11) : l'etat absorbant concorde avec sorties_definitives."""
+    r = evacuation
+    porte_a, porte_b = r.parametres.piscine.porte
+    obs = sorties_definitives(r.t, r.x, porte_a, porte_b)
+
+    # Meme effectif et memes agents sortis
+    np.testing.assert_array_equal(np.isfinite(r.sorties), obs.sortis)
+    assert np.sum(np.isfinite(r.sorties)) == obs.sortis.sum()
+
+    # Concordance des instants de sortie sous le pas de temps physique dt
+    ecarts = np.abs(r.sorties[obs.sortis] - obs.instant[obs.sortis])
+    assert np.max(ecarts) < r.parametres.dt
+
+    # Quantiles d'evacuation concordants
+    for fraction in (0.5, 0.9, 1.0):
+        assert abs(r.temps_evacuation(fraction) - obs.temps_evacuation(fraction)) < r.parametres.dt
+
+
+@pytest.mark.invariant
+def test_conservation_population_et_monotonie_des_sorties(evacuation):
+    """Conservation physique (#11) : actifs + franchissement + sortis == N a tout instant."""
+    r = evacuation
+    n = r.parametres.n_agents
+
+    actifs = np.sum((r.etats == EAU) | (r.etats == PLAGE), axis=1)
+    franchissement = np.sum(r.etats == FRANCHISSEMENT, axis=1)
+    sortis = np.sum(r.etats == SORTI, axis=1)
+
+    # Invariant de conservation a chaque instant enregistre
+    assert np.all(actifs + franchissement + sortis == n)
+
+    # Monotonie stricte de la courbe des sortis (etat absorbant)
+    assert np.all(np.diff(sortis) >= 0)
+    assert sortis[0] == 0
+    assert sortis[-1] == n
 
 
 def test_le_partage_vers_les_echelles_suit_leur_duree():
