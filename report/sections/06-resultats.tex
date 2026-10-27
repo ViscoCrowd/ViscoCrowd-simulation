@@ -95,8 +95,59 @@ calculés exactement par la projection, aucun bouchage n'apparaît : ce blocage
 était un artefact de la géométrie, non un comportement de la foule.
 
 \subsection{Effet de l'extraction repartie}
+\label{sec:e1}
 
-% Campagne E1.
+La campagne E1 étudie l'évacuation complète dans une configuration de référence
+où l'ensemble de la plage est supposé sec ($\tau=\SI{0.5}{\second}$,
+$a_{\max}=\SI{5.9}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$).
+Elle isole le rôle de l'extraction aquatique répartie (bassins, rebords et échelles)
+et de l'alimentation de la porte unique ($b=\SI{1.2}{\metre}$), indépendamment de
+tout frottement réduit au sol.
+
+Cent personnes sont réparties aléatoirement dans le bassin (\SI{25}{\metre}$\times$\SI{12.5}{\metre}),
+à une densité initiale moyenne de \num{0.32}~personne par mètre carré. Dix graines
+distinctes (1 à 10) sont simulées avec $\dt=\SI{0.01}{\second}$. Les franchissements
+comprennent deux échelles rapides ($T=\SI{2.0}{\second}$) et les rebords périphériques
+($T=\SI{4.0}{\second}$, un site tous les \SI{0.6}{\metre}).
+
+\begin{table}[ht]
+\centering
+\caption{Campagne E1 : indicateurs d'évacuation en sol sec de référence.
+Moyennes et écarts-types sur dix graines appariées ($N=100$ agents).
+$t_{50}$, $t_{90}$, $t_{100}$ : instants d'évacuation définitive par la porte ;
+attente : temps moyen passé dans l'eau avant début de franchissement ;
+plage : durée moyenne de traversée depuis la montée sur le carrelage jusqu'à la sortie ;
+$J_s$ : débit spécifique mesuré à la porte.}
+\label{tab:e1}
+\begin{tabular}{lrrrrrr}
+\toprule
+Indicateur & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Attente eau (s) & Traversée plage (s) & $J_s$ (\si{\per\metre\per\second}) \\
+\midrule
+Moyenne & 34,52 & 42,47 & 47,01 & 6,11 & 23,84 & 3,07 \\
+Écart-type & 0,60 & 0,76 & 0,96 & 0,37 & 0,56 & 0,11 \\
+Min -- Max & 33,65 -- 35,39 & 41,25 -- 43,65 & 45,81 -- 49,09 & 5,45 -- 6,69 & 23,29 -- 25,14 & 2,82 -- 3,21 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Les résultats (tableau~\ref{tab:e1}) mettent en lumière la fonction régulatrice
+des sites d'extraction :
+\begin{enumerate}
+\item \textbf{L'eau et les franchissements étalent le flux amont.} Dans l'eau, les
+agents progressent à vitesse modérée ($v=\SI{0.69}{\metre\per\second}$). Les plus
+proches atteignent un bord ou une échelle dès les premières secondes, tandis que
+la durée de rétention sur le rebord (\SI{4.0}{\second}) et la capacité unitaire
+des sites imposent une attente moyenne de \SI{6.11 \pm 0.37}{\second}. Cet étage
+désynchronise l'émergence des agents sur la plage, prévenant l'arrivée en bloc
+d'un front massif à la porte.
+\item \textbf{Alimentation continue du goulot.} La traversée de la plage vers la porte
+demande en moyenne \SI{23.84 \pm 0.56}{\second}. La porte de \SI{1.2}{\metre} écoule
+les arrivées successives à un débit spécifique moyen $J_s = \SI{3.07 \pm 0.11}{\per\metre\per\second}$,
+sans formation d'arche statique bloquante. La moitié des occupants est évacuée en
+$t_{50} = \SI{34.52 \pm 0.60}{\second}$, \SI{90}{\percent} en \SI{42.47 \pm 0.76}{\second},
+et la totalité de l'enceinte est évacuée en $t_{100} = \SI{47.01 \pm 0.96}{\second}$.
+Aucun agent ne reste bloqué à l'issue de l'horizon de calcul.
+\end{enumerate}
 
 \subsection{Premier banc : effet séparé des paramètres du sol mouillé}
 \label{sec:mouille-un-parametre}
@@ -184,9 +235,61 @@ l'approche du goulot, où il faut tourner ou s'arrêter, restent les situations
 qui départageront les hypothèses tampon et inertielle.
 
 \subsection{Effet de l'inertie du carrelage mouille}
+\label{sec:e2}
 
-% Campagne E2, puis balayage E3. C'est le coeur du resultat : effet tampon ou
-% effet inertiel, et de quelle amplitude.
+La campagne E2 introduit la bande de carrelage mouillé de \SI{3.0}{\metre} entourant
+le bassin, modélisée selon les paramètres physiques retenus ($\tau=\SI{0.5}{\second}$,
+$a_{\max}=\SI{3.3}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$),
+face à la plage sèche ($a_{\max}=\SI{5.9}{\metre\per\second\squared}$).
+Le protocole applique la comparaison appariée graine par graine sur les dix mêmes
+populations initiales que E1.
+
+\begin{table}[ht]
+\centering
+\caption{Comparaison appariée E1 (sec) et E2 (carrelage mouillé) sur dix graines.
+Moyennes et écarts-types ; écart moyen apparié $\Delta = \text{E2} - \text{E1}$.
+$N=100$ agents, géométrie de référence.}
+\label{tab:e2}
+\begin{tabular}{lrrrrr}
+\toprule
+Variante & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Traversée plage (s) & $J_s$ (\si{\per\metre\per\second}) \\
+\midrule
+E1 : Référence sèche & 34,52 (0,60) & 42,47 (0,76) & 47,01 (0,96) & 23,84 (0,56) & 3,07 (0,11) \\
+Adhérence seule ($a_{\max}=\SI{3.3}{\metre\per\second\squared}$) & 34,52 (0,60) & 42,47 (0,76) & 47,00 (0,97) & 23,84 (0,56) & 3,07 (0,11) \\
+E2 : Mouillé complet & 34,52 (0,60) & 42,47 (0,76) & 47,00 (0,97) & 23,84 (0,56) & 3,07 (0,11) \\
+\midrule
+Écart apparié $\Delta$ (E2 -- E1) & 0,00 (0,00) & 0,00 (0,00) & $-0,01$ (0,03) & 0,00 (0,01) & 0,00 (0,01) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Absence d'effet inertiel en marche nominale.}
+Comme sur le banc de couloir (section~\ref{sec:mouille-un-parametre}), l'adhérence
+réduite du carrelage mouillé ne modifie pratiquement pas les temps d'évacuation
+en régime nominal (tableau~\ref{tab:e2}). L'accélération demandée par un piéton
+démarrant depuis l'arrêt sur la plage vaut
+$a_{\text{demandée}} = s/\tau = 1{,}34 / 0{,}5 = \SI{2.68}{\metre\per\second\squared}$.
+Cette valeur restant inférieure au seuil d'adhérence du mouillé
+($a_{\max}=\SI{3.3}{\metre\per\second\squared}$), la contrainte d'accélération n'est
+pas saturée en marche libre vers la sortie. L'écart apparié sur $t_{50}$ et $t_{90}$
+est strictement inférieur à la milliseconde, et l'écart sur $t_{100}$ ne dépasse
+pas \SI{0.01}{\second}.
+
+\paragraph{Implications pour la problématique.}
+Ce constat apporte une réponse quantitative nette à l'une des questions centrales
+du projet :
+\begin{enumerate}
+\item \textbf{Le carrelage mouillé ne constitue pas un tampon amortisseur passif.}
+À vitesse nominale, la présence de la bande mouillée n'étale pas davantage la foule
+et ne fluidifie pas le débit à la porte. La régulation du débit est déjà entièrement
+assurée en amont par la capacité finie des échelles et des rebords du bassin.
+\item \textbf{L'effet d'inertie n'apparaît que lors des ruptures de régime.}
+Sur ce scénario, une gêne inertielle n'est observée que si la vitesse souhaitée
+augmente (fuite panique avec $s \ge \SI{1.65}{\metre\per\second}$, où
+$s/\tau > a_{\max}$ contraint le freinage et les virages) ou lors de la survenue
+d'incidents de chute, où l'obstacle au sol impose des déviations brusques aux
+suiveurs immédiats.
+\end{enumerate}
 
 \subsection{Sensibilite aux parametres de scenario}
 
