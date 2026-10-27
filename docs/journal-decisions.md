@@ -11,6 +11,47 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Intégration des chutes au scénario piscine et carte 2D des incidents
+
+**Contexte.** Le module `viscocrowd.model.chutes` a défini la cinématique et les probabilités
+de chute, de trébuchement en cascade et de contournement réactif. Il restait à l'intégrer
+dans la boucle de simulation temporelle complète de la piscine (`viscocrowd.scenarios.piscine`)
+et à visualiser la répartition spatiale des incidents par rapport aux carrelages mouillés et à la sortie.
+
+**Décision.**
+1. Ajouter le paramètre optionnel `chutes: ParametresChutes | dict | None` dans `ParametresPiscine`
+   et exposer `ResultatPiscine.chutes`.
+2. Interfacer le gestionnaire avec la dynamique de plage : application de la vitesse désirée modifiée
+   (contournement tangentiel + arrêt au sol) et des rayons effectifs aux agents actifs.
+3. Pour amortir la discontinuité géométrique de la projection de contact aux parois du bassin lors
+   d'une chute au sol, l'expansion du rayon d'exclusion s'étale continûment sur une courte durée
+   d'affaissement ($0{,}25\text{ s}$).
+4. Créer la fonction de visualisation `figure_carte_chutes(resultat, destination)` traçant les
+   murs d'enceinte, le bassin, la zone de carrelage mouillé, la porte et les points d'incident
+   discriminés par leur cause (glissade vs domino).
+
+---
+
+## 2026-10-27 — Modélisation des chutes, effet domino et contournement réactif
+
+**Contexte.** Addendum à la spécification (`docs/modele-chutes.md`). Sur sol à faible adhérence
+(carrelage mouillé), un piéton demandant plus d'accélération que le seuil de friction ne se
+contente pas de glisser : il peut chuter. Un agent à terre devient un obstacle au sol qui
+réduit la section utile du passage, que les suiveurs doivent contourner ou sur lequel ils risquent
+de trébucher en cascade s'ils ne disposent pas de la distance d'arrêt nécessaire.
+
+**Décision.** Implémenter le module `viscocrowd.model.chutes` avec :
+1. Déclenchement de la glissade par probabilité $p_{\text{chute}} = 1 - \exp(-\lambda_{\text{chute}} \cdot \text{excès} \cdot \Delta t)$
+   invariante au pas de temps $\Delta t$.
+2. État au sol : vitesse désirée nulle vers la sortie et rayon d'exclusion agrandi ($1{,}5 \cdot r$).
+3. Effet domino / trébuchement en cascade : probabilité d'entraînement pour les piétons arrivant à vitesse
+   élevée à une distance inférieure à la distance physique d'arrêt $d_{\text{arret}} = \frac{v^2}{2 a_{\max}}$.
+4. Contournement local réactif : déviation tangentielle de la direction désirée pour les agents suffisamment
+   éloignés, préservant la norme de la vitesse et sans recalculer l'eikonal global.
+5. Relevage stochastique selon une loi log-normale de médiane $3{,}7\text{ s}$ sourcée Becker et al. (2016).
+
+---
+
 ## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
 
 **Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,
