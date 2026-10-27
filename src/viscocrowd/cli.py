@@ -233,6 +233,29 @@ def construire_analyseur() -> argparse.ArgumentParser:
     comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
     comparer.set_defaults(fonction=commande_comparer_mouille)
 
+    comparer_piscine = sous.add_parser(
+        "comparer-piscine",
+        help="E1/E2 : comparaison appariee piscine seche vs mouillee, un parametre a la fois",
+        description=(
+            "E1/E2 : comparaison appariee piscine seche vs mouillee, un parametre a la fois."
+        ),
+    )
+    comparer_piscine.add_argument(
+        "configuration", type=Path, help="configuration YAML de la piscine"
+    )
+    comparer_piscine.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines du placement (defaut : celle de la configuration)",
+    )
+    comparer_piscine.add_argument(
+        "--variantes",
+        nargs="+",
+        help="variantes a comparer (defaut : toutes les variantes)",
+    )
+    comparer_piscine.set_defaults(fonction=commande_comparer_piscine)
+
     etalonner = sous.add_parser(
         "etalonner-goulot",
         help="E0 : debit specifique d'un goulot sec, compare a Seyfried et al. (2009)",
@@ -331,6 +354,41 @@ def commande_comparer_mouille(args: argparse.Namespace) -> int:
         from viscocrowd.viz.figures import figure_comparaison_mouille
 
         print(f"Figure : {figure_comparaison_mouille(resultats, n_agents, args.figure)}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
+
+
+def commande_comparer_piscine(args: argparse.Namespace) -> int:
+    """Tableau de la comparaison appariee piscine seche vs mouillee (E1/E2)."""
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.scenarios.comparaison_piscine import MESURES, UNITES, comparer
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        if configuration["scenario"] != "piscine":
+            raise ValueError("la comparaison attend une configuration du scenario piscine")
+        graines = args.graines or [configuration["graine"]]
+        resultats = comparer(configuration, graines, variantes=args.variantes)
+    except (OSError, KeyError, ValueError) as erreur:
+        print(f"Comparaison refusee : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"Piscine E1/E2, un parametre a la fois — {n_agents} agents, graines {graines}")
+    print(f"{'variante':>18} " + " ".join(f"{m + ' (' + UNITES[m] + ')':>22}" for m in MESURES))
+    for nom, valeurs in resultats.items():
+        cellules = []
+        for k in range(len(MESURES)):
+            col = valeurs[:, k]
+            finies = col[np.isfinite(col)]
+            if finies.size == 0:
+                cellules.append(f"{'-':>22}")
+            else:
+                moyenne = np.mean(finies)
+                ecart = np.std(finies, ddof=1) if finies.size > 1 else 0.0
+                cellules.append(f"{moyenne:>12.2f} ± {ecart:<7.2f}")
+        print(f"{nom:>18} " + " ".join(cellules))
     print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
     return 0
 
