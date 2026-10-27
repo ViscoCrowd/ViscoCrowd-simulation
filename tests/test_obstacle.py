@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from viscocrowd.core.rng import generateur
 from viscocrowd.geometry.couloir import Couloir
 from viscocrowd.geometry.obstacle import ObstacleRectangle
 
@@ -45,7 +46,7 @@ class TestRepousser:
         np.testing.assert_allclose(PILIER.repousser(np.array([dedans]), R), [attendu])
 
     def test_points_admissibles_inchanges_et_projection_idempotente(self):
-        x = np.random.default_rng(4).uniform([4.0, -2.0], [9.0, 2.0], size=(2000, 2))
+        x = generateur(4).uniform([4.0, -2.0], [9.0, 2.0], size=(2000, 2))
         une_fois = PILIER.repousser(x, R)
         loin = PILIER.distance(x) >= R
         np.testing.assert_array_equal(une_fois[loin], x[loin])
@@ -69,7 +70,7 @@ class TestRepousser:
 class TestCouloirAvecObstacle:
     def test_parois_et_obstacle_respectes_a_la_precision_machine(self):
         couloir = Couloir(12.0, 3.0, (PILIER,))
-        x = np.random.default_rng(5).uniform([-1.0, -2.0], [13.0, 2.0], size=(5000, 2))
+        x = generateur(5).uniform([-1.0, -2.0], [13.0, 2.0], size=(5000, 2))
         r = np.full(5000, R)
         projete = couloir.projeter(x, r, 0.0)
         assert couloir.violation(projete, r, 0.0) <= 1e-15

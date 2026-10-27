@@ -11,6 +11,21 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Centralisation stricte du RNG et contrôle par invariant physique
+
+**Contexte.** La spécification (§4) et la checklist de relecture exigent l'absence totale d'appels
+directs à `numpy.random` pour garantir la reproductibilité absolue de tout tirage stochastique
+via `viscocrowd.core.rng.generateur`.
+
+**Décision.** Remplacer les 8 appels résiduels à `np.random.default_rng` identifiés dans les suites de tests
+(`test_eikonal.py`, `test_espacement.py`, `test_goulot.py`, `test_obstacle.py`, `test_piscine_scenario.py`,
+`test_sortie.py`) par `viscocrowd.core.rng.generateur`.
+Ajouter un test d'invariant automatique dans `test_invariants.py` analysant l'arbre syntaxique (AST)
+de tous les fichiers Python de `src/` et `tests/` pour interdire définitivement toute instanciation
+de générateur hors de `core.rng`.
+
+---
+
 ## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
 
 **Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,

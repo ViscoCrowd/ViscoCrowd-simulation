@@ -8,6 +8,7 @@ import pytest
 import yaml
 
 from viscocrowd.cli import main
+from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
 from viscocrowd.geometry.salle import SalleGoulot
 from viscocrowd.io.configuration import lire_configuration
@@ -73,7 +74,7 @@ class TestSalleGoulot:
         np.testing.assert_array_equal(SALLE.projeter(x, np.full(2, R)), x)
 
     def test_projection_idempotente_et_sans_violation(self):
-        x = np.random.default_rng(3).uniform([-0.5, -0.5], [11.0, 5.5], size=(4000, 2))
+        x = generateur(3).uniform([-0.5, -0.5], [11.0, 5.5], size=(4000, 2))
         r = np.full(x.shape[0], R)
         une_fois = SALLE.projeter(x, r)
         assert SALLE.violation(une_fois, r) <= 1e-15

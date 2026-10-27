@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import yaml
 
+from viscocrowd.core.rng import generateur
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.trajectoires import lire_trajectoire
 from viscocrowd.scenarios.experience import executer_configuration
@@ -211,7 +212,7 @@ class TestAttribution:
         assert _attribuer_sites(distances, 0.25) == [(1, 0)]  # l'agent 0 attend
 
     def test_independant_de_la_numerotation(self):
-        rng = np.random.default_rng(0)
+        rng = generateur(0)
         distances = rng.uniform(0.0, 0.3, size=(6, 5))
         couples = set(_attribuer_sites(distances, 0.25))
         ordre = rng.permutation(6)

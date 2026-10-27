@@ -245,3 +245,31 @@ def test_convergence_en_pas_de_temps():
     assert all(np.array_equal(s, signes[0]) for s in signes), (
         f"le coin d'arrivee depend de dt : {positions_finales}"
     )
+
+
+@pytest.mark.invariant
+def test_aucun_appel_direct_a_numpy_random():
+    """Regle d'or de reproductibilite : seul core.rng peut instancier un generateur aleatoire."""
+    import ast
+    from pathlib import Path
+
+    racine = Path(__file__).parents[1]
+    fichiers_python = list(racine.glob("src/**/*.py")) + list(racine.glob("tests/**/*.py"))
+
+    infractions = []
+    for chemin in fichiers_python:
+        if chemin.name == "rng.py" and "core" in chemin.parts:
+            continue
+        contenu = chemin.read_text(encoding="utf-8")
+        arbre = ast.parse(contenu, filename=str(chemin))
+        for noeud in ast.walk(arbre):
+            if isinstance(noeud, ast.Attribute) and noeud.attr in (
+                "default_rng",
+                "seed",
+                "RandomState",
+            ):
+                infractions.append(f"{chemin.relative_to(racine)}:{noeud.lineno} ({noeud.attr})")
+
+    assert not infractions, (
+        f"Appels directs a numpy.random detectes hors de core.rng : {infractions}"
+    )
