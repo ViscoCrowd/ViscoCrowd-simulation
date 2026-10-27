@@ -11,6 +11,23 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Campagne de référence E1/E2 (10 graines) et analyse dans le rapport
+
+**Contexte.** Suite à l'implémentation du protocole apparié E1/E2, les sections 6.2 (Effet de l'extraction
+répartie) et 6.4 (Effet de l'inertie du carrelage mouillé) du rapport LaTeX (`report/sections/06-resultats.tex`)
+devaient être complétées avec les résultats numériques issus d'une campagne statistiquement représentative.
+
+**Décision.**
+1. Exécuter la campagne appariée sur dix graines (1 à 10) pour $N=100$ agents avec le scénario `experiments/piscine.yaml`.
+2. Archiver les données brutes dans `data/campagne-e1-e2-10graines.json`.
+3. Consigner les estimateurs (moyenne, écart-type, extrêmes) de $t_{50}$, $t_{90}$, $t_{100}$, du temps d'attente
+   en eau, de la traversée de plage et du débit spécifique $J_s$ dans le rapport.
+4. Conclure sur l'absence d'effet inertiel significatif à vitesse nominale ($1{,}34\text{ m/s}$), l'accélération
+   requise ($2{,}68\text{ m/s}^2$) ne saturant pas le seuil d'adhérence du carrelage mouillé ($3{,}3\text{ m/s}^2$),
+   établissant que la régulation de l'écoulement provient de l'étage de franchissement amont plutôt que du sol.
+
+---
+
 ## 2026-10-27 — Protocole apparié E1/E2 de comparaison piscine sèche vs mouillée
 
 **Contexte.** Dans le cadre de l'issue #59 (jalon J5, tâche M5) et pour répondre à la question

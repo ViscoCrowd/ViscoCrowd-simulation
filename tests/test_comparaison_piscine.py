@@ -100,4 +100,3 @@ def test_cli_comparer_piscine_aide(capsys):
     assert capture.value.code == 0
     sortie = capsys.readouterr().out
     assert "E1/E2" in sortie
-
