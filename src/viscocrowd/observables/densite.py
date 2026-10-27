@@ -45,6 +45,7 @@ ne demande pas de salle.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 from scipy.spatial import QhullError, Voronoi
@@ -54,6 +55,7 @@ from viscocrowd.core.verifications import (
     exiger_fini,
     exiger_scalaire_fini,
 )
+from viscocrowd.io.trajectoires import Trajectoire, charger_et_valider_complete
 
 
 @dataclass(frozen=True)
@@ -266,3 +268,110 @@ def densite_comptage(x: np.ndarray, zone: Rectangle) -> float:
         & (x[:, 1] < zone.y_max)
     )
     return float(np.sum(dedans) / zone.aire)
+
+
+def _extraire_instantane(
+    donnees: Trajectoire, instant: float | None, indice: int | None
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """Extrait (x, v, t) de la trajectoire a l'instant ou a l'indice demande."""
+    if (instant is None) == (indice is None):
+        raise ValueError("specifier exactement un parametre parmi 'instant' et 'indice'")
+    if indice is not None:
+        if not (0 <= indice < donnees.t.size):
+            raise IndexError(f"indice {indice} hors limites (taille {donnees.t.size})")
+        idx = indice
+    else:
+        assert instant is not None
+        exiger_scalaire_fini("l'instant demande", instant)
+        ecarts = np.abs(donnees.t - instant)
+        idx = int(np.argmin(ecarts))
+        dt_local = float(np.min(np.diff(donnees.t))) if donnees.t.size > 1 else 1.0
+        if ecarts[idx] > dt_local / 2 + 1e-9:
+            raise ValueError(
+                f"aucun instantane enregistre a t = {instant} s "
+                f"(instant le plus proche : {donnees.t[idx]} s)"
+            )
+    return donnees.x[idx], donnees.v[idx], float(donnees.t[idx])
+
+
+def mesures_voronoi_trajectoire(
+    archive: Trajectoire | str | Path,
+    salle: Rectangle,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+    direction=None,
+) -> tuple[float, float]:
+    """(densite, vitesse) de Voronoi depuis une archive a l'instant ou l'indice demande.
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    donnees = charger_et_valider_complete(archive, "la mesure de Voronoi")
+    x, v, _ = _extraire_instantane(donnees, instant, indice)
+    return mesures_voronoi(x, v, salle, zone, direction=direction)
+
+
+def densite_voronoi_trajectoire(
+    archive: Trajectoire | str | Path,
+    salle: Rectangle,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+) -> float:
+    """Densite de Voronoi depuis une archive a l'instant ou l'indice demande.
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    densite, _ = mesures_voronoi_trajectoire(
+        archive, salle, zone, instant=instant, indice=indice
+    )
+    return densite
+
+
+def vitesse_voronoi_trajectoire(
+    archive: Trajectoire | str | Path,
+    salle: Rectangle,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+    direction=None,
+) -> float:
+    """Vitesse de Voronoi depuis une archive a l'instant ou l'indice demande.
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    _, vitesse = mesures_voronoi_trajectoire(
+        archive, salle, zone, instant=instant, indice=indice, direction=direction
+    )
+    return vitesse
+
+
+def densite_comptage_trajectoire(
+    archive: Trajectoire | str | Path,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+) -> float:
+    """Densite par comptage depuis une archive a l'instant ou l'indice demande.
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    donnees = charger_et_valider_complete(archive, "le comptage de densite")
+    x, _, _ = _extraire_instantane(donnees, instant, indice)
+    return densite_comptage(x, zone)
+
+
+def serie_densite_comptage_trajectoire(
+    archive: Trajectoire | str | Path, zone: Rectangle
+) -> tuple[np.ndarray, np.ndarray]:
+    """Densite par comptage sur tous les pas de l'archive : rend (t, densites).
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    donnees = charger_et_valider_complete(archive, "la serie de densite par comptage")
+    densites = np.array([densite_comptage(x, zone) for x in donnees.x])
+    return donnees.t.copy(), densites
