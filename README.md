@@ -79,7 +79,7 @@ pip install -e ".[dev]"
 viscocrowd valider-moteur --figures
 ```
 
-Sous Windows (PowerShell), un script d'aide `.\run.ps1` fournit les raccourcis équivalents au `Makefile` (`.\run.ps1 test`, `.\run.ps1 lint`, `.\run.ps1 valider`, `.\run.ps1 report`, etc.).
+Sous Windows (PowerShell), un script d'aide `.\run.ps1` fournit les raccourcis équivalents au `Makefile` (`.\run.ps1 test`, `.\run.ps1 lint`, `.\run.ps1 valider`, `.\run.ps1 report`, etc.). Les arguments qui suivent `test` sont transmis à pytest (`.\run.ps1 test -v -k milieu`). Si Windows bloque le script (politique d'exécution `Restricted`, fréquente sur les postes gérés) : `powershell -ExecutionPolicy Bypass -File .\run.ps1 test`.
 
 ### Exécuter une configuration et relire une trajectoire
 

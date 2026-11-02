@@ -1,29 +1,6 @@
 # ViscoCrowd — raccourcis de developpement pour Windows (PowerShell)
 # Equivalent multiplateforme du Makefile pour les environnements PowerShell.
 
-[CmdletBinding()]
-param (
-    [Parameter(Position = 0)]
-    [ValidateSet(
-        "help",
-        "install",
-        "test",
-        "test-all",
-        "lint",
-        "format",
-        "valider",
-        "interface",
-        "figures",
-        "report",
-        "docker",
-        "clean"
-    )]
-    [string]$Command = "help",
-
-    [Parameter(Position = 1, ValueFromRemainingArguments = $true)]
-    [string[]]$ExtraArgs
-)
-
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -55,6 +32,9 @@ function Show-Help {
     Write-Host "  docker      Construit l'image Docker de reproductibilite"
     Write-Host "  clean       Supprime les caches et artefacts temporaires"
     Write-Host "  help        Affiche cette aide"
+    Write-Host ""
+    Write-Host "Apres test, test-all, valider, interface et figures, les arguments sont transmis"
+    Write-Host "tels quels, par exemple : .\run.ps1 test -v -k milieu"
 }
 
 function Invoke-Py {
@@ -70,6 +50,28 @@ function Invoke-Py {
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
+}
+
+# Pas de bloc param : avec [CmdletBinding()] ou [Parameter()], PowerShell ajoute au
+# script ses parametres communs (-Verbose, -Debug, -PipelineVariable...) et prendrait
+# pour eux les options de pytest qui commencent pareil : `test -v` perdait son -v,
+# `test -p no:cacheprovider` echouait. On lit donc $args a la main.
+$Commandes = @(
+    "help", "install", "test", "test-all", "lint", "format",
+    "valider", "interface", "figures", "report", "docker", "clean"
+)
+$Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
+$ExtraArgs = @(if ($args.Count -gt 1) { $args[1..($args.Count - 1)] })  # @() : jamais $null
+if ($Commandes -notcontains $Command) {
+    Write-Host "Commande inconnue : $Command" -ForegroundColor Red
+    Show-Help
+    exit 1
+}
+# lint et format enchainent deux commandes ruff aux options differentes, comme le
+# Makefile : un argument accepte par l'une ferait echouer l'autre.
+if ($Command -in @("lint", "format") -and $ExtraArgs.Count -gt 0) {
+    Write-Host "$Command ne prend pas d'argument ; appeler ruff directement pour des options." -ForegroundColor Red
+    exit 1
 }
 
 switch ($Command) {
@@ -99,16 +101,16 @@ switch ($Command) {
 
     "lint" {
         Write-Host "==> Verification ruff check..." -ForegroundColor Green
-        Invoke-Py -BaseArgs @("-m", "ruff", "check", ".") -MoreArgs $ExtraArgs
+        Invoke-Py -BaseArgs @("-m", "ruff", "check", ".")
         Write-Host "==> Verification ruff format..." -ForegroundColor Green
-        Invoke-Py -BaseArgs @("-m", "ruff", "format", "--check", ".") -MoreArgs $ExtraArgs
+        Invoke-Py -BaseArgs @("-m", "ruff", "format", "--check", ".")
     }
 
     "format" {
         Write-Host "==> Formatage du code avec ruff..." -ForegroundColor Green
-        Invoke-Py -BaseArgs @("-m", "ruff", "format", ".") -MoreArgs $ExtraArgs
+        Invoke-Py -BaseArgs @("-m", "ruff", "format", ".")
         Write-Host "==> Correction automatique des imports et lints..." -ForegroundColor Green
-        Invoke-Py -BaseArgs @("-m", "ruff", "check", "--fix", ".") -MoreArgs $ExtraArgs
+        Invoke-Py -BaseArgs @("-m", "ruff", "check", "--fix", ".")
     }
 
     "valider" {
