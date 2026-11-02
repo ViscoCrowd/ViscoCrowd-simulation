@@ -11,6 +11,53 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-02 — Balayer la piscine contre un témoin sec apparié (M6, E3/E4)
+
+**Contexte.** Au point de référence, le sol mouillé ne change rien de mesurable (#83). Les
+balayages E3/E4 cherchent où il commence à compter. Détail et chiffres :
+[balayages de la piscine](balayages-piscine.md).
+
+**Décision 1 : mesurer l'effet du mouillé contre un témoin sec, graine par graine.** Pour
+chaque valeur balayée et chaque graine, on simule la piscine configurée et la même piscine
+toute sèche, partie des mêmes positions. L'effet est l'écart Δ = mouillé − témoin.
+
+- *Écarté : comparer chaque valeur à la valeur de référence du YAML.* L'écart mélangerait
+  l'effet du paramètre balayé et celui du mouillé. Au facteur de panique 2, on mesurerait
+  surtout que la foule court plus vite, pas que le sol glisse.
+- *Écarté : comparer des moyennes sur des graines indépendantes.* Le hasard du placement
+  initial fait varier t100 de ±3 s, bien plus que l'effet cherché. Apparier les graines le
+  retire.
+
+**Décision 2 : conserver les évacuations inachevées, sans les moyenner.** Une graine qui
+n'a pas fini est gardée (t100 infini, débit indéfini) et la case du tableau affiche
+« incomplet ».
+
+- *Écarté : arrêter le balayage* (comme `ProtocoleIncomplet` du couloir). Un bouchage est un
+  résultat du balayage, et l'arrêt perdait toutes les valeurs suivantes : c'est ce qui est
+  arrivé à la première série, à la porte de 0,8 m.
+- *Écarté : moyenner les graines terminées.* On comparerait des populations différentes sans
+  le dire (relecture de #77).
+
+**Constat : la porte de la piscine se bouche artificiellement.** À 0,8 m, 65 baigneurs sur
+100 restent figés en arche statique (graine 2, facteur 1,5). La porte est construite comme
+la première géométrie de E0, avec des coins vifs aux montants, que l'entrée E0 a identifiés
+comme cause des bouchages. Les balayages de porte et de population restent à refaire une
+fois les montants arrondis.
+
+**Résultat.** Dans la piscine de référence, l'effet du mouillé reste sous 0,1 s sur t50
+jusqu'au facteur de panique 2,5, et se perd dans une dispersion de 1 à 2 s sur t100. Seule
+une adhérence très faible (1 m/s²) retarde nettement t50 (0,38 s, positif sur 10 graines
+sur 10). Mouiller la plage jusqu'à la porte ne change presque rien (au plus 1,4·10⁻⁵ s). Les
+relances et les virages ont lieu près du bassin, et la porte n'est jamais encombrée.
+
+**Pourquoi ce n'est pas encore la conclusion du rapport.** Le modèle ne prête au mouillé
+que la borne d'accélération : pas de chutes (#78, #82), et la même vitesse souhaitée sur le
+sec et le mouillé, par choix de protocole (#26). La foule passe le goulot environ deux fois
+trop vite (E0), et la relation vitesse–espacement (#58) n'est pas branchée sur la piscine.
+Une porte encombrée, avec du mouillé devant, reste à tester.
+
+---
+
 ## 2026-10-25 — Vérifier les milieux dans la piscine complète (G3)
 
 **But.** Fermer la dernière vérification de G3 (#26). Il faut s'assurer que, pendant une
