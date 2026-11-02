@@ -228,6 +228,12 @@ Le seuil de freinage tient compte du facteur de vitesse. Une mesure incomplète
 est refusée avant le tableau ou la figure ; aucun agent ni aucune graine n'est
 écarté silencieusement de la moyenne. La distance est échantillonnée au pas de temps.
 
+Sur la piscine complète, `viscocrowd balayer-piscine` trace les courbes de réponse E3/E4 :
+largeur et adhérence du mouillé, niveau de panique, largeur de la porte ou population, un
+paramètre à la fois. À chaque valeur et pour chaque graine, l'évacuation est comparée à la
+même piscine toute sèche, partie des mêmes positions. Voir les
+[balayages de la piscine](docs/balayages-piscine.md).
+
 Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
 experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
 b = 0,8 à 1,2 m sur trois graines, et affiche le débit spécifique simulé à côté du débit
