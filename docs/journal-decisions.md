@@ -11,6 +11,54 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-25 — Vérifier les milieux dans la piscine complète (G3)
+
+**But.** Fermer la dernière vérification de G3 (#26). Il faut s'assurer que, pendant une
+évacuation réelle, chaque sol impose ses propres paramètres, avec la carte et les valeurs de
+`experiments/piscine.yaml`.
+
+**Méthode** (`tests/test_milieux_piscine.py`). Le test enregistre le pas libre à chaque appel,
+pendant l'évacuation complète de 20 agents, aux facteurs de panique 1 et 1,5. Il le compare à
+un calcul indépendant : la carte est recalculée à la main à partir du rectangle du bassin, et
+l'accélération bornée est réécrite en trois lignes.
+
+On a vérifié que ces tests savent échouer, en introduisant trois erreurs dans le scénario :
+- facteur de panique oublié ;
+- mouillé et sec permutés ;
+- sol lu en fin de pas.
+
+Chacune fait échouer au moins un test.
+
+**Mesures.**
+
+| Grandeur | Facteur 1 | Facteur 1,5 |
+|---|---|---|
+| Écart au calcul indépendant | 0,0 m/s | 2,8·10⁻¹⁷ m/s |
+| Pas où l'adhérence sature : eau | 0 % | 8,9 % |
+| … mouillé | **0,03 %** (5 sur 19 597) | 1,9 % |
+| … sec | 0 % | 0 % |
+
+Freinage d'un agent seul sur les plages, à partir de 1,34 m/s : **0,6566 m sur le mouillé
+comme sur le sec**. À partir de 2,5 m/s, la distance est de 1,339 m contre 1,225 m, soit 9 %
+de plus.
+
+**Constat.** Avec les valeurs proposées pour C6, **le mouillé ne se distingue presque pas du
+sec au facteur de panique 1** :
+- les deux sols ont le même `s` et le même `τ` ;
+- l'adhérence ne compte qu'au-delà de `a_max · τ = 1,65 m/s`, que l'on n'atteint qu'en
+  démarrant ou dans un virage serré.
+
+Pour la même raison, lire le sol au début ou à la fin du pas ne change rien à la frontière
+mouillé/sec : sur 20 passages, aucun pas ne diffère. Le test de cette convention donne donc au
+mouillé un `τ` de 1 s (valeur illustrative, le « τ long » de la spec § 2.4). Les 5 passages de
+5 agents deviennent alors tous discriminants.
+
+**Conséquence.** G3 est vérifié dans la géométrie C6. Le facteur de panique de référence et
+la distance entre le mouillé et la porte restent à trancher dans #26 **avant E1/E2**. Sans
+cela, le scénario ne peut pas faire apparaître l'hypothèse inertielle.
+
+---
+
 ## 2026-10-25 — Vérifier la source de la vitesse dans l'eau (C6)
 
 **Constat.** La proposition C6 (#26) fixe `s_eau = 0,69 m/s` par `V = 0,53 M^(−0,19)`,
