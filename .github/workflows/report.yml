@@ -8,6 +8,11 @@ on:
     paths: ["report/**"]
   workflow_dispatch:
 
+# Une compilation plus recente remplace la precedente, comme dans ci.yml.
+concurrency:
+  group: report-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   compiler:
     name: Compiler le rapport LaTeX
