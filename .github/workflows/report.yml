@@ -4,7 +4,7 @@ on:
   pull_request:
     paths: ["report/**"]
   push:
-    branches: [main]
+    branches: [main, dev]
     paths: ["report/**"]
   workflow_dispatch:
 
