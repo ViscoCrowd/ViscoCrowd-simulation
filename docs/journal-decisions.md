@@ -11,6 +11,26 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Campagne de référence E1/E2 (10 graines) et analyse dans le rapport
+
+**Contexte.** Suite à l'implémentation du protocole apparié E1/E2, les sections 6.2 (Effet de l'extraction
+répartie) et 6.4 (Effet de l'inertie du carrelage mouillé) du rapport LaTeX (`report/sections/06-resultats.tex`)
+devaient être complétées avec les résultats numériques issus d'une campagne sur dix graines.
+
+**Décision.**
+1. Exécuter la campagne appariée sur dix graines distinctes (1 à 10) pour $N=100$ agents avec la configuration
+   de référence : `viscocrowd comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10`.
+2. Consigner les estimateurs (moyenne, écart-type, extrêmes) de $t_{50}$, $t_{90}$, $t_{100}$, du temps d'attente
+   en eau, de la traversée de plage et du débit spécifique $J_s = (\Delta N - 1)/(\Delta t\,b)$ dans le rapport,
+   en précisant que cette configuration de base n'active pas encore `temps_espacement` (#57).
+3. Conclure sur l'absence d'effet inertiel en régime nominal (`facteur_vitesse = 1.0`, $s = 1{,}34\text{ m/s}$)
+   pour deux raisons complémentaires cohérentes avec #26 et #72 : l'accélération requise ($2{,}68\text{ m/s}^2$)
+   reste sous le seuil d'adhérence du carrelage mouillé ($3{,}3\text{ m/s}^2$, soit $v_0 < a_{\max}\tau = 1{,}65\text{ m/s}$),
+   et la bande mouillée de $3\text{ m}$ est séparée de la porte par $17\text{ m}$ de plage sèche sur lesquels
+   tout transitoire de sortie s'amortit avant le goulot.
+
+---
+
 ## 2026-10-27 — Protocole apparié E1/E2 de comparaison piscine sèche vs mouillée
 
 **Contexte.** Dans le cadre de l'issue #59 (jalon J5, tâche M5) et pour répondre à la question
