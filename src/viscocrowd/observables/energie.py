@@ -20,9 +20,12 @@ Comportement attendu, et pourquoi il discrimine une erreur :
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 
 from viscocrowd.core.state import GRAVITE
+from viscocrowd.io.trajectoires import Trajectoire
 
 
 def energie_mecanique(
@@ -60,3 +63,33 @@ def ecart_entrainement(v: np.ndarray, v_solide: np.ndarray) -> np.ndarray:
         L'ecart maximal sur les particules, de forme (...), en m/s.
     """
     return np.max(np.linalg.norm(v - v_solide, axis=-1), axis=-1)
+
+
+def energie_mecanique_trajectoire(
+    archive: Trajectoire | str | Path,
+    masse: np.ndarray | float = 1.0,
+    gravite: np.ndarray = GRAVITE,
+    *,
+    autoriser_espace: bool = False,
+) -> np.ndarray:
+    """Energie mecanique calculee sur les pas d'une archive.
+
+    Par defaut, refuse toute archive espacee (K > 1, issue #73), car une montee
+    d'energie ou un pic de dissipation entre deux images non enregistrees ne
+    serait pas detecte. `autoriser_espace=True` permet d'evaluer l'energie ponctuelle
+    aux seuls pas conserves.
+    """
+    if isinstance(archive, (str, Path)):
+        from viscocrowd.io.trajectoires import lire_trajectoire
+
+        donnees = lire_trajectoire(archive)
+    elif isinstance(archive, Trajectoire):
+        donnees = archive
+    else:
+        raise TypeError(
+            f"source de trajectoire invalide (attendu Trajectoire, str ou Path, "
+            f"recu {type(archive).__name__})"
+        )
+    if not autoriser_espace:
+        donnees.exiger_complete("le calcul de l'energie mecanique")
+    return energie_mecanique(donnees.x, donnees.v, masse=masse, gravite=gravite)

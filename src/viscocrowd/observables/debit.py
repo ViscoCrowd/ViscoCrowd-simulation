@@ -17,8 +17,11 @@ arrive effectivement de l'AUTRE cote. Voir `franchissements`.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
+
+from viscocrowd.io.trajectoires import Trajectoire, charger_et_valider_complete
 
 
 def _verifier_segment(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -97,7 +100,12 @@ class Franchissements:
         return int(self.agent.size)
 
 
-def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) -> Franchissements:
+def franchissements(
+    t: np.ndarray | Trajectoire,
+    x: np.ndarray,
+    a: np.ndarray | None = None,
+    b: np.ndarray | None = None,
+) -> Franchissements:
     """Detecte tous les passages a travers le segment [a, b].
 
     Un agent a franchi le segment lorsque :
@@ -119,18 +127,27 @@ def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) 
     l'interieur de celui-ci.
 
     Args:
-        t: instants, de forme (P,), en s.
+        t: instants, de forme (P,), en s, ou objet Trajectoire complet.
         x: positions, de forme (P, N, 2), en metres (sortie de
-            core.integrator.trajectoire).
-        a: premiere extremite du segment, de forme (2,), en metres.
-        b: seconde extremite du segment, de forme (2,), en metres.
+            core.integrator.trajectoire), ou premier point 'a' si t est une Trajectoire.
+        a: premiere extremite du segment, de forme (2,), en metres (ou second point 'b').
+        b: seconde extremite du segment, de forme (2,), en metres (inutilise si t est Trajectoire).
 
     Returns:
         Les passages detectes, tries par instant.
 
     Raises:
-        ValueError: si a et b sont confondus, ou si une extremite n'est pas finie.
+        ValueError: si a et b sont confondus, si une extremite n'est pas finie,
+            ou si une archive espacee est fournie (issue #73).
     """
+    if isinstance(t, Trajectoire):
+        t.exiger_complete("le comptage de franchissements")
+        if a is None:
+            raise ValueError("les deux extremites du segment de mesure sont requises")
+        return franchissements(t.t, t.x, x, a)
+
+    if a is None or b is None:
+        raise ValueError("les extremites a et b du segment de mesure sont requises")
     ab = _verifier_segment(a, b)
     t, x = np.asarray(t, dtype=float), np.asarray(x, dtype=float)
     c = cote(x, a, b)  # (P, N)
@@ -284,3 +301,31 @@ def debit_specifique(passages: Franchissements, largeur: float, debut: float, fi
     dans_la_fenetre = (passages.instant >= debut) & (passages.instant < fin)
     net = int(np.sum(passages.sens[dans_la_fenetre]))
     return net / ((fin - debut) * largeur)
+
+
+def franchissements_trajectoire(
+    archive: Trajectoire | str | Path, a: np.ndarray, b: np.ndarray
+) -> Franchissements:
+    """Detecte tous les passages a travers le segment [a, b] depuis une archive.
+
+    Refuse toute archive espacee (K > 1, issue #73) : des echantillons trop espaces
+    faussent l'interpolation des passages et peuvent rater des franchissements.
+    """
+    donnees = charger_et_valider_complete(archive, "le comptage de franchissements")
+    return franchissements(donnees.t, donnees.x, a, b)
+
+
+def debit_specifique_trajectoire(
+    archive: Trajectoire | str | Path,
+    a: np.ndarray,
+    b: np.ndarray,
+    largeur: float,
+    debut: float,
+    fin: float,
+) -> float:
+    """Debit specifique a travers le segment [a, b] depuis une archive sur [debut, fin[.
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    passages = franchissements_trajectoire(archive, a, b)
+    return debit_specifique(passages, largeur, debut, fin)
