@@ -276,6 +276,9 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     etalonner.set_defaults(fonction=commande_etalonner_goulot)
 
+    from viscocrowd.io.diagnostic_projection import ajouter_commande
+
+    ajouter_commande(sous)
     return analyseur
 
 
@@ -432,6 +435,8 @@ def commande_simuler(args: argparse.Namespace) -> int:
         )
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Simulation refusee : {erreur}", file=sys.stderr)
+        for note in getattr(erreur, "__notes__", []):
+            print(note, file=sys.stderr)
         return 1
     print(
         f"Trajectoire : {args.sortie} — {donnees.x.shape[1]} agent(s), "
