@@ -23,6 +23,11 @@ function Show-Help {
     Write-Host "  install     Cree l'environnement virtuel et installe le projet en mode editable"
     Write-Host "  test        Lance la suite de tests rapides (hors scenarios lents)"
     Write-Host "  test-all    Lance tous les tests, scenarios lents compris"
+    Write-Host "  test-invariants  Lance uniquement les invariants physiques"
+    Write-Host "  test-lents  Lance uniquement les scenarios lents"
+    Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut)"
+    Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut)"
+    Write-Host "  comparer    Compare la piscine seche et mouillee sur dix graines (E1/E2)"
     Write-Host "  lint        Verifie le style et le formatage avec ruff"
     Write-Host "  format      Reformate le code avec ruff"
     Write-Host "  valider     Rejoue les criteres de validation du moteur, chiffres"
@@ -57,8 +62,9 @@ function Invoke-Py {
 # pour eux les options de pytest qui commencent pareil : `test -v` perdait son -v,
 # `test -p no:cacheprovider` echouait. On lit donc $args a la main.
 $Commandes = @(
-    "help", "install", "test", "test-all", "lint", "format",
-    "valider", "interface", "figures", "report", "docker", "clean"
+    "help", "install", "test", "test-all", "test-invariants", "test-lents",
+    "lint", "format", "valider", "simu", "rejouer", "comparer",
+    "interface", "figures", "report", "docker", "clean"
 )
 $Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
 $ExtraArgs = @(if ($args.Count -gt 1) { $args[1..($args.Count - 1)] })  # @() : jamais $null
@@ -97,6 +103,36 @@ switch ($Command) {
     "test-all" {
         Write-Host "==> Execution de l'ensemble des tests..." -ForegroundColor Green
         Invoke-Py -BaseArgs @("-m", "pytest") -MoreArgs $ExtraArgs
+    }
+
+    "test-invariants" {
+        Invoke-Py -BaseArgs @("-m", "pytest", "-m", "invariant") -MoreArgs $ExtraArgs
+    }
+
+    "test-lents" {
+        Invoke-Py -BaseArgs @("-m", "pytest", "-m", "slow") -MoreArgs $ExtraArgs
+    }
+
+    "simu" {
+        $Config = if ($ExtraArgs) { $ExtraArgs[0] } else { "experiments/piscine.yaml" }
+        $Nom = [IO.Path]::GetFileNameWithoutExtension($Config)
+        $Sortie = "data/$Nom-$(Get-Date -Format 'yyyyMMdd-HHmmss').npz"
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs @()
+    }
+
+    "rejouer" {
+        $Archive = if ($ExtraArgs) { $ExtraArgs[0] } else {
+            # Les diagnostics de projection (#69) ne sont pas des trajectoires.
+            Get-ChildItem data/*.npz -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -notlike '*.diagnostic.npz' } |
+                Sort-Object LastWriteTime | Select-Object -Last 1
+        }
+        if (-not $Archive) { throw "Aucune archive dans data/ : lancer d'abord .\run.ps1 simu" }
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer", "$Archive") -MoreArgs @()
+    }
+
+    "comparer" {
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "comparer-piscine", "experiments/piscine.yaml", "--graines", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10") -MoreArgs @()
     }
 
     "lint" {

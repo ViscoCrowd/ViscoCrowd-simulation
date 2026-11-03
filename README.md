@@ -332,10 +332,10 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier livrés dans #43/#49 ; géométrie/carte/guidage piscine livrés dans #54 ; calibration et scénario complet ouverts |
-| 4 | Scénario piscine complet, franchissements | ⏳ À développer |
-| 5 | Campagnes, diagramme fondamental, validation chiffrée | ⏳ À développer |
-| 6 | Rapport, figures finales, transparents | Rédaction commencée : chaîne de calcul, validation du couloir et outils ; analyse finale à venir |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier livrés dans #43/#49 ; géométrie/carte/guidage piscine livrés dans #54 ; milieux vérifiés dans la piscine (#72) ; calibration des paramètres ouverte (#26) |
+| 4 | Scénario piscine complet, franchissements | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85) et repère `N / (1,3 w)` à confronter (#11) ; module de chutes facultatif (#78, #82), désactivé par défaut, en attente de #19 |
+| 5 | Campagnes, diagramme fondamental, validation chiffrée | En cours : étalonnage E0 (#56), comparaison E1/E2 (#77, #86) et premiers balayages E3/E4 (#84) livrés ; campagne finale et sensibilité à faire (#59) |
+| 6 | Rapport, figures finales, transparents | Rédaction en cours : chaîne de calcul, validation du couloir, outils et résultats E0/E1/E2 ; analyse finale à venir |
 
 Le statut du sujet et les questions encore ouvertes sont centralisés dans la
 [fiche de cadrage](docs/validation-sujet.md#trace-de-validation). Les choix collectifs du jalon 2
@@ -415,7 +415,7 @@ src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
 ├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
-├── model/         guidage, carte des milieux et accélération bornée
+├── model/         guidage, carte des milieux, accélération bornée et chutes facultatives
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
@@ -456,6 +456,11 @@ le **[registre des livraisons](docs/livraisons.md)**.
 ```bash
 make install     # environnement de développement
 make test        # suite de tests
+make simu        # lance une simulation de la piscine, archivée dans data/
+make rejouer     # relit la dernière archive à l'écran
+make comparer    # compare la piscine sèche et mouillée sur dix graines (E1/E2)
+make test-invariants  # seulement les invariants physiques
+make test-lents  # seulement les scénarios lents
 make lint        # ruff
 make valider     # critères de validation du moteur, chiffrés
 make figures     # régénère toutes les figures
