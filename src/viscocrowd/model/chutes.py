@@ -37,7 +37,22 @@ FLUX_CHUTES = 1
 
 @dataclass(frozen=True)
 class ParametresChutes:
-    """Parametres physiques et stochastiques du module de chutes."""
+    """Parametres physiques et stochastiques du module de chutes.
+
+    Attributes:
+        lambda_chute, lambda_domino: taux de chute par unite d'exces ou d'urgence, en 1/s.
+        facteur_rayon_terre: rayon au sol rapporte au rayon debout, sans unite.
+        mediane_relevage: duree mediane au sol, en s.
+        sigma_relevage: dispersion de la loi log-normale du relevage, sans unite.
+        distance_perception: portee du contournement, en m.
+        force_contournement: poids de la deviation, sans unite.
+        duree_affaissement: duree de croissance du rayon apres la chute, en s.
+        vitesse_min_domino: vitesse en dessous de laquelle on ne trebuche pas, en m/s.
+        vitesse_approche_min: vitesse d'approche d'un corps, en dessous de
+            laquelle il n'y a pas de risque de trebucher, en m/s.
+
+    Valeurs par defaut non calibrees (docs/modele-chutes.md, section 8).
+    """
 
     lambda_chute: float = 2.0
     lambda_domino: float = 4.0
@@ -46,6 +61,9 @@ class ParametresChutes:
     sigma_relevage: float = 0.5
     distance_perception: float = 2.5
     force_contournement: float = 1.2
+    duree_affaissement: float = 0.25
+    vitesse_min_domino: float = 0.1
+    vitesse_approche_min: float = 0.05
 
     def __post_init__(self) -> None:
         for nom in (
@@ -56,6 +74,9 @@ class ParametresChutes:
             "sigma_relevage",
             "distance_perception",
             "force_contournement",
+            "duree_affaissement",
+            "vitesse_min_domino",
+            "vitesse_approche_min",
         ):
             valeur = getattr(self, nom)
             if not (isinstance(valeur, (int, float)) and np.isfinite(valeur) and valeur > 0):
@@ -154,7 +175,7 @@ class GestionnaireChutes:
         if instant is None:
             rayons[indices_terre] *= facteur
         else:
-            duree_affaissement = 0.25
+            duree_affaissement = self.parametres.duree_affaissement
             for ag in indices_terre:
                 t0 = self._debut_chute.get(ag, instant)
                 progression = min(1.0, max(0.0, (instant - t0) / duree_affaissement))
@@ -284,7 +305,7 @@ class GestionnaireChutes:
             for loc in encore_debout_loc:
                 vi = v[loc]
                 v_norme = float(np.linalg.norm(vi))
-                if v_norme < 0.1:
+                if v_norme < self.parametres.vitesse_min_domino:
                     continue
 
                 d_arret = (v_norme**2) / (2.0 * a_max[loc])
@@ -300,7 +321,7 @@ class GestionnaireChutes:
                         continue
                     u = deltas[k] / dist[k]
                     v_proj = float(np.dot(vi, u))
-                    if v_proj > 0.05 and dist_bord[k] < d_arret:
+                    if v_proj > self.parametres.vitesse_approche_min and dist_bord[k] < d_arret:
                         approchant = True
                         urgence = 1.0 - max(0.0, dist_bord[k]) / max(d_arret, 1e-6)
                         pire_urgence = max(pire_urgence, urgence)
