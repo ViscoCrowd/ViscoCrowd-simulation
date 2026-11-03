@@ -116,22 +116,27 @@ def test_controle_croise_sortie_absorbante_et_observable_retrospective(evacuatio
 
 
 @pytest.mark.invariant
-def test_conservation_population_et_monotonie_des_sorties(evacuation):
-    """Conservation physique (#11) : actifs + franchissement + sortis == N a tout instant."""
+def test_etats_retrouves_depuis_les_evenements(evacuation):
+    """Conservation (#11) : l'etat de chaque agent se deduit des evenements a chaque instant.
+
+    Additionner les quatre etats redonnerait N par construction. Ce test verifie que
+    etats et evenements concordent, pas la detection qui les produit tous les deux :
+    celle-ci est couverte par le controle croise sur les positions (#81).
+    """
     r = evacuation
     n = r.parametres.n_agents
+    assert np.isfinite(r.sorties).all()
 
-    actifs = np.sum((r.etats == EAU) | (r.etats == PLAGE), axis=1)
-    franchissement = np.sum(r.etats == FRANCHISSEMENT, axis=1)
-    sortis = np.sum(r.etats == SORTI, axis=1)
+    debut, fin = (np.full(n, np.inf) for _ in range(2))
+    for agent, _, d, f in r.franchissements:
+        debut[int(agent)], fin[int(agent)] = d, f
+    # astype(int) : additionner des booleens NumPy ferait un OU logique, pas une somme.
+    attendu = sum((r.t[:, None] >= c).astype(int) for c in (debut, fin, r.sorties))
+    np.testing.assert_array_equal(r.etats, attendu)  # EAU=0, FRANCHISSEMENT=1, PLAGE=2, SORTI=3
 
-    # Invariant de conservation a chaque instant enregistre
-    assert np.all(actifs + franchissement + sortis == n)
-
-    # Courbe non decroissante, avec paliers entre sorties (etat absorbant)
-    assert np.all(np.diff(sortis) >= 0)
-    assert sortis[0] == 0
-    assert sortis[-1] == n
+    # Tant qu'un agent n'est pas sorti, il reste en deca de la porte.
+    x_porte = r.parametres.piscine.longueur_emprise
+    assert np.all(r.x[..., 0][r.etats != SORTI] < x_porte)
 
 
 def test_le_partage_vers_les_echelles_suit_leur_duree():
