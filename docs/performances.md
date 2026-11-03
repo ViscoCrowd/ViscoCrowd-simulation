@@ -71,6 +71,40 @@ refusent strictement toute archive dont `tous_les_pas > 1` (issue #73)**. Elles 
 Seuls le lecteur visuel (`viscocrowd rejouer`) et les journaux d'événements précalculés
 tolèrent des archives espacées.
 
+### Sensibilité à K
+
+Mesure du 3 novembre 2026 : `experiments/piscine.yaml`, 100 baigneurs, graines 1 à 10. Sur chaque
+évacuation, on ne garde qu'une image sur K et on compare au K = 1 de la même graine. Bilan et
+script : [`mesures/sensibilite-archivage-2026-11-03`](mesures/sensibilite-archivage-2026-11-03/).
+
+| K | Écart max sur un instant de sortie (s) | Écart max sur t100 (s) | Pic de densité devant la porte (pers/m²) | Vitesse max sur la plage (m/s) |
+|---|---|---|---|---|
+| 1 | 0,010 (écart au moteur) | 0 | 1,563 | 1,533 |
+| 2 | 0,020 | 0,010 | 1,563 | 1,528 |
+| 5 | 0,047 | 0,037 | 1,542 | 1,522 |
+| 10 | 0,090 | 0,071 | 1,531 | 1,475 |
+| 25 | 0,206 | 0,168 | 1,490 | 1,434 |
+| 50 | 0,410 | 0,286 | 1,479 | 1,419 |
+| 100 | 0,552 | 0,409 | 1,438 | 1,406 |
+
+Les deux colonnes de droite sont des moyennes sur les graines ; les deux autres sont des maxima.
+Le pic de densité perd en moyenne 8 % à K = 100, et jusqu'à 0,208 pers/m² sur une graine ; la
+vitesse maximale perd 8 %. La zone de comptage fait 9,6 m² : un baigneur vaut 0,104 pers/m², donc
+ces écarts représentent 1,2 baigneur en moyenne et 2 au plus. La mesure porte sur ce comptage et
+sur la vitesse par différences finies : ces pourcentages ne se transposent pas à Voronoï.
+
+L'écart sur une sortie reste de l'ordre de K·dt. À K = 1, il vaut déjà environ un pas : un agent
+sorti est replacé au point `dehors`, et l'observable interpole le passage vers ce point, pas sur sa
+vraie trajectoire. Les 100 sorties sont retrouvées, et les passages à travers une ligne placée 10 m
+avant la porte ne changent pas.
+
+Pour reproduire : `python docs/mesures/sensibilite-archivage-2026-11-03/mesurer.py experiments/piscine.yaml <bilan.json>`.
+
+**Décision : garder le refus.** Les temps d'évacuation exacts sont déjà dans les événements, et
+une archive complète de 100 agents pèse 7 Mo : rien n'oblige à mesurer sur une archive espacée. Ce
+banc ne couvre pas les cas les plus défavorables : pas de panique, pas de bouchage, donc presque
+pas d'allers-retours. L'absence de passage manqué ne se généralise donc pas à une porte encombrée.
+
 L'archivage espacé est actuellement réservé à la piscine. Le banc mesure aussi
 couloir/tassement avec `--archiver-tous 1`. Ces scénarios gardent leur contrat
 d'archive complète ; la bille seule n'est pas un banc en nombre d'agents.

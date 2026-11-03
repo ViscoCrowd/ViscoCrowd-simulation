@@ -11,6 +11,22 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-03 — Garder le refus des archives espacées après l'étude de sensibilité (#73)
+
+**Mesure.** Sur 10 graines, garder une image sur K déplace une sortie de l'ordre de K·dt et
+sous-estime les pics : à K = 100, 8 % sur le pic de densité devant la porte et sur la vitesse
+maximale. Détail : [performances](performances.md#sensibilité-à-k).
+
+**Décision.** Garder le refus des mesures physiques sur archive espacée, sans seuil de K toléré.
+
+**Options écartées.**
+- *Autoriser K = 2* : les écarts y sont faibles, mais seulement sur ce banc sans panique ni bouchage,
+  et aucune mesure n'en a besoin : les archives complètes restent légères (7 Mo pour 100 agents).
+- *Corriger les pics par extrapolation* : ce serait une reconstruction de plus à valider, pour un
+  gain nul tant que l'archive complète reste possible.
+
+---
+
 ## 2026-11-02 — Balayer la piscine contre un témoin sec apparié (M6, E3/E4)
 
 **Contexte.** Au point de référence, le sol mouillé ne change rien de mesurable (#83). Les
