@@ -166,8 +166,8 @@ $t_{100} = \SI{47.01 \pm 0.96}{\second}$, sans aucun agent bloqué.
 \item \textbf{Confrontation au repère analytique de débit au goulot.}
 En ingénierie de sécurité et d'évacuation de foule~\cite{weidmann1993}, le débit
 spécifique nominal d'une porte libre de largeur $b$ en régime permanent saturé
-est couramment estimé à $J_{s,\text{ref}} \approx \SI{1.3}{\person\per\metre\per\second}$
-(dans la plage $1{,}2$ à $\SI{1.4}{\person\per\metre\per\second}$). Pour $N$ occupants,
+est couramment estimé à $J_{s,\text{ref}} \approx \num{1.3}$~personne par mètre et par seconde
+(dans la plage $1{,}2$ à \num{1.4}~personne par mètre et par seconde). Pour $N$ occupants,
 la durée théorique de vidange continue s'établit à
 $T_{\text{repère}} = N / (J_{s,\text{ref}} \cdot b) \approx N / (1{,}3 \cdot b)$.
 Pour la piscine ($N=100$, $b=\SI{1.2}{\metre}$), ce repère prévoit
@@ -175,17 +175,17 @@ $T_{\text{repère}} = 100 / (1{,}3 \times 1{,}2) \approx \SI{64.1}{\second}$.
 Dans notre simulation E1 sans régulation vitesse--espacement sur les plages, l'intervalle
 effectif d'écoulement à la porte $\Delta t_{\text{flux}} \approx \SI{26.9}{\second}$ est plus bref
 que ce repère permanent : le modèle de contact par projection dure sans maintien de distance
-sociale tolère un compactage excessif ($J_s = \SI{3.10}{\person\per\metre\per\second}$).
+sociale tolère un compactage excessif ($J_s = \num{3.10}$~personnes par mètre et par seconde).
 Toutefois, le temps total d'évacuation $t_{100} = \SI{47.01 \pm 0.96}{\second}$ incorpore le transit
 initial (nage, attente aux échelles et traversée de plage, soit environ $\SI{20.1}{\second}$ pour
 la première sortie). En superposant cette latence d'amorçage à un écoulement bridé au repère
-empirique (\SI{1.3}{\person\per\metre\per\second}), la durée totale d'évacuation atteindrait
+empirique (\num{1.3}~personne par mètre et par seconde), la durée totale d'évacuation atteindrait
 environ $\SI{20.1}{\second} + \SI{64.1}{\second} \approx \SI{84.2}{\second}$.
 Sur le banc de goulot E0 ($N=60$, $b=\SI{1.2}{\metre}$), le repère théorique prédit
 $60 / (1{,}3 \times 1{,}2) \approx \SI{38.5}{\second}$. Le modèle sans régulation décharge
-en $\approx \SI{10.1}{\second}$ ($J_s \approx \SI{4.96}{\person\per\metre\per\second}$), tandis que
+en $\approx \SI{10.1}{\second}$ ($J_s \approx \num{4.96}$~personnes par mètre et par seconde), tandis que
 la régulation vitesse--espacement ($T=\SI{0.35}{\second}$) porte la vidange à $\approx \SI{27.3}{\second}$
-($J_s \approx \SI{1.83}{\person\per\metre\per\second}$), en accord étroit avec les mesures
+($J_s \approx \num{1.83}$~personne par mètre et par seconde), en accord étroit avec les mesures
 expérimentales de Seyfried et al.~\cite{seyfried2009} (\SI{25.4}{\second}).
 Cette confrontation confirme que l'écart entre le temps mesuré sur le scénario cible et le repère
 analytique résulte directement de la modélisation des contacts sans freinage anticipé, que la
