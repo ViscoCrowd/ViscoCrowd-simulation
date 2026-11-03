@@ -80,6 +80,16 @@ class TestAppariement:
         assert {p.piscine.largeur_mouillee for p in mouilles} == {3.0}
         assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
 
+    def test_balayage_vitesse_mouille_applique(self, configuration, appels):
+        balayage.balayer(configuration, "vitesse_mouille", [0.8, 1.2], [1])
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        assert {p.parametres_milieux[Milieu.MOUILLE].vitesse for p in mouilles} == {0.8, 1.2}
+
+    def test_balayage_lambda_chute_applique(self, configuration, appels):
+        balayage.balayer(configuration, "lambda_chute", [1.0, 5.0], [1])
+        mouilles = [p for p in appels if p.chutes is not None and p.piscine.largeur_mouillee > 0]
+        assert {p.chutes.lambda_chute for p in mouilles} == {1.0, 5.0}
+
     def test_parametres_fixes_appliques_au_mouille_et_au_temoin(self, configuration, appels):
         balayage.balayer(
             configuration, "largeur_mouillee", [3.0, 20.0], [1], fixes={"facteur_vitesse": 1.5}

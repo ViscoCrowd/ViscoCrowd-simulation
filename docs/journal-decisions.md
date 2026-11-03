@@ -11,6 +11,22 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-03 — Balayer la vitesse sur sol mouillé et le taux de chute (E3, #26, #59)
+
+**Contexte.** Les balayages E3 de la piscine variaient initialement la seule largeur mouillée et l'accélération maximale ($a_{\text{max}}$). Or la problématique de l'inertie du sol mouillé (#26, #59) implique également la réduction de vitesse de marche sur carrelage glissant ($s_{\text{mouillé}}$) et le risque de glissade en panique ($\lambda_{\text{chute}}$).
+
+**Décision.**
+1. **Ajout de `vitesse_mouille`** (`("parametres_milieux", "MOUILLE", "vitesse")`, m/s) à `PARAMETRES` de `balayage_piscine.py` pour étudier l'impact de l'auto-régulation de la vitesse sur le débit et le temps d'évacuation face à un témoin sec.
+2. **Ajout de `lambda_chute`** (`("chutes", "lambda_chute")`, 1/s) pour mesurer la dégradation du débit provoquée par les pertes d'adhérence et les personnes à terre.
+3. **Gestion du témoin et des paramètres imbriqués** : `_remplacer` instancie automatiquement la section `chutes` si elle était absente ou nulle dans le YAML ; `temoin` réinitialise `chutes: None` sur sol sec pour éliminer les glissades et fournir le témoin sec de référence.
+
+**Pourquoi.** Permettre à l'équipe et à l'outil CLI `balayer-piscine` d'explorer l'ensemble des axes physiques reliant sol mouillé, adhérence et chute (campagnes E3/E4, M6).
+
+**Options écartées.**
+- *Exiger la présence préalable de `chutes` dans le YAML de base* : forcerait l'utilisateur à modifier `experiments/piscine.yaml` avant de pouvoir balayer `lambda_chute`.
+
+---
+
 ## 2026-11-03 — Garder le refus des archives espacées après l'étude de sensibilité (#73)
 
 **Mesure.** Sur 10 graines, garder une image sur K déplace une sortie de l'ordre de K·dt et

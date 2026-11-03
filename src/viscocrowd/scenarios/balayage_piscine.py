@@ -97,6 +97,18 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    "vitesse_mouille": ParametreBalaye(
+        "E3",
+        "m/s",
+        "vitesse souhaitee sur le carrelage mouille",
+        ("parametres_milieux", "MOUILLE", "vitesse"),
+    ),
+    "lambda_chute": ParametreBalaye(
+        "E3",
+        "1/s",
+        "taux de chute par perte d'adherence sur le carrelage mouille",
+        ("chutes", "lambda_chute"),
+    ),
     # Pas un parametre physique : il sert a verifier que les ecarts ne dependent pas
     # du pas de temps (spec § 5), et a fixer un pas plus fin quand la panique l'exige.
     "dt": ParametreBalaye("M9", "s", "pas de temps (sensibilite numerique)", ("dt",)),
@@ -131,9 +143,10 @@ class PointBalayage:
 def _remplacer(table: dict, chemin: tuple[str, ...], valeur) -> dict:
     """Copie de `table` ou seule la valeur au bout de `chemin` change."""
     tete, *reste = chemin
-    if tete not in table:
-        raise ValueError(f"la configuration n'a pas de champ {'.'.join(chemin)}")
-    return table | {tete: _remplacer(table[tete], tuple(reste), valeur) if reste else valeur}
+    sous_table = table.get(tete)
+    if sous_table is None or (not isinstance(sous_table, dict) and reste):
+        sous_table = {}
+    return table | {tete: _remplacer(sous_table, tuple(reste), valeur) if reste else valeur}
 
 
 def temoin(parametres: dict) -> dict:
@@ -142,13 +155,16 @@ def temoin(parametres: dict) -> dict:
     return parametres | {
         "geometrie": parametres["geometrie"] | {"largeur_mouillee": 0.0},
         "parametres_milieux": milieux | {"MOUILLE": milieux["SEC"]},
+        "chutes": None,
     }
 
 
 def mouille_equivaut_au_sec(p: ParametresPiscine) -> bool:
     """Vrai si le sol mouille de `p` ne peut rien changer a la simulation."""
     milieux = p.parametres_milieux
-    return p.piscine.largeur_mouillee == 0.0 or milieux[Milieu.MOUILLE] == milieux[Milieu.SEC]
+    return (
+        p.piscine.largeur_mouillee == 0.0 or milieux[Milieu.MOUILLE] == milieux[Milieu.SEC]
+    ) and p.chutes is None
 
 
 def mesurer(p: ParametresPiscine) -> dict[str, float]:
