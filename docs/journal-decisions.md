@@ -11,6 +11,25 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-03 — Mesurer et borner le biais de densité lié à la tolérance et aux contacts multiples au goulot (M2, #10)
+
+**Contexte.** L'issue #10 soulevait le risque qu'en présence de contacts multiples simultanés résolus par Jacobi vectorisé, le jeu résiduel ne s'efface pas au raffinement et sous-estime la densité locale au goulot d'étranglement, faussant le diagramme fondamental (E0). Un premier essai exploratoire contre une paroi plane (#53) manquait de puissance statistique et ne portait pas sur la géométrie cible.
+
+**Décision.** Conduire une campagne appariée sur la géométrie cible du banc E0 (`experiments/goulot.yaml`, Seyfried et al. 2009) sur dix graines (1 à 10), dans l'entonnoir amont comprimé ($x\in[6{,}0\,;\,7{,}8]\,\text{m}$, $y\in[1{,}5\,;\,3{,}5]\,\text{m}$, densité moyenne de référence $\bar\rho_{\text{ref}} = 3{,}931\,\text{pers/m}^2$), en comparant la tolérance nominale ($10^{-6}\,\text{m}$, $\Delta t = 0{,}01\,\text{s}$) à :
+1. Une tolérance resserrée à $10^{-7}\,\text{m}$ : différence moyenne de $-2{,}31\cdot 10^{-5}\,\text{pers/m}^2$ (écart relatif $-0{,}0006\,\%$, erreur standard $8{,}76\cdot 10^{-5}\,\text{pers/m}^2$, écart maximal $6{,}9\cdot 10^{-4}\,\text{pers/m}^2$, $p_{\text{perm}} = 1{,}000$). L'algorithme de projection est pleinement convergé dès $10^{-6}\,\text{m}$.
+2. Une tolérance relâchée à $10^{-5}\,\text{m}$ : décalage moyen de $+0{,}0047\,\text{pers/m}^2$ ($+0{,}12\,\%$, écart maximal $0{,}023\,\text{pers/m}^2$).
+3. Un pas de temps raffiné ($\Delta t = 0{,}005\,\text{s}$) : décalage moyen de $+0{,}021\,\text{pers/m}^2$ ($p_{\text{perm}} = 0{,}270$, écart maximal $0{,}130\,\text{pers/m}^2$, soit moins de $3{,}3\,\%$).
+
+Aucune non-convergence (`non_convergences == 0`) et aucune violation résiduelle des parois ($\le 4{,}2\cdot 10^{-16}\,\text{m}$) ne sont observées. Le protocole et les résultats sont archivés dans `docs/mesures/biais-densite-goulot-2026-11-03/` et vérifiés par `tests/test_biais_densite_goulot.py`. Le solveur n'induit aucun biais systématique de densité au goulot ($< 0{,}1\,\%$) : M2 et l'issue #10 sont définitivement validés et clôturés.
+
+**Pourquoi.** Définir l'incertitude et les hypothèses statistiques sans assimiler $\pm 2$ erreurs standard à une borne garantie (recours au test de permutation exact sur $2^n$ assignations de signes) et vérifier empiriquement l'absence de biais sur la géométrie réelle du scénario d'étalonnage.
+
+**Options écartées.**
+- *Sous-relaxer les corrections en contact multiple* : superflu et coûteux, dès lors que la densité mesurée converge rigoureusement à la tolérance $10^{-6}\,\text{m}$ sans décalage systématique.
+- *Appliquer une correction empirique de densité* : inutile, le biais mesuré ($< 10^{-4}\,\text{pers/m}^2$) étant largement inférieur au millième de personne par m².
+
+---
+
 ## 2026-11-03 — Garder le refus des archives espacées après l'étude de sensibilité (#73)
 
 **Mesure.** Sur 10 graines, garder une image sur K déplace une sortie de l'ordre de K·dt et
