@@ -116,22 +116,31 @@ def test_controle_croise_sortie_absorbante_et_observable_retrospective(evacuatio
 
 
 @pytest.mark.invariant
-def test_conservation_population_et_monotonie_des_sorties(evacuation):
-    """Conservation physique (#11) : actifs + franchissement + sortis == N a tout instant."""
+def test_effectifs_par_etat_retrouves_depuis_les_evenements(evacuation):
+    """Conservation (#11) : les etats concordent avec les evenements et les positions.
+
+    Additionner les quatre etats redonnerait N par construction. On recompte donc les
+    sortis et les franchissements a partir des evenements, enregistres a part.
+    """
     r = evacuation
-    n = r.parametres.n_agents
+    assert np.isfinite(r.sorties).all()
 
-    actifs = np.sum((r.etats == EAU) | (r.etats == PLAGE), axis=1)
-    franchissement = np.sum(r.etats == FRANCHISSEMENT, axis=1)
     sortis = np.sum(r.etats == SORTI, axis=1)
+    np.testing.assert_array_equal(sortis, np.searchsorted(np.sort(r.sorties), r.t, side="right"))
 
-    # Invariant de conservation a chaque instant enregistre
-    assert np.all(actifs + franchissement + sortis == n)
+    debut, fin = r.franchissements[:, 2], r.franchissements[:, 3]
+    en_cours = np.sum((debut[:, None] <= r.t) & (r.t < fin[:, None]), axis=0)
+    np.testing.assert_array_equal(np.sum(r.etats == FRANCHISSEMENT, axis=1), en_cours)
 
-    # Courbe non decroissante, avec paliers entre sorties (etat absorbant)
-    assert np.all(np.diff(sortis) >= 0)
+    # L'etat absorbant vaut agent par agent, pas seulement pour le total.
+    assert np.all(np.diff((r.etats == SORTI).astype(int), axis=0) >= 0)
     assert sortis[0] == 0
-    assert sortis[-1] == n
+    assert sortis[-1] == r.parametres.n_agents
+
+    # Dehors et dedans se lisent aussi sur les positions, de part et d'autre de la porte.
+    x_porte = r.parametres.piscine.longueur_emprise
+    assert np.all(r.x[..., 0][r.etats == SORTI] > x_porte)
+    assert np.all(r.x[..., 0][r.etats != SORTI] < x_porte)
 
 
 def test_le_partage_vers_les_echelles_suit_leur_duree():
