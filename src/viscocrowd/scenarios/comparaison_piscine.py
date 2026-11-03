@@ -11,38 +11,52 @@ scenario complet de la piscine :
   - vitesse+adherence : vitesse de consigne et adherence changent ;
   - E2 (complet) : sol mouille reel avec l'ensemble de ses parametres.
 
-Mesures par graine et par variante :
+Lorsque deux variantes produisent exactement le meme ``ParametresMilieu`` (par
+exemple lorsque le sec et le mouille partagent la meme vitesse de consigne ou le
+meme temps de relaxation), elles sont regroupees par ``regrouper_variantes`` et
+ne sont simulees qu'une seule fois.
+
+Mesures par graine et par variante, portant sur TOUS les agents :
   - t50, t90, t100 : instants d'evacuation definitive (en s), delegues a Sorties ;
   - attente_eau : temps moyen passe dans le bassin avant franchissement (en s) ;
   - duree_plage : temps moyen de traversee de la plage jusqu'a la porte (en s) ;
   - debit_porte : debit specifique moyen au passage de la porte (en pers/(m.s)),
-    estime par (Delta N - 1) / (Delta t * b) sur les Delta N - 1 intervalles
-    separant la premiere et la derniere sortie definitive ;
-  - non_sortis : nombre d'agents encore presents a la fin de l'horizon de calcul.
+    calcule par ``debit_seyfried`` comme Delta N / (Delta t * b) entre la
+    premiere et la derniere sortie definitive, selon le meme estimateur qu'en E0.
 
 Les populations initiales et les graines sont strictement appariees pour que les
 ecarts mesures ne relevent que des proprietes physiques des milieux. Toute
-projection non convergee interrompt le protocole sans moyennage silencieux.
+projection non convergee ou toute simulation trop courte pour que chaque agent
+franchisse le bord et sorte (``ProtocoleIncomplet``) interrompt le protocole sans
+moyennage silencieux.
 """
 
 from __future__ import annotations
 
 import math
-from dataclasses import replace
 
 import numpy as np
 
-from viscocrowd.model.milieu import ParametresMilieu
+from viscocrowd.model.milieu import Milieu, ParametresMilieu
+from viscocrowd.scenarios.comparaison_mouille import (
+    VARIANTES,
+    ProtocoleIncomplet,
+    mouille_de_variante,
+)
+from viscocrowd.scenarios.goulot import debit_seyfried
 from viscocrowd.scenarios.piscine import ParametresPiscine, simuler_piscine
 
-VARIANTES: dict[str, tuple[str, ...]] = {
-    "reference": (),
-    "vitesse": ("vitesse",),
-    "relaxation": ("relaxation",),
-    "adherence": ("acceleration_max",),
-    "vitesse+adherence": ("vitesse", "acceleration_max"),
-    "complet": ("vitesse", "relaxation", "acceleration_max"),
-}
+__all__ = [
+    "LIBELLES",
+    "MESURES",
+    "UNITES",
+    "VARIANTES",
+    "ProtocoleIncomplet",
+    "comparer",
+    "mesurer",
+    "mouille_de_variante",
+    "regrouper_variantes",
+]
 
 LIBELLES = {
     "reference": "référence (mouillé = sec, E1)",
@@ -53,7 +67,7 @@ LIBELLES = {
     "complet": "complet (sol mouillé réel, E2)",
 }
 
-MESURES = ("t50", "t90", "t100", "attente_eau", "duree_plage", "debit_porte", "non_sortis")
+MESURES = ("t50", "t90", "t100", "attente_eau", "duree_plage", "debit_porte")
 UNITES = {
     "t50": "s",
     "t90": "s",
@@ -61,70 +75,96 @@ UNITES = {
     "attente_eau": "s",
     "duree_plage": "s",
     "debit_porte": "pers/(m.s)",
-    "non_sortis": "pers",
 }
 
 
-def mouille_de_variante(
-    nom: str, sec: ParametresMilieu, mouille: ParametresMilieu
-) -> ParametresMilieu:
-    """Parametres du mouille pour une variante : ceux du sec, sauf ceux qu'elle reprend."""
-    if nom not in VARIANTES:
-        raise ValueError(f"variante inconnue {nom!r} ; attendu : {', '.join(VARIANTES)}")
-    return replace(sec, **{champ: getattr(mouille, champ) for champ in VARIANTES[nom]})
+def _valider_variantes(variantes: list[str] | tuple[str, ...] | None) -> tuple[str, ...]:
+    noms = tuple(variantes) if variantes is not None else tuple(VARIANTES)
+    if not noms:
+        raise ValueError("il faut au moins une variante")
+    if len(set(noms)) != len(noms):
+        raise ValueError("les variantes doivent etre distinctes")
+    for nom in noms:
+        if nom not in VARIANTES:
+            raise ValueError(f"variante inconnue {nom!r} ; attendu : {', '.join(VARIANTES)}")
+    return noms
+
+
+def regrouper_variantes(
+    sec: ParametresMilieu,
+    mouille: ParametresMilieu,
+    variantes: list[str] | tuple[str, ...] | None = None,
+) -> dict[str, tuple[str, ...]]:
+    """Regroupe les variantes qui produisent exactement le meme ParametresMilieu.
+
+    Pour chaque groupe d'equivalence physique, la cle retenue est ``"reference"``
+    si elle figure dans le groupe, sinon ``"complet"`` si elle y figure, sinon la
+    premiere variante du groupe dans l'ordre demande.
+    """
+    noms = _valider_variantes(variantes)
+    par_milieu: dict[ParametresMilieu, list[str]] = {}
+    for nom in noms:
+        cible = mouille_de_variante(nom, sec, mouille)
+        par_milieu.setdefault(cible, []).append(nom)
+    groupes: dict[str, tuple[str, ...]] = {}
+    for equivalents in par_milieu.values():
+        if "reference" in equivalents:
+            representant = "reference"
+        elif "complet" in equivalents:
+            representant = "complet"
+        else:
+            representant = equivalents[0]
+        groupes[representant] = tuple(equivalents)
+    return groupes
 
 
 def mesurer(p: ParametresPiscine) -> dict[str, float]:
     """Execute le scenario piscine et extrait les observables d'evacuation.
+
+    Chaque mesure porte sur TOUS les agents : si un agent n'a pas franchi le
+    bassin ou n'est pas sorti avant la fin de l'horizon ``p.duree``, la fonction
+    leve ``ProtocoleIncomplet`` au lieu de moyenner une sous-population.
 
     Args:
         p: configuration physique complete du scenario piscine.
 
     Returns:
         Dictionnaire associant chaque indicateur de MESURES a sa valeur scalaire.
+
+    Raises:
+        ProjectionNonConvergee: si une projection geometrique n'a pas converge.
+        ProtocoleIncomplet: si au moins un agent n'a pas termine l'evacuation.
     """
-    r = simuler_piscine(p)
+    pas_total = max(1, math.ceil(p.duree / p.dt))
+    r = simuler_piscine(p, archiver_tous=pas_total)
     r.projection.verifier_convergence()
-    sortis_instants = np.sort(r.sorties[np.isfinite(r.sorties)])
+
     n = p.n_agents
-    non_sortis = float(n - len(sortis_instants))
-
-    t50 = r.temps_evacuation(0.5)
-    t90 = r.temps_evacuation(0.9)
-    t100 = r.temps_evacuation(1.0)
-
-    largeur_porte = float(p.geometrie["largeur_porte"])
-    if len(sortis_instants) >= 2:
-        duree_flux = sortis_instants[-1] - sortis_instants[0]
-        debit_porte = (
-            (len(sortis_instants) - 1) / (duree_flux * largeur_porte)
-            if duree_flux > 0
-            else math.nan
+    manquants_sortie = int(np.sum(~np.isfinite(r.sorties)))
+    if manquants_sortie > 0:
+        raise ProtocoleIncomplet(
+            f"{manquants_sortie} agent(s) sur {n} non sortis avant {p.duree} s : allonger la duree"
         )
-    else:
-        debit_porte = math.nan
+    if r.franchissements.shape[0] != n:
+        manquants_eau = n - int(r.franchissements.shape[0])
+        raise ProtocoleIncomplet(
+            f"{manquants_eau} agent(s) sur {n} sans franchissement du bassin avant {p.duree} s : "
+            "allonger la duree"
+        )
 
-    if r.franchissements.size > 0:
-        attente_eau = float(np.mean(r.franchissements[:, 2]))
-        fins_franchissement = {int(ligne[0]): ligne[3] for ligne in r.franchissements}
-        temps_plage = [
-            r.sorties[i] - fins_franchissement[i]
-            for i in np.flatnonzero(np.isfinite(r.sorties))
-            if i in fins_franchissement
-        ]
-        duree_plage = float(np.mean(temps_plage)) if temps_plage else math.nan
-    else:
-        attente_eau = math.nan
-        duree_plage = math.nan
+    attente_eau = float(np.mean(r.franchissements[:, 2]))
+    agents_franchis = r.franchissements[:, 0].astype(np.intp)
+    duree_plage = float(np.mean(r.sorties[agents_franchis] - r.franchissements[:, 3]))
+    largeur_porte = float(p.geometrie["largeur_porte"])
+    debit_porte = debit_seyfried(r.sorties, largeur_porte)
 
     return {
-        "t50": t50,
-        "t90": t90,
-        "t100": t100,
+        "t50": r.temps_evacuation(0.5),
+        "t90": r.temps_evacuation(0.9),
+        "t100": r.temps_evacuation(1.0),
         "attente_eau": attente_eau,
         "duree_plage": duree_plage,
         "debit_porte": debit_porte,
-        "non_sortis": non_sortis,
     }
 
 
@@ -135,13 +175,16 @@ def comparer(
 ) -> dict[str, np.ndarray]:
     """Mesures de chaque variante, de forme (len(graines), len(MESURES)).
 
+    Les variantes qui produisent exactement le meme ``ParametresMilieu`` ne sont
+    simulees qu'une seule fois et partagent les memes mesures.
+
     Args:
         configuration: configuration YAML de la piscine, deja chargee en memoire.
         graines: liste d'entiers distincts servant de graines de placement initial.
         variantes: liste optionnelle de noms distincts de variantes a restreindre.
 
     Returns:
-        Tableau bidimensionnel de mesures pour chaque variante.
+        Tableau bidimensionnel de mesures pour chaque variante demandee.
     """
     graines = list(graines)
     if not graines:
@@ -151,48 +194,32 @@ def comparer(
     if len(set(graines)) != len(graines):
         raise ValueError("les graines doivent etre distinctes")
 
-    noms = tuple(variantes) if variantes is not None else tuple(VARIANTES)
-    if not noms:
-        raise ValueError("il faut au moins une variante")
-    if len(set(noms)) != len(noms):
-        raise ValueError("les variantes doivent etre distinctes")
-    for nom in noms:
-        if nom not in VARIANTES:
-            raise ValueError(f"variante inconnue {nom!r} ; attendu : {', '.join(VARIANTES)}")
+    noms = _valider_variantes(variantes)
 
     base = configuration["parametres"]
-    milieux = base["parametres_milieux"]
-    sec = (
-        milieux["SEC"]
-        if isinstance(milieux["SEC"], ParametresMilieu)
-        else ParametresMilieu(**dict(milieux["SEC"]))
-    )
-    mouille = (
-        milieux["MOUILLE"]
-        if isinstance(milieux["MOUILLE"], ParametresMilieu)
-        else ParametresMilieu(**dict(milieux["MOUILLE"]))
-    )
-    eau = (
-        milieux["EAU"]
-        if isinstance(milieux["EAU"], ParametresMilieu)
-        else ParametresMilieu(**dict(milieux["EAU"]))
-    )
+    temoin = ParametresPiscine(**base, graine=0)
+    eau = temoin.parametres_milieux[Milieu.EAU]
+    sec = temoin.parametres_milieux[Milieu.SEC]
+    mouille = temoin.parametres_milieux[Milieu.MOUILLE]
 
-    resultats = {}
+    deja_calcules: dict[ParametresMilieu, np.ndarray] = {}
+    resultats: dict[str, np.ndarray] = {}
     for nom in noms:
         var_mouille = mouille_de_variante(nom, sec, mouille)
-        table_milieux = {
-            "EAU": eau,
-            "SEC": sec,
-            "MOUILLE": var_mouille,
-        }
-        lignes = []
-        for graine in graines:
-            p = ParametresPiscine(
-                **(base | {"parametres_milieux": table_milieux}),
-                graine=graine,
-            )
-            mesures = mesurer(p)
-            lignes.append([mesures[m] for m in MESURES])
-        resultats[nom] = np.array(lignes)
+        if var_mouille not in deja_calcules:
+            table_milieux = {
+                "EAU": eau,
+                "SEC": sec,
+                "MOUILLE": var_mouille,
+            }
+            lignes = []
+            for graine in graines:
+                p = ParametresPiscine(
+                    **(base | {"parametres_milieux": table_milieux}),
+                    graine=graine,
+                )
+                mesures = mesurer(p)
+                lignes.append([mesures[m] for m in MESURES])
+            deja_calcules[var_mouille] = np.array(lignes, dtype=float)
+        resultats[nom] = deja_calcules[var_mouille].copy()
     return resultats
