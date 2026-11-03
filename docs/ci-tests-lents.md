@@ -6,14 +6,18 @@ Guide d'exploitation du workflow `.github/workflows/tests-lents.yml` (issue #61)
 
 ## 1. Rôle et périmètre
 
-La suite de tests rapides habituelle (`pytest -m "not slow"`, environ 2 minutes) valide
-le typage, le style, les tests unitaires et les invariants locaux à chaque push et PR.
+La suite de tests rapides habituelle (`pytest -m "not slow"`) exécute les tests
+unitaires et les invariants locaux à chaque push et PR. Le style et le format sont
+contrôlés séparément par Ruff ; aucun vérificateur de types statique n'est configuré.
 Elle exclut volontairement les scénarios longs pour ne pas bloquer le flux de développement.
 
-Les **tests lents** (`pytest -m slow`) exécutent :
-- Les scénarios physiques complets sur des durées longues (banc couloir, tassement, piscine complète à 100 agents) ;
-- Les vérifications asymptotiques de non-recouvrement et de conservation d'énergie ;
-- Les tests d'invariance statistique et de sensibilité aux tolérances de projection.
+Au 3 novembre 2026, les **six tests lents** (`pytest -m slow`) couvrent :
+- la production des figures de tassement et de convergence en pas de temps ;
+- le contrôle E0 avec espacement face aux mesures de Seyfried ;
+- l'évacuation piscine de référence à 100 agents ;
+- le biais de densité de la tolérance sur huit graines et la sensibilité de l'arrangement aux arrondis.
+
+Pour retrouver le périmètre exact de la version testée : `pytest --collect-only -q -m slow`.
 
 ---
 
@@ -95,4 +99,4 @@ pytest -m slow -k "<nom_du_test>" -v
 ### Étape 3 : Traiter et documenter
 
 - Si une régression physique est avérée : identifier le commit incriminé sur `dev`, ouvrir une issue avec le log JUnit, et soumettre un correctif via PR.
-- Si une dispersion entre architectures est constatée : utiliser un test statistique sans hypothèse arbitraire (ex. test de permutation appariée comme dans `test_densite.py`), et justifier le critère dans `docs/journal-decisions.md`.
+- Si une dispersion entre architectures est constatée : diagnostiquer d'abord sa cause, puis choisir un critère adapté au protocole. Un test statistique ne remplace pas un invariant physique déterministe ; documenter ses hypothèses et ses limites dans `docs/journal-decisions.md` (ex. permutation appariée dans `test_densite.py`).
