@@ -97,6 +97,12 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    "temps_espacement": ParametreBalaye(
+        "E0",
+        "s",
+        "temps d'espacement de Tordeux et al. (regulation vitesse-espacement)",
+        ("temps_espacement",),
+    ),
     # Pas un parametre physique : il sert a verifier que les ecarts ne dependent pas
     # du pas de temps (spec § 5), et a fixer un pas plus fin quand la panique l'exige.
     "dt": ParametreBalaye("M9", "s", "pas de temps (sensibilite numerique)", ("dt",)),

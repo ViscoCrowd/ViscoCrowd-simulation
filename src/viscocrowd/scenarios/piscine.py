@@ -76,6 +76,7 @@ class ParametresPiscine:
     pas_guidage: float
     graine: int
     chutes: ParametresChutes | dict | None = None
+    temps_espacement: float | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -86,6 +87,12 @@ class ParametresPiscine:
                 raise ValueError(
                     "chutes doit etre un dictionnaire ou une instance de ParametresChutes"
                 )
+        if self.temps_espacement is not None and (
+            type(self.temps_espacement) not in (int, float)
+            or not np.isfinite(self.temps_espacement)
+            or self.temps_espacement <= 0
+        ):
+            raise ValueError("temps_espacement doit etre un nombre reel strictement positif fini")
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -323,6 +330,9 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         carte,
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
+        temps_espacement=p.temps_espacement,
+        avancement=guidage.temps if p.temps_espacement is not None else None,
+        groupe_meneur=piscine.dans_bassin if p.temps_espacement is not None else None,
     )
     projection = ProjectionExclusion(piscine.projeter, tolerance=p.tolerance, strict=True)
     sites = guidage.sites

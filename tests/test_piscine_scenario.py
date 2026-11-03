@@ -311,3 +311,22 @@ def test_archive_conserve_les_etats(tmp_path):
     assert relue.etats.shape == relue.x.shape[:2]
     assert relue.metadonnees["etats"] == list(NOMS_ETATS)
     assert np.any(relue.etats == FRANCHISSEMENT)  # les poses sur le bord sont reperables
+
+
+@pytest.mark.parametrize("temps", [0.0, -0.5, np.nan, "invalide"])
+def test_parametres_piscine_temps_espacement_invalide(temps):
+    with pytest.raises(ValueError, match="temps_espacement"):
+        parametres(temps_espacement=temps)
+
+
+def test_simulation_piscine_avec_temps_espacement():
+    """Verifie que l'espacement de Tordeux s'applique sans violer les invariants de la piscine."""
+    p = parametres(n_agents=6, duree=60.0, temps_espacement=0.35)
+    assert p.temps_espacement == 0.35
+    assert p.en_dictionnaire()["temps_espacement"] == 0.35
+
+    r = simuler_piscine(p)
+    assert r.projection.non_convergences == 0
+    assert np.all(r.etats[-1] == SORTI)
+    assert np.all(np.isfinite(r.sorties))
+    assert r.violation_paroi_max() <= 1e-14
