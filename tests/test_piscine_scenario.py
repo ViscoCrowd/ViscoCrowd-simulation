@@ -116,30 +116,26 @@ def test_controle_croise_sortie_absorbante_et_observable_retrospective(evacuatio
 
 
 @pytest.mark.invariant
-def test_effectifs_par_etat_retrouves_depuis_les_evenements(evacuation):
-    """Conservation (#11) : les etats concordent avec les evenements et les positions.
+def test_etats_retrouves_depuis_les_evenements(evacuation):
+    """Conservation (#11) : l'etat de chaque agent se deduit des evenements a chaque instant.
 
-    Additionner les quatre etats redonnerait N par construction. On recompte donc les
-    sortis et les franchissements a partir des evenements, enregistres a part.
+    Additionner les quatre etats redonnerait N par construction. Ce test verifie que
+    etats et evenements concordent, pas la detection qui les produit tous les deux :
+    celle-ci est couverte par le controle croise sur les positions (#81).
     """
     r = evacuation
+    n = r.parametres.n_agents
     assert np.isfinite(r.sorties).all()
 
-    sortis = np.sum(r.etats == SORTI, axis=1)
-    np.testing.assert_array_equal(sortis, np.searchsorted(np.sort(r.sorties), r.t, side="right"))
+    debut, fin = (np.full(n, np.inf) for _ in range(2))
+    for agent, _, d, f in r.franchissements:
+        debut[int(agent)], fin[int(agent)] = d, f
+    # astype(int) : additionner des booleens NumPy ferait un OU logique, pas une somme.
+    attendu = sum((r.t[:, None] >= c).astype(int) for c in (debut, fin, r.sorties))
+    np.testing.assert_array_equal(r.etats, attendu)  # EAU=0, FRANCHISSEMENT=1, PLAGE=2, SORTI=3
 
-    debut, fin = r.franchissements[:, 2], r.franchissements[:, 3]
-    en_cours = np.sum((debut[:, None] <= r.t) & (r.t < fin[:, None]), axis=0)
-    np.testing.assert_array_equal(np.sum(r.etats == FRANCHISSEMENT, axis=1), en_cours)
-
-    # L'etat absorbant vaut agent par agent, pas seulement pour le total.
-    assert np.all(np.diff((r.etats == SORTI).astype(int), axis=0) >= 0)
-    assert sortis[0] == 0
-    assert sortis[-1] == r.parametres.n_agents
-
-    # Dehors et dedans se lisent aussi sur les positions, de part et d'autre de la porte.
+    # Tant qu'un agent n'est pas sorti, il reste en deca de la porte.
     x_porte = r.parametres.piscine.longueur_emprise
-    assert np.all(r.x[..., 0][r.etats == SORTI] > x_porte)
     assert np.all(r.x[..., 0][r.etats != SORTI] < x_porte)
 
 
