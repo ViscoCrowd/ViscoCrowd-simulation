@@ -44,7 +44,9 @@ ne demande pas de salle.
 
 from __future__ import annotations
 
+import numbers
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 from scipy.spatial import QhullError, Voronoi
@@ -54,6 +56,7 @@ from viscocrowd.core.verifications import (
     exiger_fini,
     exiger_scalaire_fini,
 )
+from viscocrowd.io.trajectoires import Trajectoire, charger_et_valider_complete
 
 
 @dataclass(frozen=True)
@@ -223,7 +226,11 @@ def _vitesses(v: np.ndarray, x: np.ndarray, direction) -> np.ndarray:
 
 
 def densite_voronoi(x: np.ndarray, salle: Rectangle, zone: Rectangle) -> float:
-    """Densite de Voronoi dans la zone de mesure, en pers/m^2. Voir le module."""
+    """Densite de Voronoi dans la zone de mesure, en pers/m^2. Voir le module.
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `densite_voronoi_trajectoire` afin de verifier la completude et filtrer les agents actifs.
+    """
     aires, dans_zone = _fractions(x, salle, zone)
     return float(np.sum(dans_zone / aires) / zone.aire)
 
@@ -231,7 +238,11 @@ def densite_voronoi(x: np.ndarray, salle: Rectangle, zone: Rectangle) -> float:
 def vitesse_voronoi(
     x: np.ndarray, v: np.ndarray, salle: Rectangle, zone: Rectangle, direction=None
 ) -> float:
-    """Vitesse de Voronoi dans la zone, en m/s : norme, ou composante sur `direction`."""
+    """Vitesse de Voronoi dans la zone, en m/s : norme, ou composante sur `direction`.
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `vitesse_voronoi_trajectoire` afin de verifier la completude et filtrer les agents actifs.
+    """
     vitesses = _vitesses(v, x, direction)
     _, dans_zone = _fractions(x, salle, zone)
     return float(np.sum(vitesses * dans_zone) / zone.aire)
@@ -244,6 +255,8 @@ def mesures_voronoi(
 
     Identiques a `densite_voronoi` et `vitesse_voronoi`, pour moitie moins de calcul :
     un point du diagramme fondamental demande les deux a chaque instant.
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `mesures_voronoi_trajectoire` afin de verifier la completude et filtrer les agents actifs.
     """
     vitesses = _vitesses(v, x, direction)
     aires, dans_zone = _fractions(x, salle, zone)
@@ -254,7 +267,11 @@ def mesures_voronoi(
 
 
 def densite_comptage(x: np.ndarray, zone: Rectangle) -> float:
-    """Repli sans Voronoi : agents dont le centre est dans la zone, divise par |M|."""
+    """Repli sans Voronoi : agents dont le centre est dans la zone, divise par |M|.
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `densite_comptage_trajectoire` ou `serie_densite_comptage_trajectoire`.
+    """
     x = np.asarray(x, dtype=float)
     if x.ndim != 2 or x.shape[1] != 2:
         raise ValueError(f"x doit etre de forme (N, 2), recu {x.shape}")
@@ -266,3 +283,142 @@ def densite_comptage(x: np.ndarray, zone: Rectangle) -> float:
         & (x[:, 1] < zone.y_max)
     )
     return float(np.sum(dedans) / zone.aire)
+
+
+def _codes_actifs(donnees: Trajectoire) -> list[int]:
+    """Codes d'etats correspondant aux agents actifs (EAU ou PLAGE)."""
+    legende = donnees.metadonnees.get("etats")
+    if isinstance(legende, list) and ("eau" in legende or "plage" in legende):
+        return [i for i, nom in enumerate(legende) if nom in ("eau", "plage")]
+    return [0, 2]
+
+
+def _extraire_instantane(
+    donnees: Trajectoire, instant: float | None, indice: int | None
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """Extrait (x, v, t) des agents actifs a l'instant ou a l'indice demande."""
+    if (instant is None) == (indice is None):
+        raise ValueError("specifier exactement un parametre parmi 'instant' et 'indice'")
+    if indice is not None:
+        if isinstance(indice, bool) or not isinstance(indice, numbers.Integral):
+            raise ValueError("indice doit etre un entier")
+        idx = int(indice)
+        if not (0 <= idx < donnees.t.size):
+            raise IndexError(f"indice {idx} hors limites (taille {donnees.t.size})")
+    else:
+        assert instant is not None
+        exiger_scalaire_fini("l'instant demande", instant)
+        ecarts = np.abs(donnees.t - instant)
+        idx = int(np.argmin(ecarts))
+        dt_meta = donnees.dt_simulation
+        if dt_meta is not None:
+            dt_local = dt_meta
+        elif donnees.t.size > 1:
+            dt_local = float(np.min(np.diff(donnees.t)))
+        else:
+            dt_local = 0.0
+        if ecarts[idx] > dt_local / 2 + 1e-9:
+            raise ValueError(
+                f"aucun instantane enregistre a t = {instant} s "
+                f"(instant le plus proche : {donnees.t[idx]} s)"
+            )
+    x_inst, v_inst = donnees.x[idx], donnees.v[idx]
+    if donnees.etats is not None:
+        actifs = np.isin(donnees.etats[idx], _codes_actifs(donnees))
+        x_inst, v_inst = x_inst[actifs], v_inst[actifs]
+    return x_inst, v_inst, float(donnees.t[idx])
+
+
+def mesures_voronoi_trajectoire(
+    archive: Trajectoire | str | Path,
+    salle: Rectangle,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+    direction=None,
+) -> tuple[float, float]:
+    """(densite, vitesse) de Voronoi depuis une archive a l'instant ou l'indice demande.
+
+    Ne conserve que les baigneurs actifs (EAU ou PLAGE) si l'archive porte des etats.
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    donnees = charger_et_valider_complete(archive, "la mesure de Voronoi")
+    x, v, _ = _extraire_instantane(donnees, instant, indice)
+    return mesures_voronoi(x, v, salle, zone, direction=direction)
+
+
+def densite_voronoi_trajectoire(
+    archive: Trajectoire | str | Path,
+    salle: Rectangle,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+) -> float:
+    """Densite de Voronoi depuis une archive a l'instant ou l'indice demande.
+
+    Ne conserve que les baigneurs actifs (EAU ou PLAGE) si l'archive porte des etats.
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    densite, _ = mesures_voronoi_trajectoire(archive, salle, zone, instant=instant, indice=indice)
+    return densite
+
+
+def vitesse_voronoi_trajectoire(
+    archive: Trajectoire | str | Path,
+    salle: Rectangle,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+    direction=None,
+) -> float:
+    """Vitesse de Voronoi depuis une archive a l'instant ou l'indice demande.
+
+    Ne conserve que les baigneurs actifs (EAU ou PLAGE) si l'archive porte des etats.
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    _, vitesse = mesures_voronoi_trajectoire(
+        archive, salle, zone, instant=instant, indice=indice, direction=direction
+    )
+    return vitesse
+
+
+def densite_comptage_trajectoire(
+    archive: Trajectoire | str | Path,
+    zone: Rectangle,
+    *,
+    instant: float | None = None,
+    indice: int | None = None,
+) -> float:
+    """Densite par comptage depuis une archive a l'instant ou l'indice demande.
+
+    Ne conserve que les baigneurs actifs (EAU ou PLAGE) si l'archive porte des etats.
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    donnees = charger_et_valider_complete(archive, "le comptage de densite")
+    x, _, _ = _extraire_instantane(donnees, instant, indice)
+    return densite_comptage(x, zone)
+
+
+def serie_densite_comptage_trajectoire(
+    archive: Trajectoire | str | Path, zone: Rectangle
+) -> tuple[np.ndarray, np.ndarray]:
+    """Densite par comptage sur tous les pas de l'archive : rend (t, densites).
+
+    Calculee en une seule passe vectorisee NumPy sur les baigneurs actifs (EAU ou PLAGE).
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    donnees = charger_et_valider_complete(archive, "la serie de densite par comptage")
+    x = donnees.x
+    dedans = (
+        (x[:, :, 0] >= zone.x_min)
+        & (x[:, :, 0] < zone.x_max)
+        & (x[:, :, 1] >= zone.y_min)
+        & (x[:, :, 1] < zone.y_max)
+    )
+    if donnees.etats is not None:
+        dedans &= np.isin(donnees.etats, _codes_actifs(donnees))
+    densites = np.sum(dedans, axis=1, dtype=float) / zone.aire
+    return donnees.t.copy(), densites

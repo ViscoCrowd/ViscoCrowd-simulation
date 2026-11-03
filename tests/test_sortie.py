@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from viscocrowd.core.rng import generateur
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.observables.debit import debit_specifique, franchissements
 from viscocrowd.observables.sortie import Sorties, sorties_definitives
@@ -95,7 +96,7 @@ def test_jamais_sorti_et_deja_dehors():
 @pytest.mark.invariant
 def test_compte_monotone_borne_et_conservatif():
     """Agents aleatoires qui oscillent autour de la porte : invariants a chaque instant."""
-    rng = np.random.default_rng(11)
+    rng = generateur(11)
     pas = rng.normal(0.05, 0.3, size=(400, 50))
     x = np.zeros((400, 50, 2))
     x[..., 0] = -1.0 + np.cumsum(pas, axis=0)

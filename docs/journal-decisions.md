@@ -11,6 +11,53 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-02 — Balayer la piscine contre un témoin sec apparié (M6, E3/E4)
+
+**Contexte.** Au point de référence, le sol mouillé ne change rien de mesurable (#83). Les
+balayages E3/E4 cherchent où il commence à compter. Détail et chiffres :
+[balayages de la piscine](balayages-piscine.md).
+
+**Décision 1 : mesurer l'effet du mouillé contre un témoin sec, graine par graine.** Pour
+chaque valeur balayée et chaque graine, on simule la piscine configurée et la même piscine
+toute sèche, partie des mêmes positions. L'effet est l'écart Δ = mouillé − témoin.
+
+- *Écarté : comparer chaque valeur à la valeur de référence du YAML.* L'écart mélangerait
+  l'effet du paramètre balayé et celui du mouillé. Au facteur de panique 2, on mesurerait
+  surtout que la foule court plus vite, pas que le sol glisse.
+- *Écarté : comparer des moyennes sur des graines indépendantes.* Le hasard du placement
+  initial fait varier t100 de ±3 s, bien plus que l'effet cherché. Apparier les graines le
+  retire.
+
+**Décision 2 : conserver les évacuations inachevées, sans les moyenner.** Une graine qui
+n'a pas fini est gardée (t100 infini, débit indéfini) et la case du tableau affiche
+« incomplet ».
+
+- *Écarté : arrêter le balayage* (comme `ProtocoleIncomplet` du couloir). Un bouchage est un
+  résultat du balayage, et l'arrêt perdait toutes les valeurs suivantes : c'est ce qui est
+  arrivé à la première série, à la porte de 0,8 m.
+- *Écarté : moyenner les graines terminées.* On comparerait des populations différentes sans
+  le dire (relecture de #77).
+
+**Constat : la porte de la piscine se bouche artificiellement.** À 0,8 m, 65 baigneurs sur
+100 restent figés en arche statique (graine 2, facteur 1,5). La porte est construite comme
+la première géométrie de E0, avec des coins vifs aux montants, que l'entrée E0 a identifiés
+comme cause des bouchages. Les balayages de porte et de population restent à refaire une
+fois les montants arrondis.
+
+**Résultat.** Dans la piscine de référence, l'effet du mouillé reste sous 0,1 s sur t50
+jusqu'au facteur de panique 2,5, et se perd dans une dispersion de 1 à 2 s sur t100. Seule
+une adhérence très faible (1 m/s²) retarde nettement t50 (0,38 s, positif sur 10 graines
+sur 10). Mouiller la plage jusqu'à la porte ne change presque rien (au plus 1,4·10⁻⁵ s). Les
+relances et les virages ont lieu près du bassin, et la porte n'est jamais encombrée.
+
+**Pourquoi ce n'est pas encore la conclusion du rapport.** Le modèle ne prête au mouillé
+que la borne d'accélération : pas de chutes (#78, #82), et la même vitesse souhaitée sur le
+sec et le mouillé, par choix de protocole (#26). La foule passe le goulot environ deux fois
+trop vite (E0), et la relation vitesse–espacement (#58) n'est pas branchée sur la piscine.
+Une porte encombrée, avec du mouillé devant, reste à tester.
+
+---
+
 ## 2026-10-27 — Modélisation des chutes, effet domino et contournement réactif
 
 **Contexte.** Addendum à la spécification (`docs/modele-chutes.md`). Sur sol à faible adhérence
@@ -28,6 +75,121 @@ de trébucher en cascade s'ils ne disposent pas de la distance d'arrêt nécessa
 4. Contournement local réactif : déviation tangentielle de la direction désirée pour les agents suffisamment
    éloignés, préservant la norme de la vitesse et sans recalculer l'eikonal global.
 5. Relevage stochastique selon une loi log-normale de médiane $3{,}7\text{ s}$ sourcée Becker et al. (2016).
+
+---
+
+## 2026-10-27 — Centralisation stricte du RNG et contrôle par invariant physique
+
+**Contexte.** La spécification (§4) et la checklist de relecture exigent l'absence totale d'appels
+directs à `numpy.random` pour garantir la reproductibilité absolue de tout tirage stochastique
+via `viscocrowd.core.rng.generateur`.
+
+**Décision.** Remplacer les 8 appels résiduels à `np.random.default_rng` identifiés dans les suites de tests
+(`test_eikonal.py`, `test_espacement.py`, `test_goulot.py`, `test_obstacle.py`, `test_piscine_scenario.py`,
+`test_sortie.py`) par `viscocrowd.core.rng.generateur`.
+Ajouter un test d'invariant automatique dans `test_invariants.py` analysant l'arbre syntaxique (AST)
+de tous les fichiers Python de `src/` et `tests/` pour refuser tout emploi de `numpy.random` hors de
+`core.rng`, imports compris. Seules les annotations de type restent permises : elles ne tirent rien.
+Le contrôle lit le code, pas son exécution : un alias construit dynamiquement lui échapperait.
+
+---
+
+## 2026-10-27 — Campagne de référence E1/E2 (10 graines) et analyse dans le rapport
+
+**Contexte.** Suite à l'implémentation du protocole apparié E1/E2, les sections 6.2 (Effet de l'extraction
+répartie) et 6.4 (Effet de l'inertie du carrelage mouillé) du rapport LaTeX (`report/sections/06-resultats.tex`)
+devaient être complétées avec les résultats numériques issus d'une campagne sur dix graines.
+
+**Décision.**
+1. Exécuter la campagne appariée sur dix graines distinctes (1 à 10) pour $N=100$ agents avec la configuration
+   de référence : `viscocrowd comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10`.
+2. Consigner les estimateurs (moyenne, écart-type, extrêmes et écart apparié $\Delta = \text{E2} - \text{E1}$)
+   de $t_{50}$, $t_{90}$, $t_{100}$, du temps d'attente en eau, de la traversée de plage et du débit spécifique
+   $J_s = \Delta N/(\Delta t_{\text{flux}}\,b)$ (`debit_seyfried`) dans le rapport, en précisant que la
+   régulation vitesse–espacement de Tordeux (#57) n'est pas encore disponible sur le scénario piscine.
+3. Conclure sur l'absence d'effet inertiel macroscopique en régime nominal (`facteur_vitesse = 1.0`,
+   $s = 1{,}34\text{ m/s}$) pour deux raisons complémentaires cohérentes avec #26 et #72 : d'une part, en ligne
+   droite, l'accélération requise ($s/\tau = 2{,}68\text{ m/s}^2$) reste sous le seuil d'adhérence du carrelage
+   mouillé ($3{,}3\text{ m/s}^2$, qui n'est dépassé en ligne droite qu'au-delà de $a_{\max}\tau = 1{,}65\text{ m/s}$,
+   et n'est atteint à vitesse nominale que ponctuellement lors de virages serrés d'angle $\gtrsim 76^\circ$,
+   soit $0{,}03\,\%$ des pas) ; d'autre part, la bande mouillée de $3\text{ m}$ est séparée de la porte par
+   $17\text{ m}$ de plage sèche sur lesquels ces transitoires locaux s'amortissent avant le goulot.
+
+**Pourquoi.** Le passage à dix graines suit la règle fixée à l'issue de l'étalonnage E0 (où trois graines
+restaient sensibles jusqu'à $15\,\%$ au tirage initial) afin de stabiliser les moyennes et de mesurer un écart
+apparié graine par graine. Documenter ce résultat négatif en marche nominale répond directement aux consignes
+du projet en délimitant les conditions (facteur de panique $> 1{,}23$, contraste de vitesse ou zone mouillée
+proche de la porte) nécessaires pour que le patinage affecte le temps d'évacuation dans E3/E4.
+
+**Options écartées.**
+- *Se contenter de trois graines comme dans E0* : insuffisant pour conclure sur la nullité d'un écart apparié
+  face à la variabilité du placement initial dans un bassin de $25\text{ m} \times 12{,}5\text{ m}$.
+- *Afficher une ligne « Adhérence seule » séparée de E2 dans le tableau du rapport* : dans
+  `experiments/piscine.yaml`, `MOUILLE` et `SEC` ont la même vitesse souhaitée ($1{,}34\text{ m/s}$) et le même
+  temps de relaxation ($0{,}5\text{ s}$), de sorte que `adherence` et `complet` sont la même simulation ; les
+  séparer dans le tableau laisserait croire à une décomposition des mécanismes qui n'a pas eu lieu.
+- *Modifier `facteur_vitesse` ou la géométrie dès E2 pour forcer un écart non nul* : dénaturerait le rôle de E2,
+  qui doit évaluer la configuration nominale de référence avant les balayages paramétriques E3 et E4.
+
+---
+
+## 2026-10-27 — Contrôle croisé de sortie absorbante et conservation par pas (#11)
+
+**Contexte.** L'issue #11 exigeait de vérifier la concordance physique entre le retrait dynamique
+des agents à la porte (état absorbant dans le moteur) et l'observable rétrospective `sorties_definitives`.
+
+**Décision.** Mettre en place un contrôle croisé automatisé dans la suite de tests du scénario piscine :
+1. Concordance stricte des effectifs sortis et des identifiants d'agents entre l'état absorbant et l'observable rétrospective.
+2. Écart maximal sur les instants de sortie borné par le pas physique dt (<= 0,01 s). Le moteur interpole avant de déplacer l'agent sorti au point `dehors` ; la relecture interpole les positions archivées, après ce déplacement. Cet écart vient de ces segments différents, pas d'un arrondi flottant ni d'une différence 1D/2D.
+3. Vérification de l'invariant de conservation à chaque instant archivé : N_actifs + N_franchissement + N_sortis = N.
+4. Courbe des sortis N_sortis(t) non décroissante (avec des paliers) et irréversibilité de l'état absorbant (aucun retour dans l'emprise).
+
+---
+
+## 2026-10-27 — Refuser les archives espacées pour les mesures d'observables (issue #73)
+
+**Contexte.** La PR #70 a introduit `--archiver-tous K` pour la piscine, divisant par K le
+volume des trajectoires en n'écrivant qu'une image tous les K pas physiques. Si les événements
+(franchissements et sorties) sont enregistrés à chaque pas, les positions intermédiaires sont
+perdues.
+
+**Problème physique.** Les observables calculées rétrospectivement sur la trajectoire
+(débit, vitesse de Voronoï, densité instantanée, sorties définitives) reposent sur des
+interpolations fines et la détection d'interpénétration ou de traversée de seuil. Avec $K > 1$ :
+- un franchissement de segment rapide peut être sauté ou faussé dans sa position/instant interpolé ;
+- les vitesses recalculées par différences finies $\Delta x / \Delta t$ deviennent des vitesses
+  moyennes grossières gommant les pics d'accélération/freinage ;
+- la densité de Voronoï locale perd les configurations d'empilement transitoires ;
+- les retours brefs d'un agent après sortie ne sont plus garantis d'être détectés.
+
+**Décision.**
+1. La classe `Trajectoire` valide `archivage.tous_les_pas` (entier strictement positif) et
+   `archivage.dt_simulation_s` (réel strictement positif), et expose les propriétés `pas_archivage`,
+   `dt_simulation`, `est_complete` ainsi que la méthode `exiger_complete(observable=...)`.
+2. Outre la vérification de `tous_les_pas == 1`, `exiger_complete` exige la présence de
+   `dt_simulation_s` et vérifie que $\max(\Delta t) \le \text{dt\_simulation\_s}$, détectant
+   ainsi toute trajectoire sous-échantillonnée manuellement (`t[::5]`) ou dépourvue de métadonnées
+   d'archivage.
+3. Les fonctions dédiées aux archives (`franchissements_trajectoire`, `debit_specifique_trajectoire`,
+   `sorties_definitives_trajectoire`, `mesures_voronoi_trajectoire`, `densite_voronoi_trajectoire`,
+   `vitesse_voronoi_trajectoire`, `densite_comptage_trajectoire`, `serie_densite_comptage_trajectoire`,
+   `energie_mecanique_trajectoire`) refusent strictement toute archive incomplète avec une `ValueError`
+   explicite, tandis que les fonctions bas niveau sur tableaux conservent leurs signatures intactes.
+4. Sur les archives à états (piscine), les mesures de densité et de Voronoï `*_trajectoire` ne
+   retiennent que les baigneurs actifs (`EAU` ou `PLAGE`), écartant les agents en franchissement
+   posés sur le bord et les agents sortis empilés au point `dehors`.
+5. Pour l'énergie mécanique, une option explicite `autoriser_espace=True` est réservée aux analyses
+   ponctuelles conscientes de la perte des pas intermédiaires.
+
+**Options écartées.**
+- *Surcharger `franchissements` et `sorties_definitives` pour accepter une `Trajectoire` en premier
+  argument* : cela décalait le rôle positionnel de `x` et `a` et dupliquait les contrôles. Les
+  fonctions dédiées `*_trajectoire` sont plus explicites et sans ambiguïté de signature.
+- *Se fier uniquement à `tous_les_pas == 1`* : une `Trajectoire` reconstruite en mémoire avec un
+  sous-échantillonnage des tableaux aurait contourné le garde-fou sans le contrôle sur `np.diff(t)`.
+
+**Conséquence.** Les campagnes automatiques et les calculs de diagramme fondamental ne risquent
+plus d'ingérer par erreur une archive allégée destinée à la seule visualisation.
 
 ---
 
