@@ -44,7 +44,7 @@ def contexte() -> dict:
     }
 
 
-def _ecrire_json(chemin: Path, contenu: dict) -> None:
+def ecrire_json(chemin: Path, contenu: dict) -> None:
     """Remplacement atomique : une interruption laisse l'ancien suivi lisible."""
     temporaire = None
     try:
@@ -86,7 +86,7 @@ def _plan(configurations: list[Path], graines: list[int] | None) -> list[dict]:
     return plan
 
 
-def _verifier_sortie(sortie: Path) -> None:
+def verifier_sortie(sortie: Path) -> None:
     """Refuse un dossier sous un chemin suivi par la provenance, avant d'y rien ecrire.
 
     Le verrou, le suivi et les configurations figees n'y sont pas ignores par git : des
@@ -106,7 +106,7 @@ def executer_campagne(configurations, sortie, *, graines=None, reprendre=False, 
     """Execute tous les cas ; les echecs restent explicites et rendent le bilan incomplet."""
     plan = _plan([Path(c) for c in configurations], graines)
     sortie = Path(sortie)
-    _verifier_sortie(sortie)
+    verifier_sortie(sortie)
     attendu = {"version": 1, "contexte": contexte(), "plan": plan}
     sortie.mkdir(parents=True, exist_ok=True)
     verrou = sortie / ".verrou"
@@ -145,7 +145,7 @@ def _executer(sortie: Path, attendu: dict, reprendre: bool, progression) -> dict
         if any(p.name != ".verrou" for p in sortie.iterdir()):
             raise ValueError("choisir un repertoire de campagne vide")
         suivi = attendu | {"resultats": [{"statut": "attente"} for _ in attendu["plan"]]}
-        _ecrire_json(manifeste, suivi)
+        ecrire_json(manifeste, suivi)
     for index, config in enumerate(suivi["plan"]):
         if contexte() != attendu["contexte"]:
             raise ValueError("code ou environnement modifie pendant la campagne")
@@ -166,7 +166,7 @@ def _executer(sortie: Path, attendu: dict, reprendre: bool, progression) -> dict
         configuration = sortie / f"{prefixe}.yaml"
         configuration.write_text(yaml.safe_dump(config, sort_keys=True), encoding="utf-8")
         suivi["resultats"][index] = {"statut": "en_cours"}
-        _ecrire_json(manifeste, suivi)
+        ecrire_json(manifeste, suivi)
         progression(
             f"[{index + 1}/{len(suivi['plan'])}] {prefixe} calcul "
             f"({config['scenario']}, graine {config['graine']})"
@@ -184,12 +184,12 @@ def _executer(sortie: Path, attendu: dict, reprendre: bool, progression) -> dict
             }
         except KeyboardInterrupt:
             suivi["resultats"][index] = {"statut": "interrompu"}
-            _ecrire_json(manifeste, suivi)
+            ecrire_json(manifeste, suivi)
             raise
         except (OSError, ValueError, RuntimeError) as erreur:
             suivi["resultats"][index] = {"statut": "echec", "erreur": str(erreur)}
             progression(f"  echec : {erreur}")
-        _ecrire_json(manifeste, suivi)
+        ecrire_json(manifeste, suivi)
     return suivi
 
 
