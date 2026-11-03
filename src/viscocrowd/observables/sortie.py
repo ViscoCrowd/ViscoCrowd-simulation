@@ -40,10 +40,12 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
 from viscocrowd.core.verifications import exiger_fini
+from viscocrowd.io.trajectoires import Trajectoire, charger_et_valider_complete
 from viscocrowd.observables.debit import cote, franchissements
 
 
@@ -90,14 +92,22 @@ class Sorties:
         return float(instants[rang - 1]) if rang <= instants.size else math.inf
 
 
-def sorties_definitives(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) -> Sorties:
+def sorties_definitives(
+    t: np.ndarray,
+    x: np.ndarray,
+    a: np.ndarray,
+    b: np.ndarray,
+) -> Sorties:
     """Instant de sortie definitive de chaque agent a travers le segment [a, b].
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `sorties_definitives_trajectoire` afin de verifier que l'archive est complete (K = 1).
 
     Args:
         t: instants, de forme (P,), en s.
         x: positions, de forme (P, N, 2), en m.
-        a, b: extremites du segment de sortie, (2,), en m, orientees pour que la
-            sortie aille de gauche a droite.
+        a: extremite 'a' du segment de sortie, de forme (2,), en m.
+        b: extremite 'b' du segment de sortie, de forme (2,), en m.
 
     Returns:
         Les sorties, une valeur par agent.
@@ -137,3 +147,15 @@ def sorties_definitives(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarr
     sorti = (dernier_sens == 1) & dehors_a_la_fin & (dernier_instant > dernier_interieur)
     instant[sorti] = dernier_instant[sorti]
     return Sorties(instant)
+
+
+def sorties_definitives_trajectoire(
+    archive: Trajectoire | str | Path, a: np.ndarray, b: np.ndarray
+) -> Sorties:
+    """Instant de sortie definitive de chaque agent a travers [a, b] depuis une archive.
+
+    Refuse toute archive espacee (K > 1, issue #73) : des images espacees
+    ne permettent pas de garantir l'absence de retours interieurs non echantillonnes.
+    """
+    donnees = charger_et_valider_complete(archive, "le calcul de sorties definitives")
+    return sorties_definitives(donnees.t, donnees.x, a, b)

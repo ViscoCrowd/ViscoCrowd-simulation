@@ -63,6 +63,14 @@ utiliser une archive espacée pour des pics de densité instantanée ou des vite
 différenciées sans étude de sensibilité à la fréquence. Les états échantillonnés
 peuvent sauter une transition intermédiaire visible dans les événements.
 
+Pour prévenir toute analyse physique erronée, **toutes les fonctions calculant une
+observable à partir d'une archive (`franchissements_trajectoire`, `debit_specifique_trajectoire`,
+`mesures_voronoi_trajectoire`, `sorties_definitives_trajectoire`, `energie_mecanique_trajectoire`)
+refusent strictement toute archive dont `tous_les_pas > 1` (issue #73)**. Elles lèvent une
+`ValueError` explicite invitant à relancer avec `--archiver-tous 1` (valeur par défaut).
+Seuls le lecteur visuel (`viscocrowd rejouer`) et les journaux d'événements précalculés
+tolèrent des archives espacées.
+
 L'archivage espacé est actuellement réservé à la piscine. Le banc mesure aussi
 couloir/tassement avec `--archiver-tous 1`. Ces scénarios gardent leur contrat
 d'archive complète ; la bille seule n'est pas un banc en nombre d'agents.

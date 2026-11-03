@@ -17,8 +17,11 @@ arrive effectivement de l'AUTRE cote. Voir `franchissements`.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
+
+from viscocrowd.io.trajectoires import Trajectoire, charger_et_valider_complete
 
 
 def _verifier_segment(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -97,8 +100,16 @@ class Franchissements:
         return int(self.agent.size)
 
 
-def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) -> Franchissements:
+def franchissements(
+    t: np.ndarray,
+    x: np.ndarray,
+    a: np.ndarray,
+    b: np.ndarray,
+) -> Franchissements:
     """Detecte tous les passages a travers le segment [a, b].
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `franchissements_trajectoire` afin de verifier que l'archive est complete (K = 1).
 
     Un agent a franchi le segment lorsque :
 
@@ -129,7 +140,7 @@ def franchissements(t: np.ndarray, x: np.ndarray, a: np.ndarray, b: np.ndarray) 
         Les passages detectes, tries par instant.
 
     Raises:
-        ValueError: si a et b sont confondus, ou si une extremite n'est pas finie.
+        ValueError: si a et b sont confondus ou si une extremite n'est pas finie.
     """
     ab = _verifier_segment(a, b)
     t, x = np.asarray(t, dtype=float), np.asarray(x, dtype=float)
@@ -284,3 +295,31 @@ def debit_specifique(passages: Franchissements, largeur: float, debut: float, fi
     dans_la_fenetre = (passages.instant >= debut) & (passages.instant < fin)
     net = int(np.sum(passages.sens[dans_la_fenetre]))
     return net / ((fin - debut) * largeur)
+
+
+def franchissements_trajectoire(
+    archive: Trajectoire | str | Path, a: np.ndarray, b: np.ndarray
+) -> Franchissements:
+    """Detecte tous les passages a travers le segment [a, b] depuis une archive.
+
+    Refuse toute archive espacee (K > 1, issue #73) : des echantillons trop espaces
+    faussent l'interpolation des passages et peuvent rater des franchissements.
+    """
+    donnees = charger_et_valider_complete(archive, "le comptage de franchissements")
+    return franchissements(donnees.t, donnees.x, a, b)
+
+
+def debit_specifique_trajectoire(
+    archive: Trajectoire | str | Path,
+    a: np.ndarray,
+    b: np.ndarray,
+    largeur: float,
+    debut: float,
+    fin: float,
+) -> float:
+    """Debit specifique a travers le segment [a, b] depuis une archive sur [debut, fin[.
+
+    Refuse toute archive espacee (K > 1, issue #73).
+    """
+    passages = franchissements_trajectoire(archive, a, b)
+    return debit_specifique(passages, largeur, debut, fin)
