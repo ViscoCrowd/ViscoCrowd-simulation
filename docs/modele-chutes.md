@@ -1,7 +1,7 @@
 # Modèle de chute, de relevage et de contournement
 
 **Addendum à la [spécification de conception](superpowers/specs/2026-10-06-viscocrowd-design.md)**
-Statut : implémenté dans viscocrowd.model.chutes · 27 octobre 2026
+Statut : module facultatif, désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion dans le rendu à décider (#19) · 3 novembre 2026
 
 **Planification : extension non programmée.** Les jalons principaux ne dépendent pas de ce
 module. Son éventuelle inclusion est suivie dans l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)
