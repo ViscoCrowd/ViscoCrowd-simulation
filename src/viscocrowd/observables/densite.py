@@ -286,11 +286,21 @@ def densite_comptage(x: np.ndarray, zone: Rectangle) -> float:
 
 
 def _codes_actifs(donnees: Trajectoire) -> list[int]:
-    """Codes d'etats correspondant aux agents actifs (EAU ou PLAGE)."""
+    """Codes d'etats des agents actifs (EAU ou PLAGE), lus dans la legende de l'archive.
+
+    Sans legende, on ne sait pas ce que signifient les codes : deviner compterait
+    peut-etre des agents sortis ou en franchissement dans la densite.
+
+    Raises:
+        ValueError: si l'archive porte des etats sans legende nommant eau et plage.
+    """
     legende = donnees.metadonnees.get("etats")
-    if isinstance(legende, list) and ("eau" in legende or "plage" in legende):
-        return [i for i, nom in enumerate(legende) if nom in ("eau", "plage")]
-    return [0, 2]
+    if not isinstance(legende, list) or "eau" not in legende or "plage" not in legende:
+        raise ValueError(
+            "archive avec des etats mais sans legende metadonnees['etats'] nommant "
+            "'eau' et 'plage' : impossible de reconnaitre les agents actifs"
+        )
+    return [i for i, nom in enumerate(legende) if nom in ("eau", "plage")]
 
 
 def _extraire_instantane(

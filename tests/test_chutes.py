@@ -28,6 +28,9 @@ def test_parametres_chutes_valides():
         ("sigma_relevage", np.inf),
         ("distance_perception", 0.0),
         ("force_contournement", -2.0),
+        ("duree_affaissement", 0.0),
+        ("vitesse_min_domino", -0.1),
+        ("vitesse_approche_min", np.nan),
     ],
 )
 def test_parametres_chutes_invalides_refuses(champ, valeur):
@@ -233,3 +236,35 @@ def test_reproductibilite_stochastique_avec_graine():
     g2.faire_tomber(agent=0, instant=0.0, cause="glissade", position=(0.0, 0.0))
 
     assert g1.historique[0].duree_relevage == g2.historique[0].duree_relevage
+
+
+def test_duree_affaissement_regle_la_croissance_du_rayon():
+    """A mi-affaissement, le rayon est a mi-chemin entre debout et au sol."""
+    parametres = ParametresChutes(facteur_rayon_terre=1.5, duree_affaissement=1.0)
+    gestionnaire = GestionnaireChutes(1, parametres, 0)
+    gestionnaire.faire_tomber(0, 2.0, "glissade", (0.0, 0.0))
+    rayons = np.array([0.2])
+    assert gestionnaire.rayons_effectifs(rayons, instant=2.5)[0] == pytest.approx(0.25)
+    assert gestionnaire.rayons_effectifs(rayons, instant=3.0)[0] == pytest.approx(0.3)
+
+
+def test_seuil_de_vitesse_du_domino():
+    """Sous vitesse_min_domino, un agent qui approche d'un corps ne trebuche pas."""
+    parametres = ParametresChutes(lambda_chute=1e-9, lambda_domino=1e6, vitesse_min_domino=0.5)
+    arguments = {
+        "instant": 0.0,
+        "dt": 0.01,
+        "x": np.array([[0.0, 0.0], [0.5, 0.0]]),
+        "vitesse_desiree": np.zeros((2, 2)),
+        "a_max": np.full(2, 0.1),
+        "tau": np.full(2, 0.5),
+        "rayons_nominaux": np.full(2, 0.2),
+    }
+    lent, rapide = (GestionnaireChutes(2, parametres, 0) for _ in range(2))
+    for gestionnaire in (lent, rapide):
+        gestionnaire.faire_tomber(1, -10.0, "glissade", (0.5, 0.0))
+        gestionnaire._fin_relevage[1] = 1e6
+    lent.mettre_a_jour(v=np.array([[0.4, 0.0], [0.0, 0.0]]), **arguments)
+    rapide.mettre_a_jour(v=np.array([[0.6, 0.0], [0.0, 0.0]]), **arguments)
+    assert lent.nombre_a_terre == 1
+    assert rapide.nombre_a_terre == 2
