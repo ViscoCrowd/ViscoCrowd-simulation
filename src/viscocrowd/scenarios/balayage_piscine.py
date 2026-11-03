@@ -372,7 +372,7 @@ def _lire_fixes(textes: list[str]) -> dict[str, float]:
 def commande_balayer(args) -> int:
     from viscocrowd.geometry.projection import ProjectionNonConvergee
     from viscocrowd.io.configuration import lire_configuration
-    from viscocrowd.scenarios.campagne import _ecrire_json, _verifier_sortie, contexte
+    from viscocrowd.scenarios.campagne import contexte, ecrire_json, verifier_sortie
 
     debut = time.perf_counter()
     try:
@@ -383,7 +383,7 @@ def commande_balayer(args) -> int:
         if args.sortie is not None:
             if args.sortie.suffix != ".json":
                 raise ValueError("le bilan doit porter l'extension .json")
-            _verifier_sortie(args.sortie)
+            verifier_sortie(args.sortie)
             if args.sortie.exists():
                 raise ValueError(f"{args.sortie} existe deja : choisir un autre fichier")
             args.sortie.parent.mkdir(parents=True, exist_ok=True)
@@ -420,7 +420,7 @@ def commande_balayer(args) -> int:
                 raise ValueError("code ou environnement modifie pendant le balayage ; relancer")
             if args.sortie is not None:
                 bilan["points"].append(_en_json(point))
-                _ecrire_json(args.sortie, bilan)
+                ecrire_json(args.sortie, bilan)
 
         executer(plan, apres_point=apres_point)
     except KeyboardInterrupt:
