@@ -21,8 +21,9 @@ via `viscocrowd.core.rng.generateur`.
 (`test_eikonal.py`, `test_espacement.py`, `test_goulot.py`, `test_obstacle.py`, `test_piscine_scenario.py`,
 `test_sortie.py`) par `viscocrowd.core.rng.generateur`.
 Ajouter un test d'invariant automatique dans `test_invariants.py` analysant l'arbre syntaxique (AST)
-de tous les fichiers Python de `src/` et `tests/` pour interdire définitivement toute instanciation
-de générateur hors de `core.rng`.
+de tous les fichiers Python de `src/` et `tests/` pour refuser tout emploi de `numpy.random` hors de
+`core.rng`, imports compris. Seules les annotations de type restent permises : elles ne tirent rien.
+Le contrôle lit le code, pas son exécution : un alias construit dynamiquement lui échapperait.
 
 ---
 
