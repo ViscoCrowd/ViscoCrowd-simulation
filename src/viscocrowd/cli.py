@@ -233,6 +233,29 @@ def construire_analyseur() -> argparse.ArgumentParser:
     comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
     comparer.set_defaults(fonction=commande_comparer_mouille)
 
+    comparer_piscine = sous.add_parser(
+        "comparer-piscine",
+        help="E1/E2 : comparaison appariee piscine seche vs mouillee, un parametre a la fois",
+        description=(
+            "E1/E2 : comparaison appariee piscine seche vs mouillee, un parametre a la fois."
+        ),
+    )
+    comparer_piscine.add_argument(
+        "configuration", type=Path, help="configuration YAML de la piscine"
+    )
+    comparer_piscine.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines distinctes du placement (defaut : celle de la configuration)",
+    )
+    comparer_piscine.add_argument(
+        "--variantes",
+        nargs="+",
+        help="variantes a comparer (defaut : toutes les variantes)",
+    )
+    comparer_piscine.set_defaults(fonction=commande_comparer_piscine)
+
     etalonner = sous.add_parser(
         "etalonner-goulot",
         help="E0 : debit specifique d'un goulot sec, compare a Seyfried et al. (2009)",
@@ -266,6 +289,14 @@ def _moyenne_ecart(valeurs: list[float]) -> str:
         return "-"
     ecart = np.std(valeurs, ddof=1) if valeurs.size > 1 else 0.0
     return f"{np.mean(valeurs):.2f} ± {ecart:.2f}"
+
+
+def _etendue(valeurs: list[float]) -> str:
+    """« min -- max » sur les valeurs finies, ou « - » s'il n'y en a aucune."""
+    finies = np.array([v for v in valeurs if np.isfinite(v)])
+    if finies.size == 0:
+        return "-"
+    return f"{np.min(finies):.2f} -- {np.max(finies):.2f}"
 
 
 def commande_etalonner_goulot(args: argparse.Namespace) -> int:
@@ -334,6 +365,61 @@ def commande_comparer_mouille(args: argparse.Namespace) -> int:
         from viscocrowd.viz.figures import figure_comparaison_mouille
 
         print(f"Figure : {figure_comparaison_mouille(resultats, n_agents, args.figure)}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
+
+
+def commande_comparer_piscine(args: argparse.Namespace) -> int:
+    """Tableau de la comparaison appariee piscine seche vs mouillee (E1/E2)."""
+    from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.model.milieu import Milieu
+    from viscocrowd.scenarios.comparaison_piscine import (
+        LIBELLES,
+        MESURES,
+        UNITES,
+        comparer,
+        regrouper_variantes,
+    )
+    from viscocrowd.scenarios.piscine import ParametresPiscine
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        if configuration["scenario"] != "piscine":
+            raise ValueError("la comparaison attend une configuration du scenario piscine")
+        graines = args.graines or [configuration["graine"]]
+        temoin = ParametresPiscine(**configuration["parametres"], graine=0)
+        sec = temoin.parametres_milieux[Milieu.SEC]
+        mouille = temoin.parametres_milieux[Milieu.MOUILLE]
+        groupes = regrouper_variantes(sec, mouille, args.variantes)
+        resultats = comparer(configuration, graines, variantes=list(groupes))
+    except (OSError, KeyError, TypeError, ValueError, ProjectionNonConvergee) as erreur:
+        print(f"Comparaison refusee : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"Piscine E1/E2, un parametre a la fois — {n_agents} agents, graines {graines}")
+    fusions = [
+        f"{rep} (= {', '.join(v for v in eq if v != rep)})"
+        for rep, eq in groupes.items()
+        if len(eq) > 1
+    ]
+    if fusions:
+        print("Variantes identiques fusionnees : " + " ; ".join(fusions))
+    print(f"{'variante':>32} " + " ".join(f"{m + ' (' + UNITES[m] + ')':>22}" for m in MESURES))
+    for nom, valeurs in resultats.items():
+        cellules = [f"{_moyenne_ecart(list(valeurs[:, k])):>22}" for k in range(len(MESURES))]
+        print(f"{LIBELLES[nom]:>32} " + " ".join(cellules))
+        if len(graines) > 1:
+            etendues = [f"{_etendue(list(valeurs[:, k])):>22}" for k in range(len(MESURES))]
+            print(f"{'étendue (min -- max)':>32} " + " ".join(etendues))
+        if nom != "reference" and "reference" in resultats:
+            ecarts = [
+                f"{_moyenne_ecart(list(valeurs[:, k] - resultats['reference'][:, k])):>22}"
+                for k in range(len(MESURES))
+            ]
+            print(f"{'écart apparié Δ vs E1':>32} " + " ".join(ecarts))
     print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
     return 0
 
