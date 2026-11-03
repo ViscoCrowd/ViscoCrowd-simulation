@@ -97,6 +97,7 @@ class Piscine:
     pas_rebord: float
     largeur_echelle: float
     echelles: tuple[tuple[str, float], ...]
+    obstacles: tuple[ObstacleRectangle, ...] = ()
 
     def __post_init__(self) -> None:
         for nom in (
@@ -124,6 +125,25 @@ class Piscine:
                 raise ValueError("la fraction d'une echelle doit etre dans ]0, 1[")
             echelles.append((cote, float(fraction)))
         object.__setattr__(self, "echelles", tuple(echelles))
+
+        obstacles = []
+        b = self.bassin
+        for obs in self.obstacles:
+            if isinstance(obs, dict):
+                obs = ObstacleRectangle(**obs)
+            elif not isinstance(obs, ObstacleRectangle):
+                raise ValueError(
+                    f"chaque obstacle doit etre une instance de ObstacleRectangle, recu {type(obs)}"
+                )
+            if not (
+                obs.x_max <= b.x_min
+                or obs.x_min >= b.x_max
+                or obs.y_max <= b.y_min
+                or obs.y_min >= b.y_max
+            ):
+                raise ValueError("un obstacle sur la plage ne doit pas chevaucher le bassin")
+            obstacles.append(obs)
+        object.__setattr__(self, "obstacles", tuple(obstacles))
 
     # --- Rectangles ------------------------------------------------------------
 
@@ -247,6 +267,8 @@ class Piscine:
         b = self.bassin
         resultat = self.projeter_plage(x, r)
         resultat = self.bassin.repousser(resultat, r)
+        for obs in self.obstacles:
+            resultat = obs.repousser(resultat, r)
         resultat[eau, 0] = np.clip(x[eau, 0], b.x_min + r[eau], b.x_max - r[eau])
         resultat[eau, 1] = np.clip(x[eau, 1], b.y_min + r[eau], b.y_max - r[eau])
         return resultat
@@ -278,4 +300,6 @@ class Piscine:
             ecart = np.hypot(*(self.projeter_plage(xp, rp) - xp).T)
             depassement.append(float(np.max(ecart)))
             depassement.append(self.bassin.violation(xp, rp))
+            for obs in self.obstacles:
+                depassement.append(obs.violation(xp, rp))
         return max(depassement)

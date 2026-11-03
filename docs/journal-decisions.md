@@ -11,6 +11,22 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-03 — Intégrer les obstacles sur la plage de la piscine (G5 piscine)
+
+**Contexte.** La tâche G5 du planning prévoyait l'extension du traitement des obstacles fixes à la plage de la piscine, après la livraison initiale sur le couloir (`Couloir.obstacles`, #49). Sur la plage, des obstacles (piliers de gradins, mobilier, postes de surveillance) réduisent la section utile et doivent être pris en compte à la fois dans le guidage eikonal et dans la projection d'exclusion.
+
+**Décision.**
+1. **Géométrie et contrainte d'exclusion** : ajout de `obstacles: tuple[ObstacleRectangle, ...] = ()` à `Piscine`. Lors de la projection (`Piscine.projeter`), tout centre d'agent sur la plage est repoussé des obstacles via `ObstacleRectangle.repousser`, avec coins arrondis exacts. La violation de domaine (`Piscine.violation`) cumule les dépassements d'obstacles.
+2. **Guidage eikonal de la plage** : dans `GuidagePiscine`, les nœuds de la grille situés à l'intérieur ou à moins d'un rayon d'un obstacle de plage sont retirés du domaine admissible (`obs.distance(points) >= rayon - 1e-9`). Le Fast Marching contourne naturellement les obstacles pour rejoindre la porte de sortie.
+3. **Scénario et sérialisation** : `ParametresPiscine` accepte la déclaration d'obstacles sous la clé `geometrie.obstacles`, et `en_dictionnaire()` les exporte au format JSON/dictionnaire.
+
+**Pourquoi.** Compléter l'engagement du jalon 3 (G5) sur la géométrie complète de la piscine et permettre l'étude de l'impact des encombrements de plage sur l'évacuation.
+
+**Options écartées.**
+- *Modéliser les obstacles par une vitesse nulle dans la carte des milieux* : le guidage eikonal les contournerait, mais la projection physique ne les empêcherait pas d'être traversés sous la poussée des voisins (constaté sur le couloir #49). L'inclusion dans `projeter` est indispensable.
+
+---
+
 ## 2026-11-03 — Garder le refus des archives espacées après l'étude de sensibilité (#73)
 
 **Mesure.** Sur 10 graines, garder une image sur K déplace une sortie de l'ordre de K·dt et

@@ -44,6 +44,7 @@ import numpy as np
 from viscocrowd.core.integrator import pas_semi_implicite
 from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
+from viscocrowd.geometry.obstacle import ObstacleRectangle
 from viscocrowd.geometry.piscine import NATURES, Piscine
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
@@ -112,6 +113,11 @@ class ParametresPiscine:
         try:
             geometrie = dict(self.geometrie)
             geometrie["echelles"] = tuple(tuple(e) for e in geometrie["echelles"])
+            if "obstacles" in geometrie:
+                geometrie["obstacles"] = tuple(
+                    o if isinstance(o, ObstacleRectangle) else ObstacleRectangle(**o)
+                    for o in geometrie["obstacles"]
+                )
             piscine = Piscine(**geometrie)
             milieux = {
                 Milieu[nom]: p if isinstance(p, ParametresMilieu) else ParametresMilieu(**p)
@@ -160,10 +166,21 @@ class ParametresPiscine:
         resultat = {f.name: getattr(self, f.name) for f in fields(self) if f.init}
         if self.chutes is not None:
             resultat["chutes"] = asdict(self.chutes)
-        resultat["geometrie"] = {
+        geometrie = {
             **self.geometrie,
             "echelles": [list(e) for e in self.piscine.echelles],
         }
+        if self.piscine.obstacles:
+            geometrie["obstacles"] = [
+                {
+                    "x_min": o.x_min,
+                    "x_max": o.x_max,
+                    "y_min": o.y_min,
+                    "y_max": o.y_max,
+                }
+                for o in self.piscine.obstacles
+            ]
+        resultat["geometrie"] = geometrie
         resultat["parametres_milieux"] = {
             m.name: {
                 "relaxation": p.relaxation,

@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from viscocrowd.core.rng import generateur
+from viscocrowd.geometry.obstacle import ObstacleRectangle
 from viscocrowd.geometry.piscine import Piscine
 from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.eikonal import ChampEikonal, GrilleReguliere, fast_marching
@@ -216,3 +217,36 @@ def test_tableaux_incompatibles_avec_la_grille_refuses(champ):
             tableaux[nom] = tableaux[nom][:2]
     with pytest.raises(ValueError, match="grille"):
         ChampEikonal.depuis_tableaux(grille, **tableaux)
+
+
+class TestObstaclesPlage:
+    def test_obstacle_chevauchant_bassin_refuse(self):
+        """Un obstacle sur la plage ne doit pas chevaucher le bassin."""
+        obs = ObstacleRectangle(10.0, 15.0, 5.0, 8.0)
+        with pytest.raises(ValueError, match="bassin"):
+            replace(PISCINE, obstacles=(obs,))
+
+    def test_obstacle_sur_plage_repousse_et_contraint(self):
+        """Un obstacle rectangulaire sur la plage repousse les centres et est reporte en violation."""
+        obs = ObstacleRectangle(35.0, 37.0, 8.0, 12.0)
+        p = replace(PISCINE, obstacles=(obs,))
+        # Point au centre de l'obstacle
+        x = np.array([[36.0, 10.0]])
+        r = np.array([R])
+        assert p.violation(x, r, 0.0) > 0.0
+        x_proj = p.projeter(x, r, 0.0)
+        # Apres projection, le point est hors de l'obstacle et n'a plus de violation
+        assert obs.distance(x_proj)[0] >= R - 1e-12
+        assert p.violation(x_proj, r, 0.0) <= 1e-12
+
+    def test_guidage_piscine_contourne_obstacle_sur_plage(self):
+        """Le guidage eikonal de la plage contourne un obstacle sur le chemin de la porte."""
+        obs = ObstacleRectangle(35.0, 37.0, 8.0, 12.0)
+        p = replace(PISCINE, obstacles=(obs,))
+        g = GuidagePiscine(p, MILIEUX, R, 0.2, DUREES)
+        # Verifier que les points proches de l'obstacle recoivent des directions valides
+        pts = np.array([[34.0, 10.0], [38.0, 10.0]])
+        dirs = g.direction(pts)
+        for d in dirs:
+            norme = np.hypot(d[0], d[1])
+            assert 0.99 <= norme <= 1.01
