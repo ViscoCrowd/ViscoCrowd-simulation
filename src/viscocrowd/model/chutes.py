@@ -31,6 +31,9 @@ import numpy as np
 
 from viscocrowd.core.rng import generateur
 
+# Les positions initiales lisent le flux principal de la graine : les chutes ont le leur.
+FLUX_CHUTES = 1
+
 
 @dataclass(frozen=True)
 class ParametresChutes:
@@ -80,7 +83,7 @@ class GestionnaireChutes:
             raise ValueError("n_agents doit etre un entier strictement positif")
         self.n_agents = n_agents
         self.parametres = parametres
-        self.rng = generateur(graine)
+        self.rng = generateur(graine, flux=FLUX_CHUTES)
 
         self._a_terre = np.zeros(n_agents, dtype=bool)
         self._fin_relevage = np.full(n_agents, np.nan)
@@ -126,6 +129,13 @@ class GestionnaireChutes:
                 position=position,
             )
         )
+
+    def retirer(self, agent: int) -> None:
+        """Oublie un agent qui a quitte le domaine : il n'est plus un obstacle."""
+        self._a_terre[agent] = False
+        self._fin_relevage[agent] = np.nan
+        self._positions_terre.pop(agent, None)
+        self._debut_chute.pop(agent, None)
 
     def rayons_effectifs(
         self, rayons_nominaux: np.ndarray, instant: float | None = None
@@ -237,10 +247,11 @@ class GestionnaireChutes:
         # 1. Relevage des agents du groupe dont le temps est ecoule
         for ag in idx:
             if self._a_terre[ag] and instant >= self._fin_relevage[ag] - 1e-12:
-                self._a_terre[ag] = False
-                self._fin_relevage[ag] = np.nan
-                self._positions_terre.pop(ag, None)
-                self._debut_chute.pop(ag, None)
+                self.retirer(int(ag))
+
+        # Un corps au sol peut etre pousse par la projection : l'obstacle le suit.
+        for loc in np.flatnonzero(self._a_terre[idx]):
+            self._positions_terre[int(idx[loc])] = (float(x[loc, 0]), float(x[loc, 1]))
 
         debout_masque = ~self._a_terre[idx]
         locaux_debout = np.flatnonzero(debout_masque)
