@@ -6,7 +6,7 @@ et la création de son tag annoté et de sa release. Les critères du jalon rest
 [planning](planning/README.md) suit les tâches et [CONTRIBUTING § 3.4](../CONTRIBUTING.md#34-passer-de-dev-à-main)
 décrit les opérations de publication.
 
-## Registre au 21 octobre 2026
+## Registre au 3 novembre 2026
 
 | Jalon | État technique | Publication |
 |---|---|---|
@@ -14,7 +14,9 @@ décrit les opérations de publication.
 | 1 — moteur | Livré sur `main` par #1, correctif Makefile #2/#3 inclus | [`jalon-1`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-1), commit `28252ef6d196caec847e6f957e7282152cf98449` ; repère historique créé le 21 octobre |
 | 2 — exclusion | Validé avec limites connues ; corrections et figures #21–#23, correctifs #28 | [`jalon-2`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-2), publication de rattrapage du 21 octobre ; [provenance, mesures et limites](releases/jalon-2.md) |
 | 3 — guidage et milieux | En cours : adhérence et couloir G1/G5 livrés ; eikonal G2 et pilier livrés (#43/#49) ; géométrie/carte/guidage piscine livrés (#54), calibration C6 et scénario complet ouverts | Reste sur `dev`, pas de tag de jalon terminé |
-| 4 à 6 | Scénario complet, campagnes et livrables finaux à réaliser | Non publiés |
+| 4 — scénario piscine | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85) et repère de #11 ouverts | Non publié |
+| 5 — campagnes | En cours : E0 (#56), E1/E2 (#77, #86) et premiers balayages E3/E4 (#84) ; campagne finale à faire (#59) | Non publié |
+| 6 — livrables | Rapport en cours ; transparents à préparer | Non publié |
 
 Les anciennes versions restent consultables ; elles ne doivent pas être présentées comme
 la version courante ni comme une validation des travaux ultérieurs. La date de création d'un
