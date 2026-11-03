@@ -23,6 +23,11 @@ function Show-Help {
     Write-Host "  install     Cree l'environnement virtuel et installe le projet en mode editable"
     Write-Host "  test        Lance la suite de tests rapides (hors scenarios lents)"
     Write-Host "  test-all    Lance tous les tests, scenarios lents compris"
+    Write-Host "  test-invariants  Lance uniquement les invariants physiques"
+    Write-Host "  test-lents  Lance uniquement les scenarios lents"
+    Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut)"
+    Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut)"
+    Write-Host "  comparer    Compare la piscine seche et mouillee sur dix graines (E1/E2)"
     Write-Host "  lint        Verifie le style et le formatage avec ruff"
     Write-Host "  format      Reformate le code avec ruff"
     Write-Host "  valider     Rejoue les criteres de validation du moteur, chiffres"
@@ -97,6 +102,33 @@ switch ($Command) {
     "test-all" {
         Write-Host "==> Execution de l'ensemble des tests..." -ForegroundColor Green
         Invoke-Py -BaseArgs @("-m", "pytest") -MoreArgs $ExtraArgs
+    }
+
+    "test-invariants" {
+        Invoke-Py -BaseArgs @("-m", "pytest", "-m", "invariant") -MoreArgs $ExtraArgs
+    }
+
+    "test-lents" {
+        Invoke-Py -BaseArgs @("-m", "pytest", "-m", "slow") -MoreArgs $ExtraArgs
+    }
+
+    "simu" {
+        $Config = if ($ExtraArgs) { $ExtraArgs[0] } else { "experiments/piscine.yaml" }
+        $Nom = [IO.Path]::GetFileNameWithoutExtension($Config)
+        $Sortie = "data/$Nom-$(Get-Date -Format 'yyyyMMdd-HHmmss').npz"
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs @()
+    }
+
+    "rejouer" {
+        $Archive = if ($ExtraArgs) { $ExtraArgs[0] } else {
+            Get-ChildItem data/*.npz -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+        }
+        if (-not $Archive) { throw "Aucune archive dans data/ : lancer d'abord .\run.ps1 simu" }
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer", "$Archive") -MoreArgs @()
+    }
+
+    "comparer" {
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "comparer-piscine", "experiments/piscine.yaml", "--graines", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10") -MoreArgs @()
     }
 
     "lint" {

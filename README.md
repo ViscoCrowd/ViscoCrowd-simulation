@@ -456,6 +456,8 @@ le **[registre des livraisons](docs/livraisons.md)**.
 ```bash
 make install     # environnement de développement
 make test        # suite de tests
+make simu        # lance une simulation de la piscine, archivée dans data/
+make rejouer     # relit la dernière archive à l'écran
 make lint        # ruff
 make valider     # critères de validation du moteur, chiffrés
 make figures     # régénère toutes les figures

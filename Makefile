@@ -20,10 +20,16 @@ endif
 # qu'on s'en apercoive.
 VISCO_PY ?= $(BIN)/python
 
-.PHONY: help install test lint format valider interface figures report docker clean
+# Simulation lancee par `make simu`, et archive relue par `make rejouer`. L'heure dans
+# le nom evite de refuser le second lancement : une archive n'est jamais ecrasee.
+CONFIG  ?= experiments/piscine.yaml
+SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell date +%Y%m%d-%H%M%S).npz
+ARCHIVE ?= $(shell ls -t data/*.npz 2>/dev/null | head -n 1)
+
+.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer comparer interface figures report docker clean
 
 help:  ## Affiche cette aide
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
 
 install:  ## Cree l'environnement et installe le projet
 	$(PYTHON) -m venv $(VENV)
@@ -36,6 +42,12 @@ test:  ## Lance la suite de tests (hors scenarios lents)
 test-all:  ## Lance tous les tests, scenarios lents compris
 	$(VISCO_PY) -m pytest
 
+test-invariants:  ## Lance uniquement les invariants physiques
+	$(VISCO_PY) -m pytest -m invariant
+
+test-lents:  ## Lance uniquement les scenarios lents
+	$(VISCO_PY) -m pytest -m slow
+
 lint:  ## Verifie le style et le formatage
 	$(VISCO_PY) -m ruff check .
 	$(VISCO_PY) -m ruff format --check .
@@ -46,6 +58,16 @@ format:  ## Reformate le code
 
 valider:  ## Rejoue les criteres de validation du moteur, chiffres
 	$(VISCO_PY) -m viscocrowd.cli valider-moteur
+
+simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
+	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
+
+rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut)
+	@test -n "$(ARCHIVE)" || { echo "Aucune archive dans data/ : lancer d'abord make simu"; exit 1; }
+	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE)
+
+comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
+	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
 
 interface:  ## Ouvre l'apercu de la piscine (affichage local)
 	$(VISCO_PY) -m viscocrowd.cli interface
