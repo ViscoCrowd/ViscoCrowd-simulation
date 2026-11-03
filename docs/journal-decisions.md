@@ -11,6 +11,45 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-10-27 — Campagne de référence E1/E2 (10 graines) et analyse dans le rapport
+
+**Contexte.** Suite à l'implémentation du protocole apparié E1/E2, les sections 6.2 (Effet de l'extraction
+répartie) et 6.4 (Effet de l'inertie du carrelage mouillé) du rapport LaTeX (`report/sections/06-resultats.tex`)
+devaient être complétées avec les résultats numériques issus d'une campagne sur dix graines.
+
+**Décision.**
+1. Exécuter la campagne appariée sur dix graines distinctes (1 à 10) pour $N=100$ agents avec la configuration
+   de référence : `viscocrowd comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10`.
+2. Consigner les estimateurs (moyenne, écart-type, extrêmes et écart apparié $\Delta = \text{E2} - \text{E1}$)
+   de $t_{50}$, $t_{90}$, $t_{100}$, du temps d'attente en eau, de la traversée de plage et du débit spécifique
+   $J_s = \Delta N/(\Delta t_{\text{flux}}\,b)$ (`debit_seyfried`) dans le rapport, en précisant que la
+   régulation vitesse–espacement de Tordeux (#57) n'est pas encore disponible sur le scénario piscine.
+3. Conclure sur l'absence d'effet inertiel macroscopique en régime nominal (`facteur_vitesse = 1.0`,
+   $s = 1{,}34\text{ m/s}$) pour deux raisons complémentaires cohérentes avec #26 et #72 : d'une part, en ligne
+   droite, l'accélération requise ($s/\tau = 2{,}68\text{ m/s}^2$) reste sous le seuil d'adhérence du carrelage
+   mouillé ($3{,}3\text{ m/s}^2$, qui n'est dépassé en ligne droite qu'au-delà de $a_{\max}\tau = 1{,}65\text{ m/s}$,
+   et n'est atteint à vitesse nominale que ponctuellement lors de virages serrés d'angle $\gtrsim 76^\circ$,
+   soit $0{,}03\,\%$ des pas) ; d'autre part, la bande mouillée de $3\text{ m}$ est séparée de la porte par
+   $17\text{ m}$ de plage sèche sur lesquels ces transitoires locaux s'amortissent avant le goulot.
+
+**Pourquoi.** Le passage à dix graines suit la règle fixée à l'issue de l'étalonnage E0 (où trois graines
+restaient sensibles jusqu'à $15\,\%$ au tirage initial) afin de stabiliser les moyennes et de mesurer un écart
+apparié graine par graine. Documenter ce résultat négatif en marche nominale répond directement aux consignes
+du projet en délimitant les conditions (facteur de panique $> 1{,}23$, contraste de vitesse ou zone mouillée
+proche de la porte) nécessaires pour que le patinage affecte le temps d'évacuation dans E3/E4.
+
+**Options écartées.**
+- *Se contenter de trois graines comme dans E0* : insuffisant pour conclure sur la nullité d'un écart apparié
+  face à la variabilité du placement initial dans un bassin de $25\text{ m} \times 12{,}5\text{ m}$.
+- *Afficher une ligne « Adhérence seule » séparée de E2 dans le tableau du rapport* : dans
+  `experiments/piscine.yaml`, `MOUILLE` et `SEC` ont la même vitesse souhaitée ($1{,}34\text{ m/s}$) et le même
+  temps de relaxation ($0{,}5\text{ s}$), de sorte que `adherence` et `complet` sont la même simulation ; les
+  séparer dans le tableau laisserait croire à une décomposition des mécanismes qui n'a pas eu lieu.
+- *Modifier `facteur_vitesse` ou la géométrie dès E2 pour forcer un écart non nul* : dénaturerait le rôle de E2,
+  qui doit évaluer la configuration nominale de référence avant les balayages paramétriques E3 et E4.
+
+---
+
 ## 2026-10-27 — Protocole apparié E1/E2 de comparaison piscine sèche vs mouillée
 
 **Contexte.** Dans le cadre de l'issue #59 (jalon J5, tâche M5) et pour répondre à la question
