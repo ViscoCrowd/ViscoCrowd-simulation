@@ -376,3 +376,24 @@ def test_simulation_reelle_espacee_refusee_par_observables(configuration_piscine
     # K = 2 est refuse
     with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
         franchissements_trajectoire(archive_espace, porte_a, porte_b)
+
+
+@pytest.mark.parametrize("legende", [None, ["a", "b"], "eau plage"])
+def test_etats_sans_legende_refuses(legende):
+    """Sans legende, les codes ne disent rien : on refuse plutot que de deviner."""
+    metadonnees = {"archivage": {"tous_les_pas": 1, "dt_simulation_s": 0.01}}
+    if legende is not None:
+        metadonnees["etats"] = legende
+    traj = Trajectoire(
+        t=np.array([0.0]),
+        x=np.array([[[1.0, 1.0]]]),
+        v=np.zeros((1, 1, 2)),
+        rayons=np.array([0.2]),
+        metadonnees=metadonnees,
+        etats=np.array([[0]], dtype=np.int64),
+    )
+    zone = Rectangle(0.0, 2.0, 0.0, 2.0)
+    with pytest.raises(ValueError, match="sans legende"):
+        densite_comptage_trajectoire(traj, zone, indice=0)
+    with pytest.raises(ValueError, match="sans legende"):
+        serie_densite_comptage_trajectoire(traj, zone)
