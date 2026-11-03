@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
 from viscocrowd.model.espacement import facteur_espacement, jeu_au_meneur
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
@@ -75,7 +76,7 @@ class TestMeneur:
 
     def test_meme_resultat_que_la_recherche_exhaustive(self):
         """La recherche par paires proches rend les memes jeux que toutes les paires."""
-        rng = np.random.default_rng(1)
+        rng = generateur(1)
         x = rng.uniform(0.0, 6.0, size=(120, 2))
         r = rng.uniform(0.15, 0.25, size=120)
         e = rng.normal(size=(120, 2))
