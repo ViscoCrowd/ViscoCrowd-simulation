@@ -89,8 +89,16 @@ script : [`mesures/sensibilite-archivage-2026-11-03`](mesures/sensibilite-archiv
 
 Les deux colonnes de droite sont des moyennes sur les graines ; les deux autres sont des maxima.
 Le pic de densité perd en moyenne 8 % à K = 100, et jusqu'à 0,208 pers/m² sur une graine ; la
-vitesse maximale perd 8 %. L'écart sur une sortie reste de l'ordre de K·dt. Les 100 sorties sont
-retrouvées, et les passages à travers une ligne placée 10 m avant la porte ne changent pas.
+vitesse maximale perd 8 %. La zone de comptage fait 9,6 m² : un baigneur vaut 0,104 pers/m², donc
+ces écarts représentent 1,2 baigneur en moyenne et 2 au plus. La mesure porte sur ce comptage et
+sur la vitesse par différences finies : ces pourcentages ne se transposent pas à Voronoï.
+
+L'écart sur une sortie reste de l'ordre de K·dt. À K = 1, il vaut déjà environ un pas : un agent
+sorti est replacé au point `dehors`, et l'observable interpole le passage vers ce point, pas sur sa
+vraie trajectoire. Les 100 sorties sont retrouvées, et les passages à travers une ligne placée 10 m
+avant la porte ne changent pas.
+
+Pour reproduire : `python docs/mesures/sensibilite-archivage-2026-11-03/mesurer.py experiments/piscine.yaml <bilan.json>`.
 
 **Décision : garder le refus.** Les temps d'évacuation exacts sont déjà dans les événements, et
 une archive complète de 100 agents pèse 7 Mo : rien n'oblige à mesurer sur une archive espacée. Ce

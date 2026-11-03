@@ -2,6 +2,11 @@
 
 Rejoue des evacuations completes, puis ne garde qu'une image sur K, comme le ferait
 `--archiver-tous K`. Reference : les memes mesures sur toutes les images (K = 1).
+
+Depuis la racine du depot, sur une copie sans modification locale :
+
+    python docs/mesures/sensibilite-archivage-2026-11-03/mesurer.py experiments/piscine.yaml \\
+        docs/mesures/sensibilite-archivage-2026-11-03/resultats.json
 """
 
 import json
@@ -11,19 +16,20 @@ from pathlib import Path
 import numpy as np
 
 from viscocrowd.io.configuration import lire_configuration
+from viscocrowd.io.provenance import provenance_code
 from viscocrowd.observables.debit import debit_specifique, franchissements
 from viscocrowd.observables.densite import Rectangle, densite_comptage
 from viscocrowd.observables.sortie import sorties_definitives
 from viscocrowd.scenarios.piscine import PLAGE, ParametresPiscine, simuler_piscine
 
 GRAINES, ESPACEMENTS = range(1, 11), (1, 2, 5, 10, 25, 50, 100)
-c = lire_configuration(Path(sys.argv[1]))["parametres"]
+source = Path(sys.argv[1])
+c = lire_configuration(source)["parametres"]
+code = provenance_code()  # lu avant le calcul, comme pour les archives
 lignes = []
 for g in GRAINES:
     r = simuler_piscine(ParametresPiscine(**c, graine=g))
-    p = r.parametres
-    dt = p.dt
-    pi = p.piscine
+    pi = r.parametres.piscine
     a, b = pi.porte
     xl = pi.longueur_emprise - 10.0
     A, B = np.array([xl, 0.0]), np.array([xl, pi.largeur_emprise])
@@ -31,7 +37,7 @@ for g in GRAINES:
     exact = r.sorties
     for K in ESPACEMENTS:
         i = np.unique(np.r_[np.arange(0, r.t.size, K), r.t.size - 1])
-        t, x, e, v = r.t[i], r.x[i], r.etats[i], r.v[i]
+        t, x, e = r.t[i], r.x[i], r.etats[i]
         s = sorties_definitives(t, x, a, b)
         f = franchissements(t, x, A, B)
         duree = r.t[-1] + 1.0
@@ -52,7 +58,7 @@ for g in GRAINES:
                 "t50": s.temps_evacuation(0.5),
                 "t90": s.temps_evacuation(0.9),
                 "t100": s.temps_evacuation(1.0),
-                "passages_ligne": f.nombre if hasattr(f, "nombre") else int(f.agent.size),
+                "passages_ligne": int(f.agent.size),
                 "debit_ligne": debit_specifique(f, pi.largeur_emprise, 0.0, duree),
                 "densite_pic": float(dens.max()),
                 "vitesse_max_plage": float(np.linalg.norm(d, axis=-1)[plage].max()),
@@ -61,7 +67,13 @@ for g in GRAINES:
     print(g, flush=True)
 Path(sys.argv[2]).write_text(
     json.dumps(
-        {"parametres": "experiments/piscine.yaml", "graines": list(GRAINES), "lignes": lignes},
+        {
+            "configuration": source.as_posix(),
+            "parametres": c,
+            "code": code,
+            "graines": list(GRAINES),
+            "lignes": lignes,
+        },
         indent=1,
     )
     + "\n",
