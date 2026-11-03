@@ -58,6 +58,49 @@ Une porte encombrée, avec du mouillé devant, reste à tester.
 
 ---
 
+## 2026-10-27 — Intégration des chutes au scénario piscine et carte 2D des incidents
+
+**Contexte.** Le module `viscocrowd.model.chutes` a défini la cinématique et les probabilités
+de chute, de trébuchement en cascade et de contournement réactif. Il restait à l'intégrer
+dans la boucle de simulation temporelle complète de la piscine (`viscocrowd.scenarios.piscine`)
+et à visualiser la répartition spatiale des incidents par rapport aux carrelages mouillés et à la sortie.
+
+**Décision.**
+1. Ajouter le paramètre optionnel `chutes: ParametresChutes | dict | None` dans `ParametresPiscine`
+   et exposer `ResultatPiscine.chutes`.
+2. Interfacer le gestionnaire avec la dynamique de plage : application de la vitesse désirée modifiée
+   (contournement tangentiel + arrêt au sol) et des rayons effectifs aux agents actifs. Le chemin
+   passe par la direction, avant la relaxation : modifier la vitesse libre arrêtait un agent en un
+   seul pas, sans borne d'adhérence (décélération médiane mesurée de 15 m/s² pour a_max de 3,3 à 5,9).
+3. Pour amortir la discontinuité géométrique de la projection de contact aux parois du bassin lors
+   d'une chute au sol, l'expansion du rayon d'exclusion s'étale continûment sur une courte durée
+   d'affaissement ($0{,}25\text{ s}$).
+4. Créer la fonction de visualisation `figure_carte_chutes(resultat, destination)` traçant les
+   murs d'enceinte, le bassin, la zone de carrelage mouillé, la porte et les points d'incident
+   discriminés par leur cause (glissade vs domino).
+5. Module désactivé par défaut (`chutes: null`) : sans lui, les trajectoires ne changent pas. Son
+   inclusion dans le rendu reste à décider (#19).
+
+**Mesures.** 100 baigneurs, 10 graines, paramètres par défaut non calibrés.
+
+| Facteur de panique | dt (s) | Chutes par évacuation (moyenne ± erreur standard) | Glissades, total sur 10 graines | Violation de paroi max (m) |
+|---|---|---|---|---|
+| 1 | 0,01 | 0 | 0 | 7,2·10⁻¹⁶ |
+| 1,5 | 0,01 | 67,9 ± 21,3 | 48 | 1,8·10⁻¹⁵ |
+| 1,5 | 0,005 | 46,1 ± 12,5 | 46 | 1,8·10⁻¹⁵ |
+| 1,5 | 0,0025 | 49,2 ± 14,1 | 46 | 1,8·10⁻¹⁵ |
+
+Les glissades ne dépendent pas de dt, et un test à excès constant retrouve la loi attendue aux trois
+pas. Les totaux restent compatibles entre eux, mais cette mesure ne permet pas de conclure plus
+finement : une graine va de 0 à 184 chutes.
+
+**Limites.** Plus de 90 % des chutes au facteur 1,5 sont des cascades : ce résultat dépend de
+`λ_domino` et du contournement, qui ne sont pas calibrés. Près d'un bord, le rayon qui grandit fait
+repousser le corps par la projection, jusqu'à 0,4 m/s pendant 0,25 s. La chute par bousculade et les
+observables de cascade ne sont pas implémentées. Aucun de ces chiffres n'est un résultat du rapport.
+
+---
+
 ## 2026-10-27 — Modélisation des chutes, effet domino et contournement réactif
 
 **Contexte.** Addendum à la spécification (`docs/modele-chutes.md`). Sur sol à faible adhérence

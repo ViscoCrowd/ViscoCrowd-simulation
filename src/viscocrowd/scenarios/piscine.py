@@ -37,7 +37,7 @@ Les franchissements et les sorties sont enregistres comme evenements.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields
 
 import numpy as np
 
@@ -47,6 +47,7 @@ from viscocrowd.core.state import State
 from viscocrowd.geometry.piscine import NATURES, Piscine
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
+from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
 from viscocrowd.observables.sortie import Sorties
@@ -74,9 +75,17 @@ class ParametresPiscine:
     tolerance: float
     pas_guidage: float
     graine: int
+    chutes: ParametresChutes | dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        if self.chutes is not None:
+            if isinstance(self.chutes, dict):
+                object.__setattr__(self, "chutes", ParametresChutes(**self.chutes))
+            elif not isinstance(self.chutes, ParametresChutes):
+                raise ValueError(
+                    "chutes doit etre un dictionnaire ou une instance de ParametresChutes"
+                )
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -149,6 +158,8 @@ class ParametresPiscine:
     def en_dictionnaire(self) -> dict:
         """Parametres effectifs, serialisables en JSON (milieux par nom)."""
         resultat = {f.name: getattr(self, f.name) for f in fields(self) if f.init}
+        if self.chutes is not None:
+            resultat["chutes"] = asdict(self.chutes)
         resultat["geometrie"] = {
             **self.geometrie,
             "echelles": [list(e) for e in self.piscine.echelles],
@@ -204,6 +215,7 @@ class ResultatPiscine:
     projection: ProjectionExclusion
     parametres: ParametresPiscine
     violation_tous_pas: float | None = None
+    chutes: tuple[EvenementChute, ...] = ()
 
     def violation_paroi_max(self) -> float:
         """Plus grand depassement des murs, sur tous les agents actifs et tous les instants."""
@@ -282,8 +294,35 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     guidage = GuidagePiscine(
         piscine, p.parametres_milieux, p.rayon, p.pas_guidage, p.durees, p.facteur_vitesse
     )
+    gestionnaire = (
+        GestionnaireChutes(p.n_agents, p.chutes, p.graine) if p.chutes is not None else None
+    )
+    actifs = np.empty(0, dtype=np.int64)  # relu par la direction, a chaque pas
+
+    def direction_avec_chutes(etat_courant: State) -> np.ndarray:
+        """Direction modifiee AVANT la relaxation, pour que a_max borne aussi la chute.
+
+        Modifier la vitesse libre arreterait un agent qui tombe en un seul pas. Un agent
+        au sol n'a plus de direction et freine donc comme les autres ; celui qui contourne
+        tourne sa direction unitaire. Les nageurs ne voient pas les corps sur la plage.
+        """
+        direction = guidage(etat_courant)
+        sur_plage = etat[actifs] == PLAGE
+        if np.any(sur_plage):
+            direction[sur_plage] = gestionnaire.vitesses_desirees_effectives(
+                x=etat_courant.x[sur_plage],
+                vitesse_desiree_nominale=direction[sur_plage],
+                rayons_nominaux=r[actifs[sur_plage]],
+                indices=actifs[sur_plage],
+            )
+        return direction
+
+    carte = CartePiscine(piscine)
     libre = pas_libre_milieux(
-        guidage, CartePiscine(piscine), p.parametres_milieux, facteur_vitesse=p.facteur_vitesse
+        guidage if gestionnaire is None else direction_avec_chutes,
+        carte,
+        p.parametres_milieux,
+        facteur_vitesse=p.facteur_vitesse,
     )
     projection = ProjectionExclusion(piscine.projeter, tolerance=p.tolerance, strict=True)
     sites = guidage.sites
@@ -318,9 +357,31 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     for pas in range(1, n_pas + 1):
         actifs = np.flatnonzero((etat == EAU) | (etat == PLAGE))
         avant = x.copy()
+        # Rayons imposes pendant ce pas : les corps au sol occupent plus de place.
+        r_pas = r if gestionnaire is None else gestionnaire.rayons_effectifs(r, instant=t)
         if actifs.size:
+            if gestionnaire is not None:
+                plagistes = actifs[etat[actifs] == PLAGE]
+                if plagistes.size > 0:
+                    sols = [p.parametres_milieux[Milieu(m)] for m in carte(x[plagistes])]
+                    direction = guidage(
+                        State(x=x[plagistes], v=v[plagistes], r=r_pas[plagistes], t=t)
+                    )
+                    vitesses = p.facteur_vitesse * np.array([sol.vitesse for sol in sols])
+                    gestionnaire.mettre_a_jour(
+                        instant=t,
+                        dt=p.dt,
+                        x=x[plagistes],
+                        v=v[plagistes],
+                        vitesse_desiree=vitesses[:, None] * direction,
+                        a_max=np.array([sol.acceleration_max for sol in sols]),
+                        tau=np.array([sol.relaxation for sol in sols]),
+                        rayons_nominaux=r[plagistes],
+                        indices=plagistes,
+                    )
+
             nouveau = pas_semi_implicite(
-                State(x=x[actifs], v=v[actifs], r=r[actifs], t=t), p.dt, libre, projection
+                State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t), p.dt, libre, projection
             )
             # Deplacement MESURE, corrections de contact comprises : le controle de dt
             # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
@@ -340,13 +401,20 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             sorties[i] = t - p.dt + s * p.dt
             etat[i] = SORTI
             x[i], v[i] = dehors, 0.0
+            if gestionnaire is not None:
+                gestionnaire.retirer(int(i))
 
         # Fins de franchissement : reintroduction des que le point d'arrivee est libre.
         for k in np.flatnonzero((occupant >= 0) & (fin <= t + 1e-12)):
             i = occupant[k]
             sur_place = np.flatnonzero((etat == EAU) | (etat == PLAGE))
             if sur_place.size:
-                ecart = np.hypot(*(x[sur_place] - arrivees[k]).T) - r[sur_place] - r[i]
+                r_eff = (
+                    gestionnaire.rayons_effectifs(r, instant=t)[sur_place]
+                    if gestionnaire is not None
+                    else r[sur_place]
+                )
+                ecart = np.hypot(*(x[sur_place] - arrivees[k]).T) - r_eff - r[i]
                 if np.min(ecart) < -p.tolerance:
                     continue  # place occupee : l'agent attend sur le bord, le site reste pris
             etat[i], x[i], v[i] = PLAGE, arrivees[k], 0.0
@@ -371,7 +439,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         verifier_coherence(etat, occupant, site_agent, x, piscine)
         actifs = (etat == EAU) | (etat == PLAGE)
         if np.any(actifs):
-            violation = max(violation, piscine.violation(x[actifs], r[actifs], t))
+            violation = max(violation, piscine.violation(x[actifs], r_pas[actifs], t))
         fini = np.all(etat == SORTI)
         if pas % archiver_tous == 0 or pas == n_pas or fini:
             historique_t.append(t)
@@ -393,4 +461,5 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         projection=projection,
         parametres=p,
         violation_tous_pas=violation,
+        chutes=gestionnaire.historique if gestionnaire is not None else (),
     )

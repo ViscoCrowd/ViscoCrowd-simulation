@@ -186,8 +186,14 @@ def _configuration_effective(config: dict, p) -> dict:
 
 
 def _evenements_piscine(resultat: ResultatPiscine) -> dict:
-    """Franchissements et sorties en JSON ; un agent jamais sorti a une sortie nulle."""
+    """Franchissements, sorties et chutes eventuelles en JSON ; sortie nulle si jamais sorti."""
+    chutes = (
+        {"chutes": [asdict(evenement) for evenement in resultat.chutes]}
+        if resultat.parametres.chutes is not None
+        else {}
+    )
     return {
+        **chutes,
         "franchissements": [
             {
                 "agent": int(a),

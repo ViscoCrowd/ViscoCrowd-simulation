@@ -10,6 +10,14 @@ avec avis de l'enseignant et décision du groupe avant toute affectation de date
 
 ---
 
+**Ce qui est implémenté.** Glissade (§ 1), état à terre et domino (§ 3), relevage (§ 4) et
+contournement (§ 5), sur la seule plage de la piscine. La chute par bousculade (§ 2) et les
+observables de cascade (§ 6) ne le sont pas. `λ_chute`, `λ_domino`, `r_terre` et les paramètres du
+contournement restent des valeurs par défaut non calibrées (§ 8) : aucun chiffre obtenu avec ce
+module ne peut encore servir de résultat.
+
+---
+
 ## Pourquoi ce module change la nature du projet
 
 La zone de carrelage mouillé était modélisée par une simple borne sur l'accélération disponible.

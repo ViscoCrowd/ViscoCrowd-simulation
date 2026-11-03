@@ -442,6 +442,98 @@ def figure_comparaison_mouille(
     return _enregistrer(fig, destination, "fig07_mouille_un_parametre")
 
 
+def figure_carte_chutes(
+    resultat,
+    destination: Path,
+    nom: str = "fig_carte_chutes",
+) -> Path:
+    """Carte 2D des incidents de chutes (glissades et trebuchements domino)."""
+    piscine = resultat.parametres.piscine
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+
+    # Murs de l'enceinte
+    ax.plot(
+        [0, piscine.longueur_emprise, piscine.longueur_emprise, 0, 0],
+        [0, 0, piscine.largeur_emprise, piscine.largeur_emprise, 0],
+        color="#343a40",
+        lw=2,
+        label="Murs de l'enceinte",
+    )
+
+    # Bassin
+    b = piscine.bassin
+    ax.add_patch(
+        plt.Rectangle(
+            (b.x_min, b.y_min),
+            b.x_max - b.x_min,
+            b.y_max - b.y_min,
+            color="#a5d8ff",
+            alpha=0.6,
+            label="Bassin",
+        )
+    )
+
+    # Bande de carrelage mouille
+    lm = piscine.largeur_mouillee
+    ax.add_patch(
+        plt.Rectangle(
+            (b.x_min - lm, b.y_min - lm),
+            (b.x_max - b.x_min) + 2 * lm,
+            (b.y_max - b.y_min) + 2 * lm,
+            fill=False,
+            edgecolor="#1971c2",
+            linestyle="--",
+            lw=1.5,
+            label=f"Carrelage mouillé ({lm:.1f} m)",
+        )
+    )
+
+    # Porte
+    pa, pb = piscine.porte
+    ax.plot([pa[0], pb[0]], [pa[1], pb[1]], color="#2b8a3e", lw=4, label="Porte (sortie)")
+
+    # Evenements de chutes
+    chutes = resultat.chutes
+    if chutes:
+        pos_glissade = [c.position for c in chutes if c.cause == "glissade"]
+        pos_domino = [c.position for c in chutes if c.cause == "domino"]
+        if pos_glissade:
+            xs, ys = zip(*pos_glissade, strict=False)
+            ax.scatter(
+                xs,
+                ys,
+                c="#f76707",
+                s=60,
+                marker="o",
+                edgecolors="black",
+                label=f"Glissades ({len(pos_glissade)})",
+                zorder=5,
+            )
+        if pos_domino:
+            xs, ys = zip(*pos_domino, strict=False)
+            ax.scatter(
+                xs,
+                ys,
+                c="#e03131",
+                s=70,
+                marker="^",
+                edgecolors="black",
+                label=f"Effet domino ({len(pos_domino)})",
+                zorder=6,
+            )
+
+    ax.set_aspect("equal")
+    ax.set_xlabel("x (m)")
+    ax.set_ylabel("y (m)")
+    ax.set_title(
+        f"Carte 2D des chutes — {len(chutes)} chutes ({resultat.parametres.n_agents} agents)",
+        fontsize=10,
+    )
+    ax.legend(loc="upper left", framealpha=0.9, fontsize=8)
+    fig.tight_layout()
+    return _enregistrer(fig, destination, nom)
+
+
 TOUTES_LES_FIGURES = (
     figure_respect_contrainte,
     figure_energie,
