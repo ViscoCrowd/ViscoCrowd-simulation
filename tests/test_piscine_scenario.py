@@ -127,7 +127,7 @@ def test_conservation_population_et_monotonie_des_sorties(evacuation):
     # Invariant de conservation a chaque instant enregistre
     assert np.all(actifs + franchissement + sortis == n)
 
-    # Monotonie stricte de la courbe des sortis (etat absorbant)
+    # Courbe non decroissante, avec paliers entre sorties (etat absorbant)
     assert np.all(np.diff(sortis) >= 0)
     assert sortis[0] == 0
     assert sortis[-1] == n
