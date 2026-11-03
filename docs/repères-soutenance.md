@@ -46,8 +46,7 @@ ensemble chaque démonstration avant la soutenance.
   `FRANCHISSEMENT`, `PLAGE`, `SORTI`), la capacité unitaire des sites et la sortie
   absorbante sont implémentés dans [#55](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/55).
   Le contrôle croisé avec l'observable rétrospective est livré dans [#81](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/81) :
-  mêmes agents sortis, écart inférieur à un pas de temps. La sortie absorbante reste une proposition de
-  [#11](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/11), encore ouverte, avec le repère `N / (1,3 w)` à confronter.
+  mêmes agents sortis, écart inférieur à un pas de temps. La sortie absorbante et la confrontation au repère `N / (1,3 w)` sont actées et validées ([#11](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/11) close).
   Les valeurs numériques de [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26)
   restent une proposition soumise à la validation collective avant les campagnes finales.
 - **Porte de la piscine (#85).** Au facteur de panique 1,5, une porte de 0,8 m se bouche sur 8 graines

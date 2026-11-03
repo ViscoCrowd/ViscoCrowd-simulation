@@ -139,6 +139,41 @@ def test_etats_retrouves_depuis_les_evenements(evacuation):
     assert np.all(r.x[..., 0][r.etats != SORTI] < x_porte)
 
 
+def test_confrontation_repere_analytique_debit(evacuation):
+    """Confrontation au repere analytique N / (J_s * w) (#11).
+
+    En ingenierie de l'evacuation (Weidmann 1993), le debit specifique d'une issue
+    de largeur w en regime permanent sature est usuellement evalue a
+    J_s ~= 1,3 pers/(m*s). Pour N agents, la duree de vidange continue theorique
+    vaut T_theorique = N / (1,3 * w).
+
+    Sur la piscine :
+    - avec 20 agents disperses dans le bassin, l'arrivee a la porte est etalee
+      par la nage et l'extraction, donc l'intervalle de flux effectif depasse
+      la duree permanente saturee (arrivees par intermittence) ;
+    - a 100 agents (campagne E1), la phase d'ecoulement est plus dense et
+      l'absence de regulation produit un flux superieur a 1,3 pers/(m*s).
+    """
+    r = evacuation
+    n = r.parametres.n_agents
+    w = np.linalg.norm(r.parametres.piscine.porte[1] - r.parametres.piscine.porte[0])
+    assert w == pytest.approx(1.2)
+
+    # Duree theorique permanente saturee a 1,3 pers/(m*s)
+    t_theo_flux = n / (1.3 * w)
+    assert t_theo_flux == pytest.approx(20.0 / (1.3 * 1.2))
+
+    sorties = r.sorties[np.isfinite(r.sorties)]
+    assert sorties.size == n
+    dt_flux = np.max(sorties) - np.min(sorties)
+
+    # Arrivees etalees par la traversee aquatique et les echelles :
+    # l'ecoulement intermittent dure plus longtemps que le regime continu theorique
+    assert dt_flux > t_theo_flux
+    # Mais le temps d'evacuation totale reste borne et physiquement coherent (< 60 s pour 20 agents)
+    assert r.temps_evacuation() < 60.0
+
+
 def test_le_partage_vers_les_echelles_suit_leur_duree():
     """Echelles plus rapides : plus d'agents les choisissent (partage emergent, spec 2.6)."""
     nombre = {}

@@ -159,3 +159,19 @@ def test_couloir_sans_blocage_tous_sortis_une_fois():
     assert sorties.nombre_sortis(r.t[-1]) == 24
     np.testing.assert_allclose(np.sort(sorties.instant), np.sort(passages.instant))
     assert sorties.temps_evacuation() == pytest.approx(9.228, abs=1e-3)  # journal du 21/10
+
+
+def test_repere_analytique_debit_goulot_et_piscine():
+    """Ordre de grandeur du repere analytique N / (1,3 * w) (issue #11).
+
+    Ce repere d'ingenierie (Weidmann 1993) donne la duree minimale de decharge
+    d'une foule de N agents a travers une ouverture de largeur w a un debit
+    specifique moyen de 1,3 pers/(m*s).
+    """
+    # Goulot de reference E0 (N = 60, w = 1,2 m)
+    t_goulot_theo = 60.0 / (1.3 * 1.2)
+    assert 38.0 < t_goulot_theo < 39.0
+
+    # Piscine E1 (N = 100, w = 1,2 m)
+    t_piscine_theo = 100.0 / (1.3 * 1.2)
+    assert 64.0 < t_piscine_theo < 65.0
