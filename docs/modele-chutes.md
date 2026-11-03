@@ -1,12 +1,20 @@
 # Modèle de chute, de relevage et de contournement
 
 **Addendum à la [spécification de conception](superpowers/specs/2026-10-06-viscocrowd-design.md)**
-Statut : implémenté dans viscocrowd.model.chutes · 27 octobre 2026
+Statut : module facultatif, désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion dans le rendu à décider (#19) · 3 novembre 2026
 
 **Planification : extension non programmée.** Les jalons principaux ne dépendent pas de ce
 module. Son éventuelle inclusion est suivie dans l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)
 et les [pistes complémentaires du planning](planning/README.md#pistes-complémentaires-non-programmées),
 avec avis de l'enseignant et décision du groupe avant toute affectation de dates.
+
+---
+
+**Ce qui est implémenté.** Glissade (§ 1), état à terre et domino (§ 3), relevage (§ 4) et
+contournement (§ 5), sur la seule plage de la piscine. La chute par bousculade (§ 2) et les
+observables de cascade (§ 6) ne le sont pas. `λ_chute`, `λ_domino`, `r_terre` et les paramètres du
+contournement restent des valeurs par défaut non calibrées (§ 8) : aucun chiffre obtenu avec ce
+module ne peut encore servir de résultat.
 
 ---
 
