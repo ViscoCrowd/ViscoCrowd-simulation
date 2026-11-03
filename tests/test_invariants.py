@@ -7,6 +7,9 @@ non-sortie du domaine, comportement asymptotique, energie — et chacun produit
 un NOMBRE, pas une impression visuelle.
 """
 
+import ast
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -245,3 +248,85 @@ def test_convergence_en_pas_de_temps():
     assert all(np.array_equal(s, signes[0]) for s in signes), (
         f"le coin d'arrivee depend de dt : {positions_finales}"
     )
+
+
+def _emplois_numpy_random(source: str) -> list[int]:
+    """Lignes de `source` qui emploient numpy.random, annotations de type exceptees.
+
+    Une annotation comme `-> np.random.Generator` ne tire rien : elle reste permise.
+    """
+    arbre = ast.parse(source)
+    annotations = set()
+    for noeud in ast.walk(arbre):
+        for champ in ("annotation", "returns"):
+            annotation = getattr(noeud, champ, None)
+            if annotation is not None:
+                annotations.update(id(n) for n in ast.walk(annotation))
+
+    lignes = []
+    for noeud in ast.walk(arbre):
+        if id(noeud) in annotations:
+            continue
+        if isinstance(noeud, ast.Import):
+            trouve = any(a.name == "numpy.random" for a in noeud.names)
+        elif isinstance(noeud, ast.ImportFrom):
+            module = noeud.module or ""
+            trouve = module == "numpy.random" or (
+                module == "numpy" and any(a.name == "random" for a in noeud.names)
+            )
+        else:
+            trouve = (
+                isinstance(noeud, ast.Attribute)
+                and noeud.attr == "random"
+                and isinstance(noeud.value, ast.Name)
+                and noeud.value.id in ("np", "numpy")
+            )
+        if trouve:
+            lignes.append(noeud.lineno)
+    return lignes
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "np.random.default_rng(0)",
+        "np.random.uniform(0, 1)",
+        "np.random.seed(0)",
+        "np.random.Generator(np.random.PCG64(1))",
+        "numpy.random.normal()",
+        "from numpy.random import default_rng",
+        "from numpy import random",
+        "import numpy.random",
+    ],
+)
+def test_le_controle_detecte_numpy_random(source):
+    assert _emplois_numpy_random(source)
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "generateur(1).uniform(0, 1)",
+        "rng.normal()",
+        "objet.seed",
+        "def f() -> np.random.Generator: ...",
+        "def f(rng: np.random.Generator): ...",
+        "rng: np.random.Generator = generateur(1)",
+    ],
+)
+def test_le_controle_laisse_passer_le_reste(source):
+    assert not _emplois_numpy_random(source)
+
+
+@pytest.mark.invariant
+def test_aucun_appel_direct_a_numpy_random():
+    """Regle de reproductibilite : seul core.rng emploie numpy.random."""
+    racine = Path(__file__).parents[1]
+    infractions = []
+    for chemin in sorted((*racine.glob("src/**/*.py"), *racine.glob("tests/**/*.py"))):
+        if chemin == racine / "src/viscocrowd/core/rng.py":
+            continue
+        for ligne in _emplois_numpy_random(chemin.read_text(encoding="utf-8")):
+            infractions.append(f"{chemin.relative_to(racine)}:{ligne}")
+
+    assert not infractions, f"numpy.random employe hors de core.rng : {infractions}"

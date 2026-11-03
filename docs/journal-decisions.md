@@ -58,6 +58,22 @@ Une porte encombrée, avec du mouillé devant, reste à tester.
 
 ---
 
+## 2026-10-27 — Centralisation stricte du RNG et contrôle par invariant physique
+
+**Contexte.** La spécification (§4) et la checklist de relecture exigent l'absence totale d'appels
+directs à `numpy.random` pour garantir la reproductibilité absolue de tout tirage stochastique
+via `viscocrowd.core.rng.generateur`.
+
+**Décision.** Remplacer les 8 appels résiduels à `np.random.default_rng` identifiés dans les suites de tests
+(`test_eikonal.py`, `test_espacement.py`, `test_goulot.py`, `test_obstacle.py`, `test_piscine_scenario.py`,
+`test_sortie.py`) par `viscocrowd.core.rng.generateur`.
+Ajouter un test d'invariant automatique dans `test_invariants.py` analysant l'arbre syntaxique (AST)
+de tous les fichiers Python de `src/` et `tests/` pour refuser tout emploi de `numpy.random` hors de
+`core.rng`, imports compris. Seules les annotations de type restent permises : elles ne tirent rien.
+Le contrôle lit le code, pas son exécution : un alias construit dynamiquement lui échapperait.
+
+---
+
 ## 2026-10-27 — Campagne de référence E1/E2 (10 graines) et analyse dans le rapport
 
 **Contexte.** Suite à l'implémentation du protocole apparié E1/E2, les sections 6.2 (Effet de l'extraction
