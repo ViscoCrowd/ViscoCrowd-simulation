@@ -2,12 +2,14 @@
 
 Depuis la PR #70, `simuler --archiver-tous K` permet d'alleger les trajectoires piscine en
 n'enregistrant qu'une image tous les K pas physiques.
-Ce module verifie que toute fonction calculant une observable (debit, franchissement,
-sorties definitives, densite et vitesse de Voronoi, energie mecanique) :
+Ce module verifie que toute fonction calculant une observable depuis une archive
+(debit, franchissements, sorties definitives, densite et vitesse de Voronoi,
+comptage de densite, energie mecanique) :
   1. Accepte et calcule correctement les grandeurs pour une archive complete (K = 1) ;
-  2. Accepte les archives historiques sans cle 'archivage' en considerant K = 1 ;
-  3. Refuse explicitement avec ValueError une archive espacee (K >= 2), pour eviter
-     les interpolations fausses ou les franchissements manques.
+  2. Ne conserve que les baigneurs actifs (EAU ou PLAGE) pour les mesures de densite
+     et de Voronoi lorsque l'archive porte des etats ;
+  3. Refuse explicitement avec ValueError une archive espacee (K >= 2), une trajectoire
+     sans dt_simulation_s ou une trajectoire sous-echantillonnee (t[::5]).
 """
 
 from pathlib import Path
@@ -41,14 +43,12 @@ from viscocrowd.observables import (
     sorties_definitives_trajectoire,
     vitesse_voronoi_trajectoire,
 )
+from viscocrowd.scenarios.piscine import EAU, FRANCHISSEMENT, NOMS_ETATS, PLAGE, SORTI
 
 
-def _creer_trajectoire(k: int | None = 1) -> Trajectoire:
+def _creer_trajectoire(k: int | None = 1, *, p: int = 20, dt: float = 0.05) -> Trajectoire:
     """Cree une trajectoire simple de 2 agents se deplacant vers +x."""
-    p = 20
-    dt = 0.05
     t = np.arange(p, dtype=float) * dt
-    # Agent 0 demarre en (0.5, 2.0), agent 1 en (0.5, 3.0), vitesse vx = 1.0 m/s
     x = np.zeros((p, 2, 2), dtype=float)
     x[:, 0, 0] = 0.5 + t * 1.0
     x[:, 0, 1] = 2.0
@@ -59,7 +59,7 @@ def _creer_trajectoire(k: int | None = 1) -> Trajectoire:
     v[:, :, 0] = 1.0
 
     rayons = np.array([0.2, 0.2])
-    metadonnees = {
+    metadonnees: dict = {
         "scenario": "test",
         "unites": {"t": "s", "x": "m", "v": "m/s", "rayons": "m"},
     }
@@ -76,8 +76,9 @@ def _creer_trajectoire(k: int | None = 1) -> Trajectoire:
 def test_proprietes_archive_complete_et_espacee():
     traj_complete = _creer_trajectoire(k=1)
     assert traj_complete.pas_archivage == 1
+    assert traj_complete.dt_simulation == pytest.approx(0.05)
     assert traj_complete.est_complete is True
-    traj_complete.exiger_complete("test")  # ne leve pas
+    traj_complete.exiger_complete("test")
 
     traj_espacee = _creer_trajectoire(k=2)
     assert traj_espacee.pas_archivage == 2
@@ -85,14 +86,39 @@ def test_proprietes_archive_complete_et_espacee():
     with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
         traj_espacee.exiger_complete("mon observable")
 
-    traj_leguee = _creer_trajectoire(k=None)
-    assert traj_leguee.pas_archivage == 1
-    assert traj_leguee.est_complete is True
-    traj_leguee.exiger_complete("test")
+    # Sans cle archivage : pas_archivage vaut 1 par defaut mais exiger_complete refuse
+    # l'absence de dt_simulation_s permettant de certifier les pas
+    traj_sans_archivage = _creer_trajectoire(k=None)
+    assert traj_sans_archivage.pas_archivage == 1
+    assert traj_sans_archivage.est_complete is False
+    with pytest.raises(ValueError, match=r"dt_simulation_s"):
+        traj_sans_archivage.exiger_complete("test")
+
+    # Trajectoire sous-echantillonnee (t[::5]) deguisee avec metadonnees K = 1
+    traj_tronquee = Trajectoire(
+        t=traj_complete.t[::5],
+        x=traj_complete.x[::5],
+        v=traj_complete.v[::5],
+        rayons=traj_complete.rayons,
+        metadonnees=traj_complete.metadonnees,
+    )
+    assert traj_tronquee.est_complete is False
+    with pytest.raises(ValueError, match=r"ecart temporel max"):
+        traj_tronquee.exiger_complete("test")
 
     for valeur_invalide in (0, -1, True, False, 2.0, "2"):
         with pytest.raises(ValueError, match="tous_les_pas"):
             _creer_trajectoire(k=valeur_invalide)  # type: ignore[arg-type]
+
+    for dt_invalide in (0.0, -0.01, True, "0.01", float("nan")):
+        with pytest.raises(ValueError, match="dt_simulation_s"):
+            Trajectoire(
+                t=traj_complete.t,
+                x=traj_complete.x,
+                v=traj_complete.v,
+                rayons=traj_complete.rayons,
+                metadonnees={"archivage": {"tous_les_pas": 1, "dt_simulation_s": dt_invalide}},
+            )
 
     base = _creer_trajectoire(k=None)
     with pytest.raises(ValueError, match="archivage"):
@@ -136,12 +162,11 @@ class TestConsommateursObservables:
         f_direct = franchissements(traj_1.t, traj_1.x, self.a_porte, self.b_porte)
         d_direct = debit_specifique(f_direct, largeur=3.0, debut=0.0, fin=1.0)
 
-        # K = 1 : via objet Trajectoire direct
-        f_obj = franchissements(traj_1, self.a_porte, self.b_porte)
+        # K = 1 : via Trajectoire et via fichier
+        f_obj = franchissements_trajectoire(traj_1, self.a_porte, self.b_porte)
         assert f_obj.nombre == f_direct.nombre
         np.testing.assert_array_equal(f_obj.instant, f_direct.instant)
 
-        # K = 1 : via fonction specifique et chemin fichier
         chemin_1 = tmp_path / "traj1.npz"
         ecrire_trajectoire(chemin_1, traj_1)
         f_fichier = franchissements_trajectoire(chemin_1, self.a_porte, self.b_porte)
@@ -155,7 +180,7 @@ class TestConsommateursObservables:
         chemin_2 = tmp_path / "traj2.npz"
         ecrire_trajectoire(chemin_2, traj_2)
         with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
-            franchissements(traj_2, self.a_porte, self.b_porte)
+            franchissements_trajectoire(traj_2, self.a_porte, self.b_porte)
         with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
             franchissements_trajectoire(chemin_2, self.a_porte, self.b_porte)
         with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
@@ -168,11 +193,10 @@ class TestConsommateursObservables:
         traj_2 = _creer_trajectoire(k=2)
         s_direct = sorties_definitives(traj_1.t, traj_1.x, self.a_porte, self.b_porte)
 
-        # K = 1 : via objet direct
-        s_obj = sorties_definitives(traj_1, self.a_porte, self.b_porte)
+        # K = 1 : via objet et via fichier
+        s_obj = sorties_definitives_trajectoire(traj_1, self.a_porte, self.b_porte)
         np.testing.assert_array_equal(s_obj.instant, s_direct.instant)
 
-        # K = 1 : via fichier
         chemin_1 = tmp_path / "sorties1.npz"
         ecrire_trajectoire(chemin_1, traj_1)
         s_fichier = sorties_definitives_trajectoire(chemin_1, self.a_porte, self.b_porte)
@@ -182,31 +206,30 @@ class TestConsommateursObservables:
         chemin_2 = tmp_path / "sorties2.npz"
         ecrire_trajectoire(chemin_2, traj_2)
         with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
-            sorties_definitives(traj_2, self.a_porte, self.b_porte)
+            sorties_definitives_trajectoire(traj_2, self.a_porte, self.b_porte)
         with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
             sorties_definitives_trajectoire(chemin_2, self.a_porte, self.b_porte)
 
-    def test_mesures_et_densites_voronoi(self, tmp_path):
+    def test_mesures_et_densites_voronoi(self):
         traj_1 = _creer_trajectoire(k=1)
         traj_2 = _creer_trajectoire(k=2)
 
-        # Comparaison directe a l'instant indice 0 (t = 0.0)
         x0, v0 = traj_1.x[0], traj_1.v[0]
         dens_direct, vit_direct = mesures_voronoi(x0, v0, self.salle, self.zone)
         cpt_direct = densite_comptage(x0, self.zone)
 
-        # K = 1 : succes
+        # K = 1 : succes avec instant, int Python et np.int64
         d_res, v_res = mesures_voronoi_trajectoire(traj_1, self.salle, self.zone, instant=0.0)
         assert d_res == pytest.approx(dens_direct)
         assert v_res == pytest.approx(vit_direct)
 
         assert densite_voronoi_trajectoire(
-            traj_1, self.salle, self.zone, indice=0
+            traj_1, self.salle, self.zone, indice=np.int64(0)
         ) == pytest.approx(dens_direct)
         assert vitesse_voronoi_trajectoire(
             traj_1, self.salle, self.zone, indice=0
         ) == pytest.approx(vit_direct)
-        assert densite_comptage_trajectoire(traj_1, self.zone, instant=0.0) == pytest.approx(
+        assert densite_comptage_trajectoire(traj_1, self.zone, indice=np.int64(0)) == pytest.approx(
             cpt_direct
         )
 
@@ -214,11 +237,18 @@ class TestConsommateursObservables:
         assert len(t_serie) == len(traj_1.t)
         assert d_serie[0] == pytest.approx(cpt_direct)
 
+        # Tolerance sur instant avec une seule image et dt = 0,01 s
+        traj_une_image = _creer_trajectoire(k=1, p=1, dt=0.01)
+        with pytest.raises(ValueError, match=r"aucun instantane enregistre a t = 0.45 s"):
+            densite_comptage_trajectoire(traj_une_image, self.zone, instant=0.45)
+
         # Erreurs de parametres d'instant / indice
         with pytest.raises(ValueError, match=r"specifier exactement un parametre"):
             mesures_voronoi_trajectoire(traj_1, self.salle, self.zone)
         with pytest.raises(ValueError, match=r"specifier exactement un parametre"):
             mesures_voronoi_trajectoire(traj_1, self.salle, self.zone, instant=0.0, indice=0)
+        with pytest.raises(ValueError, match=r"indice doit etre un entier"):
+            densite_comptage_trajectoire(traj_1, self.zone, indice=True)  # type: ignore[arg-type]
         with pytest.raises(ValueError, match=r"aucun instantane enregistre a t = 999.0 s"):
             mesures_voronoi_trajectoire(traj_1, self.salle, self.zone, instant=999.0)
 
@@ -233,6 +263,53 @@ class TestConsommateursObservables:
             densite_comptage_trajectoire(traj_2, self.zone, instant=0.0)
         with pytest.raises(ValueError, match=r"refuse une archive espacee.*tous les 2 pas"):
             serie_densite_comptage_trajectoire(traj_2, self.zone)
+
+    def test_filtrage_etats_actifs_piscine(self):
+        """Verifie que les agents SORTI (empiles dehors) et FRANCHISSEMENT sont exclus."""
+        # 4 agents sur 2 instants :
+        # - agents 0 et 1 : actifs sur la PLAGE en (1.0, 2.0) et (1.5, 3.0)
+        # - agent 2 : en FRANCHISSEMENT dans la zone en (1.2, 2.5)
+        # - agents 3 et 4 : SORTI empiles au meme point dehors (49.0, 10.25)
+        t = np.array([0.0, 0.01])
+        x = np.array(
+            [
+                [[1.0, 2.0], [1.5, 3.0], [1.2, 2.5], [49.0, 10.25], [49.0, 10.25]],
+                [[1.1, 2.0], [1.6, 3.0], [1.2, 2.5], [49.0, 10.25], [49.0, 10.25]],
+            ]
+        )
+        v = np.zeros_like(x)
+        v[:, 0, 0] = 1.0
+        v[:, 1, 0] = 1.0
+        etats = np.array(
+            [
+                [EAU, PLAGE, FRANCHISSEMENT, SORTI, SORTI],
+                [EAU, PLAGE, FRANCHISSEMENT, SORTI, SORTI],
+            ],
+            dtype=np.int64,
+        )
+        traj = Trajectoire(
+            t=t,
+            x=x,
+            v=v,
+            rayons=np.full(5, 0.2),
+            metadonnees={
+                "etats": list(NOMS_ETATS),
+                "archivage": {"tous_les_pas": 1, "dt_simulation_s": 0.01},
+            },
+            etats=etats,
+        )
+
+        # Seuls les agents 0 et 1 (EAU et PLAGE) doivent etre retenus
+        d_attendue, v_attendue = mesures_voronoi(x[0, :2], v[0, :2], self.salle, self.zone)
+        d_mes, v_mes = mesures_voronoi_trajectoire(traj, self.salle, self.zone, indice=0)
+        assert d_mes == pytest.approx(d_attendue)
+        assert v_mes == pytest.approx(v_attendue)
+
+        # Comptage : l'agent 2 (FRANCHISSEMENT) bien que dans la zone ne doit pas etre compte
+        cpt_attendu = densite_comptage(x[0, :2], self.zone)
+        assert densite_comptage_trajectoire(traj, self.zone, indice=0) == pytest.approx(cpt_attendu)
+        _, serie = serie_densite_comptage_trajectoire(traj, self.zone)
+        np.testing.assert_allclose(serie, [cpt_attendu, cpt_attendu])
 
     def test_energie_mecanique(self):
         traj_1 = _creer_trajectoire(k=1)

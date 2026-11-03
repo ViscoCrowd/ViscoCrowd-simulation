@@ -101,12 +101,15 @@ class Franchissements:
 
 
 def franchissements(
-    t: np.ndarray | Trajectoire,
+    t: np.ndarray,
     x: np.ndarray,
-    a: np.ndarray | None = None,
-    b: np.ndarray | None = None,
+    a: np.ndarray,
+    b: np.ndarray,
 ) -> Franchissements:
     """Detecte tous les passages a travers le segment [a, b].
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `franchissements_trajectoire` afin de verifier que l'archive est complete (K = 1).
 
     Un agent a franchi le segment lorsque :
 
@@ -127,27 +130,18 @@ def franchissements(
     l'interieur de celui-ci.
 
     Args:
-        t: instants, de forme (P,), en s, ou objet Trajectoire complet.
+        t: instants, de forme (P,), en s.
         x: positions, de forme (P, N, 2), en metres (sortie de
-            core.integrator.trajectoire), ou premier point 'a' si t est une Trajectoire.
-        a: premiere extremite du segment, de forme (2,), en metres (ou second point 'b').
-        b: seconde extremite du segment, de forme (2,), en metres (inutilise si t est Trajectoire).
+            core.integrator.trajectoire).
+        a: premiere extremite du segment, de forme (2,), en metres.
+        b: seconde extremite du segment, de forme (2,), en metres.
 
     Returns:
         Les passages detectes, tries par instant.
 
     Raises:
-        ValueError: si a et b sont confondus, si une extremite n'est pas finie,
-            ou si une archive espacee est fournie (issue #73).
+        ValueError: si a et b sont confondus ou si une extremite n'est pas finie.
     """
-    if isinstance(t, Trajectoire):
-        t.exiger_complete("le comptage de franchissements")
-        if a is None:
-            raise ValueError("les deux extremites du segment de mesure sont requises")
-        return franchissements(t.t, t.x, x, a)
-
-    if a is None or b is None:
-        raise ValueError("les extremites a et b du segment de mesure sont requises")
     ab = _verifier_segment(a, b)
     t, x = np.asarray(t, dtype=float), np.asarray(x, dtype=float)
     c = cote(x, a, b)  # (P, N)

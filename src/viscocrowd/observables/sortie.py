@@ -93,34 +93,28 @@ class Sorties:
 
 
 def sorties_definitives(
-    t: np.ndarray | Trajectoire,
+    t: np.ndarray,
     x: np.ndarray,
-    a: np.ndarray | None = None,
-    b: np.ndarray | None = None,
+    a: np.ndarray,
+    b: np.ndarray,
 ) -> Sorties:
     """Instant de sortie definitive de chaque agent a travers le segment [a, b].
 
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `sorties_definitives_trajectoire` afin de verifier que l'archive est complete (K = 1).
+
     Args:
-        t: instants, de forme (P,), en s, ou objet Trajectoire complet.
-        x: positions, de forme (P, N, 2), en m, ou extremite 'a' si t est une Trajectoire.
-        a: extremite 'a' du segment de sortie (ou 'b' si t est Trajectoire).
-        b: extremite 'b' du segment de sortie.
+        t: instants, de forme (P,), en s.
+        x: positions, de forme (P, N, 2), en m.
+        a: extremite 'a' du segment de sortie, de forme (2,), en m.
+        b: extremite 'b' du segment de sortie, de forme (2,), en m.
 
     Returns:
         Les sorties, une valeur par agent.
 
     Raises:
-        ValueError: si les formes, valeurs finies, temps ou segment sont invalides,
-            ou si une archive espacee est fournie (issue #73).
+        ValueError: si les formes, valeurs finies, temps ou segment sont invalides.
     """
-    if isinstance(t, Trajectoire):
-        t.exiger_complete("le calcul de sorties definitives")
-        if a is None:
-            raise ValueError("les extremites a et b du segment de sortie sont requises")
-        return sorties_definitives(t.t, t.x, x, a)
-
-    if a is None or b is None:
-        raise ValueError("les extremites a et b du segment de sortie sont requises")
     t, x = np.asarray(t, dtype=float), np.asarray(x, dtype=float)
     if x.ndim != 3 or x.shape[2] != 2 or t.shape != (x.shape[0],):
         raise ValueError(

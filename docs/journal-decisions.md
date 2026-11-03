@@ -28,16 +28,30 @@ interpolations fines et la détection d'interpénétration ou de traversée de s
 - les retours brefs d'un agent après sortie ne sont plus garantis d'être détectés.
 
 **Décision.**
-1. La classe `Trajectoire` valide `archivage.tous_les_pas` (entier strictement positif) et expose
-   les propriétés `pas_archivage`, `est_complete` ainsi que la méthode `exiger_complete(observable=...)`.
-2. Toute fonction de calcul d'observable recevant une `Trajectoire` ou un fichier d'archive
-   (`franchissements_trajectoire`, `debit_specifique_trajectoire`, `sorties_definitives_trajectoire`,
-   `mesures_voronoi_trajectoire`, `densite_voronoi_trajectoire`, `vitesse_voronoi_trajectoire`,
-   `densite_comptage_trajectoire`, `energie_mecanique_trajectoire`) refuse strictement $K > 1$
-   avec une `ValueError` explicite.
-3. Les archives historiques sans champ `archivage` sont considérées complètes ($K = 1$).
-4. Pour l'énergie mécanique, une option explicite `autoriser_espace=True` est réservée aux analyses
+1. La classe `Trajectoire` valide `archivage.tous_les_pas` (entier strictement positif) et
+   `archivage.dt_simulation_s` (réel strictement positif), et expose les propriétés `pas_archivage`,
+   `dt_simulation`, `est_complete` ainsi que la méthode `exiger_complete(observable=...)`.
+2. Outre la vérification de `tous_les_pas == 1`, `exiger_complete` exige la présence de
+   `dt_simulation_s` et vérifie que $\max(\Delta t) \le \text{dt\_simulation\_s}$, détectant
+   ainsi toute trajectoire sous-échantillonnée manuellement (`t[::5]`) ou dépourvue de métadonnées
+   d'archivage.
+3. Les fonctions dédiées aux archives (`franchissements_trajectoire`, `debit_specifique_trajectoire`,
+   `sorties_definitives_trajectoire`, `mesures_voronoi_trajectoire`, `densite_voronoi_trajectoire`,
+   `vitesse_voronoi_trajectoire`, `densite_comptage_trajectoire`, `serie_densite_comptage_trajectoire`,
+   `energie_mecanique_trajectoire`) refusent strictement toute archive incomplète avec une `ValueError`
+   explicite, tandis que les fonctions bas niveau sur tableaux conservent leurs signatures intactes.
+4. Sur les archives à états (piscine), les mesures de densité et de Voronoï `*_trajectoire` ne
+   retiennent que les baigneurs actifs (`EAU` ou `PLAGE`), écartant les agents en franchissement
+   posés sur le bord et les agents sortis empilés au point `dehors`.
+5. Pour l'énergie mécanique, une option explicite `autoriser_espace=True` est réservée aux analyses
    ponctuelles conscientes de la perte des pas intermédiaires.
+
+**Options écartées.**
+- *Surcharger `franchissements` et `sorties_definitives` pour accepter une `Trajectoire` en premier
+  argument* : cela décalait le rôle positionnel de `x` et `a` et dupliquait les contrôles. Les
+  fonctions dédiées `*_trajectoire` sont plus explicites et sans ambiguïté de signature.
+- *Se fier uniquement à `tous_les_pas == 1`* : une `Trajectoire` reconstruite en mémoire avec un
+  sous-échantillonnage des tableaux aurait contourné le garde-fou sans le contrôle sur `np.diff(t)`.
 
 **Conséquence.** Les campagnes automatiques et les calculs de diagramme fondamental ne risquent
 plus d'ingérer par erreur une archive allégée destinée à la seule visualisation.

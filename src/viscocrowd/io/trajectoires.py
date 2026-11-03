@@ -54,16 +54,8 @@ class Trajectoire:
             self.etats = etats.astype(np.int64)
         if not isinstance(self.metadonnees, dict):
             raise ValueError("metadonnees doit etre un objet JSON")
-        archivage = self.metadonnees.get("archivage")
-        if archivage is not None:
-            if not isinstance(archivage, dict):
-                raise ValueError("metadonnees['archivage'] doit etre un objet JSON")
-            if "tous_les_pas" in archivage:
-                valeur = archivage["tous_les_pas"]
-                if type(valeur) is not int or valeur < 1:
-                    raise ValueError(
-                        "archivage.tous_les_pas doit etre un entier strictement positif"
-                    )
+        _ = self.pas_archivage
+        _ = self.dt_simulation
         # Verifie aussi les valeurs non finies et les objets non serialisables.
         json.dumps(self.metadonnees, allow_nan=False)
 
@@ -81,9 +73,32 @@ class Trajectoire:
         return valeur
 
     @property
+    def dt_simulation(self) -> float | None:
+        """Pas de temps physique de la simulation (en s) inscrit dans metadonnees['archivage']."""
+        archivage = self.metadonnees.get("archivage")
+        if not isinstance(archivage, dict) or "dt_simulation_s" not in archivage:
+            return None
+        dt = archivage["dt_simulation_s"]
+        if (
+            isinstance(dt, bool)
+            or not isinstance(dt, (int, float))
+            or not np.isfinite(dt)
+            or dt <= 0
+        ):
+            raise ValueError(
+                "archivage.dt_simulation_s doit etre un nombre reel strictement positif"
+            )
+        return float(dt)
+
+    @property
     def est_complete(self) -> bool:
         """Vrai si chaque pas de temps physique de la simulation est conserve."""
-        return self.pas_archivage == 1
+        if self.pas_archivage != 1:
+            return False
+        dt = self.dt_simulation
+        if dt is None:
+            return False
+        return not (self.t.size >= 2 and float(np.max(np.diff(self.t))) > dt * (1.0 + 1e-6))
 
     def exiger_complete(self, observable: str = "le calcul d'observable") -> None:
         """Refuse une archive dont les positions intermediaires sont perdues (K > 1).
@@ -92,7 +107,8 @@ class Trajectoire:
             observable: nom ou description de la mesure appelante.
 
         Raises:
-            ValueError: si l'archive est espacee (tous_les_pas > 1).
+            ValueError: si l'archive est espacee (tous_les_pas > 1), si dt_simulation_s
+                est absent, ou si les instants t presentent un ecart superieur au pas dt.
         """
         if self.pas_archivage > 1:
             raise ValueError(
@@ -100,6 +116,21 @@ class Trajectoire:
                 "les positions intermediaires sont perdues et faussent la mesure physique "
                 "(issue #73) ; relancer la simulation avec --archiver-tous 1 (par defaut)."
             )
+        dt = self.dt_simulation
+        if dt is None:
+            raise ValueError(
+                f"{observable} refuse une trajectoire sans "
+                "metadonnees['archivage']['dt_simulation_s'] permettant de verifier "
+                "que tous les pas physiques sont presents (issue #73)."
+            )
+        if self.t.size >= 2:
+            ecart_max = float(np.max(np.diff(self.t)))
+            if ecart_max > dt * (1.0 + 1e-6):
+                raise ValueError(
+                    f"{observable} refuse une archive espacee "
+                    f"(ecart temporel max {ecart_max:.4g} s > dt_simulation_s = {dt:.4g} s) : "
+                    "des pas intermediaires manquent (issue #73)."
+                )
 
 
 def charger_et_valider_complete(

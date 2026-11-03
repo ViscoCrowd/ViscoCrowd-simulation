@@ -25,7 +25,11 @@ from pathlib import Path
 import numpy as np
 
 from viscocrowd.core.state import GRAVITE
-from viscocrowd.io.trajectoires import Trajectoire
+from viscocrowd.io.trajectoires import (
+    Trajectoire,
+    charger_et_valider_complete,
+    lire_trajectoire,
+)
 
 
 def energie_mecanique(
@@ -35,6 +39,9 @@ def energie_mecanique(
     gravite: np.ndarray = GRAVITE,
 ) -> np.ndarray:
     """Energie mecanique totale du systeme, en joules.
+
+    Pour une archive sur disque ou un objet Trajectoire, utiliser
+    `energie_mecanique_trajectoire` afin de verifier que l'archive est complete (K = 1).
 
     Args:
         x: positions, de forme (..., N, 2), en metres.
@@ -79,17 +86,15 @@ def energie_mecanique_trajectoire(
     serait pas detecte. `autoriser_espace=True` permet d'evaluer l'energie ponctuelle
     aux seuls pas conserves.
     """
-    if isinstance(archive, (str, Path)):
-        from viscocrowd.io.trajectoires import lire_trajectoire
-
-        donnees = lire_trajectoire(archive)
+    if not autoriser_espace:
+        donnees = charger_et_valider_complete(archive, "le calcul de l'energie mecanique")
     elif isinstance(archive, Trajectoire):
         donnees = archive
+    elif isinstance(archive, (str, Path)):
+        donnees = lire_trajectoire(archive)
     else:
         raise TypeError(
             f"source de trajectoire invalide (attendu Trajectoire, str ou Path, "
             f"recu {type(archive).__name__})"
         )
-    if not autoriser_espace:
-        donnees.exiger_complete("le calcul de l'energie mecanique")
     return energie_mecanique(donnees.x, donnees.v, masse=masse, gravite=gravite)
