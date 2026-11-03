@@ -11,6 +11,22 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-03 — Intégrer les chutes par bousculade (§ 2) et les observables de cascade (§ 6)
+
+**Contexte.** Le module de chutes modélisait la glissade par perte d'adhérence, l'effet domino au sol, le relevage log-normal et le contournement local réactif, mais la chute directe par bousculade et compression de foule (Chen et al. 2024, § 2 de la spécification) et les observables de cascade (§ 6) n'étaient pas encore implémentés.
+
+**Décision.**
+1. **Chute par compression / bousculade** : mesurée directement par la vitesse de correction imposée par la projection vectorisée sur le pas, $v_{\text{comp}} = \|\Delta x_{\text{proj}}\| / \Delta t = \|v_{\text{nouveau}} - v_{\text{libre}}\|$. Si cette intensité dépasse le seuil paramétré `seuil_bousculade` (0,5 m/s par défaut), le risque de chute est modélisé par $p_{\text{bousculade}} = 1 - \exp(-\lambda_{\text{bousculade}} \cdot \text{excès} \cdot \Delta t)$ avec `cause = "bousculade"`. La valeur par défaut $\lambda_{\text{bousculade}} = 0$ préserve le comportement sans couplage parasite, et s'active dès que $\lambda_{\text{bousculade}} > 0$.
+2. **Observables de cascade** : ajout des fonctions `taux_de_chute` (en chutes/s), `chutes_par_cause` (glissade, domino, bousculade), `tailles_cascades` (nombre d'agents par composante connexe spatio-temporelle de chutes) et `serie_agents_a_terre` (chronologie 1D).
+3. **Validation § 7** : vérification de l'indépendance stricte du taux de chute au pas de temps ($\Delta t = 0{,}02\,\text{s}$ vs $\Delta t = 0{,}01\,\text{s}$, taux théorique de 6,0 chutes/s retrouvé à $< 5\,\%$ près), du cas limite sans chute, de la médiane de relevage à 3,7 s et de la reproductibilité par graine.
+
+**Pourquoi.** Compléter l'addendum de modélisation `docs/modele-chutes.md` (§ 2, § 6, § 7) pour disposer de tous les mécanismes requis lors des balayages et de l'analyse des mouvements de foule en panique.
+
+**Options écartées.**
+- *Calculer explicitement des forces de contact locales* : hors de notre cadre de projection géométrique dure, alors que la correction du solveur en tient lieu directement.
+
+---
+
 ## 2026-11-03 — Garder le refus des archives espacées après l'étude de sensibilité (#73)
 
 **Mesure.** Sur 10 graines, garder une image sur K déplace une sortie de l'ordre de K·dt et

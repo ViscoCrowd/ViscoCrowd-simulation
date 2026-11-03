@@ -344,6 +344,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     site_agent = np.full(n, -1, dtype=np.int64)
     sorties = np.full(n, np.nan)
     evenements: list[list[float]] = []
+    correction_derniere = np.zeros((n, 2))
 
     t = 0.0
     historique_t, historique_x, historique_v, historique_e = (
@@ -378,11 +379,16 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                         tau=np.array([sol.relaxation for sol in sols]),
                         rayons_nominaux=r[plagistes],
                         indices=plagistes,
+                        correction_projection=correction_derniere[plagistes],
                     )
 
             nouveau = pas_semi_implicite(
                 State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t), p.dt, libre, projection
             )
+            if gestionnaire is not None:
+                v_libre_actifs = libre(State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t), p.dt)
+                correction_derniere[actifs] = (nouveau.v - v_libre_actifs) * p.dt
+
             # Deplacement MESURE, corrections de contact comprises : le controle de dt
             # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
             deplacement = np.max(np.hypot(*(nouveau.x - x[actifs]).T))
@@ -403,6 +409,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             x[i], v[i] = dehors, 0.0
             if gestionnaire is not None:
                 gestionnaire.retirer(int(i))
+                correction_derniere[i] = 0.0
 
         # Fins de franchissement : reintroduction des que le point d'arrivee est libre.
         for k in np.flatnonzero((occupant >= 0) & (fin <= t + 1e-12)):
