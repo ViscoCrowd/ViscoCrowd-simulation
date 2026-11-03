@@ -1,5 +1,65 @@
 {
- "parametres": "experiments/piscine.yaml",
+ "configuration": "experiments/piscine.yaml",
+ "parametres": {
+  "geometrie": {
+   "longueur_bassin": 25.0,
+   "largeur_bassin": 12.5,
+   "plage_gauche": 3.0,
+   "plage_verticale": 4.0,
+   "plage_sortie": 20.0,
+   "largeur_porte": 1.2,
+   "profondeur_porte": 1.0,
+   "largeur_mouillee": 3.0,
+   "pas_rebord": 0.6,
+   "largeur_echelle": 0.5,
+   "echelles": [
+    [
+     "haut",
+     0.9
+    ],
+    [
+     "bas",
+     0.9
+    ]
+   ]
+  },
+  "n_agents": 100,
+  "rayon": 0.2,
+  "espacement": 1.0,
+  "bruit": 0.1,
+  "parametres_milieux": {
+   "EAU": {
+    "relaxation": 0.5,
+    "acceleration_max": 1.6,
+    "vitesse": 0.69
+   },
+   "MOUILLE": {
+    "relaxation": 0.5,
+    "acceleration_max": 3.3,
+    "vitesse": 1.34
+   },
+   "SEC": {
+    "relaxation": 0.5,
+    "acceleration_max": 5.9,
+    "vitesse": 1.34
+   }
+  },
+  "facteur_vitesse": 1.0,
+  "durees": {
+   "rebord": 4.0,
+   "echelle": 2.0
+  },
+  "portee": 0.25,
+  "dt": 0.01,
+  "duree": 180.0,
+  "tolerance": 1e-06,
+  "pas_guidage": 0.1
+ },
+ "code": {
+  "commit": "409507f0750342d32f8fabb3f19987b6321b11f5",
+  "modifications_locales": false,
+  "source": "git"
+ },
  "graines": [
   1,
   2,
