@@ -58,6 +58,47 @@ Une porte encombrée, avec du mouillé devant, reste à tester.
 
 ---
 
+## 2026-10-27 — Protocole apparié E1/E2 de comparaison piscine sèche vs mouillée
+
+**Contexte.** Dans le cadre de l'issue #59 (jalon J5, tâche M5) et pour répondre à la question
+centrale de modélisation du projet, il est nécessaire de comparer rigoureusement l'évacuation de la
+piscine sans sol mouillé (E1, carrelage mouillé = sec) et avec sol mouillé (E2).
+
+**Décision.** Implémenter le module `scenarios.comparaison_piscine` et la commande CLI
+`viscocrowd comparer-piscine`, en réutilisant `VARIANTES`, `mouille_de_variante` et
+`ProtocoleIncomplet` du banc de couloir (`scenarios.comparaison_mouille`) ainsi que l'estimateur
+`debit_seyfried` de E0 (`scenarios.goulot`). Le protocole :
+1. Apparie strictement les graines (distinctes exigées) et les populations de départ pour chaque variante,
+   vérifie la convergence stricte de la projection et refuse par `ProtocoleIncomplet` toute simulation où
+   au moins un agent n'a pas franchi le bassin ou n'est pas sorti avant la fin de l'horizon.
+2. Regroupe via `regrouper_variantes` les variantes qui produisent exactement le même `ParametresMilieu`
+   (par exemple lorsque `SEC` et `MOUILLE` partagent la même vitesse de consigne et le même temps de
+   relaxation dans `experiments/piscine.yaml`) afin de ne lancer qu'une simulation par configuration
+   physique distincte et de signaler explicitement les variantes fusionnées.
+3. Mesure sur l'ensemble des $N$ agents les quantiles de sortie définitive ($t_{50}$, $t_{90}$, $t_{100}$
+   en s), le temps moyen d'attente dans l'eau avant franchissement, la durée moyenne de traversée de la
+   plage et le débit spécifique à la porte $J_s = \Delta N / (\Delta t_{\text{flux}} \, b)$ entre la
+   première et la dernière sortie définitive, en n'archivant que le premier et le dernier pas en mémoire.
+
+**Pourquoi.** Isoler les paramètres un à un tout en fusionnant les variantes physiquement identiques
+évite à la fois les calculs redondants et l'illusion d'avoir séparé des mécanismes confondus dans la
+configuration ; exiger la sortie complète de tous les agents et réutiliser `debit_seyfried` garantit que
+les moyennes portent sur la même population et que le débit à la porte utilise le même estimateur qu'en E0.
+
+**Options écartées.**
+- *Moyenner les seuls agents sortis à la fin de l'horizon et compter les `non_sortis` à part* : si une
+  variante laisse des agents dans le bassin ou sur la plage, ses moyennes portent sur le sous-ensemble
+  des agents les plus rapides et ne sont plus comparables aux autres variantes. Lever `ProtocoleIncomplet`
+  aligne la piscine sur le banc de couloir (#50).
+- *Estimer le débit à la porte par $(\Delta N - 1) / (\Delta t_{\text{flux}} \, b)$* : introduit un biais
+  systématique d'un facteur $(N - 1)/N$ par rapport à l'estimateur $\Delta N / (\Delta t_{\text{flux}} \, b)$
+  retenu dans E0 (`debit_seyfried`), ce qui empêche de confronter directement les débits du chapitre 6.
+- *Simuler systématiquement les six variantes sans déduplication* : triple le temps de calcul lorsque
+  seule l'adhérence diffère entre `SEC` et `MOUILLE` et présente dans le tableau des lignes identiques
+  par construction.
+
+---
+
 ## 2026-10-25 — Vérifier les milieux dans la piscine complète (G3)
 
 **But.** Fermer la dernière vérification de G3 (#26). Il faut s'assurer que, pendant une

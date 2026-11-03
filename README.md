@@ -79,6 +79,8 @@ pip install -e ".[dev]"
 viscocrowd valider-moteur --figures
 ```
 
+Sous Windows (PowerShell), un script d'aide `.\run.ps1` fournit les raccourcis équivalents au `Makefile` (`.\run.ps1 test`, `.\run.ps1 lint`, `.\run.ps1 valider`, `.\run.ps1 report`, etc.). Les arguments qui suivent `test` sont transmis à pytest (`.\run.ps1 test -v -k milieu`). Si Windows bloque le script (politique d'exécution `Restricted`, fréquente sur les postes gérés) : `powershell -ExecutionPolicy Bypass -File .\run.ps1 test`.
+
 ### Exécuter une configuration et relire une trajectoire
 
 Les bancs `bille_boite`, `tassement` et `couloir` disposent de configurations YAML en unités SI :
@@ -136,6 +138,9 @@ validation actuels ; l'exploitation automatique des archives par les futures cam
 reste à raccorder. Ces configurations ne produisent pas de nouvelles figures du rapport.
 
 **Dépendances** — Python ≥ 3.12, NumPy, SciPy, Matplotlib, PyYAML.
+Une projection non convergée conserve un [diagnostic rejouable](docs/diagnostic-projection.md)
+à côté de la sortie demandée, pour examiner le résidu sans relancer toute la simulation.
+
 Versions exactes figées dans [`requirements.lock.txt`](requirements.lock.txt).
 
 Pour exécuter plusieurs configurations et reprendre les calculs manquants après une
