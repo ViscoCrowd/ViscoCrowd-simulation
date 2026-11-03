@@ -9,7 +9,7 @@ Les créneaux futurs et les affectations marquées **(proposé)** sont une propo
 
 Convention de planification : **S1 commence le mardi 6 octobre 2026**, date de la spécification.
 C'est un repère de calendrier, pas une preuve de la date réelle de début des travaux ou de
-l'acceptation du sujet. Au 21 octobre, nous sommes en S3. Les jalons 1 et 2 sont déjà livrés,
+l'acceptation du sujet. Au 3 novembre, nous sommes en S5. Les jalons 1 et 2 sont déjà livrés,
 en avance sur les cibles S2–S5 du planning initial ; leurs créneaux ne restent donc pas réservés
 à du développement déjà terminé.
 
