@@ -62,8 +62,9 @@ function Invoke-Py {
 # pour eux les options de pytest qui commencent pareil : `test -v` perdait son -v,
 # `test -p no:cacheprovider` echouait. On lit donc $args a la main.
 $Commandes = @(
-    "help", "install", "test", "test-all", "lint", "format",
-    "valider", "interface", "figures", "report", "docker", "clean"
+    "help", "install", "test", "test-all", "test-invariants", "test-lents",
+    "lint", "format", "valider", "simu", "rejouer", "comparer",
+    "interface", "figures", "report", "docker", "clean"
 )
 $Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
 $ExtraArgs = @(if ($args.Count -gt 1) { $args[1..($args.Count - 1)] })  # @() : jamais $null
@@ -121,7 +122,10 @@ switch ($Command) {
 
     "rejouer" {
         $Archive = if ($ExtraArgs) { $ExtraArgs[0] } else {
-            Get-ChildItem data/*.npz -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+            # Les diagnostics de projection (#69) ne sont pas des trajectoires.
+            Get-ChildItem data/*.npz -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -notlike '*.diagnostic.npz' } |
+                Sort-Object LastWriteTime | Select-Object -Last 1
         }
         if (-not $Archive) { throw "Aucune archive dans data/ : lancer d'abord .\run.ps1 simu" }
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer", "$Archive") -MoreArgs @()

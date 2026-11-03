@@ -458,6 +458,9 @@ make install     # environnement de développement
 make test        # suite de tests
 make simu        # lance une simulation de la piscine, archivée dans data/
 make rejouer     # relit la dernière archive à l'écran
+make comparer    # compare la piscine sèche et mouillée sur dix graines (E1/E2)
+make test-invariants  # seulement les invariants physiques
+make test-lents  # seulement les scénarios lents
 make lint        # ruff
 make valider     # critères de validation du moteur, chiffrés
 make figures     # régénère toutes les figures

@@ -22,9 +22,13 @@ VISCO_PY ?= $(BIN)/python
 
 # Simulation lancee par `make simu`, et archive relue par `make rejouer`. L'heure dans
 # le nom evite de refuser le second lancement : une archive n'est jamais ecrasee.
+# Heure et derniere archive sont calculees par Python, deja requis : sous PowerShell,
+# seul Git\cmd est dans le PATH par defaut, `ls` n'existe pas et `date` est la
+# commande Windows qui demande une nouvelle date. Les diagnostics de projection
+# (*.diagnostic.npz, #69) ne sont pas des trajectoires : ils sont ecartes.
 CONFIG  ?= experiments/piscine.yaml
-SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell date +%Y%m%d-%H%M%S).npz
-ARCHIVE ?= $(shell ls -t data/*.npz 2>/dev/null | head -n 1)
+SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import datetime as d; print(d.datetime.now().isoformat(timespec='seconds').replace(':', '').replace('-', '').replace('T', '-'))").npz
+ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
 .PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer comparer interface figures report docker clean
 
@@ -63,7 +67,7 @@ simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
 	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
 
 rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut)
-	@test -n "$(ARCHIVE)" || { echo "Aucune archive dans data/ : lancer d'abord make simu"; exit 1; }
+	$(if $(strip $(ARCHIVE)),,$(error Aucune archive dans data/ : lancer d'abord make simu))
 	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE)
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
