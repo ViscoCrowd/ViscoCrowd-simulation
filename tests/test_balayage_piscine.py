@@ -86,6 +86,28 @@ class TestAppariement:
         )
         assert {p.facteur_vitesse for p in appels} == {1.5}
 
+    def test_relaxation_commune_aux_trois_sols_et_au_temoin(self, configuration, appels):
+        """tau est le meme partout (journal du 6 novembre) : le balayage le change partout.
+
+        Sinon on comparerait un mouille a tau = 0,3 s a un temoin sec a tau = 0,5 s, et
+        l'ecart melangerait l'effet de tau et celui du sol.
+        """
+        balayage.balayer(configuration, "relaxation", [0.3, 1.0], [1])
+
+        assert len(appels) == 4  # deux valeurs, un mouille et un temoin chacune
+        for p in appels:
+            taus = {m: q.relaxation for m, q in p.parametres_milieux.items()}
+            assert len(set(taus.values())) == 1, taus
+        assert sorted({p.parametres_milieux[Milieu.SEC].relaxation for p in appels}) == [0.3, 1.0]
+        # Seul tau change : l'adherence et la vitesse du mouille restent celles du YAML.
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
+
+    def test_relaxation_plus_courte_que_dt_refusee_avant_calcul(self, configuration, appels):
+        with pytest.raises(ValueError, match="relaxation"):
+            balayage.balayer(configuration, "relaxation", [0.5, 0.005], [1])
+        assert appels == []
+
     def test_configuration_d_entree_intacte(self, configuration, appels):
         avant = json.dumps(configuration, sort_keys=True)
         balayage.balayer(
