@@ -65,12 +65,18 @@ UNITES = {"t50": "s", "t90": "s", "t100": "s", "debit": "pers/(m.s)", "non_sorti
 
 @dataclass(frozen=True)
 class ParametreBalaye:
-    """Un parametre que l'on peut balayer, et ou il se trouve dans le YAML."""
+    """Un parametre que l'on peut balayer, et ou il se trouve dans le YAML.
+
+    `autres_chemins` : champs qui recoivent la meme valeur, pour un parametre commun a
+    plusieurs milieux (tau est le meme sur l'eau, le mouille et le sec, journal du
+    6 novembre 2026). Le temoin sec en herite, puisqu'il recopie le sec.
+    """
 
     campagne: str
     unite: str
     description: str
     chemin: tuple[str, ...]
+    autres_chemins: tuple[tuple[str, ...], ...] = ()
 
 
 PARAMETRES = {
@@ -97,6 +103,19 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    # Pas mesure sur les sols de la piscine : on verifie que les conclusions tiennent
+    # quand tau varie (helbing2000 prend 0,5 s). Un tau plus court rend les agents plus
+    # vifs, donc l'adherence limite plus souvent.
+    "relaxation": ParametreBalaye(
+        "M9",
+        "s",
+        "temps de relaxation tau, commun a l'eau, au mouille et au sec (sensibilite)",
+        ("parametres_milieux", "EAU", "relaxation"),
+        (
+            ("parametres_milieux", "MOUILLE", "relaxation"),
+            ("parametres_milieux", "SEC", "relaxation"),
+        ),
+    ),
     # Pas un parametre physique : il sert a verifier que les ecarts ne dependent pas
     # du pas de temps (spec § 5), et a fixer un pas plus fin quand la panique l'exige.
     "dt": ParametreBalaye("M9", "s", "pas de temps (sensibilite numerique)", ("dt",)),
@@ -134,6 +153,14 @@ def _remplacer(table: dict, chemin: tuple[str, ...], valeur) -> dict:
     if tete not in table:
         raise ValueError(f"la configuration n'a pas de champ {'.'.join(chemin)}")
     return table | {tete: _remplacer(table[tete], tuple(reste), valeur) if reste else valeur}
+
+
+def _appliquer(parametres: dict, nom: str, valeur) -> dict:
+    """Copie des parametres ou `nom` vaut `valeur`, dans tous les champs qu'il designe."""
+    parametre = PARAMETRES[nom]
+    for chemin in (parametre.chemin, *parametre.autres_chemins):
+        parametres = _remplacer(parametres, chemin, valeur)
+    return parametres
 
 
 def temoin(parametres: dict) -> dict:
@@ -230,11 +257,11 @@ def planifier(
         if nom == parametre:
             raise ValueError(f"{nom} est le parametre balaye : il ne peut pas etre fixe")
         (valeur,) = _valeurs_valides(nom, [valeur])
-        parametres = _remplacer(parametres, PARAMETRES[nom].chemin, valeur)
+        parametres = _appliquer(parametres, nom, valeur)
 
     plan = []
     for valeur in valeurs:
-        base = _remplacer(parametres, PARAMETRES[parametre].chemin, valeur)
+        base = _appliquer(parametres, parametre, valeur)
         couples = [
             (ParametresPiscine(**base, graine=g), ParametresPiscine(**temoin(base), graine=g))
             for g in graines
