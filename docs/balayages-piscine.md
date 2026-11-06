@@ -57,13 +57,13 @@ Avant de lancer, appliquer les valeurs du moment dans `experiments/piscine.yaml`
 Au 6 novembre, il reste à passer `EAU.acceleration_max` de 1,6 à 1,67 m/s² (journal des
 décisions).
 
-Une valeur par terminal pour paralléliser. Chaque commande enchaîne 20 évacuations, car le
+Mêmes graines 1 à 10 que les balayages M6, une valeur par terminal pour paralléliser. Chaque commande enchaîne 20 évacuations, car le
 témoin dépend de τ et est recalculé à chaque valeur :
 
 ```bash
-viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.3   --sortie data/m9/relaxation-0.3.json
-viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.5   --sortie data/m9/relaxation-0.5.json
-viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 1.0   --sortie data/m9/relaxation-1.0.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.3 --graines 1 2 3 4 5 6 7 8 9 10 --sortie data/m9/relaxation-0.3.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.5 --graines 1 2 3 4 5 6 7 8 9 10 --sortie data/m9/relaxation-0.5.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 1.0 --graines 1 2 3 4 5 6 7 8 9 10 --sortie data/m9/relaxation-1.0.json
 ```
 
 τ doit rester supérieur ou égal à `dt` : une valeur plus petite est refusée avant tout calcul.
