@@ -59,6 +59,8 @@ jamais supprimées**. Tout passe par une pull request.
 | `fix/` | correction d'un comportement faux |
 | `exp/` | campagne de simulation, exploration de paramètres |
 | `docs/` | rapport, cahier des charges, journal des décisions |
+| `test/` | test seul, sans changement du code testé |
+| `refac/` | réorganisation du code, sans changement de comportement |
 | `chore/` | outillage, CI, dépendances |
 | `release/` | instantané de jalon à publier, uniquement si un rattrapage est nécessaire |
 | `sync/` | resynchronisation de `main` vers `dev` après publication |

@@ -107,6 +107,8 @@ class GuidagePiscine:
         sur_plage = (np.hypot(*(piscine.projeter_plage(points, r) - points).T) <= 1e-12) & (
             piscine.bassin.distance(points) >= rayon - 1e-9
         )  # arrondis : 3 - 2,8 < 0,2
+        for obs in piscine.obstacles:
+            sur_plage = sur_plage & (obs.distance(points) >= rayon - 1e-9)
         table = np.zeros(max(Milieu) + 1)
         for milieu, s in vitesse.items():
             table[milieu] = s
