@@ -343,6 +343,16 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
     )
+    # La bousculade lit la correction de projection du pas : on garde la vitesse libre
+    # calculee par le pas lui-meme, au lieu de rappeler le guidage (revue de #102).
+    bousculade = gestionnaire is not None and gestionnaire.parametres.lambda_bousculade > 0.0
+    derniere_v_libre: list[np.ndarray] = []
+
+    def libre_memorisee(etat_courant: State, dt: float) -> np.ndarray:
+        v_libre = libre(etat_courant, dt)
+        derniere_v_libre[:] = [v_libre]
+        return v_libre
+
     projection = ProjectionExclusion(piscine.projeter, tolerance=p.tolerance, strict=True)
     sites = guidage.sites
     attentes = np.array([s.attente(p.rayon) for s in sites])
@@ -363,6 +373,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     site_agent = np.full(n, -1, dtype=np.int64)
     sorties = np.full(n, np.nan)
     evenements: list[list[float]] = []
+    correction_derniere = np.zeros((n, 2))
 
     t = 0.0
     historique_t, historique_x, historique_v, historique_e = (
@@ -397,11 +408,22 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                         tau=np.array([sol.relaxation for sol in sols]),
                         rayons_nominaux=r[plagistes],
                         indices=plagistes,
+                        correction_projection=correction_derniere[plagistes],
                     )
 
             nouveau = pas_semi_implicite(
-                State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t), p.dt, libre, projection
+                State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t),
+                p.dt,
+                libre_memorisee if bousculade else libre,
+                projection,
             )
+            if bousculade:
+                # Correction du SEUL pas ecoule : un agent immobile pendant ce pas (sur le
+                # bord, en franchissement) n'en a aucune. Sans remise a zero, un baigneur
+                # reintroduit sur la plage relisait celle de son dernier pas dans l'eau.
+                correction_derniere.fill(0.0)
+                correction_derniere[actifs] = (nouveau.v - derniere_v_libre[0]) * p.dt
+
             # Deplacement MESURE, corrections de contact comprises : le controle de dt
             # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
             deplacement = np.max(np.hypot(*(nouveau.x - x[actifs]).T))
