@@ -341,6 +341,16 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
     )
+    # La bousculade lit la correction de projection du pas : on garde la vitesse libre
+    # calculee par le pas lui-meme, au lieu de rappeler le guidage (revue de #102).
+    bousculade = gestionnaire is not None and gestionnaire.parametres.lambda_bousculade > 0.0
+    derniere_v_libre: list[np.ndarray] = []
+
+    def libre_memorisee(etat_courant: State, dt: float) -> np.ndarray:
+        v_libre = libre(etat_courant, dt)
+        derniere_v_libre[:] = [v_libre]
+        return v_libre
+
     projection = ProjectionExclusion(piscine.projeter, tolerance=p.tolerance, strict=True)
     sites = guidage.sites
     attentes = np.array([s.attente(p.rayon) for s in sites])
@@ -400,11 +410,17 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                     )
 
             nouveau = pas_semi_implicite(
-                State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t), p.dt, libre, projection
+                State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t),
+                p.dt,
+                libre_memorisee if bousculade else libre,
+                projection,
             )
-            if gestionnaire is not None:
-                v_libre_actifs = libre(State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t), p.dt)
-                correction_derniere[actifs] = (nouveau.v - v_libre_actifs) * p.dt
+            if bousculade:
+                # Correction du SEUL pas ecoule : un agent immobile pendant ce pas (sur le
+                # bord, en franchissement) n'en a aucune. Sans remise a zero, un baigneur
+                # reintroduit sur la plage relisait celle de son dernier pas dans l'eau.
+                correction_derniere.fill(0.0)
+                correction_derniere[actifs] = (nouveau.v - derniere_v_libre[0]) * p.dt
 
             # Deplacement MESURE, corrections de contact comprises : le controle de dt
             # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
@@ -426,7 +442,6 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             x[i], v[i] = dehors, 0.0
             if gestionnaire is not None:
                 gestionnaire.retirer(int(i))
-                correction_derniere[i] = 0.0
 
         # Fins de franchissement : reintroduction des que le point d'arrivee est libre.
         for k in np.flatnonzero((occupant >= 0) & (fin <= t + 1e-12)):

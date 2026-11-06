@@ -280,7 +280,12 @@ class GestionnaireChutes:
         indices: np.ndarray | None = None,
         correction_projection: np.ndarray | None = None,
     ) -> list[EvenementChute]:
-        """Met a jour le relevage, evalue les glissades, le domino et les bousculades."""
+        """Met a jour le relevage, evalue les glissades, le domino et les bousculades.
+
+        `correction_projection` : deplacement (N, 2), en m, impose par la projection au pas
+        PRECEDENT, nul pour un agent immobile pendant ce pas. Il comprend les murs, le bord
+        du bassin et les obstacles, pas seulement les contacts (docs/modele-chutes.md, § 2).
+        """
         nouvelles_chutes: list[EvenementChute] = []
         idx = np.asarray(indices) if indices is not None else np.arange(x.shape[0])
 
