@@ -20,10 +20,20 @@ endif
 # qu'on s'en apercoive.
 VISCO_PY ?= $(BIN)/python
 
-.PHONY: help install test lint format valider interface figures report docker clean
+# Simulation lancee par `make simu`, et archive relue par `make rejouer`. L'heure dans
+# le nom evite de refuser le second lancement : une archive n'est jamais ecrasee.
+# Heure et derniere archive sont calculees par Python, deja requis : sous PowerShell,
+# seul Git\cmd est dans le PATH par defaut, `ls` n'existe pas et `date` est la
+# commande Windows qui demande une nouvelle date. Les diagnostics de projection
+# (*.diagnostic.npz, #69) ne sont pas des trajectoires : ils sont ecartes.
+CONFIG  ?= experiments/piscine.yaml
+SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import datetime as d; print(d.datetime.now().isoformat(timespec='seconds').replace(':', '').replace('-', '').replace('T', '-'))").npz
+ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
+
+.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer comparer interface figures report docker clean
 
 help:  ## Affiche cette aide
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
 
 install:  ## Cree l'environnement et installe le projet
 	$(PYTHON) -m venv $(VENV)
@@ -36,6 +46,12 @@ test:  ## Lance la suite de tests (hors scenarios lents)
 test-all:  ## Lance tous les tests, scenarios lents compris
 	$(VISCO_PY) -m pytest
 
+test-invariants:  ## Lance uniquement les invariants physiques
+	$(VISCO_PY) -m pytest -m invariant
+
+test-lents:  ## Lance uniquement les scenarios lents
+	$(VISCO_PY) -m pytest -m slow
+
 lint:  ## Verifie le style et le formatage
 	$(VISCO_PY) -m ruff check .
 	$(VISCO_PY) -m ruff format --check .
@@ -46,6 +62,16 @@ format:  ## Reformate le code
 
 valider:  ## Rejoue les criteres de validation du moteur, chiffres
 	$(VISCO_PY) -m viscocrowd.cli valider-moteur
+
+simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
+	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
+
+rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut)
+	$(if $(strip $(ARCHIVE)),,$(error Aucune archive dans data/ : lancer d'abord make simu))
+	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE)
+
+comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
+	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
 
 interface:  ## Ouvre l'apercu de la piscine (affichage local)
 	$(VISCO_PY) -m viscocrowd.cli interface

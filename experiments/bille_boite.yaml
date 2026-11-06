@@ -1,0 +1,15 @@
+# Banc de validation, unites SI ; aucun tirage aleatoire.
+version: 1
+scenario: bille_boite
+graine: null
+parametres:
+  demi_largeur: 1.0       # m
+  rayon: 0.05            # m
+  masse: 1.0             # kg
+  omega: 0.0             # rad/s : boite fixe, energie decroissante
+  theta0: 0.0            # rad
+  dt: 1.0e-3             # s
+  duree: 2.0             # s
+  position_initiale: [0.3, 0.5]  # m
+  vitesse_initiale: [0.0, 0.0]   # m/s
+  gravite: [0.0, -9.81]         # m/s^2

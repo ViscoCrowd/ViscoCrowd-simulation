@@ -189,12 +189,314 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     valider.set_defaults(fonction=commande_valider_moteur)
 
+    # Chaque module declare sa sous-commande ; noms qualifies, les deux fonctions
+    # portant le meme nom.
+    from viscocrowd.scenarios import balayage_piscine, campagne, performances
+
+    performances.ajouter_commande(sous)
+    balayage_piscine.ajouter_commande(sous)
     interface = sous.add_parser(
         "interface", help="ouvre une maquette visuelle de la piscine, sans simulation"
     )
     interface.set_defaults(fonction=commande_interface)
 
+    campagne.ajouter_commande(sous)
+
+    simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
+    simuler.add_argument(
+        "--archiver-tous", type=int, default=1, help="piscine : un instant sur K pas"
+    )
+    simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
+    simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
+    simuler.set_defaults(fonction=commande_simuler)
+
+    rejouer = sous.add_parser(
+        "rejouer", help="relit une trajectoire couloir ou piscine, sans recalcul"
+    )
+    rejouer.add_argument("archive", type=Path)
+    rejouer.add_argument("--gif", type=Path, help="export GIF hors ecran")
+    rejouer.add_argument("--image", type=Path, help="export PNG hors ecran")
+    rejouer.add_argument("--instant", type=float, default=0.0, help="instant du PNG, en secondes")
+    rejouer.add_argument("--vitesse", type=float, default=1.0, help="facteur de vitesse de lecture")
+    rejouer.set_defaults(fonction=commande_rejouer)
+
+    comparer = sous.add_parser(
+        "comparer-mouille",
+        help="effet du sol mouille sur le couloir, un parametre a la fois",
+    )
+    comparer.add_argument("configuration", type=Path, help="configuration YAML du couloir")
+    comparer.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines du placement (defaut : celle de la configuration, puis 1 a 4)",
+    )
+    comparer.add_argument("--figure", type=Path, help="repertoire ou ecrire la figure 7")
+    comparer.set_defaults(fonction=commande_comparer_mouille)
+
+    comparer_piscine = sous.add_parser(
+        "comparer-piscine",
+        help="E1/E2 : comparaison appariee piscine seche vs mouillee, un parametre a la fois",
+        description=(
+            "E1/E2 : comparaison appariee piscine seche vs mouillee, un parametre a la fois."
+        ),
+    )
+    comparer_piscine.add_argument(
+        "configuration", type=Path, help="configuration YAML de la piscine"
+    )
+    comparer_piscine.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines distinctes du placement (defaut : celle de la configuration)",
+    )
+    comparer_piscine.add_argument(
+        "--variantes",
+        nargs="+",
+        help="variantes a comparer (defaut : toutes les variantes)",
+    )
+    comparer_piscine.set_defaults(fonction=commande_comparer_piscine)
+
+    etalonner = sous.add_parser(
+        "etalonner-goulot",
+        help="E0 : debit specifique d'un goulot sec, compare a Seyfried et al. (2009)",
+    )
+    etalonner.add_argument("configuration", type=Path, help="configuration YAML du goulot")
+    etalonner.add_argument(
+        "--largeurs",
+        type=float,
+        nargs="+",
+        default=[0.8, 0.9, 1.0, 1.1, 1.2],
+        help="largeurs b du goulot, en m (defaut : celles du protocole)",
+    )
+    etalonner.add_argument(
+        "--graines",
+        type=int,
+        nargs="+",
+        help="graines distinctes (defaut : celle de la configuration et les deux suivantes)",
+    )
+    etalonner.set_defaults(fonction=commande_etalonner_goulot)
+
+    from viscocrowd.io.diagnostic_projection import ajouter_commande
+
+    ajouter_commande(sous)
     return analyseur
+
+
+def _moyenne_ecart(valeurs: list[float]) -> str:
+    """« moyenne ± ecart-type » sur les valeurs finies, ou « - » s'il n'y en a aucune."""
+    valeurs = np.array([v for v in valeurs if np.isfinite(v)])
+    if valeurs.size == 0:
+        return "-"
+    ecart = np.std(valeurs, ddof=1) if valeurs.size > 1 else 0.0
+    return f"{np.mean(valeurs):.2f} ± {ecart:.2f}"
+
+
+def _etendue(valeurs: list[float]) -> str:
+    """« min -- max » sur les valeurs finies, ou « - » s'il n'y en a aucune."""
+    finies = np.array([v for v in valeurs if np.isfinite(v)])
+    if finies.size == 0:
+        return "-"
+    return f"{np.min(finies):.2f} -- {np.max(finies):.2f}"
+
+
+def commande_etalonner_goulot(args: argparse.Namespace) -> int:
+    """Tableau du debit specifique simule face aux mesures de Seyfried et al. (2009)."""
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.scenarios.goulot import STATUTS, etalonner, reference_seyfried
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        graine = configuration["graine"]
+        graines = args.graines or [graine, graine + 1, graine + 2]
+        resultats = etalonner(configuration, args.largeurs, graines)
+    except (OSError, KeyError, TypeError, ValueError) as erreur:
+        print(f"Etalonnage refuse : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"E0, goulot sec — {n_agents} agents, graines {graines}")
+    print("Regimes par largeur : e ecoulement, b bouchage, i insuffisant, n non convergence.")
+    print("J_s comme Seyfried (premier au dernier passage) ; 80 % centraux : diagnostic.")
+    print(
+        f"{'b (m)':>6} {'e/b/i/n':>9} {'J_s simule (pers/(m.s))':>24} "
+        f"{'80 % centraux':>14} {f'Seyfried N={n_agents}':>15}"
+    )
+    for b, mesures in resultats.items():
+        regimes = "/".join(str(sum(m.statut == s for m in mesures)) for s in STATUTS)
+        ecoulements = [m for m in mesures if m.statut == "ecoulement"]
+        simule = _moyenne_ecart([m.debit for m in ecoulements])
+        central = _moyenne_ecart([m.debit_central for m in ecoulements])
+        # Seyfried n'a mesure que N = 20, 40 et 60 : pas de reference pour un autre N.
+        reference = reference_seyfried(n_agents, b)
+        reference = f"{reference:.2f}" if reference is not None else "-"
+        print(f"{b:>6.2f} {regimes:>9} {simule:>24} {central:>14} {reference:>15}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
+
+
+def commande_comparer_mouille(args: argparse.Namespace) -> int:
+    """Tableau, et figure facultative, de la comparaison sec / mouille."""
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.scenarios.comparaison_mouille import MESURES, UNITES, comparer
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        if configuration["scenario"] != "couloir":
+            raise ValueError("la comparaison attend une configuration du scenario couloir")
+        graines = args.graines or [configuration["graine"], 1, 2, 3, 4]
+        resultats = comparer(configuration, graines)
+    except (OSError, KeyError, ValueError) as erreur:
+        print(f"Comparaison refusee : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"Sol mouille, un parametre a la fois — {n_agents} agents, graines {graines}")
+    print(f"{'variante':>18} " + " ".join(f"{m + ' (' + UNITES[m] + ')':>22}" for m in MESURES))
+    for nom, valeurs in resultats.items():
+        cellules = []
+        for k in range(len(MESURES)):
+            moyenne = np.mean(valeurs[:, k])
+            ecart = np.std(valeurs[:, k], ddof=1) if len(graines) > 1 else 0.0
+            cellules.append(f"{moyenne:>12.3f} ± {ecart:<7.3f}")
+        print(f"{nom:>18} " + " ".join(cellules))
+    if args.figure:
+        from viscocrowd.viz.figures import figure_comparaison_mouille
+
+        print(f"Figure : {figure_comparaison_mouille(resultats, n_agents, args.figure)}")
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
+
+
+def commande_comparer_piscine(args: argparse.Namespace) -> int:
+    """Tableau de la comparaison appariee piscine seche vs mouillee (E1/E2)."""
+    from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.io.configuration import lire_configuration
+    from viscocrowd.model.milieu import Milieu
+    from viscocrowd.scenarios.comparaison_piscine import (
+        LIBELLES,
+        MESURES,
+        UNITES,
+        comparer,
+        regrouper_variantes,
+    )
+    from viscocrowd.scenarios.piscine import ParametresPiscine
+
+    debut = time.perf_counter()
+    try:
+        configuration = lire_configuration(args.configuration)
+        if configuration["scenario"] != "piscine":
+            raise ValueError("la comparaison attend une configuration du scenario piscine")
+        graines = args.graines or [configuration["graine"]]
+        temoin = ParametresPiscine(**configuration["parametres"], graine=0)
+        sec = temoin.parametres_milieux[Milieu.SEC]
+        mouille = temoin.parametres_milieux[Milieu.MOUILLE]
+        groupes = regrouper_variantes(sec, mouille, args.variantes)
+        resultats = comparer(configuration, graines, variantes=list(groupes))
+    except (OSError, KeyError, TypeError, ValueError, ProjectionNonConvergee) as erreur:
+        print(f"Comparaison refusee : {erreur}", file=sys.stderr)
+        return 1
+
+    n_agents = configuration["parametres"]["n_agents"]
+    print(f"Piscine E1/E2, un parametre a la fois — {n_agents} agents, graines {graines}")
+    fusions = [
+        f"{rep} (= {', '.join(v for v in eq if v != rep)})"
+        for rep, eq in groupes.items()
+        if len(eq) > 1
+    ]
+    if fusions:
+        print("Variantes identiques fusionnees : " + " ; ".join(fusions))
+    print(f"{'variante':>32} " + " ".join(f"{m + ' (' + UNITES[m] + ')':>22}" for m in MESURES))
+    for nom, valeurs in resultats.items():
+        cellules = [f"{_moyenne_ecart(list(valeurs[:, k])):>22}" for k in range(len(MESURES))]
+        print(f"{LIBELLES[nom]:>32} " + " ".join(cellules))
+        if len(graines) > 1:
+            etendues = [f"{_etendue(list(valeurs[:, k])):>22}" for k in range(len(MESURES))]
+            print(f"{'étendue (min -- max)':>32} " + " ".join(etendues))
+        if nom != "reference" and "reference" in resultats:
+            ecarts = [
+                f"{_moyenne_ecart(list(valeurs[:, k] - resultats['reference'][:, k])):>22}"
+                for k in range(len(MESURES))
+            ]
+            print(f"{'écart apparié Δ vs E1':>32} " + " ".join(ecarts))
+    print(f"Temps d'execution : {time.perf_counter() - debut:.1f} s")
+    return 0
+
+
+def commande_simuler(args: argparse.Namespace) -> int:
+    """Produit une trajectoire relisible, ou un diagnostic sans archive exploitable."""
+    from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.scenarios.experience import executer_configuration
+
+    try:
+        donnees = executer_configuration(
+            args.configuration, args.sortie, archiver_tous=args.archiver_tous
+        )
+    except (OSError, ValueError, ProjectionNonConvergee) as erreur:
+        print(f"Simulation refusee : {erreur}", file=sys.stderr)
+        for note in getattr(erreur, "__notes__", []):
+            print(note, file=sys.stderr)
+        return 1
+    print(
+        f"Trajectoire : {args.sortie} — {donnees.x.shape[1]} agent(s), "
+        f"{donnees.t.size} instants, t_final = {donnees.t[-1]:.6g} s"
+    )
+    return 0
+
+
+def commande_rejouer(args: argparse.Namespace) -> int:
+    import matplotlib
+
+    if args.gif or args.image:
+        matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.backends import backend_registry
+
+    from viscocrowd.io.trajectoires import lire_trajectoire
+    from viscocrowd.ui.relecture import LecteurCouloir
+    from viscocrowd.ui.relecture_piscine import LecteurPiscine
+
+    lecteur = None
+    try:
+        for chemin, extension in ((args.gif, ".gif"), (args.image, ".png")):
+            if chemin and (chemin.exists() or chemin.suffix.lower() != extension):
+                raise ValueError(f"choisir un nouveau fichier {extension} : {chemin}")
+        donnees = lire_trajectoire(args.archive)
+        configuration = donnees.metadonnees.get("configuration", {})
+        if not isinstance(configuration, dict):
+            raise ValueError("configuration de l'archive invalide")
+        scenario = configuration.get("scenario")
+        classe = {"couloir": LecteurCouloir, "piscine": LecteurPiscine}.get(scenario)
+        if classe is None:
+            raise ValueError("la relecture attend une archive couloir ou piscine")
+        lecteur = classe(
+            donnees,
+            interactif=not (args.gif or args.image),
+            vitesse=args.vitesse,
+        )
+        lecteur.aller_au_temps(args.instant)
+        if args.image:
+            args.image.parent.mkdir(parents=True, exist_ok=True)
+            lecteur.figure.savefig(args.image, dpi=140)
+            print(f"Image : {args.image}")
+        if args.gif:
+            args.gif.parent.mkdir(parents=True, exist_ok=True)
+            lecteur.exporter_gif(args.gif)
+            print(f"Animation : {args.gif}")
+        if not (args.gif or args.image):
+            if backend_registry.resolve_backend(plt.get_backend())[1] is None:
+                raise ValueError("affichage local requis ; utiliser --gif ou --image hors ecran")
+            lecteur.basculer()
+            plt.show(block=True)
+        return 0
+    except (OSError, ValueError) as erreur:
+        print(f"Relecture refusee : {erreur}", file=sys.stderr)
+        return 1
+    finally:
+        if lecteur is not None:
+            plt.close(lecteur.figure)
 
 
 def commande_interface(_args: argparse.Namespace) -> int:
@@ -205,8 +507,21 @@ def commande_interface(_args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _sorties_en_utf8()
     args = construire_analyseur().parse_args(argv)
     return int(args.fonction(args))
+
+
+def _sorties_en_utf8() -> None:
+    """Ecrit les sorties en UTF-8, meme redirigees vers un fichier sous Windows.
+
+    Une sortie redirigee y est encodee en cp1252, qui ne connait pas « Δ » :
+    `comparer-piscine` echouait ainsi a l'affichage, apres huit minutes de calcul.
+    """
+    for flux in (sys.stdout, sys.stderr):
+        encodage = (getattr(flux, "encoding", None) or "").replace("-", "").lower()
+        if encodage != "utf8" and hasattr(flux, "reconfigure"):
+            flux.reconfigure(encoding="utf-8")
 
 
 if __name__ == "__main__":

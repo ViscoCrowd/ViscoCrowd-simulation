@@ -10,6 +10,8 @@ Closes #
 - [ ] `fix` — correction d'un comportement faux
 - [ ] `exp` — campagne de simulation
 - [ ] `docs` — rapport, cahier des charges, journal
+- [ ] `test` — test seul, sans changement du code teste
+- [ ] `refac` — reorganisation du code, sans changement de comportement
 - [ ] `chore` — outillage, CI, dependances
 
 ## Validation
@@ -56,6 +58,7 @@ Sensibilite verifiee : <!-- dt divise par 2 et 4 ? N augmente ? plusieurs graine
 - PR constitutives et preuves de relecture croisée :
 - Limites connues et travaux qui restent sur dev :
 - [ ] Toute la CI de cette PR est verte
+- [ ] Fusion avec **Create a merge commit**, jamais squash : les auteurs de `dev` restent crédités sur `main`
 - [ ] Le registre `docs/livraisons.md` et les notes de release sont prêts
 - [ ] Après fusion : tag annoté sur le SHA exact de main, release du même nom
 - [ ] Après publication : PR sync/main-jalon-N vers dev, fusionnée avec un merge commit

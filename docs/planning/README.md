@@ -1,9 +1,6 @@
 # Planning ViscoCrowd 2026–2027
 
-**Instantané publié du jalon 2.** Planning du 13 octobre, complété le 21 octobre pour les
-prérequis livrés C3–C5. Pour les travaux ultérieurs, consulter le
-[planning courant sur dev](https://github.com/ViscoCrowd/ViscoCrowd-simulation/blob/dev/docs/planning/README.md).
-Ce document conserve les tâches,
+**État au 3 novembre 2026.** Ce document est la source de référence du planning : tâches,
 dates, responsabilités et suivi sont modifiés ici, avec un diff relisible en pull request.
 Les créneaux futurs et les affectations marquées **(proposé)** sont une proposition de travail,
 à confirmer selon les disponibilités du groupe ; ils ne constituent pas un accord déjà obtenu.
@@ -12,7 +9,7 @@ Les créneaux futurs et les affectations marquées **(proposé)** sont une propo
 
 Convention de planification : **S1 commence le mardi 6 octobre 2026**, date de la spécification.
 C'est un repère de calendrier, pas une preuve de la date réelle de début des travaux ou de
-l'acceptation du sujet. Au 13 octobre, nous sommes en S2. Les jalons 1 et 2 sont déjà livrés,
+l'acceptation du sujet. Au 3 novembre, nous sommes en S5. Les jalons 1 et 2 sont déjà livrés,
 en avance sur les cibles S2–S5 du planning initial ; leurs créneaux ne restent donc pas réservés
 à du développement déjà terminé.
 
@@ -20,10 +17,10 @@ en avance sur les cibles S2–S5 du planning initial ; leurs créneaux ne resten
 |---|---|---|---|
 | S1 | 06/10/2026 | 12/10/2026 | Cadrage et socle initial |
 | S2 | 13/10/2026 | 19/10/2026 | Trace enseignant, questions ouvertes et répartition |
-| S3 | 20/10/2026 | 26/10/2026 | Sécurisation du moteur et lancement Docker |
+| S3 | 20/10/2026 | 26/10/2026 | Moteur, Docker, archives et premier couloir guidé livrés ; début du rapport |
 | S4 | 27/10/2026 | 02/11/2026 | Contrat de géométrie et paramètres des milieux |
-| S5 | 03/11/2026 | 09/11/2026 | Configurations, trajectoires et début du rapport |
-| S6 | 10/11/2026 | 16/11/2026 | Guidage simple et milieux |
+| S5 | 03/11/2026 | 09/11/2026 | Poursuite du rapport et préparation des futurs scénarios sur la chaîne d'archives livrée |
+| S6 | 10/11/2026 | 16/11/2026 | Préparer le guidage avec obstacles et poursuivre les milieux ; G1 anticipé en S3 |
 | S7 | 17/11/2026 | 23/11/2026 | Guidage avec obstacle et tests des milieux |
 | S8 | 24/11/2026 | 30/11/2026 | Scénario piscine et préparation des mesures |
 | S9 | 01/12/2026 | 07/12/2026 | Franchissements, goulot sec et qualification des mesures |
@@ -44,7 +41,8 @@ La version complète rapport/code est visée au **21 décembre**, avant les sema
 d'année ; S12–S13 servent de marge, et la présentation est préparée après le rendu du rapport.
 Les congés et périodes d'entreprise réels ne sont pas disponibles dans le dépôt : cette marge
 n'est pas un calendrier de vacances officiel. La charge doit être réévaluée dès que chacun
-renseigne ses disponibilités, au plus tard le 19 octobre (C2, [#20]).
+renseigne ses disponibilités (C2, [#20]). La cible du 19 octobre est passée : les informations
+manquantes restent ouvertes et aucune nouvelle disponibilité n'est présumée.
 
 | Membre | Périodes d'entreprise et congés | Action attendue |
 |---|---|---|
@@ -62,7 +60,11 @@ Les dates des tâches futures sont des cibles, celles des livraisons sont indiqu
 Le responsable coordonne une tâche, sans en être nécessairement l'unique auteur. Les
 affectations existantes de #10, #13 et #8 sont reprises. Lenny coordonne le suivi du cadrage
 (C1, [#19]) et la collecte des disponibilités et accords (C2, [#20]). Les affectations de réalisation
-restent **proposées** en attendant cette répartition collective. Ce tableau ne remplace pas
+restent **proposées** pour les travaux non commencés dont l'accord détaillé n'est pas transcrit.
+L'issue [#20] marque la confirmation des responsables comme acquise ; la répartition détaillée,
+les disponibilités et la réévaluation de charge restent à consigner. C7 est pris en charge par
+Lenny, ainsi que le banc G1/G5 et sa relecture ([#34]) ; les livraisons ci-dessous indiquent
+leurs auteurs constatés. Ce tableau ne remplace pas
 l'annexe du rapport sur les contributions réellement effectuées et leur proportion.
 
 ## Travaux déjà livrés
@@ -71,75 +73,89 @@ l'annexe du rapport sur les contributions réellement effectuées et leur propor
 |---|---|---|---|---|---|---|---|
 | L1 | J0 | Sujet et problématique rédigés | S2 | 13/10/2026 | Groupe | Livré ; trace de l'accord à compléter en C1 | [Cadrage](../validation-sujet.md) |
 | L2 | J0 | Dépôt et méthode de contribution | S2 | 13/10/2026 | Groupe | Livré ; répartition à compléter en C2 | [Contribution](../../CONTRIBUTING.md) |
-| L3 | J1 | Mouvement simple, position/vitesse semi-implicites, confinement et dissipation | S2 | 13/10/2026 | Attribution détaillée à consigner dans le rapport | Validé ; sécurisation restante en C3–C4 | [Moteur](../../README.md#validation-du-moteur) |
+| L3 | J1 | Mouvement simple, position/vitesse semi-implicites, confinement et dissipation | S2 | 13/10/2026 | Attribution détaillée à consigner dans le rapport | Validé ; sécurisation C3–C4 livrée depuis | [Moteur](../../README.md#validation-du-moteur) |
 | L4 | J2 | Contact de deux agents, voisins, groupes denses et tests de stabilité | S2 | 13/10/2026 | Attribution détaillée à consigner dans le rapport | Validé avec limite de contacts multiples #10 | [PR #6](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/6), [#10] |
-| L5 | J2 | Jacobi vectorisé et Nesterov après 80 balayages | S2 | 13/10/2026 | Hamza (suivi #13), décision des trois membres | Validé collectivement ; critères documentaires de l'issue encore ouverts | [#13], [journal](../journal-decisions.md) |
-| L6 | J5, brique anticipée | Passages et débit sur une ligne, référence de Weidmann | S2 | 13/10/2026 | Shaleena (PR #9 / issue #8) | Livré ; densité, état de sortie et source primaire restent distincts | [PR #9](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/9), [#11], [#12] |
+| L5 | J2 | Jacobi vectorisé et Nesterov après 80 balayages | S2 | 13/10/2026 ; suivi clôturé 21/10 | Hamza (suivi #13), décision des trois membres | Validé collectivement ; confirmations personnelles et rapport #46 vérifiés ; historique conservé dans #13 et le mémo de soutenance | [#13], [journal](../journal-decisions.md), [mémo](../repères-soutenance.md) |
+| L6 | J5, brique anticipée | Passages et débit sur une ligne, référence de Weidmann | S2 | 13/10/2026 | Shaleena (PR #9 / issue #8) | Livré ; source primaire vérifiée dans #51/#12 ; densité et état de sortie restent ouverts | [PR #9](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/9), [#11], [#12] |
 
 <a id="cadrage-et-prerequis"></a>
 
 ## Cadrage et prérequis
 
-Le jalon 3 ne démarre qu'après C2–C4 et la définition C6, qui dépendent toutes du groupe : la
-date cible ne suffit pas, les responsables doivent être confirmés et les correctifs #16/#17
-vérifiés. C1 dépend d'une réponse extérieure et ne bloque que ce qui en dépend réellement : la
+Les prérequis moteur C3–C4 sont livrés. Le jalon 3 dispose maintenant d'un banc de couloir
+avec une carte par bandes réelle, un guidage analytique et un groupe en contact (G1/G5).
+Le guidage eikonal et le pilier contraint sont livrés dans les PR #43 et #49.
+Les lignes ci-dessous distinguent les apports fusionnés sur `dev` des PR encore en revue.
+Une approbation ne clôture pas le jalon 3.
+La brique de géométrie/carte/guidage statique de la piscine est livrée dans #54 et son
+intégration dynamique dans #55. Les valeurs C6 sont figées depuis le 6 novembre 2026 (#109),
+et les obstacles de la plage sont livrés (#103, #110) : toutes les tâches du jalon 3 (C6,
+G1–G5) sont sur `dev`. Reste à publier le jalon sur `main`. Le suivi de répartition C2 reste ouvert.
+C1 dépend d'une réponse extérieure et ne bloque que ce qui en dépend réellement : la
 mesure de densité M1 (SciPy/Voronoï) et toute inclusion des chutes. Le scénario piscine dépend
 ensuite du guidage et des milieux validés. Les campagnes E1–E4 dépendent des
 mesures de densité, de l'étalonnage E0, de la maîtrise du biais #10 et de la reproductibilité.
 
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | 13–19/10/2026 | Lenny (coordination du suivi) | À compléter ; conditionne M1 et les chutes, pas J3 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
-| C2 | Organisation | Confirmer les responsables S2–S7 et les périodes d'entreprise/congés ; ajuster la charge | S2 | 13–19/10/2026 | Lenny (coordination), accord des trois membres à recueillir | À faire | [#20], calendrier ci-dessus |
-| C3 | Moteur | Rejeter les valeurs non finies ; tests en projection stricte et permissive | S2–S3 | Livré 19–20/10/2026 | Hamza ; compléments Shaleena | Livré dans J2, issue clôturée | [#16], PR #21 et correctifs #28 |
-| C4 | Moteur | Protéger les tableaux de State ; tester les alias d'entrée et entre états | S2 | Livré 19/10/2026 | Hamza | Livré dans J2, issue clôturée | [#17], PR #22 |
-| C5 | Reproductibilité | Aligner l'interpréteur Docker/Makefile ; exécuter valider et figures dans le conteneur | S2–S3 | Livré 19/10 ; revérifié 21/10 | Hamza ; compléments outillage Shaleena | Livré dans J2 ; contrôlé par la CI du candidat | [#18], PR #22 et #28 |
-| C6 | J3 | Définir la géométrie commune moteur/affichage, les paramètres des trois milieux avec unités et les critères de guidage | S4 | 27/10–02/11/2026 | Hamza (proposé) | À faire avant intégration | [Spécification §2](../superpowers/specs/2026-10-06-viscocrowd-design.md) |
-| C7 | Reproductibilité | Lire les configurations YAML et sauvegarder les trajectoires .npz ; vérifier leur relecture à graine fixée | S5 | 03–09/11/2026 | Lenny (proposé) | À faire avant les campagnes | [Spécification §7](../superpowers/specs/2026-10-06-viscocrowd-design.md) |
+| C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | Cible 19/10 passée | Lenny (coordination du suivi) | Accord SciPy rapporté par Hamza le 21/10 ; date/canal et réponse Voronoï à consigner ; conditionne M1 et les chutes, pas J3 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
+| C2 | Organisation | Consigner la répartition confirmée et les périodes d'entreprise/congés ; ajuster la charge | S2 | Cible 19/10 passée | Lenny (coordination), informations des trois membres | Confirmation cochée dans #20 ; tableau d'auto-évaluation hebdomadaire tenu par le groupe jusqu'au 3/11 ; répartition des tâches restantes, disponibilités et charge restent à consigner | [#20], calendrier ci-dessus |
+| C3 | Moteur | Rejeter les valeurs non finies ; tests en projection stricte et permissive | S2 | Livré 19/10/2026 | Hamza ; compléments Shaleena le 20/10 | Livré, issue clôturée | [#16], [PR #21](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/21) |
+| C4 | Moteur | Protéger les tableaux de State ; tester les alias d'entrée et entre états | S2 | Livré 19/10/2026 | Hamza | Livré, issue clôturée | [#17], [PR #22](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/22) |
+| C5 | Reproductibilité | Aligner l'interpréteur Docker/Makefile ; exécuter valider et figures dans le conteneur | S2–S3 | Livré 19/10 ; CI revérifiée 21/10 | Hamza ; compléments outillage Shaleena le 20/10 | Livré ; validation et figures exécutées en CI Docker ; versions figées étendues aux jobs Python dans #44 | [#18], [PR #22](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/22), [PR #44] |
+| C6 | J3 | Définir la géométrie commune moteur/affichage, les paramètres des trois milieux avec unités et les critères de guidage | S4 | 27/10–02/11/2026 | Hamza (proposé) ; valeurs figées par Shaleena avec l'accord du groupe | Livré : contrat et géométrie de couloir avec relecture ; pistes de sources pour l'eau et le sol mouillé déposées le 21/10 ; géométrie/carte/guidage statique livrés dans #54 ; valeurs de référence figées le 06/11/2026 (panique 1,5 ; τ = 0,5 s partout ; vitesse dans l'eau vérifiée dans #71), a_max de l'eau à passer à 1,67 m/s² à la prochaine relance des balayages | [#26], [PR #30](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/30) |
+| C7 | Reproductibilité | Lire les configurations YAML et sauvegarder les trajectoires .npz ; vérifier leur relecture à graine fixée | S3 | Livré 21/10/2026, anticipé depuis S5 | Lenny ; commit Git des archives Hamza | Livré pour trois bancs, dont couloir avec relecture animée ; provenance du code livrée dans #45 (commit et état des modifications, avec limites documentées) ; population fixe, campagnes piscine à raccorder | [#31], [PR #32](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/32), [PR #45] |
 
 ## Guidage, milieux et scénario
 
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| G1 | J3 | Guider un agent dans un couloir sec vers une sortie ; vérifier direction et arrivée | S6 | 10–16/11/2026 | Hamza (proposé) | À faire après les prérequis | Spécification §2.3 |
-| G2 | J3 | Calculer le champ eikonal et tester un détour autour d'un obstacle fixe | S6–S7 | 10–23/11/2026 | Hamza (proposé) | À faire | Spécification §2.6 |
-| G3 | J3 | Adapter la vitesse à l'eau, au sol mouillé et au sec | S6–S7 | 10–23/11/2026 | Shaleena (proposé) | À faire | Spécification §2.4 |
-| G4 | J3 | Tester accélération, freinage et virages selon adhérence et relaxation | S6–S7 | 10–23/11/2026 | Shaleena (proposé) | À faire | Spécification §2.4 |
-| G5 | J3 | Coupler guidage et exclusion ; vérifier confinement et contacts en groupe | S7 | 17–23/11/2026 | Hamza (proposé) | À faire | Spécification §2.5 |
-| P1 | J4 | Construire bassin, rebords, échelles, plage et sortie selon C6 | S8 | 24–30/11/2026 | À attribuer avant S8 | À faire | Spécification §1 |
-| P2 | J4 | Définir les transitions entre zones | S8–S9 | 24/11–07/12/2026 | À attribuer avant S8 | À faire | Spécification §2.7 |
-| P3 | J4 | Implémenter capacité unitaire et durée de passage des échelles/rebords | S8–S9 | 24/11–07/12/2026 | À attribuer avant S8 | À faire | Spécification §2.7 |
-| P4 | J4 | Faire circuler une foule sur le parcours complet | S8–S9 | 24/11–07/12/2026 | À attribuer avant S8 | À faire | Jalon 4 |
-| P5 | J4 | Compter les évacués définitifs et les temps de sortie ; conserver N intérieur + N sorti | S9 | 01–07/12/2026 | À attribuer avant S8 | À faire | [#11] |
-| P6 | J4 | Tester passages, blocages et absence de franchissements fantômes | S9 | 01–07/12/2026 | À attribuer avant S8 | À faire | Jalon 4 / PR #9 |
+| G1 | J3 | Guider un agent dans un couloir sec vers une sortie ; vérifier direction et arrivée | S3 | Livré 21/10/2026, anticipé depuis S6 | Lenny | Livré : guidage analytique sans obstacle, arrivée et convergence testées | [#34], PR #35–#36 |
+| G2 | J3 | Calculer le champ eikonal et tester un détour autour d'un obstacle fixe | S6–S7 | Livré 21/10/2026, anticipé depuis S6–S7 | Hamza | Livré dans #43 : Fast Marching d'ordre 1, couloir exact (10⁻¹³ s), convergence mesurée, détour sans contact d'un agent et de 12 agents | Spécification §2.6, [PR #43] |
+| G3 | J3 | Adapter la vitesse à l'eau, au sol mouillé et au sec | S2–S7 | Briques livrées 19–21/10 ; intégration piscine livrée le 06/11/2026 | Shaleena ; relecture #30 et banc couloir Lenny ; comparaison un paramètre à la fois Hamza | Livré : assemblage et parcours sec/mouillé/sec livrés ; comparaison séparée de `s`, `τ` et `a_max` livrée dans #50 ; sols vérifiés pendant une évacuation piscine dans #72 ; valeurs figées le 06/11/2026 ; classe `ParametresMilieu` unique dans #106 | [#26], PR #25, #30, #35–#36, [PR #50], PR #72, #106, #109 |
+| G4 | J3 | Tester accélération, freinage et virages selon adhérence et relaxation | S3 | Livré 20/10/2026, anticipé depuis S6–S7 | Shaleena | Livré sur paramètres illustratifs ; calibration C6 distincte | [PR #29](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/29) |
+| G5 | J3 | Coupler guidage et exclusion ; vérifier confinement et contacts en groupe | S3–S7 | Banc livré 21/10 ; obstacle livré le 21/10 ; extension piscine livrée le 06/11/2026 | Lenny (banc), Hamza (obstacle, plage), Shaleena (contrôles) | Livré : sur couloir, 24 agents, contacts et confinement testés ; pilier contourné et contraint livré dans #49 ; obstacles de la plage pris en compte par le guidage et la projection dans #103 ; obstacles laissant un passage plus étroit qu'un diamètre refusés dès la lecture de la configuration dans #110 | [#34], PR #36–#37, [PR #49], PR #103, #110 |
+| P1 | J4 | Construire bassin, rebords, échelles, plage et sortie selon C6 | S8 | Brique livrée le 21/10 ; scénario cible 24–30/11/2026 | Hamza (PR #54) | Géométrie, carte et sites livrés dans #54 ; scénario complet livré dans #55 | Spécification §1, [PR #54] |
+| P2 | J4 | Définir les transitions entre zones | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny | Livré dans #55 : états eau, franchissement, plage et sorti | Spécification §2.7, PR #55 |
+| P3 | J4 | Implémenter capacité unitaire et durée de passage des échelles/rebords | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny | Livré dans #55 ; durées encore à calibrer (#26) | Spécification §2.7, PR #55 |
+| P4 | J4 | Faire circuler une foule sur le parcours complet | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny | Livré dans #55 : 100 agents, tous sortis sur les 10 graines de E1 | Jalon 4, PR #55 |
+| P5 | J4 | Compter les évacués définitifs et les temps de sortie ; conserver N intérieur + N sorti | S9 | Livré pour l'essentiel le 22/10–03/11/2026 | Hamza | Observable #47, état absorbant #55 et contrôle croisé #81 livrés ; repère `N / (1,3 w)` et validation collective de l'état absorbant restent à consigner ; #11 ouverte | [#11], [PR #47], PR #55, PR #81 |
+| P6 | J4 | Tester passages, blocages et absence de franchissements fantômes | S9 | 01–07/12/2026 | À attribuer avant S8 | En cours : tests de #55 et #81 ; faux bouchages de la porte à corriger (#85) | Jalon 4 / PR #9, #85 |
 
 ## Mesures et campagnes
 
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| M1 | Préparation J5 | Mesurer densité et encombrement, après la décision SciPy/Voronoï C1 | S8–S9 | 24/11–07/12/2026 | À attribuer avant S8 | À faire avant les campagnes | Spécification §3 |
-| M2 | Préparation J5 | Corriger le jeu des contacts multiples ou mesurer et borner son influence sur la densité | S8–S9 | 24/11–07/12/2026 | Hamza (affectation #10) | En suivi ; requis avant les campagnes | [#10] |
-| M3 | Préparation J5 | Vérifier les constantes de Weidmann dans la source primaire et adapter tests/figures si nécessaire | S8–S9 | 24/11–07/12/2026 | À attribuer avant S8 | À faire avant comparaison | [#12] |
-| M4 | J5 | Étalonner un goulot sec seul, avec les mesures qualifiées M1–M3 | S9 | 01–07/12/2026 | À attribuer avant S8 | À faire avant E1–E4 | E0 |
-| M5 | J5 | Comparer piscine sans et avec sol mouillé | S10–S11 | 08–21/12/2026 | À attribuer avant S8 | À faire après E0 | E1–E2 |
-| M6 | J5 | Balayer adhérence, longueur mouillée, sorties et population | S10–S11 | 08–21/12/2026 | À attribuer avant S8 | À faire | E3–E4 |
-| M7 | J5 | Répéter sur plusieurs graines et mesurer la variabilité | S10–S11 | 08–21/12/2026 | À attribuer avant S8 | À faire avec M5–M6 | Spécification §4 |
+| M1 | Préparation J5 | Mesurer densité et encombrement, après la décision SciPy/Voronoï C1 | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny et Shaleena (PR #53) | Livré dans #53 ; test de permutation apparié à la place de la borne de 2 % ; accord Voronoï à confirmer | [#19], [PR #53], [#10] |
+| M2 | Préparation J5 | Corriger le jeu des contacts multiples ou mesurer et borner son influence sur la densité | S8–S9 | 24/11–07/12/2026 ; diagnostic partiel livré le 21/10 | Hamza (affectation #10) | En cours : jeu local caractérisé ; indicateur sans borne de densité. Hypothèse de décroissance avec Δt retirée ; diagnostic de sensibilité validé, 58 tests de projection dont le lent. Biais de densité à mesurer avant les campagnes ; #10 ouverte | [#10], [PR #48], [PR #46] |
+| M3 | Préparation J5 | Vérifier les constantes de Weidmann dans la source primaire et adapter tests/figures si nécessaire | S8–S9 | Livré le 21/10/2026, anticipé depuis S8–S9 | Hamza, relecture et corrections Lenny | Livré dans #51, issue #12 clôturée : constantes, forme, sommet et domaine conformes (p. 43, 53, 62–64) ; référence et interprétation de la dispersion corrigées ; 78 tests de débit passent ; aucune figure à reprendre | [#12], [PR #51] |
+| M4 | J5 | Étalonner un goulot sec seul, avec les mesures qualifiées M1–M3 | S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny pour #58 | Banc E0 livré (#56) ; relation vitesse–espacement proposée (#58), à valider dans #57 et non branchée sur la piscine | E0, [#57] |
+| M5 | J5 | Comparer piscine sans et avec sol mouillé | S10–S11 | Première campagne livrée le 03/11/2026 ; refaite le 06/11/2026 au facteur de panique 1,5 | Hamza, avec Shaleena | Protocole #77, résultats sur 10 graines dans #86 ; au facteur 1,5, Δt50 = +0,02 ± 0,01 s (10 graines sur 10), expliqué par l'écrêtage des relances | E1–E2, PR #77, PR #86 |
+| M6 | J5 | Balayer adhérence, longueur mouillée, sorties et population | S10–S11 | Outil livré le 02/11/2026 ; campagne finale 08–21/12/2026 | Shaleena (proposé dans la relecture de #83) | Outil `balayer-piscine` et premiers balayages livrés ; porte à arrondir avant de balayer largeur de porte et population | E3–E4, [balayages](../balayages-piscine.md) |
+| M7 | J5 | Répéter sur plusieurs graines et mesurer la variabilité | S10–S11 | 08–21/12/2026 | À attribuer avant S8 | En cours : 10 graines dans #84 et #86 ; à reprendre sur la campagne finale | Spécification §4 |
 | M8 | J5 | Comparer débit/densité aux références et discuter le domaine de validité | S11 | 15–21/12/2026 | À attribuer avant S8 | À faire | Spécification §3 et §5 |
-| M9 | J5 | Vérifier la sensibilité au pas de temps, à N et aux graines | S11 | 15–21/12/2026 | À attribuer avant S8 | À faire | Spécification §5 |
+| M9 | J5 | Vérifier la sensibilité au pas de temps, à N et aux graines | S11 | 15–21/12/2026 | À attribuer avant S8 | En cours : `dt` au facteur 1,5 mesuré dans #84 ; reste la configuration finale | Spécification §5 |
 
 ## Rapport et soutenance
 
+Le [mémo des choix et contre-exemples](../repères-soutenance.md) conserve les renvois
+aux anciennes issues, reviews et preuves à reprendre avant la présentation.
+
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| R1 | J6 | Rédiger moteur, validation et limites au fil du développement ; première version en S5 | S5–S11 | 03/11–21/12/2026 | Lenny (proposé), relecture des trois membres | À faire | Rapport, sections méthode et validation |
+| R1 | J6 | Rédiger moteur, validation et limites au fil du développement ; première version en S5 | S3–S11 | Début 21/10 ; version complète cible 21/12 | Lenny, Hamza (discrétisation, premiers résultats), relecture des trois membres | En cours : chaîne de calcul, validation analytique et mesures du couloir rédigées ; comparaison du mouillé (§ 6, figure 7) livrée dans #50 ; discrétisation (§ 3) et Weidmann (§ 5) livrés dans #46/#51 ; scénario et analyse finale à compléter | [Implémentation](../../report/sections/04-implementation.tex), [validation](../../report/sections/05-validation.tex), [#34], [PR #46], [PR #50], [PR #51] |
 | R2 | J6 | Produire figures et tableaux avec unités, paramètres et graines | S10–S11 | 08–21/12/2026 | À attribuer avant S8 | À faire au fil des campagnes | [Manifeste](../../experiments/manifeste.yaml) |
 | R3 | J6 | Rédiger l'analyse, répondre à la problématique et discuter les limites | S11 | 15–21/12/2026 | À attribuer avant S8 | À faire | Rapport, résultats et conclusion |
-| R4 | J6 | Compléter bibliographie, contributions réelles et usages d'outils | S5–S11 | 03/11–21/12/2026 | Lenny (proposé), informations des trois membres | À faire au fil de l'eau | Cahier des charges §7 |
+| R4 | J6 | Compléter bibliographie, contributions réelles et usages d'outils | S3–S11 | Début 21/10 ; cible 21/12 | Lenny, informations des trois membres | Usage des outils sur le banc et lors des reviews #43–#54 documenté ; sources de discrétisation et Weidmann vérifiées ; bibliographie finale et proportions à compléter | [Outils](../../report/sections/A2-outils.tex), cahier des charges §7 |
 | R5 | J6 | Relire une version complète ; rejouer tests et figures depuis le code livré | S11 | 15–21/12/2026 | À attribuer avant S8 | À faire ; cible interne 21/12 | Rapport et code |
 | R6 | J6 | Vérifier les fichiers remis et déposer sur Moodle | S14 | 05/01/2027 avant 23h59 | À attribuer avant S8 | À faire ; marge S12–S13 si corrections | Échéance officielle |
 | R7 | J6 | Préparer transparents, démonstration et répartition de parole ; répéter | S14–S15 | 06–18/01/2027 avant 18h00 | À attribuer avant S8 | À faire | Soutenance 19/01/2027 |
 
 ## Pistes complémentaires non programmées
+
+Le 3 novembre, un module facultatif de chutes (glissade, domino, relevage, contournement) a été
+fusionné dans #78 et #82, désactivé par défaut et non calibré : le rendu ne s'en sert pas tant
+que C1 n'est pas tranché. La chute par bousculade reste à faire.
 
 Les cinq tâches de l'addendum chutes quittent les créneaux S7–S9 du planning initial. Aucune
 tâche des jalons 3 à 6 n'en dépend. C1 ([#19]) recueille l'avis sur l'extension ; une décision ultérieure
@@ -180,3 +196,18 @@ Les fichiers temporaires Excel `~$…` ne doivent pas être ajoutés aux commits
 [#18]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18
 [#19]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19
 [#20]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/20
+[#26]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26
+[#31]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/31
+[#34]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/34
+[PR #43]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/43
+[PR #44]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/44
+[PR #45]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/45
+[PR #46]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/46
+[PR #47]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/47
+[PR #48]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/48
+[PR #49]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/49
+[PR #50]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/50
+[PR #51]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/51
+
+[PR #53]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/53
+[PR #54]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/54

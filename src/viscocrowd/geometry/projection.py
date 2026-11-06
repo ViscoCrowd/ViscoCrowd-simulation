@@ -147,12 +147,28 @@ Ce qu'il RESTE comme artefact, mesure et assume :
 
   - Les chaines longues, seules extrapolees, gardent une restitution de l'ordre
     de 1e-6 de l'energie d'arrivee.
-  - Trois contacts MUTUELS corriges dans le meme balayage laissent un defaut de
-    POSITION, independant de l'extrapolation : le triangle finit tangent a
-    1,7e-3 m pres, sans mouvement residuel. Il sature et ne decroit pas avec dt.
+  - La TOLERANCE cree une petite vitesse parasite. La projection s'arrete des
+    que le recouvrement passe sous `tolerance` ; au pas suivant, une infime
+    poussee le fait repasser au-dessus, et un balayage le corrige au-dela de ce
+    qu'il etait : les disques s'ecartent de quelques 1e-7 m de trop, ce que la
+    relecture v = dx/dt transforme en vitesse sortante de 0,15 a 0,37 fois
+    tolerance / dt. Sans rien pour l'amortir, comme dans un choc sans frottement
+    a trois contacts mutuels, l'ecart croit lineairement (1e-3 m apres 1,6 s a
+    tolerance 1e-6 m et dt = 1e-3 s, 4e-6 m a tolerance 1e-8 m). Dans le test de
+    trois disques avec desir vers le centre, ce jeu n'est pas observe. Ce n'est
+    donc ni un defaut de position propre aux contacts mutuels, ni une saturation
+    en dt, comme on l'avait
+    d'abord ecrit (issue #10) : a 2000 pas fixes, les deux effets de dt se
+    compensaient.
   - Sur le tas, les paires en contact sont tangentes a 5,0e-6 m au plus a
     dt = 2e-3 s, contre 2,5e-5 m a dt = 4e-3 s : ce defaut-la decroit bien
-    comme dt^2.
+    comme dt^2 sur ces mesures. Un banc de 60 agents comprimes puis arretes
+    donne un jeu moyen de l'ordre de 8e-6 m a dt = 0,01 s, mais aucune loi en
+    dt etudiee ici : une perturbation de 1e-12 m change
+    l'arrangement final de 1e-4 m, et le jeu moyen avec lui.
+    L'indicateur 2 * jeu moyen / diametre est de l'ordre de 4e-5 a dt = 0,01 s
+    (`TestJeuDeContact`) ; ce n'est ni une mesure ni une borne du biais de
+    densite au goulot, qui reste a valider.
 
 `TestChocMultiple` controle ces bornes sur des contacts isoles, ou aucune
 dissipation d'ensemble ne peut les masquer.
@@ -161,6 +177,7 @@ dissipation d'ensemble ne peut les masquer.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from numbers import Integral
 
 import numpy as np
@@ -179,6 +196,16 @@ _DISTANCE_MIN = 1e-12
 # Au-dela, seules les longues chaines de contacts sont accelerees, et la rampe
 # repart de zero. Valeur justifiee par mesure, cf. la section « extrapolation ».
 _RANG_EXTRAPOLATION = 80
+
+
+@dataclass
+class InstantaneProjection:
+    """Entree et sortie d'un seul appel ; indices locaux a la projection."""
+
+    x_libre: np.ndarray
+    x_residu: np.ndarray
+    rayons: np.ndarray
+    instant: float
 
 
 class ProjectionNonConvergee(RuntimeError):  # noqa: N818 - nommage francais du projet
@@ -202,6 +229,7 @@ class ProjectionNonConvergee(RuntimeError):  # noqa: N818 - nommage francais du 
         self.residu = residu
         self.tolerance = tolerance
         self.iterations = iterations
+        self.instantane: InstantaneProjection | None = None
 
 
 def _corriger_contacts(x: np.ndarray, r: np.ndarray, paires: np.ndarray) -> None:
@@ -311,8 +339,10 @@ class ProjectionExclusion:
         self.iterations_max = 0
         self.n_appels = 0
         self.non_convergences = 0
+        self.pire_echec: ProjectionNonConvergee | None = None
 
     def __call__(self, x: np.ndarray, r: np.ndarray, t: float) -> np.ndarray:
+        entree = x
         x = np.array(x, dtype=float, copy=True)
         # Une entree non finie est une ERREUR, pas une non-convergence : elle leve dans
         # les deux modes. Le mode permissif sert a mesurer un echec de convergence, pas
@@ -335,8 +365,21 @@ class ProjectionExclusion:
         self.recouvrement_max = max(self.recouvrement_max, residu)
         if residu > self.tolerance:
             self.non_convergences += 1
+            erreur = ProjectionNonConvergee(residu, self.tolerance, n_iterations)
+            # Aucun tableau supplementaire sur le chemin convergent. Un seul
+            # instantane conserve, meme si le mode permissif accumule les echecs.
+            pire = self.pire_echec is None or residu > self.pire_echec.residu
+            if pire or self.strict:
+                erreur.instantane = InstantaneProjection(
+                    np.array(entree, dtype=float, copy=True),
+                    x.copy(),
+                    np.array(r, dtype=float, copy=True),
+                    float(t),
+                )
+            if pire:
+                self.pire_echec = erreur
             if self.strict:
-                raise ProjectionNonConvergee(residu, self.tolerance, n_iterations)
+                raise erreur
         return x
 
     def verifier_convergence(self) -> None:
@@ -348,7 +391,12 @@ class ProjectionExclusion:
         pouvoir alimenter une figure ou un tableau du rapport.
         """
         if self.non_convergences:
-            raise ProjectionNonConvergee(self.recouvrement_max, self.tolerance, self.iterations_max)
+            assert self.pire_echec is not None
+            erreur = ProjectionNonConvergee(
+                self.pire_echec.residu, self.tolerance, self.pire_echec.iterations
+            )
+            erreur.instantane = self.pire_echec.instantane
+            raise erreur
 
     def _iterer(self, x: np.ndarray, r: np.ndarray, t: float) -> tuple[np.ndarray, int, float]:
         # Les disques bougent pendant les balayages : on detecte donc les paires avec

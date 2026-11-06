@@ -20,6 +20,10 @@ import numpy as np
 # Au-dela, la liste d'indices devient illisible et on ne donne plus que le compte.
 _INDICES_MONTRES = 5
 
+# Tolerance sur la norme d'un vecteur dit unitaire (guidage, direction de mesure). Plus
+# large, une norme de 1 + 1e-5 multiplierait une vitesse sans que rien ne le signale.
+TOLERANCE_UNITAIRE = 1e-9
+
 
 def exiger_fini(contexte: str = "", **tableaux: np.ndarray) -> None:
     """Leve `ValueError` si l'un des tableaux contient un NaN ou un infini.

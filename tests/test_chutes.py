@@ -1,0 +1,433 @@
+"""Tests du modele de chutes, effet domino, contournement et relevage."""
+
+import numpy as np
+import pytest
+
+from viscocrowd.model.chutes import (
+    EvenementChute,
+    GestionnaireChutes,
+    ParametresChutes,
+    chutes_par_cause,
+    serie_agents_a_terre,
+    tailles_cascades,
+    taux_de_chute,
+)
+
+
+def test_parametres_chutes_valides():
+    p = ParametresChutes()
+    assert p.lambda_chute == 2.0
+    assert p.lambda_domino == 4.0
+    assert p.lambda_bousculade == 0.0
+    assert p.facteur_rayon_terre == 1.5
+    assert p.mediane_relevage == 3.7
+    assert p.seuil_bousculade == 0.5
+
+
+@pytest.mark.parametrize(
+    ("champ", "valeur"),
+    [
+        ("lambda_chute", 0.0),
+        ("lambda_chute", -1.0),
+        ("lambda_domino", -0.5),
+        ("lambda_bousculade", -2.0),
+        ("lambda_bousculade", np.nan),
+        ("facteur_rayon_terre", 0.9),  # < 1.0 refuse
+        ("mediane_relevage", np.nan),
+        ("sigma_relevage", np.inf),
+        ("distance_perception", 0.0),
+        ("force_contournement", -2.0),
+        ("duree_affaissement", 0.0),
+        ("vitesse_min_domino", -0.1),
+        ("vitesse_approche_min", np.nan),
+        ("seuil_bousculade", 0.0),
+        ("seuil_bousculade", -1.0),
+    ],
+)
+def test_parametres_chutes_invalides_refuses(champ, valeur):
+    with pytest.raises(ValueError):
+        ParametresChutes(**{champ: valeur})
+
+
+def test_initialisation_gestionnaire():
+    g = GestionnaireChutes(n_agents=10, parametres=ParametresChutes(), graine=42)
+    assert g.nombre_a_terre == 0
+    assert len(g.historique) == 0
+    assert g.a_terre.shape == (10,)
+    assert not np.any(g.a_terre)
+
+    with pytest.raises(ValueError, match="entier strictement positif"):
+        GestionnaireChutes(n_agents=0, parametres=ParametresChutes(), graine=42)
+
+
+def test_rayons_effectifs_augmentes_au_sol():
+    p = ParametresChutes(facteur_rayon_terre=1.5)
+    g = GestionnaireChutes(n_agents=3, parametres=p, graine=1)
+    r_nom = np.array([0.2, 0.2, 0.2])
+
+    np.testing.assert_array_equal(g.rayons_effectifs(r_nom), r_nom)
+
+    g.faire_tomber(agent=1, instant=2.0, cause="glissade", position=(1.0, 2.0))
+    r_eff = g.rayons_effectifs(r_nom)
+    assert r_eff[0] == pytest.approx(0.2)
+    assert r_eff[1] == pytest.approx(0.3)  # 1.5 * 0.2
+    assert r_eff[2] == pytest.approx(0.2)
+    assert g.nombre_a_terre == 1
+
+
+def test_vitesse_desiree_nulle_pour_agent_au_sol():
+    g = GestionnaireChutes(n_agents=2, parametres=ParametresChutes(), graine=1)
+    x = np.array([[0.0, 0.0], [5.0, 0.0]])
+    vd = np.array([[1.34, 0.0], [1.34, 0.0]])
+    r_nom = np.array([0.2, 0.2])
+
+    g.faire_tomber(agent=1, instant=1.0, cause="glissade", position=(5.0, 0.0))
+    vd_eff = g.vitesses_desirees_effectives(x, vd, r_nom)
+    np.testing.assert_array_equal(vd_eff[1], [0.0, 0.0])
+
+
+def test_contournement_reactif_si_assez_eloigne():
+    """Un agent debout en approche d'un agent au sol devie tangentiellement sa vitesse."""
+    p = ParametresChutes(distance_perception=3.0, force_contournement=1.5)
+    g = GestionnaireChutes(n_agents=2, parametres=p, graine=1)
+    # Agent 0 debout a (0, 0), agent 1 au sol a (2, 0)
+    x = np.array([[0.0, 0.0], [2.0, 0.0]])
+    vd = np.array([[1.34, 0.0], [0.0, 0.0]])
+    r_nom = np.array([0.2, 0.2])
+
+    g.faire_tomber(agent=1, instant=0.0, cause="glissade", position=(2.0, 0.0))
+    vd_eff = g.vitesses_desirees_effectives(x, vd, r_nom)
+
+    # L'agent 0 doit avoir acquis une composante laterale (contournement)
+    assert abs(vd_eff[0, 1]) > 0.1
+    # La norme de la vitesse desiree reste inchangee (1.34 m/s)
+    assert abs(np.linalg.norm(vd_eff[0]) - 1.34) < 1e-12
+
+
+def test_pas_de_contournement_si_l_obstacle_est_derriere():
+    """Un obstacle situe dans le dos de l'agent ne genere aucune deviation."""
+    p = ParametresChutes(distance_perception=3.0)
+    g = GestionnaireChutes(n_agents=2, parametres=p, graine=1)
+    # Agent 0 debout a (3, 0) avancant vers +x, agent 1 au sol a (1, 0)
+    x = np.array([[3.0, 0.0], [1.0, 0.0]])
+    vd = np.array([[1.34, 0.0], [0.0, 0.0]])
+    r_nom = np.array([0.2, 0.2])
+
+    g.faire_tomber(agent=1, instant=0.0, cause="glissade", position=(1.0, 0.0))
+    vd_eff = g.vitesses_desirees_effectives(x, vd, r_nom)
+
+    # Aucune composante laterale
+    assert vd_eff[0, 1] == 0.0
+    assert vd_eff[0, 0] == 1.34
+
+
+def test_chute_par_glissade_sur_exces_adherence():
+    """Une acceleration demandee trop forte sur sol glissant declenche la glissade."""
+    p = ParametresChutes(lambda_chute=100.0)  # Taux eleve pour certitude statistique
+    g = GestionnaireChutes(n_agents=1, parametres=p, graine=42)
+
+    x = np.array([[0.0, 0.0]])
+    v = np.array([[0.0, 0.0]])
+    vd = np.array([[2.5, 0.0]])  # Vitesse voulue 2.5 m/s
+    tau = np.array([0.5])
+    a_max = np.array([1.0])  # Sol glissant : a_max = 1.0 m/s^2, demande = 5.0 m/s^2
+    r_nom = np.array([0.2])
+
+    chutes = g.mettre_a_jour(
+        instant=0.1,
+        dt=0.1,
+        x=x,
+        v=v,
+        vitesse_desiree=vd,
+        a_max=a_max,
+        tau=tau,
+        rayons_nominaux=r_nom,
+    )
+    assert len(chutes) == 1
+    assert chutes[0].agent == 0
+    assert chutes[0].cause == "glissade"
+    assert g.nombre_a_terre == 1
+
+
+def test_effet_domino_si_trop_proche_pour_s_arreter():
+    """Un agent rapide trop proche d'une personne a terre trebuche sur lui (effet domino)."""
+    p = ParametresChutes(lambda_domino=100.0)  # Taux eleve pour declenchement quasi certain
+    g = GestionnaireChutes(n_agents=2, parametres=p, graine=7)
+
+    # Agent 0 au sol a (1.0, 0.0)
+    g.faire_tomber(agent=0, instant=0.0, cause="glissade", position=(1.0, 0.0))
+
+    # Agent 1 arrive a v = 2.0 m/s a x = 0.6 m (distance de bord 0.4 m - 0.2 - 0.3 = -0.1 m)
+    # d_arret = v^2 / (2 * a_max) = 4 / (2 * 2.0) = 1.0 m > distance restante
+    x = np.array([[1.0, 0.0], [0.6, 0.0]])
+    v = np.array([[0.0, 0.0], [2.0, 0.0]])
+    vd = np.array([[0.0, 0.0], [2.0, 0.0]])
+    a_max = np.array([2.0, 2.0])
+    tau = np.array([0.5, 0.5])
+    r_nom = np.array([0.2, 0.2])
+
+    chutes = g.mettre_a_jour(
+        instant=0.05,
+        dt=0.05,
+        x=x,
+        v=v,
+        vitesse_desiree=vd,
+        a_max=a_max,
+        tau=tau,
+        rayons_nominaux=r_nom,
+    )
+    assert any(c.agent == 1 and c.cause == "domino" for c in chutes)
+    assert g.nombre_a_terre == 2
+
+
+def test_relevage_apres_duree_ecoulee():
+    """Un agent au sol se releve des que son temps de relevage est depasse."""
+    g = GestionnaireChutes(n_agents=1, parametres=ParametresChutes(), graine=123)
+    g.faire_tomber(agent=0, instant=1.0, cause="glissade", position=(0.0, 0.0))
+    duree = g.historique[0].duree_relevage
+
+    x = np.array([[0.0, 0.0]])
+    v = np.array([[0.0, 0.0]])
+    vd = np.array([[1.34, 0.0]])
+    a_max = np.array([5.0])
+    tau = np.array([0.5])
+    r_nom = np.array([0.2])
+
+    # Avant expiration : toujours a terre
+    g.mettre_a_jour(
+        instant=1.0 + duree / 2,
+        dt=0.01,
+        x=x,
+        v=v,
+        vitesse_desiree=vd,
+        a_max=a_max,
+        tau=tau,
+        rayons_nominaux=r_nom,
+    )
+    assert g.nombre_a_terre == 1
+
+    # Apres expiration : releve
+    g.mettre_a_jour(
+        instant=1.0 + duree + 0.01,
+        dt=0.01,
+        x=x,
+        v=v,
+        vitesse_desiree=vd,
+        a_max=a_max,
+        tau=tau,
+        rayons_nominaux=r_nom,
+    )
+    assert g.nombre_a_terre == 0
+    assert not g.a_terre[0]
+
+
+def test_distribution_relevage_mediane_sourcer_becker():
+    """La mediane empirique des durees de relevage retrouve 3,7 s (Becker et al. 2016)."""
+    p = ParametresChutes(mediane_relevage=3.7, sigma_relevage=0.5)
+    g = GestionnaireChutes(n_agents=1, parametres=p, graine=999)
+
+    durees = []
+    for k in range(300):
+        # Forcer des chutes pour accumuler des tirages
+        g._a_terre[0] = False
+        g.faire_tomber(agent=0, instant=float(k), cause="test", position=(0.0, 0.0))
+        durees.append(g.historique[-1].duree_relevage)
+
+    mediane_observee = float(np.median(durees))
+    # Ecart relatif inferieur a 10 % avec 300 tirages
+    assert abs(mediane_observee - 3.7) < 0.35
+
+
+def test_reproductibilite_stochastique_avec_graine():
+    """Deux gestionnaires a meme graine tirent exactement les memes durees."""
+    g1 = GestionnaireChutes(n_agents=3, parametres=ParametresChutes(), graine=2026)
+    g2 = GestionnaireChutes(n_agents=3, parametres=ParametresChutes(), graine=2026)
+
+    g1.faire_tomber(agent=0, instant=0.0, cause="glissade", position=(0.0, 0.0))
+    g2.faire_tomber(agent=0, instant=0.0, cause="glissade", position=(0.0, 0.0))
+
+    assert g1.historique[0].duree_relevage == g2.historique[0].duree_relevage
+
+
+def test_duree_affaissement_regle_la_croissance_du_rayon():
+    """A mi-affaissement, le rayon est a mi-chemin entre debout et au sol."""
+    parametres = ParametresChutes(facteur_rayon_terre=1.5, duree_affaissement=1.0)
+    gestionnaire = GestionnaireChutes(1, parametres, 0)
+    gestionnaire.faire_tomber(0, 2.0, "glissade", (0.0, 0.0))
+    rayons = np.array([0.2])
+    assert gestionnaire.rayons_effectifs(rayons, instant=2.5)[0] == pytest.approx(0.25)
+    assert gestionnaire.rayons_effectifs(rayons, instant=3.0)[0] == pytest.approx(0.3)
+
+
+def test_seuil_de_vitesse_du_domino():
+    """Sous vitesse_min_domino, un agent qui approche d'un corps ne trebuche pas."""
+    parametres = ParametresChutes(lambda_chute=1e-9, lambda_domino=1e6, vitesse_min_domino=0.5)
+    arguments = {
+        "instant": 0.0,
+        "dt": 0.01,
+        "x": np.array([[0.0, 0.0], [0.5, 0.0]]),
+        "vitesse_desiree": np.zeros((2, 2)),
+        "a_max": np.full(2, 0.1),
+        "tau": np.full(2, 0.5),
+        "rayons_nominaux": np.full(2, 0.2),
+    }
+    lent, rapide = (GestionnaireChutes(2, parametres, 0) for _ in range(2))
+    for gestionnaire in (lent, rapide):
+        gestionnaire.faire_tomber(1, -10.0, "glissade", (0.5, 0.0))
+        gestionnaire._fin_relevage[1] = 1e6
+    lent.mettre_a_jour(v=np.array([[0.4, 0.0], [0.0, 0.0]]), **arguments)
+    rapide.mettre_a_jour(v=np.array([[0.6, 0.0], [0.0, 0.0]]), **arguments)
+    assert lent.nombre_a_terre == 1
+    assert rapide.nombre_a_terre == 2
+
+
+def test_chute_par_bousculade_compression():
+    """Une correction de projection violente au-dela du seuil declenche une bousculade."""
+    p = ParametresChutes(lambda_bousculade=100.0, seuil_bousculade=0.5)
+    g = GestionnaireChutes(n_agents=1, parametres=p, graine=10)
+
+    x = np.array([[1.0, 1.0]])
+    v = np.array([[0.0, 0.0]])
+    vd = np.array([[0.0, 0.0]])  # Pas d'acceleration demandee, glissade impossible
+    a_max = np.array([5.0])
+    tau = np.array([0.5])
+    r_nom = np.array([0.2])
+
+    # 1. Petite correction (0.001 m sur dt=0.01 -> vitesse 0.1 m/s < seuil 0.5)
+    chutes_faibles = g.mettre_a_jour(
+        instant=0.1,
+        dt=0.01,
+        x=x,
+        v=v,
+        vitesse_desiree=vd,
+        a_max=a_max,
+        tau=tau,
+        rayons_nominaux=r_nom,
+        correction_projection=np.array([[0.001, 0.0]]),
+    )
+    assert len(chutes_faibles) == 0
+    assert g.nombre_a_terre == 0
+
+    # 2. Forte correction (0.02 m sur dt=0.01 -> vitesse 2.0 m/s > seuil 0.5)
+    chutes_fortes = g.mettre_a_jour(
+        instant=0.2,
+        dt=0.01,
+        x=x,
+        v=v,
+        vitesse_desiree=vd,
+        a_max=a_max,
+        tau=tau,
+        rayons_nominaux=r_nom,
+        correction_projection=np.array([[0.02, 0.0]]),
+    )
+    assert len(chutes_fortes) == 1
+    assert chutes_fortes[0].cause == "bousculade"
+    assert g.nombre_a_terre == 1
+
+
+def test_observables_taux_et_decompte_causes():
+    """Calcul du taux de chute global et repartition par cause."""
+    evenements = (
+        EvenementChute(0, 1.0, "glissade", 3.0, (1.0, 2.0)),
+        EvenementChute(1, 1.5, "domino", 4.0, (1.2, 2.1)),
+        EvenementChute(2, 2.0, "bousculade", 3.5, (1.5, 2.3)),
+        EvenementChute(3, 4.0, "glissade", 3.2, (5.0, 2.0)),
+    )
+    taux = taux_de_chute(evenements, duree=10.0)
+    assert taux == pytest.approx(0.4)  # 4 chutes en 10 s
+
+    causes = chutes_par_cause(evenements)
+    assert causes == {"glissade": 2, "domino": 1, "bousculade": 1}
+
+    with pytest.raises(ValueError, match="duree"):
+        taux_de_chute(evenements, duree=0.0)
+
+
+def test_tailles_cascades_composantes_connexes():
+    """Identifie les composantes connexes d'une cascade de chutes."""
+    # Chutes 0, 1, 2 tres proches dans l'espace et le temps (cascade de taille 3)
+    # Chute 3 isolee a 15 s et 10 m plus loin (cascade de taille 1)
+    evenements = (
+        EvenementChute(0, 1.0, "glissade", 3.0, (1.0, 2.0)),
+        EvenementChute(1, 1.4, "domino", 3.0, (1.2, 2.1)),
+        EvenementChute(2, 2.0, "domino", 3.0, (1.5, 2.3)),
+        EvenementChute(3, 15.0, "bousculade", 3.0, (10.0, 5.0)),
+    )
+    tailles = tailles_cascades(evenements, distance_max=1.0, temps_max=1.5)
+    assert tailles == [3, 1]
+
+    assert tailles_cascades((), distance_max=1.0, temps_max=1.0) == []
+    with pytest.raises(ValueError):
+        tailles_cascades(evenements, distance_max=-1.0)
+
+
+def test_serie_agents_a_terre_temporelle():
+    """Decompte precis du nombre d'agents au sol le long d'un vecteur de temps."""
+    evenements = (
+        EvenementChute(0, 1.0, "glissade", 2.0, (0.0, 0.0)),  # au sol de t=1.0 a t=3.0
+        EvenementChute(1, 2.0, "domino", 2.0, (0.0, 0.0)),  # au sol de t=2.0 a t=4.0
+    )
+    t = np.array([0.5, 1.0, 1.5, 2.5, 3.5, 4.5])
+    nb = serie_agents_a_terre(evenements, t)
+    # t=0.5: 0, t=1.0: 1, t=1.5: 1, t=2.5: 2 (0 et 1), t=3.5: 1 (1 seul), t=4.5: 0
+    np.testing.assert_array_equal(nb, [0, 1, 1, 2, 1, 0])
+
+
+def test_independance_au_pas_de_temps_taux_de_chute():
+    """Section 7 (1) : la forme exponentielle 1 - exp(-lambda * exces * dt) garantit
+
+    l'invariance du taux de chute par unite de temps quel que soit le pas dt.
+    """
+    lambda_c = 2.0
+    p = ParametresChutes(lambda_chute=lambda_c)
+    duree = 10.0
+    x = np.array([[0.0, 0.0]])
+    v = np.array([[0.0, 0.0]])
+    vd = np.array([[2.0, 0.0]])  # Vitesse voulue constante
+    tau = np.array([0.5])
+    a_max = np.array([1.0])  # a_demandee = 4.0, exces = 4.0 / 1.0 - 1 = 3.0
+    r_nom = np.array([0.2])
+    exces = 3.0
+    taux_theorique = lambda_c * exces  # 6.0 chutes / s si releve immediatement
+
+    # Simuler sur plusieurs graines pour deux pas de temps differents (dt et dt/2)
+    def mesurer_chutes_sur_graines(dt: float, n_graines: int = 50) -> float:
+        total_chutes = 0
+        n_pas = round(duree / dt)
+        for g in range(n_graines):
+            gest = GestionnaireChutes(1, p, graine=g)
+            for step in range(n_pas):
+                t = step * dt
+                # Forcer l'agent debout a chaque pas pour mesurer le processus de Poisson stationnaire
+                gest._a_terre[0] = False
+                gest._fin_relevage[0] = np.nan
+                gest.mettre_a_jour(t, dt, x, v, vd, a_max, tau, r_nom)
+            total_chutes += len(gest.historique)
+        return total_chutes / (n_graines * duree)
+
+    taux_dt1 = mesurer_chutes_sur_graines(0.02)
+    taux_dt2 = mesurer_chutes_sur_graines(0.01)
+
+    # Les deux taux doivent converger vers le taux theorique (6.0) a l'erreur d'echantillonnage pres (< 5 %)
+    assert taux_dt1 == pytest.approx(taux_theorique, rel=0.06)
+    assert taux_dt2 == pytest.approx(taux_theorique, rel=0.06)
+    assert abs(taux_dt1 - taux_dt2) < 0.35
+
+
+def test_cas_limite_sans_chute():
+    """Section 7 (2) : sans risque (adherence elevee et seuil inatteignable), 0 chute."""
+    p = ParametresChutes(lambda_chute=1e-12, lambda_bousculade=1e-12, seuil_bousculade=100.0)
+    g = GestionnaireChutes(n_agents=2, parametres=p, graine=1)
+    chutes = g.mettre_a_jour(
+        instant=0.1,
+        dt=0.01,
+        x=np.array([[0.0, 0.0], [1.0, 0.0]]),
+        v=np.array([[1.0, 0.0], [1.0, 0.0]]),
+        vitesse_desiree=np.array([[1.0, 0.0], [1.0, 0.0]]),
+        a_max=np.array([10.0, 10.0]),
+        tau=np.array([0.5, 0.5]),
+        rayons_nominaux=np.array([0.2, 0.2]),
+        correction_projection=np.array([[0.001, 0.0], [0.001, 0.0]]),
+    )
+    assert len(chutes) == 0
+    assert g.nombre_a_terre == 0

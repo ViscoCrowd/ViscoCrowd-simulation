@@ -90,12 +90,22 @@ conformément au cours.
 
 | Milieu | `τ` | `a_max` | Lecture physique |
 |---|---|---|---|
-| Eau | court | modérée | fortement amorti, mais lent : on s'arrête vite, on n'avance pas vite |
-| Carrelage mouillé | long | **faible** | traction limitée : impossible de s'arrêter ou de tourner vite |
-| Sol sec | court | élevée | régulation nominale de la vitesse |
+| Eau | 0,5 s | modérée | fortement amorti, mais lent : on s'arrête vite, on n'avance pas vite |
+| Carrelage mouillé | 0,5 s | **faible** | traction limitée : impossible de s'arrêter ou de tourner vite |
+| Sol sec | 0,5 s | élevée | régulation nominale de la vitesse |
 
 C'est le contraste `a_max(mouillé)` très inférieur à `a_max(sec)` qui porte l'effet d'inertie
 étudié.
+
+*Révision du 6 novembre 2026 (C6, #26).* La première version donnait un `τ` « long » sur le
+mouillé. La valeur retenue est la même partout, 0,5 s (Helbing, Farkas et Vicsek, 2000),
+pour deux raisons :
+- aucune source ne fixe un `τ` propre au carrelage mouillé ;
+- un `τ` commun fait que le mouillé ne diffère du sec **que par l'adhérence**, ce qui isole
+  l'effet étudié.
+
+Les valeurs chiffrées sont dans `experiments/piscine.yaml` ; le choix est consigné au journal
+des décisions.
 
 ### 2.5 Projection — contrainte d'exclusion
 
@@ -193,15 +203,19 @@ détails d'implémentation :
 
 **Limites connues sur les contacts multiples.** L'algorithme vise le **non-recouvrement à la
 tolérance près** ; il ne garantit pas que des agents en contact finissent tangents. Seule une
-paire isolée est corrigée exactement, en un balayage (`TestPaire`). Dès que trois agents sont en
-contact **mutuel**, leurs corrections simultanées, exactes prises une à une, dépassent une fois
-additionnées : un triangle qui s'effondre finit avec un jeu d'environ **1,7·10⁻³ m** au-delà du
-contact, soit 0,85 % du diamètre d'un agent de 20 cm. Ce jeu ne doit rien à l'extrapolation (le
-triangle se résout en 5 balayages, bien avant le rang 80) et, contrairement au jeu d'un tas, **il
-ne décroît pas quand Δt diminue** (1,69·10⁻³ m à Δt = 4·10⁻³ s comme à 2·10⁻³ s). Il est suivi dans
-l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) et doit être traité,
-ou au moins borné et déclaré, avant le jalon 5 : les empilements au goulot sont exactement le cas
-où il fausserait la densité locale, abscisse du diagramme fondamental.
+paire isolée est corrigée exactement, en un balayage (`TestPaire`). L'arrêt à la tolérance crée
+une vitesse parasite de 0,15 à 0,37 × tolérance/Δt : un triangle qui s'effondre sans frottement
+s'en écarte lentement, d'environ 10⁻³ m après 1,6 s à la tolérance 10⁻⁶ m, et ce jeu est
+proportionnel à la tolérance. Il avait d'abord été pris pour un défaut de position propre aux
+contacts mutuels, insensible à Δt ; l'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10)
+l'a requalifié sur ces bancs. Dans le test de trois disques poussés vers leur centre,
+ce jeu n'est pas observé. Pour 60 agents comprimés puis arrêtés, l'indicateur
+`2 × jeu moyen / diamètre` est de l'ordre de **4·10⁻⁵** à Δt = 0,01 s. La décroissance
+annoncée en Δt² est réfutée : le banc est très sensible aux perturbations (une perturbation de 10⁻¹² m
+change l'arrangement final de 10⁻⁴ m), si bien que le jeu moyen dépend de l'arrangement et
+de détails numériques à identifier (`TestJeuDeContact`, journal du 21 octobre 2026).
+Cet indicateur ne mesure ni ne borne le biais de densité au goulot : il faudrait une
+référence et une comparaison de densités sur la géométrie cible. L'issue #10 reste ouverte.
 
 **Ce que l'algorithme ne garantit pas.** La projection sur l'ensemble linéarisé est unique, mais
 l'algorithme n'est pas construit pour la calculer. Des corrections découplées, répétées jusqu'à
@@ -359,7 +373,7 @@ pas de relancer les simulations (déterminant sur un balayage de paramètres), e
 |---|---|---|
 | `core/` | état, schéma semi-implicite, graine RNG, paramètres | — |
 | `geometry/` | domaine, parois, projection itérative, grille spatiale | `core` |
-| `model/desire` | eikonal et Fast Marching, direction de guidage | `geometry` |
+| `model/eikonal` | eikonal et Fast Marching, direction de guidage (G2) ; `model/guidage` garde le cas analytique du couloir (G1) | `geometry` |
 | `model/milieu` | accélération bornée par (`τ`, `a_max`) ; carte position vers (`τ`, `a_max`, `s`) à venir (C6) | `core`, puis `geometry` pour la carte |
 | `model/crossing` | sites de franchissement à capacité unitaire | `geometry` |
 | `model/contact` | contraintes d'exclusion entre agents | `geometry` |
@@ -404,13 +418,15 @@ contraintes et les conditions aux limites sont écrits par le groupe, conformém
 
 ### 8.2 Branches
 
-`main` protégée : pas de push direct, PR obligatoire, CI verte, historique linéaire (squash),
-force-push et suppression bloqués, conversations de revue résolues avant fusion.
+`main` protégée : pas de push direct, PR obligatoire, CI verte, force-push et suppression
+bloqués, conversations de revue résolues avant fusion.
 
 Les contributions vont d'abord dans `dev` par PR squashée. Un jalon terminé est promu
-vers `main`, puis identifié par un tag annoté et une GitHub Release. La resynchronisation
-de `main` vers `dev` passe par une PR avec commit de fusion : c'est l'exception nécessaire
-au squash des contributions. La procédure complète et le rattrapage d'anciens jalons sont
+vers `main` par une PR fusionnée avec un **commit de fusion**, puis identifié par un tag
+annoté et une GitHub Release. Le commit de fusion amène sur `main` chaque contribution avec
+son auteur : GitHub ne compte que les commits de `main` dans ses statistiques de
+contributeurs, et un squash attribuait tout le jalon à la personne qui le publiait. La
+resynchronisation de `main` vers `dev` passe elle aussi par une PR avec commit de fusion. La procédure complète et le rattrapage d'anciens jalons sont
 définis dans [CONTRIBUTING § 3.4](../../../CONTRIBUTING.md#34-passer-de-dev-à-main).
 
 **L'approbation d'un pair n'est pas exigée techniquement**, et chacun peut fusionner sa propre
@@ -421,7 +437,7 @@ La relecture croisée reste la règle de travail (§ 8.5) : elle est simplement 
 discipline du groupe plutôt que par un verrou GitHub. Le garde-fou qui, lui, reste mécanique,
 c'est la CI — et notamment les invariants physiques, qu'aucune PR ne peut contourner.
 
-Préfixes : `feat/`, `fix/`, `exp/`, `docs/`, `chore/`.
+Préfixes de branche : voir [CONTRIBUTING § 3.1](../../../CONTRIBUTING.md#31-branches).
 
 ### 8.3 Commits
 
