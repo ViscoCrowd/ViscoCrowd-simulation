@@ -323,3 +323,12 @@ def test_simulation_piscine_avec_obstacle_plage():
     res = simuler_piscine(p)
     assert res.violation_paroi_max() <= 1e-12
     assert np.all(res.etats[-1] == SORTI)
+
+
+def test_obstacle_laissant_un_passage_trop_etroit_refuse_a_la_lecture():
+    """Refus immediat, et non apres tout le calcul sur une violation de paroi (revue de #103)."""
+    config = lire_configuration(EXEMPLE)
+    geom = dict(config["parametres"]["geometrie"])
+    geom["obstacles"] = [{"x_min": 40.0, "x_max": 41.0, "y_min": 18.0, "y_max": 20.3}]
+    with pytest.raises(ValueError, match="passage"):
+        parametres(geometrie=geom)

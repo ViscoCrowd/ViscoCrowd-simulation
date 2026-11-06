@@ -154,6 +154,8 @@ class ParametresPiscine:
             raise ValueError("deux sites de franchissement sont a moins d'un diametre")
         if self.espacement - 2 * self.bruit < 2 * self.rayon:
             raise ValueError("espacement insuffisant pour garantir le non-recouvrement initial")
+        # Des la lecture de la configuration, et non apres tout le calcul (revue de #103).
+        piscine.valider_obstacles(self.rayon)
         object.__setattr__(self, "piscine", piscine)
         object.__setattr__(self, "parametres_milieux", milieux)
         object.__setattr__(self, "durees", {n: float(d) for n, d in self.durees.items()})

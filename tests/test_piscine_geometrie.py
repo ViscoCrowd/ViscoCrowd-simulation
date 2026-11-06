@@ -240,13 +240,61 @@ class TestObstaclesPlage:
         assert p.violation(x_proj, r, 0.0) <= 1e-12
 
     def test_guidage_piscine_contourne_obstacle_sur_plage(self):
-        """Le guidage eikonal de la plage contourne un obstacle sur le chemin de la porte."""
+        """Devant l'obstacle, le guidage tourne et le trajet s'allonge (revue de #103).
+
+        Sans obstacle, en (34 ; 10) la direction vaut (1 ; 0) et le temps jusqu'a la porte
+        10,45 s. Avec l'obstacle 35-37 x 8-12, mesure : direction (0,41 ; 0,91) et 11,81 s.
+        """
         obs = ObstacleRectangle(35.0, 37.0, 8.0, 12.0)
+        sans = GuidagePiscine(PISCINE, MILIEUX, R, 0.2, DUREES)
+        avec = GuidagePiscine(replace(PISCINE, obstacles=(obs,)), MILIEUX, R, 0.2, DUREES)
+        devant = np.array([[34.0, 10.0]])
+        np.testing.assert_allclose(sans.direction(devant), [[1.0, 0.0]], atol=1e-6)
+        (e,) = avec.direction(devant)
+        assert np.hypot(*e) == pytest.approx(1.0, abs=1e-9)
+        assert abs(e[1]) > 0.5  # il longe l'obstacle au lieu d'aller droit dessus
+        assert avec.temps(devant)[0] > sans.temps(devant)[0] + 1.0  # le detour coute
+
+    @pytest.mark.parametrize(
+        ("obstacle", "voisin"),
+        [
+            (ObstacleRectangle(40.0, 41.0, 18.0, 20.3), "le mur du haut"),  # 0,2 m du mur
+            (ObstacleRectangle(28.1, 29.0, 8.0, 10.0), "le bassin"),  # 0,1 m du bord
+        ],
+    )
+    def test_passage_plus_etroit_qu_un_diametre_refuse(self, obstacle, voisin):
+        """Un passage de moins de 2r ne peut pas etre respecte des deux cotes a la fois."""
+        p = replace(PISCINE, obstacles=(obstacle,))
+        with pytest.raises(ValueError, match=f"avec {voisin} un passage"):
+            p.valider_obstacles(R)
+        with pytest.raises(ValueError, match="passage"):
+            GuidagePiscine(p, MILIEUX, R, 0.2, DUREES)
+
+    def test_passage_entre_deux_obstacles_refuse(self):
+        a = ObstacleRectangle(35.0, 36.0, 8.0, 10.0)
+        b = ObstacleRectangle(36.3, 37.0, 8.0, 10.0)  # 0,3 m entre les deux
+        with pytest.raises(ValueError, match="obstacle 1"):
+            replace(PISCINE, obstacles=(a, b)).valider_obstacles(R)
+
+    @pytest.mark.parametrize("ecart", [0.0, 2 * R, 1.0])
+    def test_obstacle_colle_ou_a_un_diametre_admis(self, ecart):
+        """Colle au mur, il ne laisse aucun passage ; a un diametre ou plus, il est praticable."""
+        obs = ObstacleRectangle(40.0, 41.0, 18.0, PISCINE.largeur_emprise - ecart)
+        replace(PISCINE, obstacles=(obs,)).valider_obstacles(R)
+
+    def test_obstacle_hors_emprise_refuse(self):
+        with pytest.raises(ValueError, match="emprise"):
+            replace(PISCINE, obstacles=(ObstacleRectangle(46.0, 49.0, 8.0, 9.0),))
+
+    def test_obstacle_sur_les_arrivees_d_un_rebord_refuse(self):
+        """Un obstacle colle au bord recouvre des points d'arrivee : le guidage le refuse.
+
+        Ce controle existait deja (#54) : il passe par `Piscine.violation`, a laquelle #103
+        a ajoute les obstacles. Ce test le verrouille.
+        """
+        b = PISCINE.bassin
+        obs = ObstacleRectangle(10.0, 11.0, b.y_max, b.y_max + 1.0)
         p = replace(PISCINE, obstacles=(obs,))
-        g = GuidagePiscine(p, MILIEUX, R, 0.2, DUREES)
-        # Verifier que les points proches de l'obstacle recoivent des directions valides
-        pts = np.array([[34.0, 10.0], [38.0, 10.0]])
-        dirs = g.direction(pts)
-        for d in dirs:
-            norme = np.hypot(d[0], d[1])
-            assert 0.99 <= norme <= 1.01
+        p.valider_obstacles(R)  # colle au bassin : aucun passage, admis
+        with pytest.raises(ValueError, match="arrivee admissible"):
+            GuidagePiscine(p, MILIEUX, R, 0.2, DUREES)
