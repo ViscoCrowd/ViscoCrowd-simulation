@@ -80,6 +80,7 @@ class GuidagePiscine:
 
         self.piscine, self.rayon = piscine, rayon
         piscine.valider_rayons(np.array([rayon]))
+        piscine.valider_obstacles(rayon)
         self.sites = piscine.sites()
         if not self.sites:
             raise ValueError("la piscine doit proposer au moins un site de franchissement")
