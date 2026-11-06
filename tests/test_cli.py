@@ -69,3 +69,25 @@ class TestConclure:
         for echec in echecs:
             assert echec in sortie
         assert f"{nombre} critere(s)" in sortie
+
+
+def test_sortie_redirigee_en_cp1252_ecrite_en_utf8(monkeypatch):
+    """Sous Windows, une sortie redirigee est en cp1252, qui ne connait pas « Δ ».
+
+    `comparer-piscine` y echouait a l'affichage, apres huit minutes de calcul.
+    """
+    import argparse
+    import io
+    import sys
+
+    from viscocrowd import cli
+
+    tampon = io.BytesIO()
+    sortie_windows = io.TextIOWrapper(tampon, encoding="cp1252", newline="\n")
+    monkeypatch.setattr(sys, "stdout", sortie_windows)
+    analyseur = argparse.ArgumentParser()
+    analyseur.set_defaults(fonction=lambda args: print("écart apparié Δ vs E1") or 0)
+    monkeypatch.setattr(cli, "construire_analyseur", lambda: analyseur)
+    assert cli.main([]) == 0
+    sys.stdout.flush()
+    assert tampon.getvalue().decode("utf-8") == "écart apparié Δ vs E1\n"
