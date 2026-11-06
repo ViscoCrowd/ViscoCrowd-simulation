@@ -507,8 +507,21 @@ def commande_interface(_args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _sorties_en_utf8()
     args = construire_analyseur().parse_args(argv)
     return int(args.fonction(args))
+
+
+def _sorties_en_utf8() -> None:
+    """Ecrit les sorties en UTF-8, meme redirigees vers un fichier sous Windows.
+
+    Une sortie redirigee y est encodee en cp1252, qui ne connait pas « Δ » :
+    `comparer-piscine` echouait ainsi a l'affichage, apres huit minutes de calcul.
+    """
+    for flux in (sys.stdout, sys.stderr):
+        encodage = (getattr(flux, "encoding", None) or "").replace("-", "").lower()
+        if encodage != "utf8" and hasattr(flux, "reconfigure"):
+            flux.reconfigure(encoding="utf-8")
 
 
 if __name__ == "__main__":
