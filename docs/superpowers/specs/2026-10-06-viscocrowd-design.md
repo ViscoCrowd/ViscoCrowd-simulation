@@ -427,7 +427,7 @@ La relecture croisée reste la règle de travail (§ 8.5) : elle est simplement 
 discipline du groupe plutôt que par un verrou GitHub. Le garde-fou qui, lui, reste mécanique,
 c'est la CI — et notamment les invariants physiques, qu'aucune PR ne peut contourner.
 
-Préfixes : `feat/`, `fix/`, `exp/`, `docs/`, `chore/`.
+Préfixes de branche : voir [CONTRIBUTING § 3.1](../../../CONTRIBUTING.md#31-branches).
 
 ### 8.3 Commits
 
