@@ -295,7 +295,8 @@ Les valeurs pourront être fournies directement en arguments. Exemple d'affichag
 (ces nombres ne constituent pas une calibration du modèle) :
 
 ```python
-from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage, ParametresMilieu
+from viscocrowd.model.milieu import ParametresMilieu
+from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage
 from viscocrowd.ui.piscine import ouvrir_interface
 
 ouvrir_interface(
@@ -305,11 +306,15 @@ ouvrir_interface(
         nombre_agents=100,
         dt=0.01,
         graine=20262027,
-        eau=ParametresMilieu(vitesse=0.5),
+        eau=ParametresMilieu(vitesse=0.5, relaxation=0.5, acceleration_max=1.6),
     ),
     temps_simule=12.5,
 )
 ```
+
+Un milieu s'affiche complet ou pas du tout : la classe `ParametresMilieu` est celle du
+modèle, avec ses contrôles. Pour afficher les valeurs d'un scénario sans les recopier,
+`ParametresAffichage.depuis_piscine(p)` les reprend d'un `ParametresPiscine`.
 
 `creer_figure()` accepte les mêmes arguments pour construire la vue sans lancer sa boucle
 graphique. `DimensionsPlan` commande les dimensions du dessin et ses annotations : changer
