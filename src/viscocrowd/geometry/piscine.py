@@ -77,6 +77,16 @@ class SiteFranchissement:
         return self.position + rayon * self.normale
 
 
+_TOLERANCE_ECART = 1e-9  # m, marge d'arrondi sur la largeur d'un passage
+
+
+def _ecart_rectangles(a: ObstacleRectangle, b: ObstacleRectangle) -> float:
+    """Plus courte distance entre deux rectangles, en m ; nulle s'ils se touchent."""
+    dx = max(a.x_min - b.x_max, b.x_min - a.x_max, 0.0)
+    dy = max(a.y_min - b.y_max, b.y_min - a.y_max, 0.0)
+    return float(np.hypot(dx, dy))
+
+
 @dataclass(frozen=True)
 class Piscine:
     """Dimensions en metres, toutes explicites (configuration YAML du scenario).
@@ -97,6 +107,7 @@ class Piscine:
     pas_rebord: float
     largeur_echelle: float
     echelles: tuple[tuple[str, float], ...]
+    obstacles: tuple[ObstacleRectangle, ...] = ()
 
     def __post_init__(self) -> None:
         for nom in (
@@ -124,6 +135,63 @@ class Piscine:
                 raise ValueError("la fraction d'une echelle doit etre dans ]0, 1[")
             echelles.append((cote, float(fraction)))
         object.__setattr__(self, "echelles", tuple(echelles))
+
+        obstacles = []
+        b = self.bassin
+        for obs in self.obstacles:
+            if isinstance(obs, dict):
+                obs = ObstacleRectangle(**obs)
+            elif not isinstance(obs, ObstacleRectangle):
+                raise ValueError(
+                    f"chaque obstacle doit etre une instance de ObstacleRectangle, recu {type(obs)}"
+                )
+            if not (
+                obs.x_max <= b.x_min
+                or obs.x_min >= b.x_max
+                or obs.y_max <= b.y_min
+                or obs.y_min >= b.y_max
+            ):
+                raise ValueError("un obstacle sur la plage ne doit pas chevaucher le bassin")
+            if not (
+                obs.x_min >= 0.0
+                and obs.x_max <= self.longueur_emprise
+                and obs.y_min >= 0.0
+                and obs.y_max <= self.largeur_emprise
+            ):
+                raise ValueError("un obstacle doit tenir dans l'emprise de la piscine")
+            obstacles.append(obs)
+        object.__setattr__(self, "obstacles", tuple(obstacles))
+
+    def valider_obstacles(self, rayon: float) -> None:
+        """Refuser un passage plus etroit qu'un diametre autour d'un obstacle.
+
+        Dans un tel passage, aucun centre ne respecte a la fois l'obstacle et son voisin
+        (mur, bassin ou autre obstacle) : la projection les traite l'un apres l'autre et
+        laisse une violation, constatee seulement a la fin du calcul. Un obstacle colle
+        a son voisin (ecart nul) ne laisse aucun passage et reste admis.
+        """
+        exiger_scalaire_fini("rayon", rayon, strictement_positif=True)
+        L, W = self.longueur_emprise, self.largeur_emprise
+        for k, obs in enumerate(self.obstacles):
+            voisins = [
+                ("le mur de gauche", obs.x_min),
+                ("le mur de droite", L - obs.x_max),
+                ("le mur du bas", obs.y_min),
+                ("le mur du haut", W - obs.y_max),
+                ("le bassin", _ecart_rectangles(obs, self.bassin)),
+            ] + [
+                (f"l'obstacle {j}", _ecart_rectangles(obs, autre))
+                for j, autre in enumerate(self.obstacles)
+                if j > k
+            ]
+            for voisin, ecart in voisins:
+                # Un nanometre de marge des deux cotes : 20,5 - 20,1 vaut 0,39999... et non
+                # 0,4, et un obstacle colle ne doit pas laisser un « passage » d'arrondi.
+                if _TOLERANCE_ECART < ecart < 2 * rayon - _TOLERANCE_ECART:
+                    raise ValueError(
+                        f"l'obstacle {k} laisse avec {voisin} un passage de {ecart:.3g} m, "
+                        f"plus etroit qu'un diametre d'agent ({2 * rayon:.3g} m)"
+                    )
 
     # --- Rectangles ------------------------------------------------------------
 
@@ -247,6 +315,8 @@ class Piscine:
         b = self.bassin
         resultat = self.projeter_plage(x, r)
         resultat = self.bassin.repousser(resultat, r)
+        for obs in self.obstacles:
+            resultat = obs.repousser(resultat, r)
         resultat[eau, 0] = np.clip(x[eau, 0], b.x_min + r[eau], b.x_max - r[eau])
         resultat[eau, 1] = np.clip(x[eau, 1], b.y_min + r[eau], b.y_max - r[eau])
         return resultat
@@ -278,4 +348,6 @@ class Piscine:
             ecart = np.hypot(*(self.projeter_plage(xp, rp) - xp).T)
             depassement.append(float(np.max(ecart)))
             depassement.append(self.bassin.violation(xp, rp))
+            for obs in self.obstacles:
+                depassement.append(obs.violation(xp, rp))
         return max(depassement)

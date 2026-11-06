@@ -311,3 +311,24 @@ def test_archive_conserve_les_etats(tmp_path):
     assert relue.etats.shape == relue.x.shape[:2]
     assert relue.metadonnees["etats"] == list(NOMS_ETATS)
     assert np.any(relue.etats == FRANCHISSEMENT)  # les poses sur le bord sont reperables
+
+
+def test_simulation_piscine_avec_obstacle_plage():
+    """L'evacuation de la piscine avec obstacle sur la plage contourne l'obstacle sans chevauchement."""
+    config = lire_configuration(EXEMPLE)
+    geom = dict(config["parametres"]["geometrie"])
+    geom["obstacles"] = [{"x_min": 35.0, "x_max": 37.0, "y_min": 8.0, "y_max": 12.0}]
+    p = parametres(geometrie=geom, n_agents=6, duree=45.0)
+    assert len(p.piscine.obstacles) == 1
+    res = simuler_piscine(p)
+    assert res.violation_paroi_max() <= 1e-12
+    assert np.all(res.etats[-1] == SORTI)
+
+
+def test_obstacle_laissant_un_passage_trop_etroit_refuse_a_la_lecture():
+    """Refus immediat, et non apres tout le calcul sur une violation de paroi (revue de #103)."""
+    config = lire_configuration(EXEMPLE)
+    geom = dict(config["parametres"]["geometrie"])
+    geom["obstacles"] = [{"x_min": 40.0, "x_max": 41.0, "y_min": 18.0, "y_max": 20.3}]
+    with pytest.raises(ValueError, match="passage"):
+        parametres(geometrie=geom)

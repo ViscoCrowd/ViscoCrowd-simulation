@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, fields
+from typing import TYPE_CHECKING
+
+from viscocrowd.model.milieu import Milieu, ParametresMilieu
+
+if TYPE_CHECKING:
+    from viscocrowd.scenarios.piscine import ParametresPiscine
 
 
 @dataclass(frozen=True)
@@ -49,21 +55,16 @@ class DimensionsPlan:
 
 
 @dataclass(frozen=True)
-class ParametresMilieu:
-    """Grandeurs affichees pour un milieu ; None signifie non renseigne."""
-
-    vitesse: float | None = None  # m/s
-    relaxation: float | None = None  # s
-    acceleration_max: float | None = None  # m/s^2
-
-
-@dataclass(frozen=True)
 class ParametresAffichage:
     """Valeurs presentees dans l'interface, independantes du moteur.
 
     Ces informations ne declenchent aucune simulation. Le rayon de reference,
     le nombre d'echelles et la largeur de sortie affiches sont deduits du plan
     effectivement dessine. Les autres champs restent de simples annotations.
+
+    Les milieux reprennent la classe du modele, `model.milieu.ParametresMilieu` :
+    un milieu est affiche complet (s, tau, a_max) ou pas du tout (None). Une seule
+    definition evite que l'affichage et le moteur divergent (issue #26, point 3).
     """
 
     nombre_agents: int | None = None
@@ -76,6 +77,25 @@ class ParametresAffichage:
     temps_echelle: float | None = None  # s
     dt: float | None = None  # s
     graine: int | None = None
-    eau: ParametresMilieu = field(default_factory=ParametresMilieu)
-    mouille: ParametresMilieu = field(default_factory=ParametresMilieu)
-    sec: ParametresMilieu = field(default_factory=ParametresMilieu)
+    eau: ParametresMilieu | None = None
+    mouille: ParametresMilieu | None = None
+    sec: ParametresMilieu | None = None
+
+    @classmethod
+    def depuis_piscine(cls, p: ParametresPiscine) -> ParametresAffichage:
+        """Panneau rempli avec les parametres effectifs d'un scenario piscine."""
+        return cls(
+            nombre_agents=p.n_agents,
+            rayon_agents=p.rayon,
+            niveau_panique=p.facteur_vitesse,
+            nombre_echelles=len(p.piscine.echelles),
+            largeur_sortie=p.piscine.largeur_porte,
+            longueur_zone_mouillee=p.piscine.largeur_mouillee,
+            temps_rebord=p.durees["rebord"],
+            temps_echelle=p.durees["echelle"],
+            dt=p.dt,
+            graine=p.graine,
+            eau=p.parametres_milieux[Milieu.EAU],
+            mouille=p.parametres_milieux[Milieu.MOUILLE],
+            sec=p.parametres_milieux[Milieu.SEC],
+        )
