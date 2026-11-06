@@ -11,6 +11,60 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-06 — Figer les valeurs de référence de la piscine (C6)
+
+**Contexte.** Les valeurs de `experiments/piscine.yaml` étaient une proposition « à valider
+par le groupe » depuis le 21 octobre (#26). Le groupe a laissé Shaleena les fixer, sans
+nouvel aval. On s'appuie sur ce que les campagnes ont mesuré entre-temps (#86, #84).
+
+**Décisions.**
+
+| Valeur | Retenue | Pourquoi |
+|---|---|---|
+| Facteur de panique | **1,5** (au lieu de 1) | Le sujet porte sur une foule en panique. 1,34 m/s est une marche ordinaire, alors que 2,0 m/s dépasse le seuil du *faster-is-slower* (Helbing et al. 2000). Les balayages E3/E4 utilisaient déjà 1,5 comme base. |
+| τ | **0,5 s sur les trois sols** | Aucune source ne donne un τ propre au mouillé ou à l'eau. Un τ commun fait que le mouillé ne diffère du sec que par l'adhérence. La spec § 2.4 est corrigée. |
+| a_max de l'eau | **1,6 m/s², provisoire** | 0,34 g × 0,5 = 1,67 m/s². Le passage à 1,67 se fera à la prochaine relance des balayages, sur une machine plus puissante. |
+| Largeur mouillée | 3 m, inchangée | À 3 et 10 m, les résultats sont identiques au bit près ; mouiller jusqu'à la porte change t50 d'au plus 1,4·10⁻⁵ s (M6). |
+| s mouillé = s sec | 1,34 m/s, inchangé | Choix de protocole : isoler l'adhérence. La vitesse sur le mouillé est balayée à part (#104). |
+| Vitesse dans l'eau, durées, porte, N, rayon | inchangés | Eau vérifiée dans #71 ; durées non sourcées mais balayées en E4. |
+
+- *Écarté : garder le facteur 1.* Aucune campagne n'aurait été à refaire, mais la référence
+  n'aurait pas décrit une panique, et deux références auraient coexisté (1 pour E1/E2, 1,5
+  pour E3/E4).
+- *Écarté : un τ long sur le mouillé*, comme dans la première version de la spec. Sa valeur
+  n'a aucune source, et toutes les campagnes seraient à refaire. La sensibilité à τ sera
+  mesurée par un balayage (#108).
+
+**Conséquence : E1/E2 refaits au facteur 1,5** (10 graines, `comparer-piscine`, 9 min 45 s
+sous Windows). Le rapport (§ 6.2 et 6.4) est mis à jour.
+
+| | t50 (s) | t90 (s) | t100 (s) | Débit (pers/(m·s)) |
+|---|---|---|---|---|
+| E1 sec | 25,88 ± 0,50 | 32,08 ± 0,67 | 41,23 ± 3,47 | 3,20 ± 0,47 |
+| E2 mouillé | 25,90 ± 0,49 | 31,98 ± 0,77 | 41,20 ± 3,06 | 3,20 ± 0,45 |
+| Δ apparié | **+0,02 ± 0,01** | −0,10 ± 0,22 | −0,03 ± 0,96 | −0,00 ± 0,11 |
+
+Ces chiffres sont identiques à ceux du balayage M6 au même réglage, ce qui recoupe les deux
+outils. Δ t50 est positif sur les dix graines (bilan brut de M6, de 0,005 à 0,053 s).
+
+**Lecture.** À 2,0 m/s, une relance depuis l'arrêt sur le mouillé demande 4,0 m/s², plus que
+les 3,3 m/s² disponibles. Le calcul exact du modèle continu donne :
+
+| Situation | Temps perdu par relance, par rapport au sec |
+|---|---|
+| Facteur 1,5, a_max = 3,3 m/s² | 0,0098 s |
+| Facteur 1 | 0 s (2,7 m/s² demandés) |
+| Adhérence de 1 m/s² | 0,57 s (M6 mesure 0,38 s sur t50) |
+
+Les 0,02 s mesurés correspondent donc à environ deux relances par baigneur. **Le mécanisme
+inertiel existe et il est identifié, mais il coûte un centième de seconde** tant que
+l'adhérence du mouillé reste à 3,3 m/s² et que la porte n'est pas encombrée.
+
+Par ailleurs, la commande avait planté à l'affichage sous Windows, sur le « Δ », après le
+calcul (#107).
+
+---
+
 ## 2026-11-03 — Intégrer les chutes par bousculade (§ 2) et les observables de cascade (§ 6)
 
 **Contexte.** Le module de chutes modélisait la glissade par perte d'adhérence, l'effet domino au sol, le relevage log-normal et le contournement local réactif, mais la chute directe par bousculade et compression de foule (Chen et al. 2024, § 2 de la spécification) et les observables de cascade (§ 6) n'étaient pas encore implémentés.
