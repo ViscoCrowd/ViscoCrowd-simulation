@@ -1,7 +1,8 @@
 # Balayages E3/E4 de la piscine (M6)
 
-Au point de référence (`experiments/piscine.yaml`), le carrelage mouillé ne change rien de
-mesurable à l'évacuation (#83). Deux raisons, relevées dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26) :
+Au point de référence (`experiments/piscine.yaml`), le carrelage mouillé ne change presque
+rien à l'évacuation : rien de mesurable au facteur de panique 1 (#83), et +0,02 s sur t50
+au facteur 1,5, la référence depuis le 6 novembre (journal des décisions). Deux raisons, relevées dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26) :
 
 - à 1,34 m/s, relancer ou freiner en ligne droite demande au plus `s/τ = 2,7 m/s²`, sous
   l'adhérence du mouillé (3,3 m/s²). L'adhérence ne limite rien tant que `s < a_max·τ =

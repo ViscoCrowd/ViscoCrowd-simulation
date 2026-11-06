@@ -90,12 +90,22 @@ conformément au cours.
 
 | Milieu | `τ` | `a_max` | Lecture physique |
 |---|---|---|---|
-| Eau | court | modérée | fortement amorti, mais lent : on s'arrête vite, on n'avance pas vite |
-| Carrelage mouillé | long | **faible** | traction limitée : impossible de s'arrêter ou de tourner vite |
-| Sol sec | court | élevée | régulation nominale de la vitesse |
+| Eau | 0,5 s | modérée | fortement amorti, mais lent : on s'arrête vite, on n'avance pas vite |
+| Carrelage mouillé | 0,5 s | **faible** | traction limitée : impossible de s'arrêter ou de tourner vite |
+| Sol sec | 0,5 s | élevée | régulation nominale de la vitesse |
 
 C'est le contraste `a_max(mouillé)` très inférieur à `a_max(sec)` qui porte l'effet d'inertie
 étudié.
+
+*Révision du 6 novembre 2026 (C6, #26).* La première version donnait un `τ` « long » sur le
+mouillé. La valeur retenue est la même partout, 0,5 s (Helbing, Farkas et Vicsek, 2000),
+pour deux raisons :
+- aucune source ne fixe un `τ` propre au carrelage mouillé ;
+- un `τ` commun fait que le mouillé ne diffère du sec **que par l'adhérence**, ce qui isole
+  l'effet étudié.
+
+Les valeurs chiffrées sont dans `experiments/piscine.yaml` ; le choix est consigné au journal
+des décisions.
 
 ### 2.5 Projection — contrainte d'exclusion
 
