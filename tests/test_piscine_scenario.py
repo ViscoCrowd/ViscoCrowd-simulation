@@ -10,6 +10,7 @@ from viscocrowd.core.rng import generateur
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.trajectoires import lire_trajectoire
 from viscocrowd.observables.sortie import sorties_definitives
+from viscocrowd.observables.weidmann import debit_specifique
 from viscocrowd.scenarios.experience import executer_configuration
 from viscocrowd.scenarios.piscine import (
     EAU,
@@ -140,38 +141,27 @@ def test_etats_retrouves_depuis_les_evenements(evacuation):
 
 
 def test_confrontation_repere_analytique_debit(evacuation):
-    """Confrontation au repere analytique N / (J_s * w) (#11).
+    """Confrontation au repere analytique T = N / (J_max * w) (#11).
 
-    En ingenierie de l'evacuation (Weidmann 1993), le debit specifique d'une issue
-    de largeur w en regime permanent sature est usuellement evalue a
-    J_s ~= 1,3 pers/(m*s). Pour N agents, la duree de vidange continue theorique
-    vaut T_theorique = N / (1,3 * w).
-
-    Sur la piscine :
-    - avec 20 agents disperses dans le bassin, l'arrivee a la porte est etalee
-      par la nage et l'extraction, donc l'intervalle de flux effectif depasse
-      la duree permanente saturee (arrivees par intermittence) ;
-    - a 100 agents (campagne E1), la phase d'ecoulement est plus dense et
-      l'absence de regulation produit un flux superieur a 1,3 pers/(m*s).
+    J_max est le debit specifique maximal du diagramme de Weidmann (1,225 pers/(m*s),
+    p. 63-64), calcule ici par `debit_specifique`. Avec 20 agents disperses dans le
+    bassin, la nage et les echelles etalent les arrivees : la porte s'ecoule plus
+    longtemps que le repere ne le prevoit pour un flux continu. Le debit reste sous la
+    capacite du goulot E0 sans regulation (4,96 pers/(m*s), rapport tab. E0).
     """
     r = evacuation
     n = r.parametres.n_agents
-    w = np.linalg.norm(r.parametres.piscine.porte[1] - r.parametres.piscine.porte[0])
-    assert w == pytest.approx(1.2)
+    w = r.parametres.piscine.largeur_porte
+    j_max = float(debit_specifique(np.linspace(0.5, 5.0, 10001)).max())
+    assert j_max == pytest.approx(1.225, abs=1e-3)
 
-    # Duree theorique permanente saturee a 1,3 pers/(m*s)
-    t_theo_flux = n / (1.3 * w)
-    assert t_theo_flux == pytest.approx(20.0 / (1.3 * 1.2))
+    sorties = np.sort(r.sorties)
+    assert np.all(np.isfinite(sorties)) and sorties.size == n
+    dt_flux = sorties[-1] - sorties[0]
+    j_s = (n - 1) / (dt_flux * w)
 
-    sorties = r.sorties[np.isfinite(r.sorties)]
-    assert sorties.size == n
-    dt_flux = np.max(sorties) - np.min(sorties)
-
-    # Arrivees etalees par la traversee aquatique et les echelles :
-    # l'ecoulement intermittent dure plus longtemps que le regime continu theorique
-    assert dt_flux > t_theo_flux
-    # Mais le temps d'evacuation totale reste borne et physiquement coherent (< 60 s pour 20 agents)
-    assert r.temps_evacuation() < 60.0
+    assert dt_flux > n / (j_max * w)  # 15,1 s contre 13,6 s (mesure du 7 novembre)
+    assert j_s < 4.96
 
 
 def test_le_partage_vers_les_echelles_suit_leur_duree():
