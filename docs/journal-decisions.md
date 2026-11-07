@@ -65,6 +65,38 @@ calcul (#107).
 
 ---
 
+## 2026-11-03 — Intégrer la régulation vitesse–espacement de Tordeux à la piscine (#57)
+
+**Contexte.** Sur le goulot E0, l'absence de régulation vitesse–espacement conduisait à un débit
+environ deux fois supérieur aux mesures de Seyfried et al. (2009), la foule marchant à pleine
+vitesse jusqu'au contact. La fonction de vitesse optimale de Tordeux et al. (2016) avec
+$T = 0{,}35\text{ s}$ ajustée sur E0 ramène le débit simulé à $-7$ à $+3\,\%$ de la mesure.
+Toutefois, la piscine ne disposait pas encore du paramètre `temps_espacement`, ce qui laissait
+la porte alimentée à un débit surévalué sans saturation naturelle (signalé dans les issues #57, #59
+et les rapports E1/E2).
+
+**Décision.**
+1. Ajouter le paramètre optionnel `temps_espacement: float | None = None` dans `ParametresPiscine`
+   et dans les paramètres de balayage (`balayage_piscine.PARAMETRES`).
+2. Transmettre le temps d'espacement à `pas_libre_milieux` avec comme champ d'avancement
+   `guidage.temps` (potentiel eikonal jusqu'à la porte) pour maintenir un ordre strict sans cycle.
+3. Restreindre la recherche de meneur au même sous-domaine (`groupe_meneur = piscine.dans_bassin`) :
+   les nageurs dans l'eau ne prennent pour meneur que des nageurs dans l'eau, et les plagistes ne
+   prennent que des plagistes. Le mur du bassin coupe ainsi la visibilité du meneur.
+
+**Pourquoi.** Sans séparation par groupe, un nageur proche du bord du bassin ralentirait derrière un
+agent déjà sorti sur la plage en raison de la recherche en ligne droite, alors que le bord est un mur
+infranchissable hors des sites de franchissement. Séparer par sous-domaine résout exactement la limite
+identifiée dans l'étalonnage E0 sans alourdir le calcul.
+
+**Options écartées.**
+- *Calculer la visibilité à travers des rayons optiques (raycasting)* : coûteux sur chaque paire
+  candidate, inutile ici puisque la seule frontière opaque interne est le bord du bassin.
+- *Appliquer l'espacement uniquement sur la plage et pas dans l'eau* : $T$ est un trait de comportement
+  qui s'applique aux deux milieux, régulant à la fois la file vers la porte et les regroupements aux rebords.
+
+---
+
 ## 2026-11-03 — Intégrer les chutes par bousculade (§ 2) et les observables de cascade (§ 6)
 
 **Contexte.** Le module de chutes modélisait la glissade par perte d'adhérence, l'effet domino au sol, le relevage log-normal et le contournement local réactif, mais la chute directe par bousculade et compression de foule (Chen et al. 2024, § 2 de la spécification) et les observables de cascade (§ 6) n'étaient pas encore implémentés.
