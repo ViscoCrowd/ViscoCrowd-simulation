@@ -80,6 +80,7 @@ class GuidagePiscine:
 
         self.piscine, self.rayon = piscine, rayon
         piscine.valider_rayons(np.array([rayon]))
+        piscine.valider_obstacles(rayon)
         self.sites = piscine.sites()
         if not self.sites:
             raise ValueError("la piscine doit proposer au moins un site de franchissement")
@@ -107,6 +108,8 @@ class GuidagePiscine:
         sur_plage = (np.hypot(*(piscine.projeter_plage(points, r) - points).T) <= 1e-12) & (
             piscine.bassin.distance(points) >= rayon - 1e-9
         )  # arrondis : 3 - 2,8 < 0,2
+        for obs in piscine.obstacles:
+            sur_plage = sur_plage & (obs.distance(points) >= rayon - 1e-9)
         table = np.zeros(max(Milieu) + 1)
         for milieu, s in vitesse.items():
             table[milieu] = s
