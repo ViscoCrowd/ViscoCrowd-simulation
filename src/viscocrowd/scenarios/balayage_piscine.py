@@ -112,7 +112,8 @@ PARAMETRES = {
     "lambda_chute": ParametreBalaye(
         "E3",
         "1/s",
-        "taux de chute par perte d'adherence sur le carrelage mouille",
+        "taux de chute par perte d'adherence (active le module de chutes, avec ses autres "
+        "valeurs par defaut non calibrees : aucun chiffre n'est un resultat avant #19)",
         ("chutes", "lambda_chute"),
     ),
     # Pas mesure sur les sols de la piscine : on verifie que les conclusions tiennent
@@ -160,11 +161,18 @@ class PointBalayage:
 
 
 def _remplacer(table: dict, chemin: tuple[str, ...], valeur) -> dict:
-    """Copie de `table` ou seule la valeur au bout de `chemin` change."""
+    """Copie de `table` ou seule la valeur au bout de `chemin` change.
+
+    Un champ absent ou nul est cree : balayer `lambda_chute` sur un YAML sans section
+    `chutes` active ainsi le module de chutes, toutes ses autres valeurs restant celles
+    par defaut de `ParametresChutes`, non calibrees (docs/modele-chutes.md, #19).
+    """
     tete, *reste = chemin
     sous_table = table.get(tete)
-    if sous_table is None or (not isinstance(sous_table, dict) and reste):
+    if sous_table is None:
         sous_table = {}
+    elif reste and not isinstance(sous_table, dict):
+        raise ValueError(f"le champ {tete} de la configuration n'est pas une section")
     return table | {tete: _remplacer(sous_table, tuple(reste), valeur) if reste else valeur}
 
 
@@ -177,21 +185,23 @@ def _appliquer(parametres: dict, nom: str, valeur) -> dict:
 
 
 def temoin(parametres: dict) -> dict:
-    """Les memes parametres, sol entierement sec."""
+    """Les memes parametres, sol entierement sec.
+
+    Les chutes, si elles sont actives, restent les memes : Delta ne doit mesurer que le
+    sol, pas le fait d'activer le module (revue de #104). Sur le sec, a_max = 5,9 m/s^2
+    rend la glissade rare, et c'est ce que Delta doit montrer.
+    """
     milieux = parametres["parametres_milieux"]
     return parametres | {
         "geometrie": parametres["geometrie"] | {"largeur_mouillee": 0.0},
         "parametres_milieux": milieux | {"MOUILLE": milieux["SEC"]},
-        "chutes": None,
     }
 
 
 def mouille_equivaut_au_sec(p: ParametresPiscine) -> bool:
     """Vrai si le sol mouille de `p` ne peut rien changer a la simulation."""
     milieux = p.parametres_milieux
-    return (
-        p.piscine.largeur_mouillee == 0.0 or milieux[Milieu.MOUILLE] == milieux[Milieu.SEC]
-    ) and p.chutes is None
+    return p.piscine.largeur_mouillee == 0.0 or milieux[Milieu.MOUILLE] == milieux[Milieu.SEC]
 
 
 def mesurer(p: ParametresPiscine) -> dict[str, float]:

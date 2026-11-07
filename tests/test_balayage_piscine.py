@@ -90,6 +90,24 @@ class TestAppariement:
         mouilles = [p for p in appels if p.chutes is not None and p.piscine.largeur_mouillee > 0]
         assert {p.chutes.lambda_chute for p in mouilles} == {1.0, 5.0}
 
+    def test_temoin_lambda_chute_garde_les_memes_chutes(self, configuration, appels):
+        """Mouille et temoin ne different que par le sol, chutes comprises (revue de #104)."""
+        (point,) = balayage.balayer(configuration, "lambda_chute", [5.0], [1, 2])
+
+        assert len(appels) == 2 * 2
+        mouilles = {p.graine: p for p in appels if p.piscine.largeur_mouillee > 0}
+        temoins = {p.graine: p for p in appels if p.piscine.largeur_mouillee == 0}
+        assert mouilles.keys() == temoins.keys() == {1, 2}
+        for g, mouille in mouilles.items():
+            assert mouille.chutes is not None
+            assert mouille.chutes == temoins[g].chutes
+        assert not point.equivaut_au_sec
+
+    def test_section_scalaire_refusee(self, configuration, appels):
+        configuration["parametres"]["chutes"] = 1.0
+        with pytest.raises(ValueError, match="pas une section"):
+            balayage.balayer(configuration, "lambda_chute", [5.0], [1])
+
     def test_parametres_fixes_appliques_au_mouille_et_au_temoin(self, configuration, appels):
         balayage.balayer(
             configuration, "largeur_mouillee", [3.0, 20.0], [1], fixes={"facteur_vitesse": 1.5}
