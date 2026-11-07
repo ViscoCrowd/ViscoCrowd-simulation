@@ -10,11 +10,12 @@ avec avis de l'enseignant et décision du groupe avant toute affectation de date
 
 ---
 
-**Ce qui est implémenté.** Glissade (§ 1), état à terre et domino (§ 3), relevage (§ 4) et
-contournement (§ 5), sur la seule plage de la piscine. La chute par bousculade (§ 2) et les
-observables de cascade (§ 6) ne le sont pas. `λ_chute`, `λ_domino`, `r_terre` et les paramètres du
-contournement restent des valeurs par défaut non calibrées (§ 8) : aucun chiffre obtenu avec ce
-module ne peut encore servir de résultat.
+**Ce qui est implémenté.** Glissade (§ 1), chute par bousculade et compression (§ 2),
+état à terre et domino (§ 3), relevage (§ 4), contournement (§ 5) et observables de
+cascade (§ 6). L'indépendance du taux de chute à Δt est vérifiée pour la glissade à excès
+constant (§ 7), pas encore pour la bousculade. `λ_chute`, `λ_domino`, `λ_bousculade`,
+`r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) :
+aucun chiffre obtenu avec ce module ne peut encore servir de résultat.
 
 ---
 
@@ -100,6 +101,19 @@ de compression, et déclenchons une chute au-delà d'un seuil.
 
 C'est élégant parce que ça ne demande aucun mécanisme supplémentaire : l'information est déjà
 produite par le solveur.
+
+**Ce que l'indicateur mesure réellement** (implémentation, revue de #102) :
+
+- *La correction du pas précédent.* La chute est évaluée en début de pas, avant la projection
+  de ce pas : elle lit `|x_nouveau − x_libre| / Δt` du pas écoulé. Un agent immobile pendant ce
+  pas, par exemple posé sur le bord pendant un franchissement, a une correction nulle.
+- *Les murs comptent aussi.* La projection corrige les contacts entre agents, mais aussi les
+  murs, le bord du bassin et les obstacles. Un agent poussé seul contre un mur peut donc
+  dépasser le seuil sans foule. L'indicateur mesure une compression, pas uniquement une
+  bousculade.
+- *L'indépendance à Δt n'est pas acquise.* La forme `1 − exp(−λ · excès · Δt)` la garantit à
+  excès donné, mais ici l'excès dépend lui-même de Δt, puisque la correction est divisée par
+  Δt. Elle reste à vérifier par le test du § 7 avant toute calibration.
 
 ---
 

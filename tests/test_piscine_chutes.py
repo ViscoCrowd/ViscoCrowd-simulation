@@ -183,3 +183,62 @@ def test_les_parametres_et_les_chutes_vont_dans_l_archive(tmp_path):
 
     assert archive.metadonnees["configuration"]["parametres"]["chutes"]["lambda_chute"] == 50.0
     assert archive.metadonnees["evenements"]["chutes"]
+
+
+def _piscine_bousculade():
+    """Bousculade active ; les autres parametres de chute gardent leurs valeurs par defaut."""
+    config = lire_configuration(EXEMPLE)
+    chutes = ParametresChutes(lambda_bousculade=1.0)
+    return ParametresPiscine(
+        **(config["parametres"] | {"n_agents": 6, "duree": 30.0, "chutes": chutes}), graine=7
+    )
+
+
+def test_bousculade_un_seul_pas_libre_par_pas(monkeypatch):
+    """La vitesse libre du pas est reutilisee, le guidage n'est plus recalcule (revue de #102)."""
+    import viscocrowd.scenarios.piscine as scenario
+
+    instants = []
+    reel = scenario.pas_libre_milieux
+
+    def espion(*args, **options):
+        libre = reel(*args, **options)
+
+        def compter(etat, dt):
+            instants.append(etat.t)
+            return libre(etat, dt)
+
+        return compter
+
+    monkeypatch.setattr(scenario, "pas_libre_milieux", espion)
+    simuler_piscine(_piscine_bousculade())
+    assert instants and len(instants) == len(set(instants))  # un appel par pas, pas deux
+
+
+def test_correction_nulle_pour_un_baigneur_reintroduit(monkeypatch):
+    """Un baigneur reintroduit sur la plage n'herite pas de la correction de son dernier pas
+    dans l'eau : il etait immobile sur le bord pendant le franchissement (revue de #102).
+    """
+    vues = []
+    reel = GestionnaireChutes.mettre_a_jour
+
+    def espion(self, *args, **options):
+        vues.append(
+            (
+                options["instant"],
+                np.asarray(options["indices"]).copy(),
+                np.asarray(options["correction_projection"]).copy(),
+            )
+        )
+        return reel(self, *args, **options)
+
+    monkeypatch.setattr(GestionnaireChutes, "mettre_a_jour", espion)
+    r = simuler_piscine(_piscine_bousculade())
+
+    verifies = 0
+    for agent, _site, _debut, reintroduction in r.franchissements:
+        for instant, indices, correction in vues:
+            if instant == reintroduction and agent in indices:
+                np.testing.assert_array_equal(correction[indices == agent], 0.0)
+                verifies += 1
+    assert verifies > 0
