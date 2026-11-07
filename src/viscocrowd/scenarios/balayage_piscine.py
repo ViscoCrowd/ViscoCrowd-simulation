@@ -104,7 +104,7 @@ PARAMETRES = {
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
     "temps_espacement": ParametreBalaye(
-        "E0",
+        "E4",
         "s",
         "temps d'espacement de Tordeux et al. (regulation vitesse-espacement)",
         ("temps_espacement",),

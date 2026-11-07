@@ -352,3 +352,16 @@ def test_simulation_piscine_avec_temps_espacement():
     assert np.all(np.isfinite(r.sorties))
     assert r.violation_paroi_max() <= 1e-14
 
+
+def test_temps_espacement_ralentit_l_ecoulement():
+    """La regulation agit : meme graine, les baigneurs sortent plus tard avec T = 0,35 s.
+
+    A 6 agents la porte ne sature pas et les sorties sont identiques au bit pres ; a 30,
+    le temps de sortie moyen passe de 22,73 a 23,12 s (mesure du 7 novembre).
+    """
+    libre = simuler_piscine(parametres(n_agents=30, duree=90.0)).sorties
+    regule = simuler_piscine(parametres(n_agents=30, duree=90.0, temps_espacement=0.35)).sorties
+
+    assert np.all(np.isfinite(libre)) and np.all(np.isfinite(regule))
+    assert regule.mean() > libre.mean() + 0.1
+    assert regule.max() >= libre.max()
