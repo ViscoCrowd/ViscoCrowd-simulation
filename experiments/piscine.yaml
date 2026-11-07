@@ -1,5 +1,5 @@
-# Scenario piscine de reference (jalon 4). Valeurs de la proposition C6 (issue #26),
-# a valider par le groupe ; sources dans docs/journal-decisions.md.
+# Scenario piscine de reference (jalon 4). Valeurs C6 figees le 6 novembre 2026 (issue #26) ;
+# sources et choix dans docs/journal-decisions.md.
 version: 1
 scenario: piscine
 graine: 20262027
@@ -23,7 +23,8 @@ parametres:
   parametres_milieux:
     EAU:                       # petit bain de 0,7 m, eau calme : V = 0,53 (d^2/2)^-0,19 (shirvani2020)
       relaxation: 0.5          # s (Helbing et al. 2000)
-      acceleration_max: 1.6    # m/s^2 : 0,34 g x poids apparent ~0,5 (hypothese)
+      acceleration_max: 1.6    # m/s^2 : 0,34 g x poids apparent ~0,5 = 1,67 (hypothese) ;
+                               # 1,6 provisoire, 1,67 a la prochaine relance des balayages
       vitesse: 0.69            # m/s
     MOUILLE:
       relaxation: 0.5
@@ -33,7 +34,7 @@ parametres:
       relaxation: 0.5
       acceleration_max: 5.9    # 0,60 g (Kendzior 2023)
       vitesse: 1.34
-  facteur_vitesse: 1.0         # niveau de panique de reference
+  facteur_vitesse: 1.5         # panique : vitesse souhaitee 2,0 m/s sur les plages (Helbing 2000)
   durees:                      # s, hypotheses non sourcees, balayees en E4
     rebord: 4.0
     echelle: 2.0
