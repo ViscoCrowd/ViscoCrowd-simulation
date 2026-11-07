@@ -1,7 +1,8 @@
 # Balayages E3/E4 de la piscine (M6)
 
-Au point de référence (`experiments/piscine.yaml`), le carrelage mouillé ne change rien de
-mesurable à l'évacuation (#83). Deux raisons, relevées dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26) :
+Au point de référence (`experiments/piscine.yaml`), le carrelage mouillé ne change presque
+rien à l'évacuation : rien de mesurable au facteur de panique 1 (#83), et +0,02 s sur t50
+au facteur 1,5, la référence depuis le 6 novembre (journal des décisions). Deux raisons, relevées dans [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26) :
 
 - à 1,34 m/s, relancer ou freiner en ligne droite demande au plus `s/τ = 2,7 m/s²`, sous
   l'adhérence du mouillé (3,3 m/s²). L'adhérence ne limite rien tant que `s < a_max·τ =
@@ -19,6 +20,7 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
+| `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
 
 Le nombre d'échelles n'est pas balayé : il faudrait d'abord choisir où placer les échelles
@@ -43,6 +45,29 @@ ses voisins avance de plus de `r/5` en un pas, et la simulation s'arrête (mesur
 dix). Toutes les configurations sont construites avant la première simulation : une valeur
 hors domaine est refusée tout de suite. Le bilan JSON n'écrase jamais un fichier existant,
 et il est refusé sous `src/` ou `experiments/`, comme pour les campagnes.
+
+### Sensibilité à τ (à lancer)
+
+τ = 0,5 s vient de Helbing, Farkas et Vicsek (2000). Il n'a été mesuré ni dans l'eau ni sur
+sol mouillé. Or l'adhérence ne limite un agent que si `|U − v| > a_max · τ` : un τ plus
+court rend les agents plus vifs, donc le mouillé limite plus souvent. Il faut donc vérifier
+que les conclusions tiennent quand τ varie. τ est changé **en même temps** sur les trois
+sols et sur le témoin, pour que l'écart Δ reste un effet du sol seul.
+
+Avant de lancer, appliquer les valeurs du moment dans `experiments/piscine.yaml`.
+Au 6 novembre, il reste à passer `EAU.acceleration_max` de 1,6 à 1,67 m/s² (journal des
+décisions).
+
+Mêmes graines 1 à 10 que les balayages M6, une valeur par terminal pour paralléliser. Chaque commande enchaîne 20 évacuations, car le
+témoin dépend de τ et est recalculé à chaque valeur :
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.3 --graines 1 2 3 4 5 6 7 8 9 10 --sortie data/m9/relaxation-0.3.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.5 --graines 1 2 3 4 5 6 7 8 9 10 --sortie data/m9/relaxation-0.5.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 1.0 --graines 1 2 3 4 5 6 7 8 9 10 --sortie data/m9/relaxation-1.0.json
+```
+
+τ doit rester supérieur ou égal à `dt` : une valeur plus petite est refusée avant tout calcul.
 
 ## Ce qui est mesuré
 

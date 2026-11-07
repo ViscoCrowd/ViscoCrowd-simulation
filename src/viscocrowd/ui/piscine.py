@@ -89,7 +89,7 @@ def _dessiner_parametres(ax: Axes, parametres: ParametresAffichage) -> None:
             ax.text(
                 x,
                 y,
-                _formater_valeur(getattr(milieu, attribut)),
+                _formater_valeur(None if milieu is None else getattr(milieu, attribut)),
                 ha="center",
                 va="center",
                 fontsize=9,

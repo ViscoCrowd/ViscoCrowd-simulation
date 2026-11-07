@@ -295,7 +295,8 @@ Les valeurs pourront être fournies directement en arguments. Exemple d'affichag
 (ces nombres ne constituent pas une calibration du modèle) :
 
 ```python
-from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage, ParametresMilieu
+from viscocrowd.model.milieu import ParametresMilieu
+from viscocrowd.ui.parametres import DimensionsPlan, ParametresAffichage
 from viscocrowd.ui.piscine import ouvrir_interface
 
 ouvrir_interface(
@@ -305,11 +306,15 @@ ouvrir_interface(
         nombre_agents=100,
         dt=0.01,
         graine=20262027,
-        eau=ParametresMilieu(vitesse=0.5),
+        eau=ParametresMilieu(vitesse=0.5, relaxation=0.5, acceleration_max=1.6),
     ),
     temps_simule=12.5,
 )
 ```
+
+Un milieu s'affiche complet ou pas du tout : la classe `ParametresMilieu` est celle du
+modèle, avec ses contrôles. Pour afficher les valeurs d'un scénario sans les recopier,
+`ParametresAffichage.depuis_piscine(p)` les reprend d'un `ParametresPiscine`.
 
 `creer_figure()` accepte les mêmes arguments pour construire la vue sans lancer sa boucle
 graphique. `DimensionsPlan` commande les dimensions du dessin et ses annotations : changer
@@ -332,7 +337,7 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Couloir guidé et groupe de 24 agents livrés ; eikonal et pilier livrés dans #43/#49 ; géométrie/carte/guidage piscine livrés dans #54 ; milieux vérifiés dans la piscine (#72) ; calibration des paramètres ouverte (#26) |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Livré sur `dev`, publication sur `main` à faire : couloir guidé et groupe de 24 agents ; eikonal et pilier (#43/#49) ; géométrie/carte/guidage piscine (#54) ; milieux vérifiés dans la piscine (#72) ; obstacles de la plage (#103, #110) ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire jusqu'à la prochaine relance des balayages |
 | 4 | Scénario piscine complet, franchissements | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85) et repère `N / (1,3 w)` à confronter (#11) ; module de chutes facultatif (#78, #82), désactivé par défaut, en attente de #19 |
 | 5 | Campagnes, diagramme fondamental, validation chiffrée | En cours : étalonnage E0 (#56), comparaison E1/E2 (#77, #86) et premiers balayages E3/E4 (#84) livrés ; campagne finale et sensibilité à faire (#59) |
 | 6 | Rapport, figures finales, transparents | Rédaction en cours : chaîne de calcul, validation du couloir, outils et résultats E0/E1/E2 ; analyse finale à venir |

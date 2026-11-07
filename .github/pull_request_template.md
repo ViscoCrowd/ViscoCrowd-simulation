@@ -10,6 +10,8 @@ Closes #
 - [ ] `fix` — correction d'un comportement faux
 - [ ] `exp` — campagne de simulation
 - [ ] `docs` — rapport, cahier des charges, journal
+- [ ] `test` — test seul, sans changement du code teste
+- [ ] `refac` — reorganisation du code, sans changement de comportement
 - [ ] `chore` — outillage, CI, dependances
 
 ## Validation

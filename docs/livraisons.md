@@ -6,21 +6,39 @@ et la création de son tag annoté et de sa release. Les critères du jalon rest
 [planning](planning/README.md) suit les tâches et [CONTRIBUTING § 3.4](../CONTRIBUTING.md#34-passer-de-dev-à-main)
 décrit les opérations de publication.
 
-## Registre au 3 novembre 2026
+## Registre au 7 novembre 2026
 
 | Jalon | État technique | Publication |
 |---|---|---|
 | 0 — socle et cadrage | Socle présent depuis #1 ; trace enseignant encore incomplète (#19) | Aucun tag attestant une clôture complète de J0 |
 | 1 — moteur | Livré sur `main` par #1, correctif Makefile #2/#3 inclus | [`jalon-1`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-1), commit `28252ef6d196caec847e6f957e7282152cf98449` ; repère historique créé le 21 octobre |
 | 2 — exclusion | Validé avec limites connues ; corrections et figures #21–#23, correctifs #28 | [`jalon-2`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-2), publication de rattrapage du 21 octobre ; [provenance, mesures et limites](releases/jalon-2.md) |
-| 3 — guidage et milieux | En cours : adhérence et couloir G1/G5 livrés ; eikonal G2 et pilier livrés (#43/#49) ; géométrie/carte/guidage piscine livrés (#54), calibration C6 et scénario complet ouverts | Reste sur `dev`, pas de tag de jalon terminé |
-| 4 — scénario piscine | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85) et repère de #11 ouverts | Non publié |
-| 5 — campagnes | En cours : E0 (#56), E1/E2 (#77, #86) et premiers balayages E3/E4 (#84) ; campagne finale à faire (#59) | Non publié |
+| 3 — guidage et milieux | Terminé sur `dev` : C6 et G1–G5 livrés ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire | Publication proposée par la PR `dev` → `main` ; tag `jalon-3` et [notes de version](releases/jalon-3.md) après fusion |
+| 4 — scénario piscine | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85), repère de #11 (#105) et tests de blocage P6 ouverts | Code présent dans la version `jalon-3`, non revendiqué comme livré |
+| 5 — campagnes | En cours : E0 (#56), E1/E2 refaits au facteur 1,5 (#86, #109), premiers balayages E3/E4 (#84) et balayage de τ outillé (#108) ; campagne finale à faire (#59) | Code et mesures présents dans la version `jalon-3`, non revendiqués comme livrés |
 | 6 — livrables | Rapport en cours ; transparents à préparer | Non publié |
+
+Le module de chutes (#78, #82, #102), désactivé par défaut et en attente de la décision C1
+(#19), est lui aussi présent dans la version `jalon-3` sans y être revendiqué.
 
 Les anciennes versions restent consultables ; elles ne doivent pas être présentées comme
 la version courante ni comme une validation des travaux ultérieurs. La date de création d'un
 tag rétrospectif est la date réelle de régularisation, pas celle de l'ancien commit.
+
+## Périmètre de la publication J3
+
+Les dernières pièces du jalon 3 ont été fusionnées dans `dev` après le scénario piscine du
+jalon 4 (#55, 22 octobre), et elles en dépendent : sols vérifiés pendant une évacuation
+(#72), obstacles de la plage (#103, #110) et valeurs de référence (#109). Aucun instantané
+de `dev` ne contient donc le jalon 3 complet sans une partie des jalons 4 et 5. Une branche
+`release/jalon-3`, comme pour le rattrapage J2, demanderait de reprendre ces PR sans le
+scénario sur lequel elles reposent ; elle est écartée.
+
+Le groupe a donc retenu le 7 novembre 2026 de publier `dev` entier, par commit de fusion, en
+**délimitant explicitement la version** (condition 2 de [CONTRIBUTING § 3.4](../CONTRIBUTING.md#34-passer-de-dev-à-main)) :
+le tag `jalon-3` atteste le jalon 3 seul. Les jalons 4 et 5 recevront leur propre tag quand ils
+seront terminés. Les [notes de version](releases/jalon-3.md) listent ce qui est livré et ce qui
+ne l'est pas.
 
 ## Audit rétrospectif
 

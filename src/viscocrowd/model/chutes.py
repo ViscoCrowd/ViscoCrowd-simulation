@@ -14,12 +14,18 @@ dynamique des pietons en integrant :
      arrive sur une personne a terre a une distance inferieure a sa distance
      d'arret physique ne peut pas freiner a temps et a une probabilite elevee de
      glisser ou trebucher a son tour.
-  4. Contournement local reactif : un pieton debout suffisamment eloigne
+  4. Chute par bousculade et compression : declenchee lorsque la correction
+     de projection cumulee sur le pas |x_nouveau - x_libre| / dt depasse le seuil
+     seuil_bousculade (section 2 de la spec). Probabilite invariante par dt.
+  5. Contournement local reactif : un pieton debout suffisamment eloigne
      decouvre l'obstacle dans sa portee de perception et devie tangentiellement
      sa vitesse desiree pour contourner la personne a terre sans recalculer le
      champ eikonal global.
-  5. Relevage stochastique : duree au sol tiree selon une distribution
+  6. Relevage stochastique : duree au sol tiree selon une distribution
      log-normale de mediane 3,7 s (sourcee Becker et al. 2016).
+  7. Observables dedies : taux de chute global (chutes/s), decomposition par cause,
+     tailles des cascades par composantes connexes spatio-temporelles et serie temporelle
+     des agents a terre.
 """
 
 from __future__ import annotations
@@ -40,7 +46,8 @@ class ParametresChutes:
     """Parametres physiques et stochastiques du module de chutes.
 
     Attributes:
-        lambda_chute, lambda_domino: taux de chute par unite d'exces ou d'urgence, en 1/s.
+        lambda_chute, lambda_domino, lambda_bousculade: taux de chute par unite
+            d'exces, d'urgence ou de compression, en 1/s.
         facteur_rayon_terre: rayon au sol rapporte au rayon debout, sans unite.
         mediane_relevage: duree mediane au sol, en s.
         sigma_relevage: dispersion de la loi log-normale du relevage, sans unite.
@@ -50,12 +57,15 @@ class ParametresChutes:
         vitesse_min_domino: vitesse en dessous de laquelle on ne trebuche pas, en m/s.
         vitesse_approche_min: vitesse d'approche d'un corps, en dessous de
             laquelle il n'y a pas de risque de trebucher, en m/s.
+        seuil_bousculade: seuil d'intensite de correction de projection (en m/s)
+            au-dela duquel le risque de chute par bousculade apparait.
 
     Valeurs par defaut non calibrees (docs/modele-chutes.md, section 8).
     """
 
     lambda_chute: float = 2.0
     lambda_domino: float = 4.0
+    lambda_bousculade: float = 0.0
     facteur_rayon_terre: float = 1.5
     mediane_relevage: float = 3.7
     sigma_relevage: float = 0.5
@@ -64,6 +74,7 @@ class ParametresChutes:
     duree_affaissement: float = 0.25
     vitesse_min_domino: float = 0.1
     vitesse_approche_min: float = 0.05
+    seuil_bousculade: float = 0.5
 
     def __post_init__(self) -> None:
         for nom in (
@@ -77,10 +88,17 @@ class ParametresChutes:
             "duree_affaissement",
             "vitesse_min_domino",
             "vitesse_approche_min",
+            "seuil_bousculade",
         ):
             valeur = getattr(self, nom)
             if not (isinstance(valeur, (int, float)) and np.isfinite(valeur) and valeur > 0):
                 raise ValueError(f"{nom} doit etre un nombre reel strictement positif fini")
+        if not (
+            isinstance(self.lambda_bousculade, (int, float))
+            and np.isfinite(self.lambda_bousculade)
+            and self.lambda_bousculade >= 0.0
+        ):
+            raise ValueError("lambda_bousculade doit etre un nombre reel positif ou nul fini")
         if self.facteur_rayon_terre < 1.0:
             raise ValueError("facteur_rayon_terre doit etre superieur ou egal a 1.0")
 
@@ -260,8 +278,14 @@ class GestionnaireChutes:
         tau: np.ndarray,
         rayons_nominaux: np.ndarray,
         indices: np.ndarray | None = None,
+        correction_projection: np.ndarray | None = None,
     ) -> list[EvenementChute]:
-        """Met a jour le relevage, evalue les glissades et les trebuchements en cascade."""
+        """Met a jour le relevage, evalue les glissades, le domino et les bousculades.
+
+        `correction_projection` : deplacement (N, 2), en m, impose par la projection au pas
+        PRECEDENT, nul pour un agent immobile pendant ce pas. Il comprend les murs, le bord
+        du bassin et les obstacles, pas seulement les contacts (docs/modele-chutes.md, § 2).
+        """
         nouvelles_chutes: list[EvenementChute] = []
         idx = np.asarray(indices) if indices is not None else np.arange(x.shape[0])
 
@@ -334,4 +358,125 @@ class GestionnaireChutes:
                         self.faire_tomber(ag_global, instant, "domino", pos)
                         nouvelles_chutes.append(self._historique[-1])
 
+        # 4. Chute par bousculade et compression (section 2 de la spec)
+        if correction_projection is not None and self.parametres.lambda_bousculade > 0.0:
+            corr = np.asarray(correction_projection, dtype=float)
+            if corr.shape == x.shape:
+                corr_loc = corr[locaux_debout]
+            elif corr.shape == (locaux_debout.size, 2):
+                corr_loc = corr
+            else:
+                raise ValueError(
+                    f"correction_projection de forme inattendue {corr.shape}, attendu {x.shape}"
+                )
+
+            normes_corr = np.hypot(corr_loc[:, 0], corr_loc[:, 1])
+            vitesse_compression = normes_corr / dt
+            exces_bousculade = np.maximum(
+                0.0, vitesse_compression / self.parametres.seuil_bousculade - 1.0
+            )
+            p_bousculade = 1.0 - np.exp(-self.parametres.lambda_bousculade * exces_bousculade * dt)
+            tirages_bousculade = self.rng.uniform(0.0, 1.0, size=locaux_debout.size)
+
+            for i, loc in enumerate(locaux_debout):
+                ag_global = int(idx[loc])
+                if not self._a_terre[ag_global] and tirages_bousculade[i] < p_bousculade[i]:
+                    pos = (float(x[loc, 0]), float(x[loc, 1]))
+                    self.faire_tomber(ag_global, instant, "bousculade", pos)
+                    nouvelles_chutes.append(self._historique[-1])
+
         return nouvelles_chutes
+
+
+def taux_de_chute(
+    historique: tuple[EvenementChute, ...] | list[EvenementChute], duree: float
+) -> float:
+    """Taux de chute par seconde sur la duree consideree, en chutes/s.
+
+    Args:
+        historique: sequence des evenements de chute.
+        duree: duree d'observation en secondes (strictement positive).
+    """
+    if not isinstance(duree, (int, float)) or not np.isfinite(duree) or duree <= 0.0:
+        raise ValueError("duree doit etre un nombre reel strictement positif fini")
+    return float(len(historique) / duree)
+
+
+def chutes_par_cause(
+    historique: tuple[EvenementChute, ...] | list[EvenementChute],
+) -> dict[str, int]:
+    """Decompte du nombre de chutes par cause ('glissade', 'domino', 'bousculade')."""
+    compte: dict[str, int] = {}
+    for ev in historique:
+        compte[ev.cause] = compte.get(ev.cause, 0) + 1
+    return compte
+
+
+def tailles_cascades(
+    historique: tuple[EvenementChute, ...] | list[EvenementChute],
+    distance_max: float = 2.0,
+    temps_max: float = 3.0,
+) -> list[int]:
+    """Taille (nombre d'agents) de chaque composante connexe de chutes (cascades).
+
+    Deux chutes i et j appartiennent a la meme cascade si
+    |t_i - t_j| <= temps_max et ||x_i - x_j|| <= distance_max.
+    Rend la liste des tailles de composantes connexes triee par ordre decroissant.
+    """
+    valide_dist = (
+        isinstance(distance_max, (int, float)) and np.isfinite(distance_max) and distance_max > 0.0
+    )
+    if not valide_dist:
+        raise ValueError("distance_max doit etre strictement positive et finie")
+    valide_t = isinstance(temps_max, (int, float)) and np.isfinite(temps_max) and temps_max > 0.0
+    if not valide_t:
+        raise ValueError("temps_max doit etre strictement positive et finie")
+
+    n = len(historique)
+    if n == 0:
+        return []
+
+    adj: list[list[int]] = [[] for _ in range(n)]
+    for i in range(n):
+        for j in range(i + 1, n):
+            dt_ij = abs(historique[i].instant - historique[j].instant)
+            if dt_ij <= temps_max:
+                dx = historique[i].position[0] - historique[j].position[0]
+                dy = historique[i].position[1] - historique[j].position[1]
+                if math.hypot(dx, dy) <= distance_max:
+                    adj[i].append(j)
+                    adj[j].append(i)
+
+    visite = [False] * n
+    tailles = []
+    for i in range(n):
+        if not visite[i]:
+            visite[i] = True
+            taille = 0
+            pile = [i]
+            while pile:
+                noeud = pile.pop()
+                taille += 1
+                for voisin in adj[noeud]:
+                    if not visite[voisin]:
+                        visite[voisin] = True
+                        pile.append(voisin)
+            tailles.append(taille)
+
+    tailles.sort(reverse=True)
+    return tailles
+
+
+def serie_agents_a_terre(
+    historique: tuple[EvenementChute, ...] | list[EvenementChute], t: np.ndarray
+) -> np.ndarray:
+    """Nombre d'agents au sol a chaque instant du tableau 1D t."""
+    t_arr = np.asarray(t, dtype=float)
+    if t_arr.ndim != 1:
+        raise ValueError(f"t doit etre un tableau a 1 dimension, recu {t_arr.shape}")
+    nb_terre = np.zeros(t_arr.shape, dtype=int)
+    for ev in historique:
+        t_deb = ev.instant
+        t_fin = ev.instant + ev.duree_relevage
+        nb_terre += ((t_arr >= t_deb - 1e-12) & (t_arr < t_fin - 1e-12)).astype(int)
+    return nb_terre
