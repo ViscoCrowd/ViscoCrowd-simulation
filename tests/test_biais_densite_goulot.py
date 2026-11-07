@@ -3,8 +3,8 @@
 Verifie sur la geometrie cible (banc E0, Seyfried et al. 2009) que :
   1. L'ecoulement dense dans l'entonnoir amont du goulot n'a aucune violation de paroi
      ni non-convergence de Jacobi vectorise.
-  2. Le resserrement de la tolerance de projection (1e-6 a 1e-7 m) ne produit aucun biais
-     de densite mesurable au-dela du bruit numerique (< 0.001 pers/m^2).
+  2. Le resserrement de la tolerance de projection (1e-6 a 1e-7 m) ne produit aucun ecart
+     de densite decelable au-dela du bruit numerique (< 0.001 pers/m^2).
   3. L'incertitude est evaluee par comparaison appariee et test de permutation exact (2^n)
      sans assimiler +/- 2 erreurs standard a une borne garantie.
 """
@@ -77,12 +77,13 @@ class TestBiaisDensiteGoulot:
 
     @pytest.mark.slow
     def test_campagne_complete_biais_densite_goulot(self):
-        """Campagne appariee sur 8 graines au goulot (Seyfried et al. 2009).
+        """Campagne appariee sur 10 graines au goulot (Seyfried et al. 2009).
 
         Evalue l'impact de la tolerance et du pas de temps sur la densite de l'entonnoir.
-        Hypothese nulle d'echangeabilite testee par permutation exacte (2^8 = 256).
+        Memes graines (1 a 10) que docs/mesures/biais-densite-goulot-2026-11-03/mesurer.py.
+        Hypothese nulle d'echangeabilite testee par permutation exacte (2^10 = 1024).
         """
-        graines = list(range(1, 9))
+        graines = list(range(1, 11))
         densites_ref = []
         densites_serree = []
         densites_large = []

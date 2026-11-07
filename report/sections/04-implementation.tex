@@ -87,17 +87,24 @@ seuil de \SI{5}{\percent}, avec $p=\num{0.633}$ et $p=\num{0.539}$ pour les deux
 exécutions. Ce test est exact sous l'hypothèse nulle d'échangeabilité des deux
 résultats d'une même graine, les graines étant indépendantes, c'est-à-dire de
 différences symétriques autour de zéro ; c'est plus que la seule égalité des moyennes.
+Une absence de différence détectée ne prouve pas l'absence d'effet.
 
-La campagne cible sur le goulot d'étranglement (\texttt{experiments/goulot.yaml},
-banc E0 de Seyfried et al.~\cite{seyfried2009}) mesure et borne définitivement ce biais
-dans l'entonnoir amont comprimé ($x\in[6{,}0\,;\,7{,}8]\,\si{\metre}$,
-$y\in[1{,}5\,;\,3{,}5]\,\si{\metre}$, $\bar\densite\approx\num{3.93}$~P/m$^2$) sur dix
-graines appariées. Resserrer la tolérance de \num{1e-6} à \SI{1e-7}{\metre} donne un écart
-moyen de \num{-2.31e-5}~P/m$^2$ (erreur standard \num{8.76e-5}~P/m$^2$, écart maximal
-\num{6.9e-4}~P/m$^2$) et une valeur~$p$ de permutation exacte de \num{1.0} : le solveur est
-pleinement convergé à \num{1e-6} et aucun biais n'est décelable au-delà du bruit numérique.
-Même à \num{1e-5}, le décalage moyen n'excède pas $+\num{0.0047}$~P/m$^2$ ($+\SI{0.12}{\percent}$,
-max \num{0.023}~P/m$^2$). Un pas de temps raffiné ($\Delta t=\SI{0.005}{\second}$) donne un
-décalage moyen de $+\num{0.021}$~P/m$^2$ ($p=\num{0.270}$, max \num{0.13}~P/m$^2$, soit moins
-de \SI{3.3}{\percent}). Le solveur n'induit donc aucun biais de densité systématique au goulot
-($<\SI{0.1}{\percent}$), ce qui valide M2 et clôture l'issue~10.
+La campagne cible porte donc sur le goulot d'étranglement (\texttt{experiments/goulot.yaml},
+banc E0 de Seyfried et al.~\cite{seyfried2009}), dans l'entonnoir amont comprimé
+($x\in[6{,}0\,;\,7{,}8]\,\si{\metre}$, $y\in[1{,}5\,;\,3{,}5]\,\si{\metre}$,
+$\bar\densite\approx\num{3.93}$~P/m$^2$), sur dix graines appariées. Elle sépare deux
+questions.
+
+\emph{Tolérance.} Resserrer la tolérance de \num{1e-6} à \SI{1e-7}{\metre} donne un écart
+moyen de \num{-2.31e-5}~P/m$^2$ (erreur standard \num{8.76e-5}~P/m$^2$) et une valeur~$p$ de
+permutation exacte de \num{1.0}. L'écart maximal observé sur les dix graines est de
+\num{6.9e-4}~P/m$^2$ : la tolérance n'a aucun effet décelable sur la densité au goulot. Même
+à \num{1e-5}, le décalage moyen reste de $+\num{0.0047}$~P/m$^2$ ($+\SI{0.12}{\percent}$, au
+plus \num{0.023}~P/m$^2$).
+
+\emph{Pas de temps.} Un pas raffiné ($\Delta t=\SI{0.005}{\second}$) donne un décalage moyen
+de $+\num{0.021}$~P/m$^2$ ($p=\num{0.270}$) : pas d'effet systématique décelable, mais une
+graine isolée s'écarte jusqu'à \num{0.13}~P/m$^2$, soit \SI{3.3}{\percent}.
+
+Ces valeurs sont des écarts maximaux observés sur dix graines, pas des bornes garanties.
+Elles répondent aux critères de clôture de l'issue~10.
