@@ -80,6 +80,34 @@ class TestAppariement:
         assert {p.piscine.largeur_mouillee for p in mouilles} == {3.0}
         assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
 
+    def test_balayage_vitesse_mouille_applique(self, configuration, appels):
+        balayage.balayer(configuration, "vitesse_mouille", [0.8, 1.2], [1])
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        assert {p.parametres_milieux[Milieu.MOUILLE].vitesse for p in mouilles} == {0.8, 1.2}
+
+    def test_balayage_lambda_chute_applique(self, configuration, appels):
+        balayage.balayer(configuration, "lambda_chute", [1.0, 5.0], [1])
+        mouilles = [p for p in appels if p.chutes is not None and p.piscine.largeur_mouillee > 0]
+        assert {p.chutes.lambda_chute for p in mouilles} == {1.0, 5.0}
+
+    def test_temoin_lambda_chute_garde_les_memes_chutes(self, configuration, appels):
+        """Mouille et temoin ne different que par le sol, chutes comprises (revue de #104)."""
+        (point,) = balayage.balayer(configuration, "lambda_chute", [5.0], [1, 2])
+
+        assert len(appels) == 2 * 2
+        mouilles = {p.graine: p for p in appels if p.piscine.largeur_mouillee > 0}
+        temoins = {p.graine: p for p in appels if p.piscine.largeur_mouillee == 0}
+        assert mouilles.keys() == temoins.keys() == {1, 2}
+        for g, mouille in mouilles.items():
+            assert mouille.chutes is not None
+            assert mouille.chutes == temoins[g].chutes
+        assert not point.equivaut_au_sec
+
+    def test_section_scalaire_refusee(self, configuration, appels):
+        configuration["parametres"]["chutes"] = 1.0
+        with pytest.raises(ValueError, match="pas une section"):
+            balayage.balayer(configuration, "lambda_chute", [5.0], [1])
+
     def test_balayage_temps_espacement_sur_le_yaml_de_reference(self, configuration, appels):
         """Le YAML de reference porte le champ : le balayage n'est pas refuse (revue de #100)."""
         assert configuration["parametres"]["temps_espacement"] is None

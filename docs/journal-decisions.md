@@ -73,6 +73,23 @@ calcul (#107).
 
 ---
 
+## 2026-11-03 — Balayer la vitesse sur sol mouillé et le taux de chute (E3, #26, #59)
+
+**Contexte.** Les balayages E3 de la piscine variaient initialement la seule largeur mouillée et l'accélération maximale ($a_{\text{max}}$). Or la problématique de l'inertie du sol mouillé (#26, #59) implique également la réduction de vitesse de marche sur carrelage glissant ($s_{\text{mouillé}}$) et le risque de glissade en panique ($\lambda_{\text{chute}}$).
+
+**Décision.**
+1. **Ajout de `vitesse_mouille`** (`("parametres_milieux", "MOUILLE", "vitesse")`, m/s) à `PARAMETRES` de `balayage_piscine.py` pour étudier l'impact de l'auto-régulation de la vitesse sur le débit et le temps d'évacuation face à un témoin sec.
+2. **Ajout de `lambda_chute`** (`("chutes", "lambda_chute")`, 1/s) pour mesurer la dégradation du débit provoquée par les pertes d'adhérence et les personnes à terre.
+3. **Témoin et paramètres imbriqués** : `_remplacer` crée la section `chutes` si elle est absente ou nulle dans le YAML. Balayer `lambda_chute` active donc le module de chutes avec toutes ses autres valeurs par défaut, **non calibrées** : aucun chiffre obtenu ainsi n'est un résultat avant #19 (`modele-chutes.md`). Le témoin garde les **mêmes** chutes que le mouillé : Δ ne mesure que le sol, comme dans tout le protocole M6 (revue de #104).
+
+**Pourquoi.** Permettre à l'équipe et à l'outil CLI `balayer-piscine` d'explorer l'ensemble des axes physiques reliant sol mouillé, adhérence et chute (campagnes E3/E4, M6).
+
+**Options écartées.**
+- *Exiger la présence préalable de `chutes` dans le YAML de base* : forcerait l'utilisateur à modifier `experiments/piscine.yaml` avant de pouvoir balayer `lambda_chute`.
+- *Témoin sans chutes* (première version) : Δ aurait mélangé l'effet du sol et celui d'activer le module de chutes, y compris pour les chutes qui ont lieu sur le sec.
+
+---
+
 ## 2026-11-03 — Intégrer la régulation vitesse–espacement de Tordeux à la piscine (#57)
 
 **Contexte.** Sur le goulot E0, l'absence de régulation vitesse–espacement conduisait à un débit
