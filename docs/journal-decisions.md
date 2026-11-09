@@ -47,14 +47,22 @@ sous Windows). Le rapport (§ 6.2 et 6.4) est mis à jour.
 Ces chiffres sont identiques à ceux du balayage M6 au même réglage, ce qui recoupe les deux
 outils. Δ t50 est positif sur les dix graines (bilan brut de M6, de 0,005 à 0,053 s).
 
-**Lecture.** À 2,0 m/s, une relance depuis l'arrêt sur le mouillé demande 4,0 m/s², plus que
-les 3,3 m/s² disponibles. Le calcul exact du modèle continu donne :
+**Lecture.** À U = 1,34 × 1,5 = 2,01 m/s, une relance depuis l'arrêt sur le mouillé demande
+4,02 m/s², plus que les 3,3 m/s² disponibles. L'accélération reste écrêtée jusqu'à
+v₁ = U − a_max τ, puis la vitesse relaxe vers U. Le temps perdu sur la distance, par rapport à
+une relance jamais écrêtée, vaut alors exactement v₁² / (2 a_max U). Ce n'est pas le décalage
+des profils de vitesse, un peu plus grand (0,0104 s ici). Le calcul exact du modèle continu
+donne :
 
 | Situation | Temps perdu par relance, par rapport au sec |
 |---|---|
 | Facteur 1,5, a_max = 3,3 m/s² | 0,0098 s |
 | Facteur 1 | 0 s (2,7 m/s² demandés) |
 | Adhérence de 1 m/s² | 0,57 s (M6 mesure 0,38 s sur t50) |
+
+*Revérifié le 9 novembre, après la revue de #112.* L'intégration numérique fine retrouve la
+formule à 10⁻⁵ s près. Avec U arrondi à 2,0 m/s, on obtiendrait 0,0093 s et 0,562 s : les
+valeurs du tableau supposent bien la vitesse souhaitée exacte.
 
 Les 0,02 s mesurés correspondent donc à environ deux relances par baigneur. **Le mécanisme
 inertiel existe et il est identifié, mais il coûte un centième de seconde** tant que
