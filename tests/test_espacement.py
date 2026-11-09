@@ -167,3 +167,36 @@ def test_pas_libre_exige_l_avancement_avec_l_espacement():
     """Sans ordre d'avancement, des cycles d'attente redeviendraient possibles."""
     with pytest.raises(ValueError, match="avancement"):
         _libre(0.3, None)
+
+
+def test_meneur_restreint_au_meme_groupe():
+    """Un agent ne suit que des meneurs de son propre groupe (eau vs plage)."""
+    x = np.array([[0.0, 0.0], [1.0, 0.0]])
+    a = vers_la_sortie(x)
+    # Deux agents dans le meme groupe : le suiveur voit le jeu
+    jeu_meme_groupe = jeu_au_meneur(x, R, VERS_X, a, PORTEE, groupes=np.array([1, 1]))
+    assert jeu_meme_groupe[0] == pytest.approx(0.6)
+
+    # Deux agents dans des groupes differents : le suiveur ignore l'autre agent
+    jeu_groupes_distincts = jeu_au_meneur(x, R, VERS_X, a, PORTEE, groupes=np.array([0, 1]))
+    assert np.isinf(jeu_groupes_distincts[0])
+
+
+def test_meneur_groupes_forme_invalide():
+    with pytest.raises(ValueError, match="groupes"):
+        jeu_au_meneur(np.zeros((2, 2)), R, VERS_X, [1.0, 2.0], PORTEE, groupes=np.array([1]))
+
+
+def test_pas_libre_avec_groupe_meneur():
+    etat = State(x=np.array([[0.0, 0.0], [0.7, 0.0]]), v=np.zeros((2, 2)), r=R, t=0.0)
+    # Suiveur en groupe 0, meneur en groupe 1 -> pas de ralentissement
+    libre = pas_libre_milieux(
+        lambda etat: np.tile([1.0, 0.0], (etat.n, 1)),
+        lambda x: np.full(x.shape[0], Milieu.SEC, dtype=np.int64),
+        SEC,
+        temps_espacement=0.6,
+        avancement=vers_la_sortie,
+        groupe_meneur=lambda x: np.array([0, 1]),
+    )
+    v = libre(etat, 0.01)
+    np.testing.assert_allclose(v[:, 0], [0.01 * 1.0 / 0.5, 0.01 * 1.0 / 0.5])
