@@ -171,6 +171,7 @@ def pas_libre_milieux(
     facteur_vitesse: float = 1.0,
     temps_espacement: float | None = None,
     avancement: Callable[[np.ndarray], np.ndarray] | None = None,
+    groupe_meneur: Callable[[np.ndarray], np.ndarray] | None = None,
 ) -> VitesseLibre:
     """Vitesse libre d'agents guides sur des sols differents, pour `core.integrator`.
 
@@ -207,6 +208,9 @@ def pas_libre_milieux(
         avancement: temps restant jusqu'a la sortie (N,) aux positions (N, 2),
             en s ; ordonne les agents pour la relation vitesse-espacement, dont
             le meneur doit etre plus avance. Exige si `temps_espacement` est donne.
+        groupe_meneur: fonction facultative (x) -> (N,) renvoyant les identifiants
+            de sous-population pour restreindre les meneurs au meme groupe (par ex.
+            eau vs plage).
 
     Returns:
         Une fonction (etat, dt) -> v_libre, a passer a `pas_semi_implicite`,
@@ -257,8 +261,9 @@ def pas_libre_milieux(
         vitesse = facteur_vitesse * s[m]
         if temps_espacement is not None:
             avance = np.asarray(avancement(etat.x), dtype=float)
+            groupes = np.asarray(groupe_meneur(etat.x)) if groupe_meneur is not None else None
             vitesse = vitesse * facteur_espacement(
-                etat.x, etat.r, e, avance, vitesse, temps_espacement
+                etat.x, etat.r, e, avance, vitesse, temps_espacement, groupes=groupes
             )
         u = vitesse[:, None] * e
         return vitesse_libre(etat.v, u, tau[m], a_max[m], dt)

@@ -116,6 +116,12 @@ PARAMETRES = {
         "valeurs par defaut non calibrees : aucun chiffre n'est un resultat avant #19)",
         ("chutes", "lambda_chute"),
     ),
+    "temps_espacement": ParametreBalaye(
+        "E4",
+        "s",
+        "temps d'espacement de Tordeux et al. (regulation vitesse-espacement)",
+        ("temps_espacement",),
+    ),
     # Pas mesure sur les sols de la piscine : on verifie que les conclusions tiennent
     # quand tau varie (helbing2000 prend 0,5 s). Un tau plus court rend les agents plus
     # vifs, donc l'adherence limite plus souvent.

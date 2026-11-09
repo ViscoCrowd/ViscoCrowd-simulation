@@ -287,14 +287,27 @@ class TestObstaclesPlage:
             replace(PISCINE, obstacles=(ObstacleRectangle(46.0, 49.0, 8.0, 9.0),))
 
     def test_obstacle_sur_les_arrivees_d_un_rebord_refuse(self):
-        """Un obstacle colle au bord recouvre des points d'arrivee : le guidage le refuse.
+        """Un obstacle colle au bord recouvre des points d'arrivee : refuse des la lecture.
 
-        Ce controle existait deja (#54) : il passe par `Piscine.violation`, a laquelle #103
-        a ajoute les obstacles. Ce test le verrouille.
+        Avant la revue de #112, `valider_obstacles` l'admettait et seul le guidage le
+        refusait, avec un message qui ne nommait pas l'obstacle.
         """
         b = PISCINE.bassin
         obs = ObstacleRectangle(10.0, 11.0, b.y_max, b.y_max + 1.0)
         p = replace(PISCINE, obstacles=(obs,))
-        p.valider_obstacles(R)  # colle au bassin : aucun passage, admis
-        with pytest.raises(ValueError, match="arrivee admissible"):
+        with pytest.raises(ValueError, match="obstacle 0 recouvre l'arrivee du site"):
+            p.valider_obstacles(R)
+        with pytest.raises(ValueError, match="obstacle 0 recouvre"):
             GuidagePiscine(p, MILIEUX, R, 0.2, DUREES)
+
+    def test_obstacle_colle_au_bassin_dans_un_coin_admis(self):
+        """Colle au bassin sans recouvrir de site (les coins n'en ont pas), il reste admis."""
+        b = PISCINE.bassin
+        obs = ObstacleRectangle(b.x_min - 1.0, b.x_min, b.y_max, b.y_max + 1.0)
+        replace(PISCINE, obstacles=(obs,)).valider_obstacles(R)
+
+    def test_obstacle_a_un_diametre_du_bassin_admis(self):
+        """A 2r du bord, le disque d'arrivee touche l'obstacle sans y entrer."""
+        b = PISCINE.bassin
+        obs = ObstacleRectangle(10.0, 11.0, b.y_max + 2 * R, b.y_max + 1.0)
+        replace(PISCINE, obstacles=(obs,)).valider_obstacles(R)
