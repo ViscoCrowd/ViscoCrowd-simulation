@@ -35,6 +35,7 @@ parametres:
       acceleration_max: 5.9    # 0,60 g (Kendzior 2023)
       vitesse: 1.34
   facteur_vitesse: 1.5         # panique : vitesse souhaitee 2,0 m/s sur les plages (Helbing 2000)
+  temps_espacement: null       # s, desactive ; 0,35 s etalonne sur E0 (#58), balaye en E4 (#57)
   durees:                      # s, hypotheses non sourcees, balayees en E4
     rebord: 4.0
     echelle: 2.0

@@ -51,7 +51,13 @@ from viscocrowd.geometry.grille import paires_candidates
 
 
 def jeu_au_meneur(
-    x: np.ndarray, r: np.ndarray, e: np.ndarray, avance: np.ndarray, portee: float
+    x: np.ndarray,
+    r: np.ndarray,
+    e: np.ndarray,
+    avance: np.ndarray,
+    portee: float,
+    *,
+    groupes: np.ndarray | None = None,
 ) -> np.ndarray:
     """Jeu (N,) en m entre chaque disque et celui de son meneur ; inf sans meneur a portee.
 
@@ -59,6 +65,8 @@ def jeu_au_meneur(
         x, r, e: positions (N, 2), rayons (N,) et directions de guidage (N, 2).
         avance: temps restant jusqu'a la sortie (N,), en s ; plus petit = plus avance.
         portee: jeu (m) au-dela duquel un meneur est ignore, positif ou nul.
+        groupes: identifiants optionnels de sous-population (N,) ; un agent ne suit
+            alors qu'un meneur appartenant au meme groupe (par ex. eau vs plage).
 
     Un agent sans direction (e nul) n'a pas de meneur. Le jeu est negatif si les
     deux disques se recouvrent, ce que la projection tolere jusqu'a sa tolerance.
@@ -68,6 +76,10 @@ def jeu_au_meneur(
     n = x.shape[0]
     if x.shape != (n, 2) or e.shape != (n, 2) or r.shape != (n,) or avance.shape != (n,):
         raise ValueError("x, e, r et avance doivent etre de formes (N, 2), (N, 2), (N,), (N,)")
+    if groupes is not None:
+        groupes = np.asarray(groupes)
+        if groupes.shape != (n,):
+            raise ValueError(f"groupes doit etre de forme ({n},), recu {groupes.shape}")
     exiger_fini(x=x, r=r, e=e)
     if np.any(np.isnan(avance)):
         raise ValueError("avance ne doit pas contenir de NaN (+inf : sortie inatteignable)")
@@ -87,6 +99,8 @@ def jeu_au_meneur(
     lateral = np.abs(d[:, 1] * es[:, 0] - d[:, 0] * es[:, 1])
     contact = r[suiveur] + r[meneur]
     suit = (devant > 0.0) & (lateral < contact) & (avance[meneur] < avance[suiveur])
+    if groupes is not None:
+        suit = suit & (groupes[suiveur] == groupes[meneur])
     np.minimum.at(jeux, suiveur[suit], np.hypot(d[suit, 0], d[suit, 1]) - contact[suit])
     return jeux
 
@@ -98,6 +112,8 @@ def facteur_espacement(
     avance: np.ndarray,
     vitesse: np.ndarray,
     temps: float,
+    *,
+    groupes: np.ndarray | None = None,
 ) -> np.ndarray:
     """V(s) / v0 dans [0, 1], par agent : la part de sa vitesse souhaitee qu'il garde.
 
@@ -106,6 +122,7 @@ def facteur_espacement(
         avance: temps restant jusqu'a la sortie (N,), en s, qui ordonne les agents.
         vitesse: vitesse souhaitee v0 de chaque agent (N,), en m/s, positive ou nulle.
         temps: temps d'espacement T, en s, strictement positif.
+        groupes: identifiants optionnels de sous-population (N,).
     """
     exiger_scalaire_fini("temps", temps, strictement_positif=True)
     vitesse = np.broadcast_to(np.asarray(vitesse, dtype=float), (np.shape(x)[0],))
@@ -113,7 +130,7 @@ def facteur_espacement(
     if np.any(vitesse < 0.0):
         raise ValueError("la vitesse souhaitee doit etre positive ou nulle")
     portee = temps * float(np.max(vitesse, initial=0.0))
-    jeu = jeu_au_meneur(x, r, e, avance, portee)
+    jeu = jeu_au_meneur(x, r, e, avance, portee, groupes=groupes)
     # Un agent a l'arret (v0 = 0) n'a rien a moduler : facteur 1, sans division par zero.
     rapport = np.divide(jeu, temps * vitesse, out=np.ones_like(vitesse), where=vitesse > 0.0)
     return np.clip(rapport, 0.0, 1.0)

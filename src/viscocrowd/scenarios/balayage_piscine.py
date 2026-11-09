@@ -103,6 +103,12 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    "temps_espacement": ParametreBalaye(
+        "E4",
+        "s",
+        "temps d'espacement de Tordeux et al. (regulation vitesse-espacement)",
+        ("temps_espacement",),
+    ),
     # Pas mesure sur les sols de la piscine : on verifie que les conclusions tiennent
     # quand tau varie (helbing2000 prend 0,5 s). Un tau plus court rend les agents plus
     # vifs, donc l'adherence limite plus souvent.
