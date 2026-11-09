@@ -71,13 +71,13 @@ calcul (#107).
 
 **Décision.** Conduire une campagne appariée sur la géométrie cible du banc E0 (`experiments/goulot.yaml`, Seyfried et al. 2009) sur dix graines (1 à 10), dans l'entonnoir amont comprimé ($x\in[6{,}0\,;\,7{,}8]\,\text{m}$, $y\in[1{,}5\,;\,3{,}5]\,\text{m}$, densité moyenne de référence $\bar\rho_{\text{ref}} = 3{,}931\,\text{pers/m}^2$), en comparant la tolérance nominale ($10^{-6}\,\text{m}$, $\Delta t = 0{,}01\,\text{s}$) à :
 1. Une tolérance resserrée à $10^{-7}\,\text{m}$ : différence moyenne de $-2{,}31\cdot 10^{-5}\,\text{pers/m}^2$ (écart relatif $-0{,}0006\,\%$, erreur standard $8{,}76\cdot 10^{-5}\,\text{pers/m}^2$, écart maximal $6{,}9\cdot 10^{-4}\,\text{pers/m}^2$, $p_{\text{perm}} = 1{,}000$).
-2. Une tolérance relâchée à $10^{-5}\,\text{m}$ : décalage moyen de $+0{,}0047\,\text{pers/m}^2$ ($+0{,}12\,\%$, écart maximal $0{,}023\,\text{pers/m}^2$).
+2. Une tolérance relâchée à $10^{-5}\,\text{m}$ : décalage moyen de $+0{,}0047\,\text{pers/m}^2$ ($+0{,}12\,\%$, écart maximal $0{,}023\,\text{pers/m}^2$, $p_{\text{perm}} = 0{,}016$).
 3. Un pas de temps raffiné ($\Delta t = 0{,}005\,\text{s}$) : décalage moyen de $+0{,}021\,\text{pers/m}^2$ ($p_{\text{perm}} = 0{,}270$, écart maximal $0{,}130\,\text{pers/m}^2$ sur une graine, soit $3{,}3\,\%$).
 
 Aucune non-convergence (`non_convergences == 0`) et aucune violation résiduelle des parois ($\le 4{,}2\cdot 10^{-16}\,\text{m}$) ne sont observées. Le protocole et les résultats sont archivés dans `docs/mesures/biais-densite-goulot-2026-11-03/` ; `tests/test_biais_densite_goulot.py` rejoue la campagne sur les mêmes dix graines (test lent).
 
 **Conclusions, à lire séparément.**
-- *Tolérance* : aucun effet décelable. Resserrer de $10^{-6}$ à $10^{-7}\,\text{m}$ déplace la densité d'au plus $6{,}9\cdot 10^{-4}\,\text{pers/m}^2$ sur les dix graines.
+- *Tolérance* : aucun effet décelable sous la valeur nominale. Resserrer de $10^{-6}$ à $10^{-7}\,\text{m}$ déplace la densité d'au plus $6{,}9\cdot 10^{-4}\,\text{pers/m}^2$ sur les dix graines. Relâchée à $10^{-5}\,\text{m}$, elle a un effet décelable ($p = 0{,}016$, positif sur huit graines sur dix) mais faible ($+0{,}12\,\%$) : on garde $10^{-6}\,\text{m}$.
 - *Pas de temps* : pas d'effet systématique décelable ($p = 0{,}27$), mais une graine isolée peut s'écarter de $3{,}3\,\%$.
 
 Une absence de différence détectée ne prouve pas l'absence d'effet : ces chiffres sont des écarts maximaux observés sur dix graines, pas des bornes garanties. Ils suffisent aux critères de clôture de #10.
