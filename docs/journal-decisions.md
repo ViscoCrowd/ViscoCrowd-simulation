@@ -11,6 +11,22 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-07 — Clôture de l'issue #11 : repère analytique N / (J w) et état absorbant
+
+**Contexte.** L'issue #11 (« État de sortie par agent : distinguer franchissement et évacuation définitive ») restait ouverte pour deux motifs :
+1. Valider collectivement le passage à l'état absorbant (livré au moteur dans la PR #55 et validé par contrôle croisé dans la PR #81).
+2. Confronter les temps d'évacuation mesurés au repère analytique d'ingénierie $T_{\text{repère}} = N / (J \cdot w)$ sur le goulot et la piscine.
+
+**Décision.**
+1. L'état absorbant est formellement acté : dès qu'un agent franchit la ligne de porte orientée, son état passe à `SORTI`, il est soustrait du solveur d'exclusion et du guidage eikonal, et ses coordonnées sont fixées au point extérieur. Le contrôle croisé automatique (`tests/test_piscine_scenario.py`) garantit l'équivalence exacte des effectifs avec l'observable rétrospective `sorties_definitives` et un écart temporel maximal inférieur au pas physique $\Delta t \le 0{,}01\text{ s}$.
+2. Confrontation au repère, avec $J = J_{\max} = 1{,}225\text{ pers}\cdot\text{m}^{-1}\cdot\text{s}^{-1}$, le débit spécifique maximal de Weidmann (1993, p. 63-64), vérifié sur l'original (#12, #51, `observables/weidmann.py`). L'issue #11 citait $1{,}3$ (fourchette 1,2 à 1,4) sans source : cette valeur n'est pas reprise.
+   - **Goulot E0 ($N = 60$, $w = 1{,}2\text{ m}$)** : $T_{\text{repère}} = 60 / (1{,}225 \times 1{,}2) \approx 40{,}8\text{ s}$. Sans régulation, le modèle évacue en $\approx 10{,}1\text{ s}$ ($J_s \approx 4{,}96$). Avec la régulation vitesse-espacement ($T = 0{,}35\text{ s}$), la vidange demande $\approx 27{,}3\text{ s}$ ($J_s \approx 1{,}83$), proche de Seyfried et al. (2009) ($25{,}4\text{ s}$, $J_s \approx 1{,}97$).
+   - **Piscine E1 ($N = 100$, $w = 1{,}2\text{ m}$, facteur de panique 1,5)** : $T_{\text{repère}} = 100 / (1{,}225 \times 1{,}2) \approx 68{,}0\text{ s}$. Sur 10 graines, l'intervalle de décharge vaut $\Delta t_{\text{flux}} = 26{,}5 \pm 3{,}5\text{ s}$ ($J_s = 3{,}20 \pm 0{,}47$) et la première sortie a lieu à $14{,}7 \pm 0{,}5\text{ s}$. Une porte écoulant au débit du repère porterait l'évacuation à $\approx 14{,}7 + 68{,}0 = 82{,}7\text{ s}$, contre $t_{100} = 41{,}23 \pm 3{,}47\text{ s}$ simulé. Mesure du 7 novembre, mêmes graines que E1 (t100 identique au tableau du rapport).
+   - Le repère, qui décrit un écoulement libre et non un goulot saturé, reste au-dessus des deux mesures. Sur E0, la régulation comble à peu près la moitié de l'écart au repère (17,2 s sur 30,7 s) et retrouve la mesure de Seyfried ; le reste tient au repère lui-même. Sur la piscine, la part due à l'absence de freinage anticipé n'est pas mesurée : c'est une hypothèse, que la régulation étalonnée sur E0, branchée par #100 mais désactivée par défaut, permettra de tester.
+3. L'issue #11 peut être close à la fusion.
+
+---
+
 ## 2026-11-06 — Figer les valeurs de référence de la piscine (C6)
 
 **Contexte.** Les valeurs de `experiments/piscine.yaml` étaient une proposition « à valider
@@ -1009,8 +1025,7 @@ l'intérieur : avant un refoulement, un agent peut être dehors sans être class
 La revue de #47 ajoute les retours hors porte et le rejet des temps/positions invalides ;
 un passage antérieur à la dernière présence intérieure n'est pas une sortie définitive.
 
-**Reste à faire (P5).** Confronter le temps d'évacuation au repère `N / (1,3 w)` sur un goulot,
-et décider du retrait des agents sortis dans le scénario piscine.
+**Suivi (P5).** L'état absorbant avec retrait au moteur a été acté (#55, #81) et le repère `N / (J w)` confronté au goulot et à la piscine avec le débit maximal de Weidmann, J = 1,225 (décision du 7 novembre 2026, actée par la revue de #105, #11).
 
 ---
 

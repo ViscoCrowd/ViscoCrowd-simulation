@@ -171,6 +171,33 @@ La moitié des occupants est évacuée en $t_{50} = \SI{25.88 \pm 0.50}{\second}
 $t_{100} = \SI{41.23 \pm 3.47}{\second}$, sans aucun agent bloqué. La dispersion de
 $t_{100}$, sept fois celle de $t_{50}$, tient au dernier sorti : son instant dépend de
 l'ordre d'arrivée aux échelles et au rebord, donc du placement initial.
+\item \textbf{Confrontation au repère analytique de débit au goulot.}
+Un repère d'ingénierie classique estime la durée de vidange d'une foule de $N$ personnes
+par une porte de largeur $b$ à $T_{\text{repère}} = N / (J_{\max} \cdot b)$, où $J_{\max}$ est
+le débit spécifique maximal. Nous prenons celui du diagramme fondamental de
+Weidmann~\cite{weidmann1993}, vérifié sur l'original (p.~63--64) :
+$J_{\max} = \num{1.225}$~personne par mètre et par seconde.
+Pour la piscine ($N=100$, $b=\SI{1.2}{\metre}$), ce repère prévoit
+$T_{\text{repère}} = 100 / (\num{1.225} \times \num{1.2}) \approx \SI{68.0}{\second}$.
+Dans la campagne E1, sans régulation vitesse--espacement, l'intervalle d'écoulement à la
+porte vaut $\Delta t_{\text{flux}} = \SI{26.5 \pm 3.5}{\second}$, bien plus bref que ce repère :
+le contact par projection dure, sans maintien de distance, laisse la foule se compacter
+($J_s = \num{3.20}$~personnes par mètre et par seconde, tableau~\ref{tab:e1}).
+Le temps total $t_{100} = \SI{41.23 \pm 3.47}{\second}$ comprend en outre le transit initial
+(nage, attente aux échelles et traversée de plage) : la première sortie a lieu à
+\SI{14.7 \pm 0.5}{\second}. Une porte qui écoulerait au débit du repère porterait donc
+l'évacuation à environ $\SI{14.7}{\second} + \SI{68.0}{\second} \approx \SI{82.7}{\second}$.
+Sur le banc de goulot E0 ($N=60$, $b=\SI{1.2}{\metre}$), le repère prédit
+$60 / (\num{1.225} \times \num{1.2}) \approx \SI{40.8}{\second}$. Le modèle sans régulation
+décharge en $\approx \SI{10.1}{\second}$ ($J_s \approx \num{4.96}$~personnes par mètre et par
+seconde), et la régulation vitesse--espacement ($T=\SI{0.35}{\second}$) porte la vidange à
+$\approx \SI{27.3}{\second}$ ($J_s \approx \num{1.83}$), proche de la mesure de
+Seyfried et al.~\cite{seyfried2009} (\SI{25.4}{\second}, $J_s \approx \num{1.97}$).
+Le repère, qui décrit un écoulement libre et non un goulot saturé, reste au-dessus des deux
+mesures : sur E0, la régulation comble à peu près la moitié de l'écart au repère et retrouve
+la mesure de Seyfried, le reste tenant au repère lui-même. Sur la piscine, nous faisons
+l'hypothèse que l'absence de freinage anticipé explique une part de l'écart ; la régulation,
+étalonnée sur E0 et branchée mais désactivée par défaut (PR~100), permettra de la mesurer.
 \end{enumerate}
 
 \subsection{Premier banc : effet séparé des paramètres du sol mouillé}

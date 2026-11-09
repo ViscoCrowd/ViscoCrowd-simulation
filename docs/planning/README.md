@@ -119,7 +119,7 @@ mesures de densité, de l'étalonnage E0, de la maîtrise du biais #10 et de la 
 | P2 | J4 | Définir les transitions entre zones | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny | Livré dans #55 : états eau, franchissement, plage et sorti | Spécification §2.7, PR #55 |
 | P3 | J4 | Implémenter capacité unitaire et durée de passage des échelles/rebords | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny | Livré dans #55 ; durées encore à calibrer (#26) | Spécification §2.7, PR #55 |
 | P4 | J4 | Faire circuler une foule sur le parcours complet | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny | Livré dans #55 : 100 agents, tous sortis sur les 10 graines de E1 | Jalon 4, PR #55 |
-| P5 | J4 | Compter les évacués définitifs et les temps de sortie ; conserver N intérieur + N sorti | S9 | Livré pour l'essentiel le 22/10–03/11/2026 | Hamza | Observable #47, état absorbant #55 et contrôle croisé #81 livrés ; repère `N / (1,3 w)` et validation collective de l'état absorbant restent à consigner ; #11 ouverte | [#11], [PR #47], PR #55, PR #81 |
+| P5 | J4 | Compter les évacués définitifs et les temps de sortie ; conserver N intérieur + N sorti | S9 | Livré pour l'essentiel le 22/10–03/11/2026 | Hamza | Observable #47, état absorbant #55, contrôle croisé #81 et repère `N / (J w)` (J = 1,225, Weidmann) confronté ; état absorbant acté par la revue de #105 ; #11 close à la fusion de #105 | [#11], [PR #47], PR #55, PR #81 |
 | P6 | J4 | Tester passages, blocages et absence de franchissements fantômes | S9 | 01–07/12/2026 | À attribuer avant S8 | En cours : tests de #55 et #81 ; faux bouchages de la porte à corriger (#85) | Jalon 4 / PR #9, #85 |
 
 ## Mesures et campagnes
