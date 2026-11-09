@@ -80,6 +80,13 @@ class SiteFranchissement:
 _TOLERANCE_ECART = 1e-9  # m, marge d'arrondi sur la largeur d'un passage
 
 
+def _distance_point_rectangle(p: np.ndarray, a: ObstacleRectangle) -> float:
+    """Distance d'un point a un rectangle, en m ; nulle si le point est dedans."""
+    dx = max(a.x_min - p[0], p[0] - a.x_max, 0.0)
+    dy = max(a.y_min - p[1], p[1] - a.y_max, 0.0)
+    return float(np.hypot(dx, dy))
+
+
 def _ecart_rectangles(a: ObstacleRectangle, b: ObstacleRectangle) -> float:
     """Plus courte distance entre deux rectangles, en m ; nulle s'ils se touchent."""
     dx = max(a.x_min - b.x_max, b.x_min - a.x_max, 0.0)
@@ -168,10 +175,13 @@ class Piscine:
         Dans un tel passage, aucun centre ne respecte a la fois l'obstacle et son voisin
         (mur, bassin ou autre obstacle) : la projection les traite l'un apres l'autre et
         laisse une violation, constatee seulement a la fin du calcul. Un obstacle colle
-        a son voisin (ecart nul) ne laisse aucun passage et reste admis.
+        a son voisin (ecart nul) ne laisse aucun passage et reste admis, sauf s'il
+        recouvre le point d'arrivee d'un site de franchissement : colle au bassin, il
+        empecherait de sortir de l'eau a cet endroit (revue de #112).
         """
         exiger_scalaire_fini("rayon", rayon, strictement_positif=True)
         L, W = self.longueur_emprise, self.largeur_emprise
+        sites = self.sites() if self.obstacles else ()
         for k, obs in enumerate(self.obstacles):
             voisins = [
                 ("le mur de gauche", obs.x_min),
@@ -191,6 +201,14 @@ class Piscine:
                     raise ValueError(
                         f"l'obstacle {k} laisse avec {voisin} un passage de {ecart:.3g} m, "
                         f"plus etroit qu'un diametre d'agent ({2 * rayon:.3g} m)"
+                    )
+            # Apres les passages, plus precis quand un obstacle trop proche fait les deux.
+            for site in sites:
+                # Le disque d'arrivee peut toucher l'obstacle, pas y entrer.
+                if _distance_point_rectangle(site.arrivee(rayon), obs) < rayon - _TOLERANCE_ECART:
+                    raise ValueError(
+                        f"l'obstacle {k} recouvre l'arrivee du site {site.indice} "
+                        f"({site.nature}) : il doit laisser libre la sortie de l'eau"
                     )
 
     # --- Rectangles ------------------------------------------------------------
