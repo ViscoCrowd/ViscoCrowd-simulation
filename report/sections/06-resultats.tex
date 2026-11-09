@@ -335,8 +335,10 @@ de \num{0.005} à \SI{0.053}{\second}. Le modèle l'explique sans paramètre aju
 \item un baigneur réintroduit à l'arrêt sur la plage mouillée demande
 $\norm{\vect{U}-\vit}/\tau = 2{,}01/0{,}5 = \SI{4.02}{\metre\per\second\squared}$, au-delà
 des \SI{3.3}{\metre\per\second\squared} du mouillé, mais pas des
-\SI{5.9}{\metre\per\second\squared} du sec. Sa relance est donc écrêtée. Le calcul exact du
-modèle continu chiffre le temps perdu à \SI{0.0098}{\second} par relance par rapport au sec ;
+\SI{5.9}{\metre\per\second\squared} du sec. Sa relance est donc écrêtée jusqu'à
+$v_1 = U - a_{\max}\tau$, avec $U = \norm{\vect{U}} = \SI{2.01}{\metre\per\second}$. Le
+calcul exact du modèle continu donne le temps perdu sur la distance, $v_1^2/(2\,a_{\max}U)$,
+soit \SI{0.0098}{\second} par relance par rapport au sec ;
 les \SI{0.02}{\second} mesurés correspondent à environ deux relances ou virages serrés par
 baigneur ;
 \item le même calcul ne donne aucun retard au facteur~1, où la relance ne demande que

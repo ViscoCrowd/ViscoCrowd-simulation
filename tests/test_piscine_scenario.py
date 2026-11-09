@@ -357,3 +357,36 @@ def test_obstacle_laissant_un_passage_trop_etroit_refuse_a_la_lecture():
     geom["obstacles"] = [{"x_min": 40.0, "x_max": 41.0, "y_min": 18.0, "y_max": 20.3}]
     with pytest.raises(ValueError, match="passage"):
         parametres(geometrie=geom)
+
+
+@pytest.mark.parametrize("temps", [0.0, -0.5, np.nan, "invalide"])
+def test_parametres_piscine_temps_espacement_invalide(temps):
+    with pytest.raises(ValueError, match="temps_espacement"):
+        parametres(temps_espacement=temps)
+
+
+def test_simulation_piscine_avec_temps_espacement():
+    """Verifie que l'espacement de Tordeux s'applique sans violer les invariants de la piscine."""
+    p = parametres(n_agents=6, duree=60.0, temps_espacement=0.35)
+    assert p.temps_espacement == 0.35
+    assert p.en_dictionnaire()["temps_espacement"] == 0.35
+
+    r = simuler_piscine(p)
+    assert r.projection.non_convergences == 0
+    assert np.all(r.etats[-1] == SORTI)
+    assert np.all(np.isfinite(r.sorties))
+    assert r.violation_paroi_max() <= 1e-14
+
+
+def test_temps_espacement_ralentit_l_ecoulement():
+    """La regulation agit : meme graine, les baigneurs sortent plus tard avec T = 0,35 s.
+
+    A 6 agents la porte ne sature pas et les sorties sont identiques au bit pres ; a 30,
+    le temps de sortie moyen passe de 22,73 a 23,12 s (mesure du 7 novembre).
+    """
+    libre = simuler_piscine(parametres(n_agents=30, duree=90.0)).sorties
+    regule = simuler_piscine(parametres(n_agents=30, duree=90.0, temps_espacement=0.35)).sorties
+
+    assert np.all(np.isfinite(libre)) and np.all(np.isfinite(regule))
+    assert regule.mean() > libre.mean() + 0.1
+    assert regule.max() >= libre.max()

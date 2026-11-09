@@ -17,11 +17,21 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 |---|---|---|---|
 | `largeur_mouillee` | E3 | m | largeur de la bande mouillée ; à 20 m, la plage est mouillée jusqu'à la porte |
 | `adherence_mouille` | E3 | m/s² | `a_max` du carrelage mouillé |
+| `vitesse_mouille` | E3 | m/s | vitesse souhaitée sur le carrelage mouillé (#26) |
+| `lambda_chute` | E3 | 1/s | taux de chute par perte d'adhérence ; **active le module de chutes**, voir ci-dessous |
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
+| `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; `null` dans le YAML, 0,35 s étalonné sur E0 (#58) |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
+
+**Balayer `lambda_chute` active les chutes.** `experiments/piscine.yaml` n'a pas de section
+`chutes` : le balayage la crée, et toutes les autres valeurs du module (domino, relevage,
+contournement) restent celles par défaut de `ParametresChutes`. Ces valeurs ne sont pas
+calibrées : comme le précise [`modele-chutes.md`](modele-chutes.md), aucun chiffre obtenu
+avec ce module ne peut servir de résultat avant la décision de #19. Le témoin sec garde les
+**mêmes** chutes que le mouillé, si bien que Δ ne mesure que le sol.
 
 Le nombre d'échelles n'est pas balayé : il faudrait d'abord choisir où placer les échelles
 ajoutées, ce qui est un choix de scénario à faire en groupe.
@@ -212,7 +222,9 @@ pour quatre raisons :
    bouchon qu'il faut freiner. L'effet du mouillé près d'une porte encombrée reste à mesurer.
 3. **La foule est trop rapide au goulot.** E0 mesure un débit 1,9 à 2,5 fois celui de
    Seyfried : nos baigneurs ne ralentissent pas derrière celui qui les précède. La relation
-   vitesse–espacement (#58) corrige ce point sur E0 mais n'est pas branchée sur la piscine.
+   vitesse–espacement (#58) corrige ce point sur E0. Elle est branchée sur la piscine (#57),
+   mais désactivée par défaut (`temps_espacement: null`) : les campagnes ci-dessus ont été
+   faites sans elle.
 4. **La porte se bouche artificiellement** (ci-dessus), ce qui empêche pour l'instant de
    créer un bouchon réaliste en rétrécissant la porte ou en ajoutant du monde.
 
