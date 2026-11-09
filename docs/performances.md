@@ -1,0 +1,138 @@
+# Mesurer avant une campagne longue
+
+Le banc fait varier l'effectif, en conservant la géométrie, la graine et tous les
+autres paramètres du YAML. Un effectif impossible est refusé, jamais compensé en
+changeant l'espacement ou la taille du domaine. Les mesures ne constituent pas
+une validation scientifique : celle-ci reste suivie dans l'issue #59.
+
+```bash
+viscocrowd mesurer-performances experiments/piscine.yaml \
+  --effectifs 20 100 --archiver-tous 1 10 --repetitions 2 \
+  --sortie data/performances-piscine.json
+```
+
+Le JSON conserve chaque répétition, les paramètres effectifs, la provenance du
+code, les versions et les variables de nombre de threads. La sortie ne peut pas
+écraser un fichier existant. Un cas en échec est enregistré comme tel, sans mesure
+présentée comme valide, et rend le code final non nul. Le fichier est actualisé
+après chaque cas ; il n'offre pas de reprise de campagne et une interruption
+pendant son écriture peut le laisser incomplet.
+
+## Lire les chiffres
+
+Chaque cas s'exécute dans un **processus neuf**, pour que le pic mémoire d'un gros
+effectif ne soit pas reporté sur le suivant.
+
+| Champ | Mesure et limites |
+|---|---|
+| `temps_simulation_validation_archive_s` | Temps mural du calcul, de ses validations et de la compression NPZ ; imports du processus et lancement exclus. |
+| `pic_rss_processus_octets` | Pic de mémoire résidente du processus, bibliothèques comprises ; disponible sur macOS/Linux, `null` ailleurs. Ce n'est pas une allocation Python ni une différence de deux pics. |
+| `tableaux_conserves_octets` | Somme des tailles de t, x, v, rayons et états dans le résultat ; n'inclut pas les objets Python, temporaires du solveur ou métadonnées. |
+| `archive_npz_octets` | Taille compressée sur disque. |
+| `instants_archives`, `t_final_s` | Échantillonnage enregistré et durée physique réellement simulée. |
+
+Comparer plusieurs répétitions sur la même machine, à charge comparable. Le temps
+de fin d'évacuation peut changer avec l'effectif : ces lignes mesurent le coût du
+scénario complet, pas une loi pure en N à durée constante. Fixer une durée courte
+commune dans un YAML versionné pour isoler ce deuxième effet. Aucun seuil de temps
+arbitraire n'est imposé en CI.
+
+## Espacer l'archivage piscine sans changer dt
+
+```bash
+viscocrowd simuler experiments/piscine.yaml --sortie data/piscine-legere.npz \
+  --archiver-tous 10
+```
+
+Le calcul garde `dt = 0,01 s` dans cet exemple, mais n'enregistre qu'un instant
+tous les dix pas, ainsi que le premier et le dernier. L'espacement est fait
+**pendant** la simulation : les tableaux intermédiaires ne sont pas accumulés puis
+supprimés. Le dernier intervalle peut être plus court. La mémoire des états en
+cours, du guidage, des événements et du solveur reste nécessaire.
+
+Tous les pas continuent à vérifier les déplacements, la cohérence des états, la
+projection et les murs. Le maximum de violation des parois est cumulé sur les pas
+physiques, même ceux absents de l'archive. Tous les franchissements et les temps
+de sortie restent conservés séparément : les temps d'évacuation ne sont pas
+arrondis à la fréquence des images. Le défaut `--archiver-tous 1` garde tous les
+instants. Aucune équation, tolérance ou hypothèse physique n'est modifiée.
+
+Les métadonnées `archivage` distinguent le dt physique et le nombre de pas entre
+images. Une relecture ne peut pas reconstituer des positions manquantes : ne pas
+utiliser une archive espacée pour des pics de densité instantanée ou des vitesses
+différenciées sans étude de sensibilité à la fréquence. Les états échantillonnés
+peuvent sauter une transition intermédiaire visible dans les événements.
+
+Pour prévenir toute analyse physique erronée, **toutes les fonctions calculant une
+observable à partir d'une archive (`franchissements_trajectoire`, `debit_specifique_trajectoire`,
+`mesures_voronoi_trajectoire`, `sorties_definitives_trajectoire`, `energie_mecanique_trajectoire`)
+refusent strictement toute archive dont `tous_les_pas > 1` (issue #73)**. Elles lèvent une
+`ValueError` explicite invitant à relancer avec `--archiver-tous 1` (valeur par défaut).
+Seuls le lecteur visuel (`viscocrowd rejouer`) et les journaux d'événements précalculés
+tolèrent des archives espacées.
+
+### Sensibilité à K
+
+Mesure du 3 novembre 2026 : `experiments/piscine.yaml`, 100 baigneurs, graines 1 à 10. Sur chaque
+évacuation, on ne garde qu'une image sur K et on compare au K = 1 de la même graine. Bilan et
+script : [`mesures/sensibilite-archivage-2026-11-03`](mesures/sensibilite-archivage-2026-11-03/).
+
+| K | Écart max sur un instant de sortie (s) | Écart max sur t100 (s) | Pic de densité devant la porte (pers/m²) | Vitesse max sur la plage (m/s) |
+|---|---|---|---|---|
+| 1 | 0,010 (écart au moteur) | 0 | 1,563 | 1,533 |
+| 2 | 0,020 | 0,010 | 1,563 | 1,528 |
+| 5 | 0,047 | 0,037 | 1,542 | 1,522 |
+| 10 | 0,090 | 0,071 | 1,531 | 1,475 |
+| 25 | 0,206 | 0,168 | 1,490 | 1,434 |
+| 50 | 0,410 | 0,286 | 1,479 | 1,419 |
+| 100 | 0,552 | 0,409 | 1,438 | 1,406 |
+
+Les deux colonnes de droite sont des moyennes sur les graines ; les deux autres sont des maxima.
+Le pic de densité perd en moyenne 8 % à K = 100, et jusqu'à 0,208 pers/m² sur une graine ; la
+vitesse maximale perd 8 %. La zone de comptage fait 9,6 m² : un baigneur vaut 0,104 pers/m², donc
+ces écarts représentent 1,2 baigneur en moyenne et 2 au plus. La mesure porte sur ce comptage et
+sur la vitesse par différences finies : ces pourcentages ne se transposent pas à Voronoï.
+
+L'écart sur une sortie reste de l'ordre de K·dt. À K = 1, il vaut déjà environ un pas : un agent
+sorti est replacé au point `dehors`, et l'observable interpole le passage vers ce point, pas sur sa
+vraie trajectoire. Les 100 sorties sont retrouvées, et les passages à travers une ligne placée 10 m
+avant la porte ne changent pas.
+
+Pour reproduire : `python docs/mesures/sensibilite-archivage-2026-11-03/mesurer.py experiments/piscine.yaml <bilan.json>`.
+
+**Décision : garder le refus.** Les temps d'évacuation exacts sont déjà dans les événements, et
+une archive complète de 100 agents pèse 7 Mo : rien n'oblige à mesurer sur une archive espacée. Ce
+banc ne couvre pas les cas les plus défavorables : pas de panique, pas de bouchage, donc presque
+pas d'allers-retours. L'absence de passage manqué ne se généralise donc pas à une porte encombrée.
+
+L'archivage espacé est actuellement réservé à la piscine. Le banc mesure aussi
+couloir/tassement avec `--archiver-tous 1`. Ces scénarios gardent leur contrat
+d'archive complète ; la bille seule n'est pas un banc en nombre d'agents.
+
+
+## Mesure de référence du 23 octobre 2026
+
+Mesure locale sur macOS arm64, Python 3.14.4, NumPy 2.5.3, SciPy 1.18.1,
+Matplotlib 3.11.2, avec les dépendances figées. Code testé propre :
+`7b8c1b4f34e77966919b62ab736bd7e696378bae`. Deux répétitions séquentielles
+par cas, aucune autre suite de tests lancée en parallèle. Les valeurs ci-dessous
+sont leurs moyennes ; [les huit mesures brutes](mesures/performances-piscine-2026-10-23.json)
+conservent aussi les paramètres, la validation et l'environnement.
+
+| N | Un instant tous les K pas | Temps calcul + validation + NPZ (s) | Pic RSS (Mio) | Tableaux conservés (Mio) | NPZ (Mio) | Instants |
+|---:|---:|---:|---:|---:|---:|---:|
+| 20 | 1 | 2.434 | 58.87 | 3.260 | 1.261 | 4231 |
+| 20 | 10 | 2.422 | 54.97 | 0.327 | 0.129 | 424 |
+| 100 | 1 | 8.122 | 114.24 | 17.454 | 6.835 | 4566 |
+| 100 | 10 | 7.978 | 57.62 | 1.751 | 0.703 | 458 |
+
+À 100 agents, K=10 divise ici la taille des tableaux par environ dix et le pic RSS
+passe d'environ 114 à 58 Mio. Les bibliothèques et le guidage expliquent qu'à
+20 agents le gain RSS reste limité. Avec seulement deux répétitions et des temps
+proches, ces mesures ne démontrent pas une accélération du solveur.
+
+Les huit calculs ont convergé. Les temps physiques finaux sont identiques entre
+K=1 et K=10 : 42,30 s à 20 agents et 45,65 s à 100 agents. La preuve d'égalité des
+positions conservées, des événements et des invariants est également automatisée
+sur une évacuation complète de 20 agents (K=37). Un test injecte une violation sur
+un pas non archivé et vérifie que la publication est refusée.

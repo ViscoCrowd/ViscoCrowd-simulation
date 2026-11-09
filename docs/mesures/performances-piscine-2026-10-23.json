@@ -1,0 +1,743 @@
+{
+  "version": 1,
+  "configuration_source": {
+    "version": 1,
+    "scenario": "piscine",
+    "graine": 20262027,
+    "parametres": {
+      "geometrie": {
+        "longueur_bassin": 25.0,
+        "largeur_bassin": 12.5,
+        "plage_gauche": 3.0,
+        "plage_verticale": 4.0,
+        "plage_sortie": 20.0,
+        "largeur_porte": 1.2,
+        "profondeur_porte": 1.0,
+        "largeur_mouillee": 3.0,
+        "pas_rebord": 0.6,
+        "largeur_echelle": 0.5,
+        "echelles": [
+          [
+            "haut",
+            0.9
+          ],
+          [
+            "bas",
+            0.9
+          ]
+        ]
+      },
+      "n_agents": 100,
+      "rayon": 0.2,
+      "espacement": 1.0,
+      "bruit": 0.1,
+      "parametres_milieux": {
+        "EAU": {
+          "relaxation": 0.5,
+          "acceleration_max": 1.6,
+          "vitesse": 0.69
+        },
+        "MOUILLE": {
+          "relaxation": 0.5,
+          "acceleration_max": 3.3,
+          "vitesse": 1.34
+        },
+        "SEC": {
+          "relaxation": 0.5,
+          "acceleration_max": 5.9,
+          "vitesse": 1.34
+        }
+      },
+      "facteur_vitesse": 1.0,
+      "durees": {
+        "rebord": 4.0,
+        "echelle": 2.0
+      },
+      "portee": 0.25,
+      "dt": 0.01,
+      "duree": 180.0,
+      "tolerance": 1e-06,
+      "pas_guidage": 0.1
+    }
+  },
+  "code": {
+    "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+    "modifications_locales": false,
+    "source": "git"
+  },
+  "environnement": {
+    "python": "3.14.4",
+    "plateforme": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "versions": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "pyyaml": "6.0.3"
+    },
+    "threads": {
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "VECLIB_MAXIMUM_THREADS": null
+    }
+  },
+  "mesures": [
+    {
+      "n_agents": 20,
+      "archiver_tous": 1,
+      "repetition": 1,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 2.420766792005452,
+      "pic_rss_processus_octets": 61554688,
+      "tableaux_conserves_octets": 3418808,
+      "archive_npz_octets": 1321799,
+      "instants_archives": 4231,
+      "t_final_s": 42.300000000000004,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 20,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 7.185304060630671e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 20,
+      "archiver_tous": 1,
+      "repetition": 2,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 2.4467210000002524,
+      "pic_rss_processus_octets": 61898752,
+      "tableaux_conserves_octets": 3418808,
+      "archive_npz_octets": 1321799,
+      "instants_archives": 4231,
+      "t_final_s": 42.300000000000004,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 20,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 7.185304060630671e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 20,
+      "archiver_tous": 10,
+      "repetition": 1,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 2.411385874998814,
+      "pic_rss_processus_octets": 57769984,
+      "tableaux_conserves_octets": 342752,
+      "archive_npz_octets": 135032,
+      "instants_archives": 424,
+      "t_final_s": 42.300000000000004,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 20,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 7.185304060630671e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 20,
+      "archiver_tous": 10,
+      "repetition": 2,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 2.4323994999940624,
+      "pic_rss_processus_octets": 57507840,
+      "tableaux_conserves_octets": 342752,
+      "archive_npz_octets": 135032,
+      "instants_archives": 424,
+      "t_final_s": 42.300000000000004,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 20,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 7.185304060630671e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 100,
+      "archiver_tous": 1,
+      "repetition": 1,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 8.117606166997575,
+      "pic_rss_processus_octets": 119848960,
+      "tableaux_conserves_octets": 18301328,
+      "archive_npz_octets": 7167207,
+      "instants_archives": 4566,
+      "t_final_s": 45.65,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 100,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 9.999991014697507e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 100,
+      "archiver_tous": 1,
+      "repetition": 2,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 8.126740499996231,
+      "pic_rss_processus_octets": 119734272,
+      "tableaux_conserves_octets": 18301328,
+      "archive_npz_octets": 7167207,
+      "instants_archives": 4566,
+      "t_final_s": 45.65,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 100,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 9.999991014697507e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 100,
+      "archiver_tous": 10,
+      "repetition": 1,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 8.022910625004442,
+      "pic_rss_processus_octets": 60407808,
+      "tableaux_conserves_octets": 1836464,
+      "archive_npz_octets": 737205,
+      "instants_archives": 458,
+      "t_final_s": 45.65,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 100,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 9.999991014697507e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    },
+    {
+      "n_agents": 100,
+      "archiver_tous": 10,
+      "repetition": 2,
+      "statut": "termine",
+      "temps_simulation_validation_archive_s": 7.932948292000219,
+      "pic_rss_processus_octets": 60424192,
+      "tableaux_conserves_octets": 1836464,
+      "archive_npz_octets": 737205,
+      "instants_archives": 458,
+      "t_final_s": 45.65,
+      "configuration_effective": {
+        "graine": 20262027,
+        "parametres": {
+          "geometrie": {
+            "echelles": [
+              [
+                "haut",
+                0.9
+              ],
+              [
+                "bas",
+                0.9
+              ]
+            ],
+            "largeur_bassin": 12.5,
+            "largeur_echelle": 0.5,
+            "largeur_mouillee": 3.0,
+            "largeur_porte": 1.2,
+            "longueur_bassin": 25.0,
+            "pas_rebord": 0.6,
+            "plage_gauche": 3.0,
+            "plage_sortie": 20.0,
+            "plage_verticale": 4.0,
+            "profondeur_porte": 1.0
+          },
+          "n_agents": 100,
+          "rayon": 0.2,
+          "espacement": 1.0,
+          "bruit": 0.1,
+          "parametres_milieux": {
+            "EAU": {
+              "relaxation": 0.5,
+              "acceleration_max": 1.6,
+              "vitesse": 0.69
+            },
+            "MOUILLE": {
+              "relaxation": 0.5,
+              "acceleration_max": 3.3,
+              "vitesse": 1.34
+            },
+            "SEC": {
+              "relaxation": 0.5,
+              "acceleration_max": 5.9,
+              "vitesse": 1.34
+            }
+          },
+          "facteur_vitesse": 1.0,
+          "durees": {
+            "echelle": 2.0,
+            "rebord": 4.0
+          },
+          "portee": 0.25,
+          "dt": 0.01,
+          "duree": 180.0,
+          "tolerance": 1e-06,
+          "pas_guidage": 0.1
+        },
+        "scenario": "piscine",
+        "version": 1
+      },
+      "validation": {
+        "non_convergences": 0,
+        "recouvrement_max_m": 9.999991014697507e-07,
+        "violation_paroi_max_m": 7.216449660063518e-16
+      },
+      "code": {
+        "commit": "7b8c1b4f34e77966919b62ab736bd7e696378bae",
+        "modifications_locales": false,
+        "source": "git"
+      }
+    }
+  ]
+}

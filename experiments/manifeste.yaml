@@ -116,3 +116,23 @@ figures:
       ordre 1 exactement ; avec contacts, auto-convergence de pente mesuree ~1,4,
       l'erreur etant deja sous 4 micrometres et dominee par les rearrangements
       discrets de contacts
+
+  - identifiant: fig07_mouille_un_parametre
+    titre: "Effet separe des parametres du sol mouille sur le banc de couloir"
+    section_rapport: "Interpretation et analyse des resultats"
+    produite_par: "viscocrowd comparer-mouille experiments/couloir.yaml --figure report/figures"
+    scenario: couloir
+    configuration: experiments/couloir.yaml   # population, bandes et pas de temps
+    parametres:
+      variantes: [reference, vitesse, relaxation, adherence, vitesse+adherence, complet]
+      sec: {relaxation: 0.3, acceleration_max: 3.0, vitesse: 1.5}       # s, m/s^2, m/s
+      mouille: {relaxation: 0.6, acceleration_max: 0.7, vitesse: 1.0}   # repris un a un
+      n_agents: 24
+      dt: 0.01                       # s
+      duree: 14.0                    # s
+    graine: [20262027, 1, 2, 3, 4]   # memes placements pour toutes les variantes
+    resultat_attendu: >
+      relaxation seule et adherence seule sans effet a vitesse souhaitee constante
+      (t50 a 0,001 s pres) ; vitesse seule : t50 retarde de 1,29 s et 65 paires.s de
+      contacts ; avec l'adherence puis la relaxation du mouille, freinage allonge de
+      0,53 a 0,73 puis 1,86 m et contacts reduits a 63 puis 55 paires.s

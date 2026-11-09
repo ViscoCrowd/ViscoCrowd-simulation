@@ -403,6 +403,137 @@ def figure_convergence_dt(destination: Path) -> Path:
     return _enregistrer(fig, destination, "fig06_convergence_dt")
 
 
+def figure_comparaison_mouille(
+    resultats: dict[str, np.ndarray], n_agents: int, destination: Path
+) -> Path:
+    """Fig. 7 — effet separe des parametres du sol mouille, sur le banc de couloir.
+
+    Hors de `TOUTES_LES_FIGURES` : ce n'est pas une validation du moteur, et elle
+    demande une trentaine de simulations (`viscocrowd comparer-mouille`).
+    Le retard du passage median est apparie graine par graine a la reference.
+    """
+    from viscocrowd.scenarios.comparaison_mouille import LIBELLES, MESURES
+
+    noms = list(resultats)
+    reference = resultats["reference"]
+    n_graines = reference.shape[0]
+    panneaux = (
+        ("t50", "Retard du passage médian (s)", True),
+        ("freinage", "Distance de freinage (m)", False),
+        ("contacts", "Contacts dans la bande (paires·s)", False),
+    )
+    fig, axes = plt.subplots(1, 3, figsize=(11, 3.6), sharey=True)
+    for axe, (mesure, titre, apparie) in zip(axes, panneaux, strict=True):
+        k = MESURES.index(mesure)
+        series = [resultats[nom][:, k] - (reference[:, k] if apparie else 0.0) for nom in noms]
+        moyennes = [np.mean(s) for s in series]
+        ecarts = [np.std(s, ddof=1) if n_graines > 1 else 0.0 for s in series]
+        axe.barh(range(len(noms)), moyennes, xerr=ecarts, color="#4daeb9", capsize=3)
+        axe.set_xlabel(titre)
+        axe.axvline(0.0, color="0.3", lw=0.8)
+    axes[0].set_yticks(range(len(noms)), [LIBELLES.get(nom, nom) for nom in noms])
+    axes[0].invert_yaxis()
+    fig.suptitle(
+        f"Fig. 7 — Sol mouillé, un paramètre à la fois : couloir, {n_agents} agents, "
+        f"{n_graines} graines (moyenne ± écart-type)",
+        fontsize=10,
+    )
+    fig.tight_layout()
+    return _enregistrer(fig, destination, "fig07_mouille_un_parametre")
+
+
+def figure_carte_chutes(
+    resultat,
+    destination: Path,
+    nom: str = "fig_carte_chutes",
+) -> Path:
+    """Carte 2D des incidents de chutes (glissades et trebuchements domino)."""
+    piscine = resultat.parametres.piscine
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+
+    # Murs de l'enceinte
+    ax.plot(
+        [0, piscine.longueur_emprise, piscine.longueur_emprise, 0, 0],
+        [0, 0, piscine.largeur_emprise, piscine.largeur_emprise, 0],
+        color="#343a40",
+        lw=2,
+        label="Murs de l'enceinte",
+    )
+
+    # Bassin
+    b = piscine.bassin
+    ax.add_patch(
+        plt.Rectangle(
+            (b.x_min, b.y_min),
+            b.x_max - b.x_min,
+            b.y_max - b.y_min,
+            color="#a5d8ff",
+            alpha=0.6,
+            label="Bassin",
+        )
+    )
+
+    # Bande de carrelage mouille
+    lm = piscine.largeur_mouillee
+    ax.add_patch(
+        plt.Rectangle(
+            (b.x_min - lm, b.y_min - lm),
+            (b.x_max - b.x_min) + 2 * lm,
+            (b.y_max - b.y_min) + 2 * lm,
+            fill=False,
+            edgecolor="#1971c2",
+            linestyle="--",
+            lw=1.5,
+            label=f"Carrelage mouillé ({lm:.1f} m)",
+        )
+    )
+
+    # Porte
+    pa, pb = piscine.porte
+    ax.plot([pa[0], pb[0]], [pa[1], pb[1]], color="#2b8a3e", lw=4, label="Porte (sortie)")
+
+    # Evenements de chutes
+    chutes = resultat.chutes
+    if chutes:
+        pos_glissade = [c.position for c in chutes if c.cause == "glissade"]
+        pos_domino = [c.position for c in chutes if c.cause == "domino"]
+        if pos_glissade:
+            xs, ys = zip(*pos_glissade, strict=False)
+            ax.scatter(
+                xs,
+                ys,
+                c="#f76707",
+                s=60,
+                marker="o",
+                edgecolors="black",
+                label=f"Glissades ({len(pos_glissade)})",
+                zorder=5,
+            )
+        if pos_domino:
+            xs, ys = zip(*pos_domino, strict=False)
+            ax.scatter(
+                xs,
+                ys,
+                c="#e03131",
+                s=70,
+                marker="^",
+                edgecolors="black",
+                label=f"Effet domino ({len(pos_domino)})",
+                zorder=6,
+            )
+
+    ax.set_aspect("equal")
+    ax.set_xlabel("x (m)")
+    ax.set_ylabel("y (m)")
+    ax.set_title(
+        f"Carte 2D des chutes — {len(chutes)} chutes ({resultat.parametres.n_agents} agents)",
+        fontsize=10,
+    )
+    ax.legend(loc="upper left", framealpha=0.9, fontsize=8)
+    fig.tight_layout()
+    return _enregistrer(fig, destination, nom)
+
+
 TOUTES_LES_FIGURES = (
     figure_respect_contrainte,
     figure_energie,

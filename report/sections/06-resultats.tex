@@ -3,17 +3,347 @@
 % Les reponses a la question posee en introduction.
 
 \subsection{Diagramme fondamental de reference}
+\label{sec:e0}
 
-% Campagne E0 : goulot sec seul.
+Avant d'interpréter une évacuation, on compare le modèle à une mesure connue, en
+sol sec seul : le débit spécifique $J_s=\Delta N/(\Delta t\,b)$ d'un goulot de
+largeur $b$, mesuré par Seyfried et al.~\cite{seyfried2009}. Le banc reprend leur protocole :
+goulot de \SI{2.8}{\metre} de long, $b$ de 0,8 à \SI{1.2}{\metre}, 60 personnes
+réparties à \num{3.3} personnes par mètre carré dans une zone d'attente dont le
+centre est à \SI{3}{\metre} de l'entrée, comptage à \SI{0.4}{\metre} dans le goulot.
+La dynamique est celle du modèle, sans réglage : disques de rayon \SI{0.2}{\metre},
+vitesse souhaitée de \SI{1.34}{\metre\per\second}~\cite{weidmann1993},
+$\tau=\SI{0.5}{\second}$. Le débit est calculé comme dans la publication :
+$\Delta N$ est le nombre de personnes et $\Delta t$ sépare le premier et le dernier
+passage à la ligne de mesure. Un débit sur les \SI{80}{\percent} centraux des
+passages, hors mise en place et vidange de la file, n'est conservé que comme
+diagnostic : les deux mesures diffèrent dès que la cadence des passages varie.
+
+\begin{table}[ht]
+\centering
+\caption{Débit spécifique du goulot, en personnes par mètre et par seconde.
+Estimateur de la publication, du premier au dernier passage. Moyenne et
+écart-type sur trois graines ; les 30 simulations sont des écoulements, sans
+bouchage ni projection non convergée.
+Reproduction : \texttt{viscocrowd etalonner-goulot experiments/goulot.yaml},
+avec \texttt{temps\_espacement} à \texttt{null} pour la première ligne.}
+\label{tab:e0}
+\begin{tabular}{lrrrrr}
+\toprule
+$b$ (m) & 0,8 & 0,9 & 1,0 & 1,1 & 1,2 \\
+\midrule
+Modèle sans réglage & 2,99 (0,10) & 3,94 (0,27) & 4,13 (0,52) & 4,37 (0,19) & 4,96 (0,19) \\
+Modèle, $T=\SI{0.35}{\second}$ & 1,66 (0,01) & 1,85 (0,03) & 1,95 (0,00) & 1,92 (0,03) & 1,83 (0,06) \\
+Seyfried et al.~\cite{seyfried2009}, $N=60$ & 1,61 & 1,86 & 1,90 & 1,93 & 1,97 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le débit croît avec $b$, comme dans l'expérience, mais il vaut 1,9 à 2,5 fois
+la mesure (tableau~\ref{tab:e0}). Ces moyennes de trois graines restent
+sensibles à l'état initial : une première foule, non symétrique par rapport à
+l'axe du goulot, les déplaçait jusqu'à \SI{15}{\percent}. Les campagnes
+utiliseront au moins dix graines. L'écart tient au modèle : un agent marche à sa
+vitesse souhaitée jusqu'au contact, que seule la projection arrête, et rien ne le
+fait ralentir derrière celui qui le précède. Au contact et à
+\SI{1.34}{\metre\per\second}, deux disques successifs ne sont séparés que de
+$0{,}4/1{,}34\approx\SI{0.3}{\second}$ ; le débit mesuré implique des écarts
+environ deux fois plus grands. Agrandir le rayon a une portée limitée, puisque
+la densité initiale interdit $r>\SI{0.27}{\metre}$, et baisser la vitesse
+souhaitée fausserait la marche libre. E0 révèle donc un écart de débit sur ce
+banc, et seulement sur ce banc. Il n'établit ni un biais des temps d'évacuation de
+la piscine, que peuvent dominer la marche dans l'eau, la durée et la capacité des
+franchissements ou une porte alimentée par intermittence, ni la robustesse des
+effets relatifs entre configurations : l'un et l'autre restent à mesurer sur le
+scénario cible.
+
+Pour réduire cet écart sur le banc, nous proposons d'ajouter la fonction de
+vitesse optimale du modèle de
+Tordeux et al.~\cite{tordeux2016}. Derrière un meneur, la vitesse souhaitée
+devient
+\[
+V(s)=\min\bigl(v_0,\ \max(0,\ s/T)\bigr),
+\]
+où $s$ est le jeu entre les deux disques et $T$ un temps d'espacement. Le meneur
+de $i$ est le plus proche des agents $j$ situés devant lui, à moins de $r_i+r_j$
+de l'axe de sa direction (un couloir de demi-largeur $r_i+r_j$, comme chez Tordeux
+et al.), et plus avancés vers la sortie : leur temps de parcours restant, donné
+par le champ eikonal, est plus court. Cette dernière condition est la nôtre. Elle
+ordonne strictement les agents, donc la relation « suivre » ne forme aucun cycle :
+le plus avancé d'un groupe n'attend jamais personne. Appliquée sans elle, la règle
+bouchait le goulot, car deux agents qui convergent s'attendaient l'un l'autre.
+Choisi sur une grille de pas \SI{0.05}{\second} avec $N=60$, $T=\SI{0.35}{\second}$
+ramène le débit à $-7$ à $+3$~\si{\percent} de la mesure selon la largeur
+(tableau~\ref{tab:e0}), contre \SI{7.8}{\percent} d'écart moyen à
+\SI{0.3}{\second} et \SI{4.2}{\percent} à \SI{0.4}{\second}. C'est une qualité
+d'ajustement, pas une validation. Sur les effectifs que l'ajustement n'a pas
+utilisés, le même $T$ s'écarte en moyenne de \SI{6.6}{\percent} pour $N=40$ et de
+\SI{9.7}{\percent} pour $N=20$, dont les mesures sont elles-mêmes irrégulières en
+$b$. Il retrouve le niveau moyen sur les cinq largeurs à \SI{2}{\percent} près, et la
+croissance du débit quand $N$ diminue. Diviser $\Delta t$ par deux change le débit de
+\num{0.04}~personne par mètre et par seconde au plus, de l'ordre de l'écart entre
+graines.
+Notre modèle étant du second ordre
+($\tau=\SI{0.5}{\second}$), $T$ n'est pas un temps de réaction et ne se compare
+pas directement à celui d'un modèle du premier ordre. Ce réglage reste une
+proposition soumise au groupe ; il ne porte que sur un protocole, en sol sec.
+
+Une première géométrie raccordait la salle et le goulot par un coin vif. Les
+foules s'y bouchaient en arches statiques à $b\leq\SI{1}{\metre}$, et un bruit
+sur la direction ne les cassait pas. Avec des angles d'entrée arrondis,
+calculés exactement par la projection, aucun bouchage n'apparaît : ce blocage
+était un artefact de la géométrie, non un comportement de la foule.
 
 \subsection{Effet de l'extraction repartie}
+\label{sec:e1}
 
-% Campagne E1.
+La campagne E1 étudie l'évacuation complète dans une configuration de référence
+où l'ensemble de la plage est supposé sec ($\tau=\SI{0.5}{\second}$,
+$a_{\max}=\SI{5.9}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$),
+au facteur de panique de référence $1{,}5$ : les vitesses souhaitées valent
+$1{,}5\times\SI{1.34}{\metre\per\second}\approx\SI{2.0}{\metre\per\second}$ sur la plage et
+$1{,}5\times\SI{0.69}{\metre\per\second}\approx\SI{1.04}{\metre\per\second}$ dans l'eau
+(valeurs figées le 6~novembre, journal des décisions).
+Elle isole le rôle de l'extraction aquatique répartie (bassin, rebords et échelles)
+et de l'alimentation de la porte unique ($b=\SI{1.2}{\metre}$), indépendamment de
+tout frottement réduit au sol. Cette référence utilise \texttt{experiments/piscine.yaml},
+la régulation vitesse--espacement de la section~\ref{sec:e0} n'étant pas encore
+disponible sur le scénario piscine (\texttt{ParametresPiscine} ne comportant pas
+de paramètre \texttt{temps\_espacement}).
+
+Cent personnes sont réparties aléatoirement dans le bassin (\SI{25}{\metre}$\times$\SI{12.5}{\metre}),
+à une densité initiale moyenne de \num{0.32}~personne par mètre carré. Dix graines
+distinctes (1 à 10) sont simulées avec un pas d'intégration $\dt=\SI{0.01}{\second}$, toutes convergées à la
+tolérance de projection de \SI{1e-6}{\metre}. Les franchissements comprennent deux
+échelles rapides ($T=\SI{2.0}{\second}$) et les rebords périphériques
+($T=\SI{4.0}{\second}$, un site tous les \SI{0.6}{\metre}).
+
+\begin{table}[ht]
+\centering
+\caption{Campagne E1 : indicateurs d'évacuation en sol sec de référence.
+Moyennes, écarts-types et extrêmes sur dix graines appariées ($N=100$ agents, tous sortis).
+$t_{50}$, $t_{90}$, $t_{100}$ : instants d'évacuation définitive par la porte ;
+attente : temps moyen passé dans l'eau avant début de franchissement ;
+plage : durée moyenne de traversée depuis la réintroduction sur la plage jusqu'à la sortie ;
+$J_s = \Delta N/(\Delta t_{\text{flux}}\,b)$ : débit spécifique moyen en personnes par mètre et par seconde
+sur l'intervalle $\Delta t_{\text{flux}}$ séparant la première et la dernière sortie (\texttt{debit\_seyfried}).
+Reproduction : \texttt{viscocrowd comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10}.}
+\label{tab:e1}
+\begin{tabular}{lrrrrrr}
+\toprule
+Indicateur & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Attente eau (s) & Traversée plage (s) & $J_s$ (pers/(m$\cdot$s)) \\
+\midrule
+Moyenne & 25,88 & 32,08 & 41,23 & 6,03 & 15,91 & 3,20 \\
+Écart-type & 0,50 & 0,67 & 3,47 & 0,71 & 0,38 & 0,47 \\
+Min -- Max & 25,22 -- 26,83 & 31,01 -- 33,26 & 34,34 -- 46,18 & 5,02 -- 7,16 & 15,54 -- 16,83 & 2,67 -- 4,32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Les résultats (tableau~\ref{tab:e1}) mettent en lumière la fonction régulatrice
+des sites d'extraction :
+\begin{enumerate}
+\item \textbf{L'eau et les franchissements étalent le flux amont.} Dans l'eau, les
+agents progressent à vitesse modérée (au plus \SI{1.04}{\metre\per\second}). Les plus
+proches atteignent un bord ou une échelle dès les premières secondes, tandis que
+la durée de rétention sur le rebord (\SI{4.0}{\second}) et la capacité unitaire
+des sites imposent une attente moyenne de \SI{6.03 \pm 0.71}{\second}. Cet étage
+désynchronise l'émergence des agents sur la plage, prévenant l'arrivée en bloc
+d'un front massif à la porte.
+\item \textbf{Alimentation cadencée du goulot.} La traversée de la plage vers la porte
+demande en moyenne \SI{15.91 \pm 0.38}{\second}. Sur la durée $\Delta t_{\text{flux}}$
+séparant la première et la dernière sortie, la porte de \SI{1.2}{\metre} écoule
+les arrivées successives à un débit spécifique moyen
+$J_s = \num{3.20 \pm 0.47}$~personnes par mètre et par seconde,
+sans formation d'arche statique bloquante. Bien que calculé avec le même estimateur
+$\Delta N/(\Delta t_{\text{flux}}\,b)$ qu'en E0, ce débit caractérise ici une porte
+alimentée progressivement par l'extraction du bassin et non un goulot saturé en permanence :
+il reste logiquement sous le débit saturé sans régulation du banc E0 à même largeur
+(\num{4.96}~personnes par mètre et par seconde, tableau~\ref{tab:e0}), ce qui suggère que la
+cadence d'extraction amont gouverne le flux moyen. Il dépasse pourtant la mesure
+expérimentale d'un goulot saturé chez Seyfried et al.\ (\num{1.97}~personne par mètre et
+par seconde). Sans régulation vitesse--espacement, la capacité du goulot du modèle vaut
+\num{2.5}~fois la mesure à même largeur (tableau~\ref{tab:e0}) ; des arrivées groupées peuvent
+amener la porte près de cette capacité. Une mesure de densité devant la porte permettrait de
+le vérifier.
+La moitié des occupants est évacuée en $t_{50} = \SI{25.88 \pm 0.50}{\second}$,
+\SI{90}{\percent} en \SI{32.08 \pm 0.67}{\second}, et la totalité de l'enceinte en
+$t_{100} = \SI{41.23 \pm 3.47}{\second}$, sans aucun agent bloqué. La dispersion de
+$t_{100}$, sept fois celle de $t_{50}$, tient au dernier sorti : son instant dépend de
+l'ordre d'arrivée aux échelles et au rebord, donc du placement initial.
+\end{enumerate}
+
+\subsection{Premier banc : effet séparé des paramètres du sol mouillé}
+\label{sec:mouille-un-parametre}
+
+Avant les campagnes, le banc de couloir permet de séparer les mécanismes par
+lesquels le sol mouillé agit. Le démonstrateur change à la fois la vitesse
+souhaitée $s$, le temps de relaxation $\tau$ et l'accélération maximale
+$a_{\max}$ de la bande mouillée ($4\leq x<\SI{8}{\metre}$), ce qui interdit
+d'attribuer un effet à l'un d'eux. On part donc d'une référence où le mouillé
+est identique au sec ($\tau=\SI{0.3}{\second}$,
+$a_{\max}=\SI{3}{\metre\per\second\squared}$, $s=\SI{1.5}{\metre\per\second}$),
+puis on reprend \emph{un seul} paramètre du mouillé à la fois
+($\tau=\SI{0.6}{\second}$, $a_{\max}=\SI{0.7}{\metre\per\second\squared}$,
+$s=\SI{1}{\metre\per\second}$), enfin des combinaisons. Les 24 agents, leurs
+placements et les cinq graines sont les mêmes pour toutes les variantes ; les
+écarts au passage médian sont appariés graine par graine. Ces valeurs restent
+illustratives : il s'agit de séparer des mécanismes, pas de calibrer la piscine.
+Le protocole exige que chaque agent termine les traversées et atteigne le seuil
+de freinage dans la bande ; une mesure incomplète est refusée, sans exclusion
+silencieuse d'agents ou de graines. La distance de freinage est échantillonnée,
+avec une résolution de l'ordre du déplacement sur un pas.
+
+\begin{table}[ht]
+\centering
+\caption{Sol mouillé, un paramètre à la fois. Moyennes sur cinq graines ;
+l'écart-type, de l'ordre de \SI{0.003}{\second} sur les temps, est omis.
+Freinage : distance parcourue dans la bande avant de revenir à
+\SI{5}{\centi\metre\per\second} de la vitesse souhaitée. Contacts : durée
+cumulée des paires à moins de \SI{1}{\milli\metre} du contact dans la bande.}
+\label{tab:mouille}
+\begin{tabular}{lrrrr}
+\toprule
+Variante & $t_{50}$ (s) & Traversée (s) & Freinage (m) & Contacts (paires$\cdot$s) \\
+\midrule
+Référence (mouillé = sec) & 7,082 & 2,672 & 0,01 & 0 \\
+Relaxation seule & 7,083 & 2,677 & 0,01 & 0 \\
+Adhérence seule & 7,082 & 2,672 & 0,01 & 0 \\
+Vitesse seule & 8,368 & 3,860 & 0,53 & 65 \\
+Vitesse + adhérence & 8,324 & 3,816 & 0,73 & 63 \\
+Complet (démonstrateur) & 8,223 & 3,716 & 1,86 & 55 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{fig07_mouille_un_parametre}
+\caption{Retard du passage médian par rapport à la référence, distance de
+freinage et compression dans la bande mouillée, pour chaque variante.
+Reproduction : \texttt{viscocrowd comparer-mouille experiments/couloir.yaml
+--figure report/figures} (manifeste, figure 7).}
+\label{fig:mouille}
+\end{figure}
+
+Trois constats se dégagent (tableau~\ref{tab:mouille} et
+figure~\ref{fig:mouille}).
+
+\paragraph{L'adhérence et la relaxation n'agissent que si la vitesse doit
+changer.} À vitesse souhaitée identique, prendre seulement le $\tau$ ou
+seulement le $a_{\max}$ du mouillé ne change rien : le passage médian bouge de
+moins de \SI{1}{\milli\second} et aucun contact n'apparaît. Dans ce couloir droit,
+les agents arrivent déjà à leur vitesse souhaitée ; rien ne leur demande
+d'accélérer, de freiner ou de tourner. L'effet d'inertie étudié par la
+problématique ne peut donc se manifester qu'à travers un \emph{transitoire} :
+changement de vitesse souhaitée, virage, contournement ou collision.
+
+\paragraph{La vitesse souhaitée retarde et comprime.} Seule, la vitesse plus
+faible du mouillé retarde le passage médian de \SI{1.29}{\second}, un peu moins
+que les \SI{1.33}{\second} d'une traversée à vitesse établie, puisque les agents
+entrent dans la bande plus vite qu'ils ne la traversent. Les agents de tête
+ralentissent avant ceux qui les suivent : la file se comprime à l'entrée, et
+65~paires$\cdot$s de contacts apparaissent, contre aucun dans la référence.
+
+\paragraph{Dans ce couloir, l'inertie allonge le freinage et réduit la
+compression.} Avec une adhérence faible, le freinage demandé
+($(1{,}5-1)/0{,}3\approx\SI{1.7}{\metre\per\second\squared}$) dépasse
+$a_{\max}=\SI{0.7}{\metre\per\second\squared}$ et se trouve borné : la distance
+de freinage passe de 0,53 à \SI{0.73}{\metre}, puis à \SI{1.86}{\metre} quand la
+relaxation du mouillé s'ajoute. Les agents ralentissent alors plus
+progressivement, la compression diminue (63 puis 55~paires$\cdot$s) et la bande est
+traversée plus vite. C'est l'inverse de l'intuition « inertielle » de la
+problématique, mais ce banc n'a ni virage ni goulot : l'inertie y étale le
+ralentissement au lieu de provoquer des chocs. Le contournement d'un obstacle et
+l'approche du goulot, où il faut tourner ou s'arrêter, restent les situations
+qui départageront les hypothèses tampon et inertielle.
 
 \subsection{Effet de l'inertie du carrelage mouille}
+\label{sec:e2}
 
-% Campagne E2, puis balayage E3. C'est le coeur du resultat : effet tampon ou
-% effet inertiel, et de quelle amplitude.
+La campagne E2 introduit la bande de carrelage mouillé de \SI{3.0}{\metre} entourant
+le bassin, modélisée selon les paramètres physiques retenus dans
+\texttt{experiments/piscine.yaml} ($\tau=\SI{0.5}{\second}$,
+$a_{\max}=\SI{3.3}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$),
+face à la plage sèche ($\tau=\SI{0.5}{\second}$,
+$a_{\max}=\SI{5.9}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$),
+au même facteur de panique $1{,}5$ que E1.
+Comme le carrelage mouillé et le carrelage sec partagent par construction la même vitesse
+souhaitée $s$ et le même temps de relaxation $\tau$ dans cette configuration de référence,
+les variantes \texttt{vitesse} et \texttt{relaxation} se confondent avec E1
+(\texttt{reference}), tandis que \texttt{adherence} et \texttt{vitesse+adherence} se
+confondent avec E2 (\texttt{complet}) : la comparaison E1/E2 isole donc directement l'effet
+de l'adhérence réduite ($a_{\max}=\SI{3.3}{\metre\per\second\squared}$ contre
+\SI{5.9}{\metre\per\second\squared}) sur les dix mêmes populations initiales que E1.
+
+\begin{table}[ht]
+\centering
+\caption{Comparaison appariée E1 (sec) et E2 (carrelage mouillé, où seul
+$a_{\max}=\SI{3.3}{\metre\per\second\squared}$ diffère du sec) sur dix graines.
+Moyennes et écarts-types entre parenthèses ; écart moyen apparié $\Delta = \text{E2} - \text{E1}$,
+graine par graine. Facteur de panique $1{,}5$.
+Reproduction : \texttt{viscocrowd comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10}.}
+\label{tab:e2}
+\begin{tabular}{lrrrrr}
+\toprule
+Variante & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Traversée plage (s) & $J_s$ (pers/(m$\cdot$s)) \\
+\midrule
+E1 : Référence sèche & 25,88 (0,50) & 32,08 (0,67) & 41,23 (3,47) & 15,91 (0,38) & 3,20 (0,47) \\
+E2 : Mouillé complet & 25,90 (0,49) & 31,98 (0,77) & 41,20 (3,06) & 15,92 (0,39) & 3,20 (0,45) \\
+\midrule
+Écart apparié $\Delta$ (E2 -- E1) & 0,02 (0,01) & $-0{,}10$ (0,22) & $-0{,}03$ (0,96) & 0,00 (0,03) & $-0{,}00$ (0,11) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Un effet inertiel réel, mais de l'ordre du centième de seconde.}
+Au facteur de panique $1{,}5$, l'adhérence réduite du carrelage mouillé retarde la
+première moitié de l'évacuation de $\Delta t_{50} = \SI{0.02 \pm 0.01}{\second}$
+(tableau~\ref{tab:e2}). Ce retard est minime, mais systématique : le bilan brut du
+balayage M6 au même réglage
+(\texttt{docs/mesures/balayages-piscine-2026-11-02/adherence.json},
+$a_{\max}=\SI{3.3}{\metre\per\second\squared}$) le donne positif sur les dix graines,
+de \num{0.005} à \SI{0.053}{\second}. Le modèle l'explique sans paramètre ajusté :
+\begin{itemize}
+\item un baigneur réintroduit à l'arrêt sur la plage mouillée demande
+$\norm{\vect{U}-\vit}/\tau = 2{,}01/0{,}5 = \SI{4.02}{\metre\per\second\squared}$, au-delà
+des \SI{3.3}{\metre\per\second\squared} du mouillé, mais pas des
+\SI{5.9}{\metre\per\second\squared} du sec. Sa relance est donc écrêtée. Le calcul exact du
+modèle continu chiffre le temps perdu à \SI{0.0098}{\second} par relance par rapport au sec ;
+les \SI{0.02}{\second} mesurés correspondent à environ deux relances ou virages serrés par
+baigneur ;
+\item le même calcul ne donne aucun retard au facteur~1, où la relance ne demande que
+$1{,}34/0{,}5 = \SI{2.68}{\metre\per\second\squared}$ : c'est pourquoi la première campagne,
+menée au facteur~1, ne mesurait rien. Il donne en revanche \SI{0.57}{\second} par relance
+pour une adhérence de \SI{1}{\metre\per\second\squared}, l'ordre de grandeur du retard de
+\SI{0.38}{\second} mesuré par le balayage M6 à cette adhérence.
+\end{itemize}
+Sur $t_{90}$ et $t_{100}$, l'écart change de signe d'une graine à l'autre, avec un
+écart-type de \SI{0.96}{\second} sur $t_{100}$. Un léger décalage à la sortie de l'eau
+change l'ordre d'arrivée aux sites, et donc le dernier sorti : ces écarts relèvent du
+hasard du placement, pas du sol. Enfin, la bande mouillée de \SI{3}{\metre} est séparée de
+la porte par \SI{17}{\metre} de carrelage sec : les relances écrêtées ont lieu près du
+bassin, et la porte, non encombrée dans cette configuration, n'en garde aucune trace.
+Mouiller la plage jusqu'à la porte ne change d'ailleurs $t_{50}$ que de
+\SI{1.4e-5}{\second} au plus (balayage M6).
+
+\paragraph{Implications pour la problématique et les balayages E3/E4.}
+Ce résultat, un mécanisme identifié mais d'amplitude négligeable, délimite le domaine
+où la problématique opère :
+\begin{enumerate}
+\item \textbf{Absence de contraste de vitesse libre dans la configuration de base.}
+Comme \texttt{experiments/piscine.yaml} attribue par hypothèse les mêmes valeurs de $s$ et
+$\tau$ aux sols mouillé et sec, seule l'adhérence $a_{\max}$ distingue E2 de E1 : la bande
+périphérique ne ralentit pas la marche établie, et la régulation amont provient uniquement de
+la capacité finie des échelles et des rebords du bassin.
+\item \textbf{Un écrêtage qui coûte peu tant que l'adhérence reste proche de celle du sec.}
+Le facteur de panique $1{,}5$ dépasse le seuil $a_{\max}\tau = \SI{1.65}{\metre\per\second}$
+au-delà duquel chaque relance est écrêtée. Le temps perdu par relance reste pourtant de
+l'ordre du centième de seconde avec $a_{\max}=\SI{3.3}{\metre\per\second\squared}$. Pour qu'un
+effet macroscopique apparaisse, il faut une adhérence nettement plus faible (balayage M6), un
+contraste de vitesse souhaitée sur le mouillé, ou une porte encombrée où la foule doit
+freiner et converger : ce sont les pistes des balayages E3 et E4.
+\end{enumerate}
 
 \subsection{Sensibilite aux parametres de scenario}
 
