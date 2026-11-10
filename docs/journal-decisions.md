@@ -13,9 +13,12 @@ Format : une entrée par décision, la plus récente en haut.
 
 ## 2026-11-10 — Activer la régulation vitesse–espacement dans la piscine (#57)
 
-**Statut.** Proposition de Lenny, à valider par Hamza et Shaleena en relecture de la PR.
-Si elle est refusée, `temps_espacement: null` dans `experiments/piscine.yaml` revient à
-l'état d'avant, et les chiffres du 6 novembre redeviennent la référence.
+**Statut.** Validée par le groupe le 10 novembre 2026 : proposition de Lenny, approuvée
+par [Shaleena](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/116#pullrequestreview-5840087596)
+et [Hamza](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/116#pullrequestreview-5840139159)
+dans #116, fusionnée le même jour. Les trois réponses ci-dessous sont acceptées.
+`temps_espacement: null` permet toujours de reproduire le modèle sans régulation
+et les mesures du 6 novembre.
 
 **Contexte.** #57 posait trois questions au groupe : garder la règle de Tordeux et al. (2016),
 garder T = 0,35 s, l'appliquer aussi dans l'eau. Les relectures de #58 et de #100 avaient
@@ -33,7 +36,7 @@ que E1/E2, porte de 1,2 m, 100 baigneurs, facteur 1,5 ; `docs/balayages-piscine.
 | 0,35 | 51,83 ± 1,68 | 2,25 ± 0,10 | 0 |
 | 0,5 | 57,77 ± 1,78 | 1,94 ± 0,07 | 0 |
 
-**Décision proposée.** Activer T = 0,35 s dans `experiments/piscine.yaml`, dans l'eau comme
+**Décision.** Activer T = 0,35 s dans `experiments/piscine.yaml`, dans l'eau comme
 sur la plage. Réponses aux trois questions de #57 :
 
 1. *La règle* : oui. Sans elle, le débit à la porte vaut 3,20 pers/(m·s), 2,6 fois le
