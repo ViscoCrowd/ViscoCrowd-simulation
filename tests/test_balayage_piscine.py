@@ -109,15 +109,18 @@ class TestAppariement:
             balayage.balayer(configuration, "lambda_chute", [5.0], [1])
 
     def test_balayage_temps_espacement_sur_le_yaml_de_reference(self, configuration, appels):
-        """Le YAML de reference porte le champ : le balayage n'est pas refuse (revue de #100)."""
-        assert configuration["parametres"]["temps_espacement"] is None
-        balayage.balayer(configuration, "temps_espacement", [0.35, 0.5], [1])
+        """Le YAML de reference porte le champ : le balayage n'est pas refuse (revue de #100).
+
+        La reference active T = 0,35 s (#57) ; le balayage remplace bien cette valeur.
+        """
+        assert configuration["parametres"]["temps_espacement"] == 0.35
+        balayage.balayer(configuration, "temps_espacement", [0.25, 0.5], [1])
 
         mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
         temoins = [p for p in appels if p.piscine.largeur_mouillee == 0]
-        assert {p.temps_espacement for p in mouilles} == {0.35, 0.5}
+        assert {p.temps_espacement for p in mouilles} == {0.25, 0.5}
         # Le temoin garde le meme temps d'espacement : seul le sol differe.
-        assert {p.temps_espacement for p in temoins} == {0.35, 0.5}
+        assert {p.temps_espacement for p in temoins} == {0.25, 0.5}
 
     def test_parametres_fixes_appliques_au_mouille_et_au_temoin(self, configuration, appels):
         balayage.balayer(
