@@ -57,7 +57,7 @@ franchissements ou une porte alimentée par intermittence, ni la robustesse des
 effets relatifs entre configurations : l'un et l'autre restent à mesurer sur le
 scénario cible.
 
-Pour réduire cet écart sur le banc, nous proposons d'ajouter la fonction de
+Pour réduire cet écart sur le banc, nous avons ajouté la fonction de
 vitesse optimale du modèle de
 Tordeux et al.~\cite{tordeux2016}. Derrière un meneur, la vitesse souhaitée
 devient
@@ -85,8 +85,9 @@ croissance du débit quand $N$ diminue. Diviser $\Delta t$ par deux change le d�
 graines.
 Notre modèle étant du second ordre
 ($\tau=\SI{0.5}{\second}$), $T$ n'est pas un temps de réaction et ne se compare
-pas directement à celui d'un modèle du premier ordre. Ce réglage reste une
-proposition soumise au groupe ; il ne porte que sur un protocole, en sol sec.
+pas directement à celui d'un modèle du premier ordre. Le groupe a accepté ce réglage
+le 10~novembre~2026, ainsi que son application à la piscine, eau comprise.
+Son étalonnage ne porte que sur un protocole, en sol sec.
 
 Une première géométrie raccordait la salle et le goulot par un coin vif. Les
 foules s'y bouchaient en arches statiques à $b\leq\SI{1}{\metre}$, et un bruit
@@ -159,11 +160,14 @@ sur aucune des dix graines. Sans la régulation, ce débit valait \num{3.20 \pm 
 (campagne du 6~novembre, mêmes graines, \texttt{temps\_espacement: null}) : freiner
 derrière un meneur le réduit de \SI{30}{\percent} et divise son écart-type par quatre.
 Le débit reste au-dessus du goulot E0 régulé à même largeur (\num{1.83},
-tableau~\ref{tab:e0}) et de la mesure de Seyfried et al.\ (\num{1.97}). Le facteur de
-panique en explique une partie, mesurée sur E0. Ce banc est étalonné à la marche normale
+moyenne sur trois graines du tableau~\ref{tab:e0}) et de la mesure de
+Seyfried et al.\ (\num{1.97}). Le facteur de panique en explique une partie,
+mesurée sur E0. Ce banc est étalonné à la marche normale
 (\SI{1.34}{\metre\per\second}) ; relancé au facteur $1{,}5$ avec la même régulation, sur dix
 graines à $b=\SI{1.2}{\metre}$, il donne $J_s = \num{2.04 \pm 0.05}$ au lieu de
-\num{1.84 \pm 0.06}. Avec $V=\min(v_0, s/T)$, le facteur ne change la vitesse que là où le
+\num{1.84 \pm 0.06} au facteur 1, sur les mêmes dix graines (campagne du
+10~novembre).
+Avec $V=\min(v_0, s/T)$, le facteur ne change la vitesse que là où le
 jeu au meneur dépasse $T\times\SI{1.34}{\metre\per\second}\approx\SI{0.47}{\metre}$ ;
 l'effet mesuré suppose donc qu'une partie des agents ait un jeu plus grand, ce que nous
 n'avons pas mesuré directement. Le reste de
