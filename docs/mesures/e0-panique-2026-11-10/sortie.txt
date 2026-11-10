@@ -1,0 +1,19 @@
+# Provenance : commit af07e19, sans modification de code ni de configuration ; macOS arm64, Python 3.14.4.
+# Facteur 1   : viscocrowd etalonner-goulot experiments/goulot.yaml --largeurs 1.2 --graines 1 2 3 4 5 6 7 8 9 10
+# Facteur 1,5 : viscocrowd etalonner-goulot docs/mesures/e0-panique-2026-11-10/goulot-panique-1.5.yaml --largeurs 1.2 --graines 1 2 3 4 5 6 7 8 9 10
+
+## Facteur de panique 1
+E0, goulot sec — 60 agents, graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Regimes par largeur : e ecoulement, b bouchage, i insuffisant, n non convergence.
+J_s comme Seyfried (premier au dernier passage) ; 80 % centraux : diagnostic.
+ b (m)   e/b/i/n  J_s simule (pers/(m.s))  80 % centraux   Seyfried N=60
+  1.20  10/0/0/0              1.84 ± 0.06    1.84 ± 0.06            1.97
+Temps d'execution : 20.5 s
+
+## Facteur de panique 1,5
+E0, goulot sec — 60 agents, graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Regimes par largeur : e ecoulement, b bouchage, i insuffisant, n non convergence.
+J_s comme Seyfried (premier au dernier passage) ; 80 % centraux : diagnostic.
+ b (m)   e/b/i/n  J_s simule (pers/(m.s))  80 % centraux   Seyfried N=60
+  1.20  10/0/0/0              2.04 ± 0.05    2.03 ± 0.05            1.97
+Temps d'execution : 18.0 s
