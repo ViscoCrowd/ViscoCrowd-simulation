@@ -6,16 +6,16 @@ et la création de son tag annoté et de sa release. Les critères du jalon rest
 [planning](planning/README.md) suit les tâches et [CONTRIBUTING § 3.4](../CONTRIBUTING.md#34-passer-de-dev-à-main)
 décrit les opérations de publication.
 
-## Registre au 7 novembre 2026
+## Registre au 10 novembre 2026
 
 | Jalon | État technique | Publication |
 |---|---|---|
 | 0 — socle et cadrage | Socle présent depuis #1 ; trace enseignant encore incomplète (#19) | Aucun tag attestant une clôture complète de J0 |
 | 1 — moteur | Livré sur `main` par #1, correctif Makefile #2/#3 inclus | [`jalon-1`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-1), commit `28252ef6d196caec847e6f957e7282152cf98449` ; repère historique créé le 21 octobre |
 | 2 — exclusion | Validé avec limites connues ; corrections et figures #21–#23, correctifs #28 | [`jalon-2`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-2), publication de rattrapage du 21 octobre ; [provenance, mesures et limites](releases/jalon-2.md) |
-| 3 — guidage et milieux | Terminé sur `dev` : C6 et G1–G5 livrés ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire | Publication proposée par la PR `dev` → `main` ; tag `jalon-3` et [notes de version](releases/jalon-3.md) après fusion |
-| 4 — scénario piscine | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85), repère de #11 (#105) et tests de blocage P6 ouverts | Code présent dans la version `jalon-3`, non revendiqué comme livré |
-| 5 — campagnes | En cours : E0 (#56), E1/E2 refaits au facteur 1,5 (#86, #109), premiers balayages E3/E4 (#84) et balayage de τ outillé (#108) ; campagne finale à faire (#59) | Code et mesures présents dans la version `jalon-3`, non revendiqués comme livrés |
+| 3 — guidage et milieux | Livré : C6 et G1–G5 ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire | [`jalon-3`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-3), commit de fusion `190d29e4b60a0864e20b75288dcc854f7f4dddfc` de la PR #112 le 9 novembre, `dev` resynchronisée dans #113 ; [notes de version](releases/jalon-3.md) |
+| 4 — scénario piscine | Scénario, franchissements et sorties livrés (#55, #81) ; repère `N / (1,3 w)` et état absorbant actés dans #105 ; porte à arrondir (#85) et tests de blocage P6 ouverts | Code présent dans la version `jalon-3`, non revendiqué comme livré ; #105 fusionnée après le tag |
+| 5 — campagnes | En cours : E0 (#56), E1/E2 refaits au facteur 1,5 (#86, #109), premiers balayages E3/E4 (#84), balayages de τ (#108), de la vitesse sur sol mouillé et du taux de chute (#104) ; biais de densité borné (#101) ; relation vitesse–espacement branchée sur la piscine mais désactivée par défaut (#100) ; campagne finale à faire (#59) | Code et mesures jusqu'à #109 présents dans la version `jalon-3`, non revendiqués comme livrés ; #100, #101 et #104 fusionnées après le tag |
 | 6 — livrables | Rapport en cours ; transparents à préparer | Non publié |
 
 Le module de chutes (#78, #82, #102), désactivé par défaut et en attente de la décision C1
