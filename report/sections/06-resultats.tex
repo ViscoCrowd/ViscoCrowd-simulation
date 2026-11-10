@@ -156,15 +156,20 @@ séparant la première et la dernière sortie, la porte de \SI{1.2}{\metre} éco
 la foule à un débit spécifique moyen
 $J_s = \num{2.24 \pm 0.11}$~personnes par mètre et par seconde, sans arche statique
 sur aucune des dix graines. Sans la régulation, ce débit valait \num{3.20 \pm 0.47}
-(campagne du 6~novembre, mêmes graines) : freiner derrière un meneur le réduit de
-\SI{30}{\percent} et divise son écart-type par quatre.
+(campagne du 6~novembre, mêmes graines, \texttt{temps\_espacement: null}) : freiner
+derrière un meneur le réduit de \SI{30}{\percent} et divise son écart-type par quatre.
 Le débit reste au-dessus du goulot E0 régulé à même largeur (\num{1.83},
-tableau~\ref{tab:e0}) et de la mesure de Seyfried et al.\ (\num{1.97}). Nous en faisons
-l'hypothèse suivante, non mesurée : E0 est étalonné à la marche normale
-(\SI{1.34}{\metre\per\second}), alors que la piscine tourne au facteur de panique $1{,}5$
-(\SI{2.0}{\metre\per\second}) ; à espacement égal, la relation $V(s)=\min(v_0, s/T)$ laisse
-passer plus vite des agents plus rapides. Un balayage du facteur de panique avec la
-régulation permettrait de le vérifier.
+tableau~\ref{tab:e0}) et de la mesure de Seyfried et al.\ (\num{1.97}). Le facteur de
+panique en explique une partie, mesurée sur E0. Ce banc est étalonné à la marche normale
+(\SI{1.34}{\metre\per\second}) ; relancé au facteur $1{,}5$ avec la même régulation, sur dix
+graines à $b=\SI{1.2}{\metre}$, il donne $J_s = \num{2.04 \pm 0.05}$ au lieu de
+\num{1.84 \pm 0.06}. Avec $V=\min(v_0, s/T)$, le facteur ne change la vitesse que là où le
+jeu au meneur dépasse $T\times\SI{1.34}{\metre\per\second}\approx\SI{0.47}{\metre}$ ;
+l'effet mesuré suppose donc qu'une partie des agents ait un jeu plus grand, ce que nous
+n'avons pas mesuré directement. Le reste de
+l'écart, de \num{2.04} à \num{2.24}, n'est pas expliqué. La porte de la piscine, profonde
+de \SI{1}{\metre} et à coins vifs, n'a pas la géométrie du goulot E0, et la foule y arrive
+par la plage au lieu d'attendre devant ; aucune de ces deux pistes n'est mesurée.
 La moitié des occupants est évacuée en $t_{50} = \SI{31.41 \pm 0.54}{\second}$,
 \SI{90}{\percent} en \SI{45.40 \pm 0.65}{\second}, et la totalité de l'enceinte en
 $t_{100} = \SI{51.95 \pm 1.91}{\second}$, sans aucun agent bloqué. La dispersion de
@@ -178,7 +183,7 @@ Weidmann~\cite{weidmann1993}, vérifié sur l'original (p.~63--64) :
 $J_{\max} = \num{1.225}$~personne par mètre et par seconde.
 Pour la piscine ($N=100$, $b=\SI{1.2}{\metre}$), ce repère prévoit
 $T_{\text{repère}} = 100 / (\num{1.225} \times \num{1.2}) \approx \SI{68.0}{\second}$.
-Sans régulation vitesse--espacement (campagne du 6~novembre), l'intervalle d'écoulement à
+Sans régulation vitesse--espacement (campagne du 6~novembre, \texttt{temps\_espacement: null}), l'intervalle d'écoulement à
 la porte valait $\Delta t_{\text{flux}} = \SI{26.5 \pm 3.5}{\second}$, bien plus bref que ce
 repère : le contact par projection dure, sans maintien de distance, laissait la foule se
 compacter ($J_s = \num{3.20}$~personnes par mètre et par seconde). Avec la régulation,
@@ -200,8 +205,9 @@ mesures : sur E0, la régulation comble à peu près la moitié de l'écart au r
 la mesure de Seyfried, le reste tenant au repère lui-même. Sur la piscine, l'hypothèse
 d'un freinage anticipé manquant est maintenant mesurée : activer la régulation fait passer
 l'intervalle d'écoulement d'environ \SI{26}{\second} à environ \SI{37}{\second}, ce qui
-comble à peu près un quart de l'écart au repère de \SI{68}{\second}. Le reste tient au repère, qui décrit un
-écoulement libre, et probablement au facteur de panique (point précédent).
+comble à peu près un quart de l'écart au repère de \SI{68}{\second}. Le reste tient au
+repère, qui décrit un écoulement libre, au facteur de panique pour la part mesurée sur E0, et
+à une part que nous n'expliquons pas encore (point précédent).
 \end{enumerate}
 
 \subsection{Premier banc : effet séparé des paramètres du sol mouillé}
@@ -335,8 +341,9 @@ première moitié de l'évacuation de $\Delta t_{50} = \SI{0.01 \pm 0.02}{\secon
 et il était systématique : le bilan brut du balayage M6
 (\texttt{docs/mesures/balayages-piscine-2026-11-02/adherence.json},
 $a_{\max}=\SI{3.3}{\metre\per\second\squared}$) le donne positif sur les dix graines,
-de \num{0.005} à \SI{0.053}{\second}. Avec la régulation, il reste du même ordre mais se
-noie davantage dans la dispersion. Le modèle l'explique sans paramètre ajusté :
+de \num{0.005} à \SI{0.053}{\second}. Avec la régulation, il reste du même ordre et
+positif sur huit graines sur dix (balayage de $T$ du 10~novembre, mêmes graines que E1/E2),
+mais sa dispersion augmente. Le modèle l'explique sans paramètre ajusté :
 \begin{itemize}
 \item un baigneur réintroduit à l'arrêt sur la plage mouillée demande
 $\norm{\vect{U}-\vit}/\tau = 2{,}01/0{,}5 = \SI{4.02}{\metre\per\second\squared}$, au-delà

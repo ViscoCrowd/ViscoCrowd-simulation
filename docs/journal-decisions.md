@@ -23,15 +23,15 @@ accepté la règle comme proposition expérimentale, sans trancher l'activation.
 branchée sur la piscine, avec un meneur cherché seulement du même côté du bord du bassin,
 mais désactivée par défaut. Il manquait la mesure sur la piscine elle-même.
 
-**Mesure.** Balayage E4 de T sur la configuration de référence (10 graines, porte de 1,2 m,
-100 baigneurs, facteur 1,5 ; `docs/balayages-piscine.md`) :
+**Mesure.** Balayage E4 de T sur la configuration de référence (graines 1 à 10, les mêmes
+que E1/E2, porte de 1,2 m, 100 baigneurs, facteur 1,5 ; `docs/balayages-piscine.md`) :
 
 | T (s) | t100 mouillé (s) | Débit mouillé (pers/(m·s)) | Non sortis |
 |---|---|---|---|
-| sans | 41,20 ± 3,06 | 3,20 ± 0,45 | 0 |
-| 0,25 | 46,86 ± 1,87 | 2,60 ± 0,15 | 0 |
-| 0,35 | 51,49 ± 2,04 | 2,27 ± 0,13 | 0 |
-| 0,5 | 58,08 ± 2,43 | 1,93 ± 0,10 | 0 |
+| sans (`temps_espacement: null`) | 41,20 ± 3,06 | 3,20 ± 0,45 | 0 |
+| 0,25 | 47,44 ± 2,31 | 2,56 ± 0,17 | 0 |
+| 0,35 | 51,83 ± 1,68 | 2,25 ± 0,10 | 0 |
+| 0,5 | 57,77 ± 1,78 | 1,94 ± 0,07 | 0 |
 
 **Décision proposée.** Activer T = 0,35 s dans `experiments/piscine.yaml`, dans l'eau comme
 sur la plage. Réponses aux trois questions de #57 :
@@ -61,15 +61,18 @@ les coins vifs de #85. L'effet du sol mouillé reste de l'ordre du centième de 
 **Options écartées.**
 - *Garder la régulation désactivée.* Aucune campagne n'était à refaire, mais toutes les
   conclusions sur la porte auraient reposé sur un débit 2,6 fois trop élevé.
-- *T = 0,5 s*, qui rapproche davantage le débit du repère (1,93). Ce serait un réglage fait
+- *T = 0,5 s*, qui rapproche davantage le débit du repère (1,94). Ce serait un réglage fait
   sur la piscine, sans mesure de référence pour la justifier.
 - *Activer seulement sur la plage.* Rien ne justifie qu'un nageur ne ralentisse pas derrière
   un autre nageur ; ça créerait aussi deux comportements à défendre.
 
 **Limite.** Avec la régulation, le débit (2,24) reste au-dessus de la mesure de Seyfried à
-1,2 m (1,97) et de E0 régulé (1,83). Hypothèse non mesurée : E0 est étalonné au facteur 1
-(1,34 m/s), la piscine tourne au facteur 1,5 (2,0 m/s). Un balayage du facteur de panique
-avec la régulation permettrait de la tester.
+1,2 m (1,97) et de E0 régulé (1,84 sur 10 graines). Le facteur de panique en explique une
+partie : E0 relancé au facteur 1,5 avec T = 0,35 s donne 2,04 ± 0,05 (b = 1,2 m, graines 1
+à 10, mesure du 10 novembre, suggérée par Hamza en revue). Avec V = min(v0, jeu/T), le
+facteur ne change la vitesse que si le jeu au meneur dépasse T × 1,34 ≈ 0,47 m. Le reste,
+de 2,04 à 2,24, n'est pas expliqué ; pistes non mesurées : la géométrie de la porte
+(1 m de profondeur, coins vifs de #85) et l'arrivée de la foule par la plage.
 
 ---
 
