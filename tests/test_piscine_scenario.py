@@ -384,7 +384,8 @@ def test_temps_espacement_ralentit_l_ecoulement():
     A 6 agents la porte ne sature pas et les sorties sont identiques au bit pres ; a 30,
     le temps de sortie moyen passe de 22,73 a 23,12 s (mesure du 7 novembre).
     """
-    libre = simuler_piscine(parametres(n_agents=30, duree=90.0)).sorties
+    # Le YAML active T = 0,35 s depuis #57 : le cas libre coupe la regulation explicitement.
+    libre = simuler_piscine(parametres(n_agents=30, duree=90.0, temps_espacement=None)).sorties
     regule = simuler_piscine(parametres(n_agents=30, duree=90.0, temps_espacement=0.35)).sorties
 
     assert np.all(np.isfinite(libre)) and np.all(np.isfinite(regule))
