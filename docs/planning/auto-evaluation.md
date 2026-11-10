@@ -8,20 +8,33 @@ Le tableau dit ce que chacun a fait. Il ne remplace pas l'annexe du rapport sur 
 réelle du travail et ses proportions (tâche R4 du [planning](README.md)). Les numéros renvoient
 aux PR et issues du dépôt.
 
-Les trois premières semaines sont reprises telles quelles du classeur. Certaines cellules y
-étaient coupées à l'export : on les recopie jusqu'à la coupure, sans compléter de mémoire.
+**Convention.** À partir de la semaine du 9 novembre, la ligne d'une séance couvre ce qui a
+été fait depuis la séance précédente (après 10h15) jusqu'à cette séance. Le classeur ne
+suivait pas de convention fixe : il range parfois dans une semaine du travail fait après sa
+séance (par exemple, des PR des 22 au 25 octobre dans la semaine du 19 octobre). Ses
+semaines sont gardées telles que le groupe les a remplies, sans redécoupage.
+
+**Provenance**, indiquée sous chaque titre de semaine :
+
+- *recopiée* : texte du classeur, seulement mis en forme. Certaines cellules étaient coupées
+  à l'export : on les recopie jusqu'à la coupure, sans compléter de mémoire ;
+- *reformulée* : contenu du classeur, remis en phrases ; aucun travail ajouté ni retiré ;
+- *reconstituée* : écrite à partir des PR, relectures et commentaires enregistrés sur
+  GitHub, à valider par chaque membre pour sa ligne.
 
 ## Semaine du 21 septembre 2026, séance du 22/09
 
+*Recopiée.*
+
 | Membre | Travail réalisé | Temps |
 |---|---|---|
-| Hamza KARROUCHI | Recherche sur le sujet ; création du GitHub et du drive commun ; création du logo | 2 h |
-| Shaleena LESUEUR | Recherche sur le sujet ; création du GitHub et du drive commun ; création du logo | 2 h |
-| Lenny MONGRANDI | Recherche sur le sujet ; création du GitHub et du drive commun ; création du logo | 2 h |
+| Hamza KARROUCHI | Recherche sur le sujet ; création du GitHub et du drive commun ; création du logo DiscoCr… (cellule coupée) | 2 h |
+| Shaleena LESUEUR | Recherche sur le sujet ; création du GitHub et du drive commun ; création du logo DiscoCr… (cellule coupée) | 2 h |
+| Lenny MONGRANDI | Recherche sur le sujet ; création du GitHub et du drive commun ; création du logo DiscoCr… (cellule coupée) | 2 h |
 
 ## Semaine du 5 octobre 2026, séance du 06/10
 
-Le classeur intitule cette semaine « 7 octobre ».
+*Recopiée.* Le classeur intitule cette semaine « 7 octobre ».
 
 | Membre | Travail réalisé | Temps |
 |---|---|---|
@@ -31,6 +44,8 @@ Le classeur intitule cette semaine « 7 octobre ».
 
 ## Semaine du 12 octobre 2026, séance du 13/10
 
+*Reformulée.*
+
 | Membre | Travail réalisé | Temps |
 |---|---|---|
 | Hamza KARROUCHI | Moteur : exclusion entre agents par projection itérative accélérée (#6, avec Lenny). Dépôt : CI sur `dev` et procédure de passage `dev` → `main` (#5), resynchronisation de `dev` après #3, identités Git unifiées par `.mailmap` (#14) | 2 h |
@@ -38,6 +53,8 @@ Le classeur intitule cette semaine « 7 octobre ».
 | Lenny MONGRANDI | Interface : aperçu de la piscine avec réglage des paramètres et chronomètre (#4). Moteur : participation à l'exclusion entre agents (#6). Organisation : commande d'aide du Makefile (#2, #3), critères de validation et planning clarifiés (#15, avec Hamza) | 2 h |
 
 ## Semaine du 19 octobre 2026, séance du 20/10
+
+*Reformulée.*
 
 | Membre | Travail réalisé | Temps |
 |---|---|---|
@@ -47,13 +64,28 @@ Le classeur intitule cette semaine « 7 octobre ».
 
 ## Semaine du 26 octobre 2026, séance du 27/10
 
+*Reformulée* pour Hamza ; « à compléter » recopié tel quel du classeur pour Shaleena et Lenny.
+
 | Membre | Travail réalisé | Temps |
 |---|---|---|
-| Hamza KARROUCHI | Chutes (module facultatif) : glissade, effet domino, relevage et contournement ; intégration au scénario piscine et carte 2D des incidents. Qualité : tirages aléatoires centralisés et appels directs interdits ; test croisé de la sortie absorbante et de la conservation des effectifs (#11). Relecture de #69 (modifications demandées puis approbation) et de #72 | 2 h |
-| Shaleena LESUEUR | Aucune contribution tracée dans le dépôt cette semaine (à compléter si travail hors dépôt) | 2 h |
-| Lenny MONGRANDI | Aucune contribution tracée dans le dépôt cette semaine (à compléter si travail hors dépôt) | 2 h |
+| Hamza KARROUCHI | Chutes (module facultatif) : glissade, effet domino, relevage et contournement ; intégration au scénario piscine et carte 2D des incidents. Qualité : tirages aléatoires centralisés et appels directs interdits ; test croisé de la sortie absorbante et de la conservation des effectifs (#11). | 2 h |
+| Shaleena LESUEUR | À compléter | 2 h |
+| Lenny MONGRANDI | À compléter | 2 h |
+
+Ce que GitHub montre entre la séance du 20/10 et celle du 27/10, pour aider à compléter (à
+valider par chacun) :
+
+- Shaleena, le 25/10 : relecture de #66 à #70 (approbation de quatre, modifications demandées
+  sur #69), commentaires sur #67, #68 et #70, et ouverture de #71 et #72. Le classeur range
+  déjà #66 à #68, #70 et #71 dans sa ligne de la semaine du 19 octobre. #72 apparaît dans sa
+  ligne de la semaine du 2 novembre ;
+- Lenny, les 22 et 23/10 : ouverture de #66 à #70, que le classeur range déjà dans sa ligne de
+  la semaine du 19 octobre. Rien entre le 27/10 et le 2/11 ;
+- Hamza, le 27/10 : relecture de #69 et de #72, en plus de sa ligne ci-dessus.
 
 ## Semaine du 2 novembre 2026, séance du 03/11
+
+*Reformulée.*
 
 | Membre | Travail réalisé | Temps |
 |---|---|---|
@@ -63,8 +95,8 @@ Le classeur intitule cette semaine « 7 octobre ».
 
 ## Semaine du 9 novembre 2026, séance du 10/11
 
-Cette semaine couvre ce qui a été fait après la séance du 3 novembre, jusqu'au 10 novembre.
-Elle est reconstituée à partir des PR fusionnées et des relectures enregistrées sur GitHub.
+*Reconstituée.* Elle couvre ce qui a été fait après la séance du 3 novembre, jusqu'au
+10 novembre, d'après les PR fusionnées et les relectures enregistrées sur GitHub.
 
 | Membre | Travail réalisé | Temps |
 |---|---|---|

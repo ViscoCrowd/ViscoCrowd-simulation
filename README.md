@@ -355,7 +355,8 @@ perturbation de 10⁻¹² m suffit à changer le jeu moyen d'un facteur dix (voi
 Ce biais est mesuré au goulot E0 dans la PR #101 (issue
 [#10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10)) : sur 10 graines, resserrer
 la tolérance de 10⁻⁶ à 10⁻⁷ m ne change pas la densité de façon décelable (p = 1,000), et diviser
-le pas de temps par deux la décale de +0,021 pers/m² en moyenne, sous 3,3 %. Le rejet des valeurs non finies
+le pas de temps par deux la décale de +0,021 pers/m² en moyenne, un écart non significatif
+(p = 0,270) qui reste sous 3,3 % sur chaque graine. Le rejet des valeurs non finies
 ([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
 ([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés ;
 le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18))
