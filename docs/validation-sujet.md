@@ -3,31 +3,31 @@
 **Module** R5.12 — Modélisation mathématique · BUT 3 Informatique · 2026-2027
 **Groupe** ViscoCrowd — Karrouchi Hamza, Lesueur Shaleena, Mongrandi Lenny
 
-> **Statut : acceptation du sujet rapportée par le groupe ; trace de l'échange à compléter.**
+> **Statut : sujet accepté ; questions de cadrage validées oralement par O. Pantz en séance
+> le 3 novembre 2026, sans réserve rapportée (compte rendu du groupe).**
 
 ## Trace de validation
 
 L'[issue #13](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/13) consigne la
 confirmation communiquée par le groupe le **13 octobre 2026**. C'est la trace du compte rendu
-du groupe, pas celle de l'échange avec l'enseignant. Elle ne permet pas de dater cet échange
-ni de vérifier qu'il a précédé l'implémentation.
+du groupe, pas celle de l'échange avec l'enseignant : elle ne date pas l'acceptation initiale
+du sujet.
 
-| Élément à consigner | Information disponible |
+Les questions de cadrage ci-dessous ont reçu leur réponse le **3 novembre 2026** :
+
+| Élément | Information consignée |
 |---|---|
-| Enseignant ayant donné l'accord | À préciser ; O. Pantz est l'encadrant indiqué dans le dépôt |
-| Date ou semaine de l'échange | Non renseignée ; le 13 octobre date seulement la confirmation du groupe |
-| Canal (séance, courriel, Moodle…) | Non renseigné |
-| Membre(s) ayant reçu l'accord | Non renseigné(s) |
-| Contenu de la réponse, réserves éventuelles | Acceptation générale rapportée ; formulation et réserves non renseignées |
+| Enseignant ayant donné l'accord | O. Pantz, encadrant du module |
+| Date de l'échange | Mardi 3 novembre 2026, séance du groupe ; l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19) a été close pendant cette séance |
+| Canal | Oral, en séance |
+| Membre(s) ayant reçu l'accord | Le groupe, en séance ; compte rendu de Shaleena consigné le 10 novembre 2026 |
+| Contenu de la réponse | Validation de l'ensemble : SciPy pour Voronoï, dimensionnement du sujet, inclusion des chutes dans le rendu |
+| Réserves | Aucune rapportée |
 
-Un compte rendu d'accord oral suffit s'il précise ces éléments ; aucun justificatif écrit
-de l'enseignant n'est présumé nécessaire. Compléter cette trace et les réponses ci-dessous
-fait l'objet de l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19),
-coordonnée par Lenny, et de la [tâche C1 du planning](planning/README.md#cadrage-et-prerequis).
-La cible est le **19 octobre 2026**. Une réponse manquante bloque ce qui en dépend, la mesure
-de densité (SciPy/Voronoï) et toute inclusion des chutes, mais pas le jalon 3, qui n'en dépend
-pas. Cette fiche centralise l'information ; les autres documents
-y renvoient.
+C'est un compte rendu d'accord oral : aucun justificatif écrit de l'enseignant n'est présumé
+nécessaire. Le suivi se faisait dans l'issue #19 et la
+[tâche C1 du planning](planning/README.md#cadrage-et-prerequis). Cette fiche centralise
+l'information ; les autres documents y renvoient.
 
 ---
 
@@ -97,10 +97,10 @@ complet ne vaudront rien.
 
 ## Questions de cadrage initialement posées à l'enseignant
 
-L'acceptation générale du sujet ne vaut pas validation explicite de chaque bibliothèque,
-paramètre ou extension du modèle. Les réponses manquantes sont suivies dans
+L'acceptation générale du sujet ne valait pas validation explicite de chaque bibliothèque,
+paramètre ou extension du modèle. Ces questions ont été suivies dans
 l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19) et la
-[tâche C1](planning/README.md#cadrage-et-prerequis), avec une échéance au **19 octobre 2026**.
+[tâche C1](planning/README.md#cadrage-et-prerequis), et validées le **3 novembre 2026**.
 
 1. L'usage de SciPy pour le diagramme de Voronoï (calcul de la densité locale selon la méthode
    de Steffen et Seyfried) entre-t-il dans les bibliothèques généralistes autorisées ? Nous
@@ -109,12 +109,12 @@ l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19) et 
 2. Le périmètre vous paraît-il correctement dimensionné pour trois personnes sur treize
    semaines, ou faut-il resserrer la question ?
 
-| Question | Réponse consignée | Conséquence tant que la réponse manque |
+| Question | Réponse consignée | Conséquence |
 |---|---|---|
-| SciPy pour Voronoï | Hamza rapporte un accord sur SciPy le 21 octobre ; réponse spécifique sur Voronoï inconnue | Consigner date et canal de l'accord rapporté. La PR #53 propose une observable et un repli par comptage ; son acceptation pédagogique et sa validation restent distinctes. Confirmer l'usage Voronoï avant les campagnes ; en cas de refus, adopter le repli et ajuster le protocole. |
-| Dimensionnement du sujet | Acceptation générale rapportée, détail de la réponse absent | Présenter le périmètre principal sans le module de chutes et confirmer qu'il est tenable. |
-| Extension aux chutes et au relevage | Addendum encore « à valider par le groupe » | Extension non programmée ; accord du groupe et avis de l'enseignant requis avant toute intégration au planning. |
+| SciPy pour Voronoï | Accord sur SciPy rapporté par Hamza le 21 octobre ; usage pour Voronoï validé le 3 novembre | La densité de Voronoï de la PR #53 (`scipy.spatial.Voronoi` pour les cellules, découpage et densité écrits par nous) est retenue. Le repli par comptage n'est plus nécessaire ; il reste disponible. |
+| Dimensionnement du sujet | Validé le 3 novembre, chutes comprises | Le périmètre principal et le module de chutes sont tenables à trois sur le semestre. |
+| Extension aux chutes et au relevage | Inclusion dans le rendu validée le 3 novembre | Le module (#78, #82, #102) fait partie du rendu. Il reste désactivé par défaut et non calibré : avant d'en tirer des résultats, il faut calibrer ses taux de chute et décider de son activation dans les campagnes ([modèle de chutes](modele-chutes.md)). |
 
-Le [compte rendu du 21 octobre dans #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19#issuecomment-6315308420)
-est la source de cette mise à jour. Il ne donne ni date ni canal de l'échange avec
-l'enseignant ; l'issue reste ouverte pour ces éléments et les réponses restantes.
+Sources : le [compte rendu du 21 octobre dans #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19#issuecomment-6315308420)
+pour SciPy, et le compte rendu de la séance du 3 novembre, consigné le 10 novembre, pour le
+reste.

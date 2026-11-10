@@ -54,8 +54,8 @@ ensemble chaque démonstration avant la soutenance.
   cause probable : tant qu'ils ne sont pas corrigés, les balayages de porte et de population (E4) ne
   mesurent pas un comportement de foule.
 - **Chutes (#78/#82).** Le module existe sur `dev`, désactivé par défaut. La médiane de relevage
-  vient de Becker et al. (2016) ; les taux de chute et de cascade ne sont pas calibrés. Son inclusion dans le rendu attend la décision du groupe et l'avis de l'enseignant
-  ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)) : ses chiffres ne sont pas des résultats.
+  vient de Becker et al. (2016) ; les taux de chute et de cascade ne sont pas calibrés. L'enseignant a validé son inclusion dans le rendu en séance le 3 novembre
+  ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19), [trace](validation-sujet.md#trace-de-validation)). Tant que ses taux ne sont pas calibrés, ses chiffres ne sont pas des résultats.
 
 ## Relecture avant la présentation
 

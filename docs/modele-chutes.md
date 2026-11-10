@@ -1,12 +1,13 @@
 # Modèle de chute, de relevage et de contournement
 
 **Addendum à la [spécification de conception](superpowers/specs/2026-10-06-viscocrowd-design.md)**
-Statut : module facultatif, désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion dans le rendu à décider (#19) · 3 novembre 2026
+Statut : module désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion dans le rendu validée par l'enseignant le 3 novembre 2026 ([trace](validation-sujet.md#trace-de-validation)) · mis à jour le 10 novembre 2026
 
-**Planification : extension non programmée.** Les jalons principaux ne dépendent pas de ce
-module. Son éventuelle inclusion est suivie dans l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)
-et les [pistes complémentaires du planning](planning/README.md#pistes-complémentaires-non-programmées),
-avec avis de l'enseignant et décision du groupe avant toute affectation de dates.
+**Planification : inclus dans le rendu, à calibrer.** L'enseignant a validé l'inclusion des
+chutes en séance le 3 novembre ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)).
+Les jalons principaux ne dépendent toujours pas de ce module. Avant d'en tirer des résultats,
+il reste à calibrer ses taux (§ 8) et à décider de son activation dans les campagnes ; ces
+tâches sont à programmer dans le [planning](planning/README.md#pistes-complémentaires-non-programmées).
 
 ---
 

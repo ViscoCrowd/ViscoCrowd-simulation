@@ -11,6 +11,34 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-10 — Consigner l'accord de l'enseignant du 3 novembre (C1, #19)
+
+**Contexte.** L'issue #19 suivait trois questions de cadrage : l'usage de SciPy pour la densité
+de Voronoï, le dimensionnement du sujet et l'inclusion des chutes. Lenny l'a close le
+3 novembre pendant la séance, sans compte rendu. Les documents présentaient encore ces
+réponses comme attendues : le module de chutes restait « à décider », et Voronoï « à
+confirmer ».
+
+**Ce qui est consigné.** D'après le compte rendu de Shaleena, O. Pantz a validé l'ensemble
+oralement, en séance, le mardi 3 novembre 2026, sans réserve rapportée :
+1. *SciPy pour Voronoï* : la densité de Voronoï de #53 est retenue. Le repli par comptage n'est
+   plus nécessaire.
+2. *Dimensionnement* : le sujet est tenable à trois, chutes comprises.
+3. *Chutes* : le module (#78, #82, #102) fait partie du rendu.
+
+**Ce qui ne change pas.** Le module de chutes reste désactivé par défaut (`chutes: null`) et
+ses paramètres (`lambda_chute`, `lambda_domino`, `lambda_bousculade`, `facteur_rayon_terre`) restent des valeurs
+par défaut non calibrées. La validation porte sur l'inclusion, pas sur les valeurs : aucun
+chiffre obtenu avec ce module n'est un résultat avant sa calibration. Calibrer ces taux et
+décider de l'activation des chutes dans les campagnes sont deux tâches à programmer.
+
+**Mise à jour.** [Fiche de cadrage](validation-sujet.md#trace-de-validation), tâches C1 et M1
+et pistes de chutes du [planning](planning/README.md), [modèle de chutes](modele-chutes.md),
+README, [registre des livraisons](livraisons.md), [repères de soutenance](repères-soutenance.md)
+et messages du balayage de `lambda_chute`.
+
+---
+
 ## 2026-11-07 — Clôture de l'issue #11 : repère analytique N / (J w) et état absorbant
 
 **Contexte.** L'issue #11 (« État de sortie par agent : distinguer franchissement et évacuation définitive ») restait ouverte pour deux motifs :
@@ -1207,7 +1235,7 @@ figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est 
 
 ## 2026-10-21 — Mesurer la densité par cellules de Voronoï (M1) et le biais de la tolérance (#10)
 
-**Décision (proposée dans #19, à confirmer).** La densité suit Steffen & Seyfried (2010) :
+**Décision (proposée dans #19, confirmée par l'enseignant le 3 novembre : entrée du 10 novembre).** La densité suit Steffen & Seyfried (2010) :
 `ρ_V = (1/|M|) Σᵢ |Cᵢ ∩ M| / |Cᵢ|`, et la vitesse `v_V = (1/|M|) Σᵢ |vᵢ| |Cᵢ ∩ M|`.
 Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
 quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;

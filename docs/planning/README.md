@@ -71,7 +71,7 @@ l'annexe du rapport sur les contributions réellement effectuées et leur propor
 
 | ID | Étape | Tâche / livrable | Semaine de constat | Date du constat | Responsable / attribution connue | État | Référence |
 |---|---|---|---|---|---|---|---|
-| L1 | J0 | Sujet et problématique rédigés | S2 | 13/10/2026 | Groupe | Livré ; trace de l'accord à compléter en C1 | [Cadrage](../validation-sujet.md) |
+| L1 | J0 | Sujet et problématique rédigés | S2 | 13/10/2026 | Groupe | Livré ; questions de cadrage validées le 03/11 (C1) | [Cadrage](../validation-sujet.md) |
 | L2 | J0 | Dépôt et méthode de contribution | S2 | 13/10/2026 | Groupe | Livré ; répartition à compléter en C2 | [Contribution](../../CONTRIBUTING.md) |
 | L3 | J1 | Mouvement simple, position/vitesse semi-implicites, confinement et dissipation | S2 | 13/10/2026 | Attribution détaillée à consigner dans le rapport | Validé ; sécurisation C3–C4 livrée depuis | [Moteur](../../README.md#validation-du-moteur) |
 | L4 | J2 | Contact de deux agents, voisins, groupes denses et tests de stabilité | S2 | 13/10/2026 | Attribution détaillée à consigner dans le rapport | Validé avec limite de contacts multiples #10 | [PR #6](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/6), [#10] |
@@ -91,14 +91,14 @@ La brique de géométrie/carte/guidage statique de la piscine est livrée dans #
 intégration dynamique dans #55. Les valeurs C6 sont figées depuis le 6 novembre 2026 (#109),
 et les obstacles de la plage sont livrés (#103, #110) : toutes les tâches du jalon 3 (C6,
 G1–G5) sont sur `dev`. Reste à publier le jalon sur `main`. Le suivi de répartition C2 reste ouvert.
-C1 dépend d'une réponse extérieure et ne bloque que ce qui en dépend réellement : la
-mesure de densité M1 (SciPy/Voronoï) et toute inclusion des chutes. Le scénario piscine dépend
+C1 est levé : l'enseignant a validé SciPy/Voronoï (M1), le dimensionnement et l'inclusion
+des chutes en séance le 3 novembre 2026. Le scénario piscine dépend
 ensuite du guidage et des milieux validés. Les campagnes E1–E4 dépendent des
 mesures de densité, de l'étalonnage E0, de la maîtrise du biais #10 et de la reproductibilité.
 
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | Cible 19/10 passée | Lenny (coordination du suivi) | Accord SciPy rapporté par Hamza le 21/10 ; date/canal et réponse Voronoï à consigner ; conditionne M1 et les chutes, pas J3 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
+| C1 | Cadrage | Consigner date/canal/destinataires/contenu de l'accord ; obtenir les réponses SciPy/Voronoï, dimensionnement et avis sur les chutes | S2 | Validé le 03/11/2026, consigné le 10/11/2026 | Lenny (coordination du suivi) | Livré : accord oral de O. Pantz en séance le 03/11/2026, sans réserve rapportée, sur SciPy/Voronoï, le dimensionnement et l'inclusion des chutes dans le rendu ; #19 close le 03/11 | [#19], [questions et trace](../validation-sujet.md#trace-de-validation) |
 | C2 | Organisation | Consigner la répartition confirmée et les périodes d'entreprise/congés ; ajuster la charge | S2 | Cible 19/10 passée | Lenny (coordination), informations des trois membres | Confirmation cochée dans #20 ; tableau d'auto-évaluation hebdomadaire tenu par le groupe jusqu'au 3/11 ; répartition des tâches restantes, disponibilités et charge restent à consigner | [#20], calendrier ci-dessus |
 | C3 | Moteur | Rejeter les valeurs non finies ; tests en projection stricte et permissive | S2 | Livré 19/10/2026 | Hamza ; compléments Shaleena le 20/10 | Livré, issue clôturée | [#16], [PR #21](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/21) |
 | C4 | Moteur | Protéger les tableaux de State ; tester les alias d'entrée et entre états | S2 | Livré 19/10/2026 | Hamza | Livré, issue clôturée | [#17], [PR #22](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/22) |
@@ -126,7 +126,7 @@ mesures de densité, de l'étalonnage E0, de la maîtrise du biais #10 et de la 
 
 | ID | Étape | Tâche / critère de fin | Semaines | Dates cibles | Responsable | État | Référence |
 |---|---|---|---|---|---|---|---|
-| M1 | Préparation J5 | Mesurer densité et encombrement, après la décision SciPy/Voronoï C1 | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny et Shaleena (PR #53) | Livré dans #53 ; test de permutation apparié à la place de la borne de 2 % ; accord Voronoï à confirmer | [#19], [PR #53], [#10] |
+| M1 | Préparation J5 | Mesurer densité et encombrement, après la décision SciPy/Voronoï C1 | S8–S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny et Shaleena (PR #53) | Livré dans #53 ; test de permutation apparié à la place de la borne de 2 % ; usage de SciPy pour Voronoï validé le 03/11 (C1) | [#19], [PR #53], [#10] |
 | M2 | Préparation J5 | Corriger le jeu des contacts multiples ou mesurer et borner son influence sur la densité | S8–S9 | 24/11–07/12/2026 ; diagnostic partiel livré le 21/10 | Hamza (affectation #10) | En cours : jeu local caractérisé ; indicateur sans borne de densité. Hypothèse de décroissance avec Δt retirée ; diagnostic de sensibilité validé, 58 tests de projection dont le lent. Biais de densité à mesurer avant les campagnes ; #10 ouverte | [#10], [PR #48], [PR #46] |
 | M3 | Préparation J5 | Vérifier les constantes de Weidmann dans la source primaire et adapter tests/figures si nécessaire | S8–S9 | Livré le 21/10/2026, anticipé depuis S8–S9 | Hamza, relecture et corrections Lenny | Livré dans #51, issue #12 clôturée : constantes, forme, sommet et domaine conformes (p. 43, 53, 62–64) ; référence et interprétation de la dispersion corrigées ; 78 tests de débit passent ; aucune figure à reprendre | [#12], [PR #51] |
 | M4 | J5 | Étalonner un goulot sec seul, avec les mesures qualifiées M1–M3 | S9 | Livré le 22/10/2026, anticipé | Hamza, avec Lenny pour #58 | Banc E0 livré (#56) ; relation vitesse–espacement proposée (#58), à valider dans #57 et non branchée sur la piscine | E0, [#57] |
@@ -153,22 +153,21 @@ aux anciennes issues, reviews et preuves à reprendre avant la présentation.
 
 ## Pistes complémentaires non programmées
 
-Le 3 novembre, un module facultatif de chutes (glissade, domino, relevage, contournement) a été
-fusionné dans #78 et #82, désactivé par défaut et non calibré : le rendu ne s'en sert pas tant
-que C1 n'est pas tranché. La chute par bousculade reste à faire.
-
-Les cinq tâches de l'addendum chutes quittent les créneaux S7–S9 du planning initial. Aucune
-tâche des jalons 3 à 6 n'en dépend. C1 ([#19]) recueille l'avis sur l'extension ; une décision ultérieure
-du groupe doit préciser la capacité disponible ou les tâches retirées avant de lui affecter
-des dates. Une avance sur le moteur ne suffit pas à valider un changement de modèle.
+Le module de chutes (glissade, domino, relevage, contournement) a été fusionné le 3 novembre
+dans #78 et #82, puis complété le 6 novembre par la chute par bousculade et les observables de
+cascade (#102). L'enseignant a validé son inclusion dans le rendu en séance le 3 novembre (C1,
+[#19]). Il reste désactivé par défaut et non calibré : avant d'en tirer des résultats, il faut
+calibrer ses taux et décider de son activation dans les campagnes. Ces deux tâches sont à
+programmer ; aucune tâche des jalons 3 à 6 n'en dépend.
 
 | Tâche | État | Condition / référence |
 |---|---|---|
-| Glissade sur sol mouillé | Non programmé | Addendum chutes §1, décision C1 |
-| Chute après bousculade | Non programmé | Addendum chutes §2, décision C1 |
-| Agent à terre et relevage | Non programmé | Addendum chutes §3–4, décision C1 |
-| Contournement local d'une personne à terre | Non programmé | Addendum chutes §5 ; distinct de l'obstacle fixe G2 |
-| Propagation des chutes | Non programmé | Addendum chutes §3, décision C1 |
+| Glissade sur sol mouillé | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §1 ; inclusion validée (C1) |
+| Chute après bousculade | Code livré dans #102, désactivé par défaut | Addendum chutes §2 ; inclusion validée (C1) |
+| Agent à terre et relevage | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §3–4 ; inclusion validée (C1) |
+| Contournement local d'une personne à terre | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §5 ; distinct de l'obstacle fixe G2 |
+| Propagation des chutes | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §3 ; inclusion validée (C1) |
+| Calibrer les taux de chute et décider de l'activation dans les campagnes | À programmer | Addendum chutes §8 ; balayage de `lambda_chute` outillé dans #104 |
 | Anticipation du mouvement futur des voisins | Non programmé | Extension au-delà du contournement réactif |
 | Trébuchement distinct sur obstacle | Non programmé | Mécanisme absent de la spécification actuelle |
 
