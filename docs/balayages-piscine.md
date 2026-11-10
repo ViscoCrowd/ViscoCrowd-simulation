@@ -22,7 +22,7 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
-| `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; `null` dans le YAML, 0,35 s étalonné sur E0 (#58) |
+| `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; 0,35 s, étalonné sur E0 (#58), dans le YAML depuis le 10 novembre (#57) ; `null` la désactive |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
 
@@ -205,6 +205,45 @@ Tant que la porte de la piscine n'est pas arrondie, les balayages de largeur de 
 population ne mesurent pas un comportement de foule. En particulier, la différence entre
 mouillé (2 graines bouchées) et sec (aucune) à 1,0 m ne peut pas être interprétée.
 
+## Régulation vitesse–espacement (10 novembre 2026)
+
+Commit `76d1041`, sans modification locale, sous macOS arm64 ; `experiments/piscine.yaml`
+tel qu'il était avant l'activation (facteur 1,5, porte de 1,2 m, 100 baigneurs) ; graines
+20262027 à 20262036, les dix graines par défaut à partir de celle du YAML, et non 1 à 10
+comme le 2 novembre. 60 évacuations en 5 min 47 s, sans parallélisme.
+[Bilan brut](mesures/balayages-piscine-2026-11-10/temps-espacement.json).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml \
+  --parametre temps_espacement --valeurs 0.25 0.35 0.5
+```
+
+| T (s) | t50 mouillé (s) | t100 mouillé (s) | Débit mouillé (pers/(m·s)) | Δ t50 (s) | Δ t100 (s) | Plus lent | Non sortis |
+|---|---|---|---|---|---|---|---|
+| sans (E1/E2, 6 novembre, graines 1 à 10) | 25,90 ± 0,49 | 41,20 ± 3,06 | 3,20 ± 0,45 | 0,02 ± 0,01 | −0,03 ± 0,96 | 7/10 | 0 |
+| 0,25 | 29,32 ± 0,80 | 46,86 ± 1,87 | 2,60 ± 0,15 | 0,013 ± 0,020 | −0,05 ± 1,05 | 3/10 | 0 |
+| 0,35 | 31,49 ± 0,45 | 51,49 ± 2,04 | 2,27 ± 0,13 | 0,011 ± 0,012 | 0,10 ± 0,19 | 9/10 | 0 |
+| 0,5 | 34,26 ± 0,46 | 58,08 ± 2,43 | 1,93 ± 0,10 | 0,004 ± 0,019 | −0,03 ± 0,14 | 7/10 | 0 |
+
+Ce qu'on en retient :
+
+1. **Aucun bouchage**, pour aucune valeur de T. Freiner derrière un meneur ne crée pas
+   d'arche à la porte de 1,2 m, malgré ses coins vifs (#85).
+2. **La porte ralentit nettement.** À T = 0,35 s, la valeur étalonnée sur E0, le débit passe
+   de 3,20 à 2,27 pers/(m·s) et t100 s'allonge d'environ 10 s. Le débit reste au-dessus du
+   maximum de Weidmann (1,225) et de la mesure de Seyfried à 1,2 m (1,97) : la porte n'est pas
+   saturée en permanence, elle est alimentée par la sortie de l'eau.
+3. **L'écart-type de t100 diminue** (de 3,06 s à environ 2 s) : le dernier sorti dépend moins
+   de l'ordre d'arrivée, puisque la file à la porte s'écoule à un rythme plus régulier.
+4. **L'effet du mouillé ne change pas d'ordre de grandeur.** Δ t50 reste de l'ordre du
+   centième de seconde. La régulation ne crée pas de bouchon devant la porte, donc pas de
+   freinage supplémentaire sur le mouillé, qui est de toute façon à 17 m de la porte.
+
+Le 10 novembre, la régulation est activée à T = 0,35 s dans la configuration de référence
+(#57, journal). Les balayages du 2 novembre, faits sans elle, restent valables pour ce
+qu'ils comparent (mouillé contre sec à réglage égal), mais leurs valeurs absolues ne sont
+plus celles de la référence.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
@@ -222,12 +261,12 @@ pour quatre raisons :
    bouchon qu'il faut freiner. L'effet du mouillé près d'une porte encombrée reste à mesurer.
 3. **La foule est trop rapide au goulot.** E0 mesure un débit 1,9 à 2,5 fois celui de
    Seyfried : nos baigneurs ne ralentissent pas derrière celui qui les précède. La relation
-   vitesse–espacement (#58) corrige ce point sur E0. Elle est branchée sur la piscine (#57),
-   mais désactivée par défaut (`temps_espacement: null`) : les campagnes ci-dessus ont été
-   faites sans elle.
+   vitesse–espacement (#58) corrige ce point sur E0. Les balayages du 2 novembre ont été
+   faits sans elle. Elle est activée dans la piscine depuis le 10 novembre (#57) et ramène
+   le débit à la porte de 3,20 à 2,27 pers/(m·s) (section précédente).
 4. **La porte se bouche artificiellement** (ci-dessus), ce qui empêche pour l'instant de
    créer un bouchon réaliste en rétrécissant la porte ou en ajoutant du monde.
 
 Avant de conclure le rapport, il reste donc à arrondir les coins de la porte, puis à refaire
-les balayages de porte et de population, avec du mouillé jusqu'à la porte ; à brancher la
-relation vitesse–espacement sur la piscine ; et à mesurer l'effet des chutes.
+les balayages de porte et de population, avec du mouillé jusqu'à la porte et la régulation
+vitesse–espacement activée ; et à mesurer l'effet des chutes.
