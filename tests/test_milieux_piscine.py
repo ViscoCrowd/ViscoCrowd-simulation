@@ -79,8 +79,12 @@ def observation(request):
 
     Le facteur 1,5 fait saturer l'adherence du mouille (seuil a_max * tau = 1,65 m/s),
     que le facteur de reference 1 n'atteint presque jamais.
+
+    La regulation vitesse-espacement, active dans le YAML depuis #57, est coupee ici :
+    elle change la vitesse souhaitee derriere un meneur, et le calcul independant ne
+    porte que sur les sols. Elle est verifiee a part (`test_espacement.py`).
     """
-    p = parametres(n_agents=20, facteur_vitesse=request.param)
+    p = parametres(n_agents=20, facteur_vitesse=request.param, temps_espacement=None)
     return p, observer(p)
 
 

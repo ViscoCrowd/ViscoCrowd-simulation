@@ -57,7 +57,7 @@ franchissements ou une porte alimentée par intermittence, ni la robustesse des
 effets relatifs entre configurations : l'un et l'autre restent à mesurer sur le
 scénario cible.
 
-Pour réduire cet écart sur le banc, nous proposons d'ajouter la fonction de
+Pour réduire cet écart sur le banc, nous avons ajouté la fonction de
 vitesse optimale du modèle de
 Tordeux et al.~\cite{tordeux2016}. Derrière un meneur, la vitesse souhaitée
 devient
@@ -85,8 +85,9 @@ croissance du débit quand $N$ diminue. Diviser $\Delta t$ par deux change le d�
 graines.
 Notre modèle étant du second ordre
 ($\tau=\SI{0.5}{\second}$), $T$ n'est pas un temps de réaction et ne se compare
-pas directement à celui d'un modèle du premier ordre. Ce réglage reste une
-proposition soumise au groupe ; il ne porte que sur un protocole, en sol sec.
+pas directement à celui d'un modèle du premier ordre. Le groupe a accepté ce réglage
+le 10~novembre~2026, ainsi que son application à la piscine, eau comprise.
+Son étalonnage ne porte que sur un protocole, en sol sec.
 
 Une première géométrie raccordait la salle et le goulot par un coin vif. Les
 foules s'y bouchaient en arches statiques à $b\leq\SI{1}{\metre}$, et un bruit
@@ -107,9 +108,9 @@ $1{,}5\times\SI{0.69}{\metre\per\second}\approx\SI{1.04}{\metre\per\second}$ dan
 Elle isole le rôle de l'extraction aquatique répartie (bassin, rebords et échelles)
 et de l'alimentation de la porte unique ($b=\SI{1.2}{\metre}$), indépendamment de
 tout frottement réduit au sol. Cette référence utilise \texttt{experiments/piscine.yaml},
-la régulation vitesse--espacement de la section~\ref{sec:e0} n'étant pas encore
-disponible sur le scénario piscine (\texttt{ParametresPiscine} ne comportant pas
-de paramètre \texttt{temps\_espacement}).
+avec la régulation vitesse--espacement étalonnée sur E0 (section~\ref{sec:e0},
+$T=\SI{0.35}{\second}$), activée dans l'eau comme sur la plage depuis le 10~novembre.
+Un agent ne prend pour meneur qu'un agent du même côté du bord du bassin, qui est un mur.
 
 Cent personnes sont réparties aléatoirement dans le bassin (\SI{25}{\metre}$\times$\SI{12.5}{\metre}),
 à une densité initiale moyenne de \num{0.32}~personne par mètre carré. Dix graines
@@ -133,44 +134,51 @@ Reproduction : \texttt{viscocrowd comparer-piscine experiments/piscine.yaml --gr
 \toprule
 Indicateur & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Attente eau (s) & Traversée plage (s) & $J_s$ (pers/(m$\cdot$s)) \\
 \midrule
-Moyenne & 25,88 & 32,08 & 41,23 & 6,03 & 15,91 & 3,20 \\
-Écart-type & 0,50 & 0,67 & 3,47 & 0,71 & 0,38 & 0,47 \\
-Min -- Max & 25,22 -- 26,83 & 31,01 -- 33,26 & 34,34 -- 46,18 & 5,02 -- 7,16 & 15,54 -- 16,83 & 2,67 -- 4,32 \\
+Moyenne & 31,41 & 45,40 & 51,95 & 6,68 & 21,05 & 2,24 \\
+Écart-type & 0,54 & 0,65 & 1,91 & 1,11 & 0,93 & 0,11 \\
+Min -- Max & 30,59 -- 32,19 & 44,71 -- 46,50 & 48,20 -- 55,32 & 5,14 -- 8,04 & 19,47 -- 22,52 & 2,03 -- 2,45 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Les résultats (tableau~\ref{tab:e1}) mettent en lumière la fonction régulatrice
-des sites d'extraction :
+Les résultats (tableau~\ref{tab:e1}) montrent comment les sites d'extraction
+et la porte règlent l'évacuation :
 \begin{enumerate}
 \item \textbf{L'eau et les franchissements étalent le flux amont.} Dans l'eau, les
 agents progressent à vitesse modérée (au plus \SI{1.04}{\metre\per\second}). Les plus
 proches atteignent un bord ou une échelle dès les premières secondes, tandis que
 la durée de rétention sur le rebord (\SI{4.0}{\second}) et la capacité unitaire
-des sites imposent une attente moyenne de \SI{6.03 \pm 0.71}{\second}. Cet étage
+des sites imposent une attente moyenne de \SI{6.68 \pm 1.11}{\second}. Cet étage
 désynchronise l'émergence des agents sur la plage, prévenant l'arrivée en bloc
 d'un front massif à la porte.
-\item \textbf{Alimentation cadencée du goulot.} La traversée de la plage vers la porte
-demande en moyenne \SI{15.91 \pm 0.38}{\second}. Sur la durée $\Delta t_{\text{flux}}$
+\item \textbf{La porte freine la file.} La traversée de la plage vers la porte
+demande en moyenne \SI{21.05 \pm 0.93}{\second}. Sur la durée $\Delta t_{\text{flux}}$
 séparant la première et la dernière sortie, la porte de \SI{1.2}{\metre} écoule
-les arrivées successives à un débit spécifique moyen
-$J_s = \num{3.20 \pm 0.47}$~personnes par mètre et par seconde,
-sans formation d'arche statique bloquante. Bien que calculé avec le même estimateur
-$\Delta N/(\Delta t_{\text{flux}}\,b)$ qu'en E0, ce débit caractérise ici une porte
-alimentée progressivement par l'extraction du bassin et non un goulot saturé en permanence :
-il reste logiquement sous le débit saturé sans régulation du banc E0 à même largeur
-(\num{4.96}~personnes par mètre et par seconde, tableau~\ref{tab:e0}), ce qui suggère que la
-cadence d'extraction amont gouverne le flux moyen. Il dépasse pourtant la mesure
-expérimentale d'un goulot saturé chez Seyfried et al.\ (\num{1.97}~personne par mètre et
-par seconde). Sans régulation vitesse--espacement, la capacité du goulot du modèle vaut
-\num{2.5}~fois la mesure à même largeur (tableau~\ref{tab:e0}) ; des arrivées groupées peuvent
-amener la porte près de cette capacité. Une mesure de densité devant la porte permettrait de
-le vérifier.
-La moitié des occupants est évacuée en $t_{50} = \SI{25.88 \pm 0.50}{\second}$,
-\SI{90}{\percent} en \SI{32.08 \pm 0.67}{\second}, et la totalité de l'enceinte en
-$t_{100} = \SI{41.23 \pm 3.47}{\second}$, sans aucun agent bloqué. La dispersion de
-$t_{100}$, sept fois celle de $t_{50}$, tient au dernier sorti : son instant dépend de
-l'ordre d'arrivée aux échelles et au rebord, donc du placement initial.
+la foule à un débit spécifique moyen
+$J_s = \num{2.24 \pm 0.11}$~personnes par mètre et par seconde, sans arche statique
+sur aucune des dix graines. Sans la régulation, ce débit valait \num{3.20 \pm 0.47}
+(campagne du 6~novembre, mêmes graines, \texttt{temps\_espacement: null}) : freiner
+derrière un meneur le réduit de \SI{30}{\percent} et divise son écart-type par quatre.
+Le débit reste au-dessus du goulot E0 régulé à même largeur (\num{1.83},
+moyenne sur trois graines du tableau~\ref{tab:e0}) et de la mesure de
+Seyfried et al.\ (\num{1.97}). Le facteur de panique en explique une partie,
+mesurée sur E0. Ce banc est étalonné à la marche normale
+(\SI{1.34}{\metre\per\second}) ; relancé au facteur $1{,}5$ avec la même régulation, sur dix
+graines à $b=\SI{1.2}{\metre}$, il donne $J_s = \num{2.04 \pm 0.05}$ au lieu de
+\num{1.84 \pm 0.06} au facteur 1, sur les mêmes dix graines (campagne du
+10~novembre).
+Avec $V=\min(v_0, s/T)$, le facteur ne change la vitesse que là où le
+jeu au meneur dépasse $T\times\SI{1.34}{\metre\per\second}\approx\SI{0.47}{\metre}$ ;
+l'effet mesuré suppose donc qu'une partie des agents ait un jeu plus grand, ce que nous
+n'avons pas mesuré directement. Le reste de
+l'écart, de \num{2.04} à \num{2.24}, n'est pas expliqué. La porte de la piscine, profonde
+de \SI{1}{\metre} et à coins vifs, n'a pas la géométrie du goulot E0, et la foule y arrive
+par la plage au lieu d'attendre devant ; aucune de ces deux pistes n'est mesurée.
+La moitié des occupants est évacuée en $t_{50} = \SI{31.41 \pm 0.54}{\second}$,
+\SI{90}{\percent} en \SI{45.40 \pm 0.65}{\second}, et la totalité de l'enceinte en
+$t_{100} = \SI{51.95 \pm 1.91}{\second}$, sans aucun agent bloqué. La dispersion de
+$t_{100}$, trois fois et demie celle de $t_{50}$, tient au dernier sorti : son instant
+dépend de l'ordre d'arrivée aux échelles et au rebord, donc du placement initial.
 \item \textbf{Confrontation au repère analytique de débit au goulot.}
 Un repère d'ingénierie classique estime la durée de vidange d'une foule de $N$ personnes
 par une porte de largeur $b$ à $T_{\text{repère}} = N / (J_{\max} \cdot b)$, où $J_{\max}$ est
@@ -179,14 +187,17 @@ Weidmann~\cite{weidmann1993}, vérifié sur l'original (p.~63--64) :
 $J_{\max} = \num{1.225}$~personne par mètre et par seconde.
 Pour la piscine ($N=100$, $b=\SI{1.2}{\metre}$), ce repère prévoit
 $T_{\text{repère}} = 100 / (\num{1.225} \times \num{1.2}) \approx \SI{68.0}{\second}$.
-Dans la campagne E1, sans régulation vitesse--espacement, l'intervalle d'écoulement à la
-porte vaut $\Delta t_{\text{flux}} = \SI{26.5 \pm 3.5}{\second}$, bien plus bref que ce repère :
-le contact par projection dure, sans maintien de distance, laisse la foule se compacter
-($J_s = \num{3.20}$~personnes par mètre et par seconde, tableau~\ref{tab:e1}).
-Le temps total $t_{100} = \SI{41.23 \pm 3.47}{\second}$ comprend en outre le transit initial
-(nage, attente aux échelles et traversée de plage) : la première sortie a lieu à
-\SI{14.7 \pm 0.5}{\second}. Une porte qui écoulerait au débit du repère porterait donc
-l'évacuation à environ $\SI{14.7}{\second} + \SI{68.0}{\second} \approx \SI{82.7}{\second}$.
+Sans régulation vitesse--espacement (campagne du 6~novembre, \texttt{temps\_espacement: null}), l'intervalle d'écoulement à
+la porte valait $\Delta t_{\text{flux}} = \SI{26.5 \pm 3.5}{\second}$, bien plus bref que ce
+repère : le contact par projection dure, sans maintien de distance, laissait la foule se
+compacter ($J_s = \num{3.20}$~personnes par mètre et par seconde). Avec la régulation,
+$J_s = \num{2.24}$ correspond à un intervalle d'environ
+$100/(\num{2.24}\times\num{1.2}) \approx \SI{37}{\second}$, ordre de grandeur calculé sur les
+moyennes. Le temps total comprend en outre le transit initial (nage, attente aux échelles
+et traversée de plage) : sans régulation, la première sortie avait lieu à
+\SI{14.7 \pm 0.5}{\second}, et une porte au débit du repère aurait porté l'évacuation à environ
+$\SI{14.7}{\second} + \SI{68.0}{\second} \approx \SI{82.7}{\second}$, contre
+$t_{100} = \SI{51.95 \pm 1.91}{\second}$ simulé avec la régulation.
 Sur le banc de goulot E0 ($N=60$, $b=\SI{1.2}{\metre}$), le repère prédit
 $60 / (\num{1.225} \times \num{1.2}) \approx \SI{40.8}{\second}$. Le modèle sans régulation
 décharge en $\approx \SI{10.1}{\second}$ ($J_s \approx \num{4.96}$~personnes par mètre et par
@@ -195,9 +206,12 @@ $\approx \SI{27.3}{\second}$ ($J_s \approx \num{1.83}$), proche de la mesure de
 Seyfried et al.~\cite{seyfried2009} (\SI{25.4}{\second}, $J_s \approx \num{1.97}$).
 Le repère, qui décrit un écoulement libre et non un goulot saturé, reste au-dessus des deux
 mesures : sur E0, la régulation comble à peu près la moitié de l'écart au repère et retrouve
-la mesure de Seyfried, le reste tenant au repère lui-même. Sur la piscine, nous faisons
-l'hypothèse que l'absence de freinage anticipé explique une part de l'écart ; la régulation,
-étalonnée sur E0 et branchée mais désactivée par défaut (PR~100), permettra de la mesurer.
+la mesure de Seyfried, le reste tenant au repère lui-même. Sur la piscine, l'hypothèse
+d'un freinage anticipé manquant est maintenant mesurée : activer la régulation fait passer
+l'intervalle d'écoulement d'environ \SI{26}{\second} à environ \SI{37}{\second}, ce qui
+comble à peu près un quart de l'écart au repère de \SI{68}{\second}. Le reste tient au
+repère, qui décrit un écoulement libre, au facteur de panique pour la part mesurée sur E0, et
+à une part que nous n'expliquons pas encore (point précédent).
 \end{enumerate}
 
 \subsection{Premier banc : effet séparé des paramètres du sol mouillé}
@@ -294,7 +308,7 @@ le bassin, modélisée selon les paramètres physiques retenus dans
 $a_{\max}=\SI{3.3}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$),
 face à la plage sèche ($\tau=\SI{0.5}{\second}$,
 $a_{\max}=\SI{5.9}{\metre\per\second\squared}$, $s=\SI{1.34}{\metre\per\second}$),
-au même facteur de panique $1{,}5$ que E1.
+au même facteur de panique $1{,}5$ et avec la même régulation vitesse--espacement que E1.
 Comme le carrelage mouillé et le carrelage sec partagent par construction la même vitesse
 souhaitée $s$ et le même temps de relaxation $\tau$ dans cette configuration de référence,
 les variantes \texttt{vitesse} et \texttt{relaxation} se confondent avec E1
@@ -308,29 +322,32 @@ de l'adhérence réduite ($a_{\max}=\SI{3.3}{\metre\per\second\squared}$ contre
 \caption{Comparaison appariée E1 (sec) et E2 (carrelage mouillé, où seul
 $a_{\max}=\SI{3.3}{\metre\per\second\squared}$ diffère du sec) sur dix graines.
 Moyennes et écarts-types entre parenthèses ; écart moyen apparié $\Delta = \text{E2} - \text{E1}$,
-graine par graine. Facteur de panique $1{,}5$.
+graine par graine. Facteur de panique $1{,}5$, régulation vitesse--espacement
+$T=\SI{0.35}{\second}$.
 Reproduction : \texttt{viscocrowd comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10}.}
 \label{tab:e2}
 \begin{tabular}{lrrrrr}
 \toprule
 Variante & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Traversée plage (s) & $J_s$ (pers/(m$\cdot$s)) \\
 \midrule
-E1 : Référence sèche & 25,88 (0,50) & 32,08 (0,67) & 41,23 (3,47) & 15,91 (0,38) & 3,20 (0,47) \\
-E2 : Mouillé complet & 25,90 (0,49) & 31,98 (0,77) & 41,20 (3,06) & 15,92 (0,39) & 3,20 (0,45) \\
+E1 : Référence sèche & 31,41 (0,54) & 45,40 (0,65) & 51,95 (1,91) & 21,05 (0,93) & 2,24 (0,11) \\
+E2 : Mouillé complet & 31,42 (0,53) & 45,41 (0,71) & 51,83 (1,68) & 21,08 (0,91) & 2,25 (0,10) \\
 \midrule
-Écart apparié $\Delta$ (E2 -- E1) & 0,02 (0,01) & $-0{,}10$ (0,22) & $-0{,}03$ (0,96) & 0,00 (0,03) & $-0{,}00$ (0,11) \\
+Écart apparié $\Delta$ (E2 -- E1) & 0,01 (0,02) & 0,01 (0,09) & $-0{,}12$ (0,42) & 0,03 (0,07) & 0,01 (0,02) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \paragraph{Un effet inertiel réel, mais de l'ordre du centième de seconde.}
 Au facteur de panique $1{,}5$, l'adhérence réduite du carrelage mouillé retarde la
-première moitié de l'évacuation de $\Delta t_{50} = \SI{0.02 \pm 0.01}{\second}$
-(tableau~\ref{tab:e2}). Ce retard est minime, mais systématique : le bilan brut du
-balayage M6 au même réglage
+première moitié de l'évacuation de $\Delta t_{50} = \SI{0.01 \pm 0.02}{\second}$
+(tableau~\ref{tab:e2}). Sans régulation, le même écart valait \SI{0.02 \pm 0.01}{\second}
+et il était systématique : le bilan brut du balayage M6
 (\texttt{docs/mesures/balayages-piscine-2026-11-02/adherence.json},
 $a_{\max}=\SI{3.3}{\metre\per\second\squared}$) le donne positif sur les dix graines,
-de \num{0.005} à \SI{0.053}{\second}. Le modèle l'explique sans paramètre ajusté :
+de \num{0.005} à \SI{0.053}{\second}. Avec la régulation, il reste du même ordre et
+positif sur huit graines sur dix (balayage de $T$ du 10~novembre, mêmes graines que E1/E2),
+mais sa dispersion augmente. Le modèle l'explique sans paramètre ajusté :
 \begin{itemize}
 \item un baigneur réintroduit à l'arrêt sur la plage mouillée demande
 $\norm{\vect{U}-\vit}/\tau = 2{,}01/0{,}5 = \SI{4.02}{\metre\per\second\squared}$, au-delà
@@ -347,12 +364,13 @@ menée au facteur~1, ne mesurait rien. Il donne en revanche \SI{0.57}{\second} p
 pour une adhérence de \SI{1}{\metre\per\second\squared}, l'ordre de grandeur du retard de
 \SI{0.38}{\second} mesuré par le balayage M6 à cette adhérence.
 \end{itemize}
-Sur $t_{90}$ et $t_{100}$, l'écart change de signe d'une graine à l'autre, avec un
-écart-type de \SI{0.96}{\second} sur $t_{100}$. Un léger décalage à la sortie de l'eau
+Sur $t_{100}$, l'écart change de signe d'une graine à l'autre, avec un
+écart-type de \SI{0.42}{\second} (\SI{0.96}{\second} sans régulation). Un léger décalage à la sortie de l'eau
 change l'ordre d'arrivée aux sites, et donc le dernier sorti : ces écarts relèvent du
 hasard du placement, pas du sol. Enfin, la bande mouillée de \SI{3}{\metre} est séparée de
 la porte par \SI{17}{\metre} de carrelage sec : les relances écrêtées ont lieu près du
-bassin, et la porte, non encombrée dans cette configuration, n'en garde aucune trace.
+bassin, et la porte n'en garde aucune trace : même avec la régulation, qui fait freiner la
+file devant elle, aucune arche ne s'y forme dans cette configuration.
 Mouiller la plage jusqu'à la porte ne change d'ailleurs $t_{50}$ que de
 \SI{1.4e-5}{\second} au plus (balayage M6).
 
@@ -363,8 +381,9 @@ où la problématique opère :
 \item \textbf{Absence de contraste de vitesse libre dans la configuration de base.}
 Comme \texttt{experiments/piscine.yaml} attribue par hypothèse les mêmes valeurs de $s$ et
 $\tau$ aux sols mouillé et sec, seule l'adhérence $a_{\max}$ distingue E2 de E1 : la bande
-périphérique ne ralentit pas la marche établie, et la régulation amont provient uniquement de
-la capacité finie des échelles et des rebords du bassin.
+périphérique ne ralentit pas la marche établie. Le rythme de l'évacuation vient de la
+capacité finie des échelles et des rebords du bassin, puis du freinage derrière un meneur
+devant la porte, qui agit de la même façon sur le sec et sur le mouillé.
 \item \textbf{Un écrêtage qui coûte peu tant que l'adhérence reste proche de celle du sec.}
 Le facteur de panique $1{,}5$ dépasse le seuil $a_{\max}\tau = \SI{1.65}{\metre\per\second}$
 au-delà duquel chaque relance est écrêtée. Le temps perdu par relance reste pourtant de

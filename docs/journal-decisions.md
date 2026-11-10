@@ -39,6 +39,74 @@ et messages du balayage de `lambda_chute`.
 
 ---
 
+## 2026-11-10 — Activer la régulation vitesse–espacement dans la piscine (#57)
+
+**Statut.** Validée par le groupe le 10 novembre 2026 : proposition de Lenny, approuvée
+par [Shaleena](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/116#pullrequestreview-5840087596)
+et [Hamza](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/116#pullrequestreview-5840139159)
+dans #116, fusionnée le même jour. Les trois réponses ci-dessous sont acceptées.
+`temps_espacement: null` permet toujours de reproduire le modèle sans régulation
+et les mesures du 6 novembre.
+
+**Contexte.** #57 posait trois questions au groupe : garder la règle de Tordeux et al. (2016),
+garder T = 0,35 s, l'appliquer aussi dans l'eau. Les relectures de #58 et de #100 avaient
+accepté la règle comme proposition expérimentale, sans trancher l'activation. #100 l'avait
+branchée sur la piscine, avec un meneur cherché seulement du même côté du bord du bassin,
+mais désactivée par défaut. Il manquait la mesure sur la piscine elle-même.
+
+**Mesure.** Balayage E4 de T sur la configuration de référence (graines 1 à 10, les mêmes
+que E1/E2, porte de 1,2 m, 100 baigneurs, facteur 1,5 ; `docs/balayages-piscine.md`) :
+
+| T (s) | t100 mouillé (s) | Débit mouillé (pers/(m·s)) | Non sortis |
+|---|---|---|---|
+| sans (`temps_espacement: null`) | 41,20 ± 3,06 | 3,20 ± 0,45 | 0 |
+| 0,25 | 47,44 ± 2,31 | 2,56 ± 0,17 | 0 |
+| 0,35 | 51,83 ± 1,68 | 2,25 ± 0,10 | 0 |
+| 0,5 | 57,77 ± 1,78 | 1,94 ± 0,07 | 0 |
+
+**Décision.** Activer T = 0,35 s dans `experiments/piscine.yaml`, dans l'eau comme
+sur la plage. Réponses aux trois questions de #57 :
+
+1. *La règle* : oui. Sans elle, le débit à la porte vaut 3,20 pers/(m·s), 2,6 fois le
+   maximum de Weidmann (1,225), pour la même raison qu'en E0 : rien ne fait ralentir un
+   agent avant le contact.
+2. *T = 0,35 s* : oui, c'est la valeur étalonnée sur E0 (#58), sans nouveau réglage sur la
+   piscine. Choisir T sur la piscine reviendrait à ajuster le modèle sur la mesure qu'on veut
+   ensuite interpréter.
+3. *Dans l'eau* : oui. T décrit le comportement d'une personne qui suit quelqu'un, pas le sol
+   (proposition de Hamza dans #57). Le cloisonnement de #100 empêche de suivre quelqu'un à
+   travers le bord du bassin.
+
+**Conséquence : E1/E2 refaits** (graines 1 à 10, `comparer-piscine`, 1 min 59 s sous macOS
+arm64). Le rapport (§ 6.2 et 6.4) est mis à jour.
+
+| | t50 (s) | t90 (s) | t100 (s) | Débit (pers/(m·s)) |
+|---|---|---|---|---|
+| E1 sec | 31,41 ± 0,54 | 45,40 ± 0,65 | 51,95 ± 1,91 | 2,24 ± 0,11 |
+| E2 mouillé | 31,42 ± 0,53 | 45,41 ± 0,71 | 51,83 ± 1,68 | 2,25 ± 0,10 |
+| Δ apparié | 0,01 ± 0,02 | 0,01 ± 0,09 | −0,12 ± 0,42 | 0,01 ± 0,02 |
+
+Aucune arche à la porte sur les 60 évacuations du balayage ni sur les 20 de E1/E2, malgré
+les coins vifs de #85. L'effet du sol mouillé reste de l'ordre du centième de seconde.
+
+**Options écartées.**
+- *Garder la régulation désactivée.* Aucune campagne n'était à refaire, mais toutes les
+  conclusions sur la porte auraient reposé sur un débit 2,6 fois trop élevé.
+- *T = 0,5 s*, qui rapproche davantage le débit du repère (1,94). Ce serait un réglage fait
+  sur la piscine, sans mesure de référence pour la justifier.
+- *Activer seulement sur la plage.* Rien ne justifie qu'un nageur ne ralentisse pas derrière
+  un autre nageur ; ça créerait aussi deux comportements à défendre.
+
+**Limite.** Avec la régulation, le débit (2,24) reste au-dessus de la mesure de Seyfried à
+1,2 m (1,97) et de E0 régulé (1,84 sur 10 graines). Le facteur de panique en explique une
+partie : E0 relancé au facteur 1,5 avec T = 0,35 s donne 2,04 ± 0,05 (b = 1,2 m, graines 1
+à 10, mesure du 10 novembre, suggérée par Hamza en revue). Avec V = min(v0, jeu/T), le
+facteur ne change la vitesse que si le jeu au meneur dépasse T × 1,34 ≈ 0,47 m. Le reste,
+de 2,04 à 2,24, n'est pas expliqué ; pistes non mesurées : la géométrie de la porte
+(1 m de profondeur, coins vifs de #85) et l'arrivée de la foule par la plage.
+
+---
+
 ## 2026-11-07 — Clôture de l'issue #11 : repère analytique N / (J w) et état absorbant
 
 **Contexte.** L'issue #11 (« État de sortie par agent : distinguer franchissement et évacuation définitive ») restait ouverte pour deux motifs :
