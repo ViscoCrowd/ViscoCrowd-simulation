@@ -17,8 +17,56 @@ La projection d'exclusion impose les contacts entre disques et les trois parois 
 La section de mesure, fournie par la même géométrie, ne constitue pas une paroi.
 
 \subsection{Recherche des voisins}
+\label{sec:voisins}
 
-% Grille de hachage spatial, pour eviter le cout en $N^2$.
+La projection, la mesure du recouvrement et la régulation vitesse--espacement
+ont toutes besoin des paires d'agents proches. Tester toutes les paires coûte $N^2/2$
+comparaisons ; or deux disques ne peuvent se toucher que s'ils sont voisins. Le
+plan est donc découpé en cases carrées de côté $2r_{\max}+m$, où $m\geq0$ est
+une marge de détection : deux disques à moins de $r_i+r_j+m$ l'un de l'autre sont
+toujours dans la même case ou dans deux cases adjacentes. Chaque case n'est
+comparée qu'à elle-même et à quatre de ses huit voisines, les quatre autres
+l'étant déjà depuis la case voisine, dans l'autre sens : chaque paire de cases
+n'est examinée qu'une fois. À densité fixe, le nombre d'agents par case est
+borné, et le coût devient proportionnel à $N$.
+
+Les cases sont repérées par une clé entière, triée une fois par appel ; la
+recherche des cases voisines se fait par dichotomie dans ces clés
+(\texttt{numpy.searchsorted}), sans boucle Python sur les agents. La liste rendue
+est triée par $i$ puis $j$ : elle ne dépend pas de l'ordre de parcours des cases,
+et deux calculs identiques donnent les mêmes résultats au bit près. Une entrée non finie est refusée : toute comparaison avec un \texttt{NaN}
+étant fausse, aucune paire ne serait détectée, et un recouvrement serait mesuré
+nul sur une configuration corrompue.
+
+Le tableau~\ref{tab:voisins} compare la grille à la recherche exhaustive sur des
+nuages uniformes à \num{2}~personnes par mètre carré, avec $r=\SI{0.2}{\metre}$
+et une marge de \SI{0.1}{\metre}. Les deux méthodes rendent exactement les mêmes
+paires. Multiplier $N$ par quatre multiplie le temps de la grille par 1,8 à 4,4,
+le coût fixe d'un appel dominant aux petits effectifs, et celui de la recherche
+exhaustive par 14 à 23.
+
+\begin{table}[ht]
+\centering
+\caption{Durée moyenne d'une recherche de paires (Python 3.12, NumPy, poste
+Windows du groupe, 13 novembre 2026). Paires identiques pour les deux méthodes.}
+\label{tab:voisins}
+\begin{tabular}{rrrr}
+\toprule
+$N$ & Paires trouvées & Grille (ms) & Exhaustive (ms) \\
+\midrule
+100 & 78 & 0,11 & 0,12 \\
+400 & 302 & 0,19 & 2,8 \\
+1600 & \num{1295} & 0,52 & 46 \\
+6400 & \num{4986} & 2,3 & 664 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Dans la projection, les paires sont cherchées avec une marge de $r_{\min}/2$,
+et la liste sert à tous les balayages qui suivent. Les agents bougeant pendant
+ces balayages, une paire absente de la liste peut se créer : à la convergence, une
+vérification sans marge sur toutes les paires relance donc la recherche si
+besoin, dans le même budget de balayages (section~\ref{sec:discretisation}).
 
 \subsection{Reproductibilite}
 
