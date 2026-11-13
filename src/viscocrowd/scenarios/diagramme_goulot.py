@@ -21,7 +21,10 @@ Trois choix, a discuter avant toute conclusion (#124) :
     le mur perce a x = L : c'est exact a gauche, en haut et en bas, approche pres
     de l'ouverture, ou les agents deja engages dans le goulot ne comptent pas ;
   - le DEBUT exclut la mise en marche : a t = 0, toute la foule est au repos a
-    3,3 pers/m^2, un etat d'attente et non d'ecoulement ;
+    3,3 pers/m^2, puis le bloc demarre d'un seul tenant. Mesure le 13 novembre sur
+    les 50 simulations E0 (5 largeurs, 10 graines) : en commencant a 1 s, 396 points
+    forment une branche a fort debit (rho > 3,3 pers/m^2, J > 1,3 pers/(m.s)), tous
+    entre 1,0 et 1,9 s. A partir de 3 s, il n'en reste aucun : c'est le defaut ;
   - le PAS DE MESURE espace les instants retenus. Des instants plus serres ne
     seraient pas plus independants (voir `observables.diagramme`).
 
@@ -189,7 +192,10 @@ def ajouter_commande(sous) -> None:
         help="zone de mesure, en m (defaut : l'entonnoir de #101, devant le goulot)",
     )
     commande.add_argument(
-        "--debut", type=float, default=1.0, help="premier instant retenu, en s (defaut : 2 tau)"
+        "--debut",
+        type=float,
+        default=3.0,
+        help="premier instant retenu, en s (defaut : apres le demarrage du bloc initial)",
     )
     commande.add_argument(
         "--pas-mesure", type=int, default=10, help="un instant archive sur N (defaut : 0,1 s)"
