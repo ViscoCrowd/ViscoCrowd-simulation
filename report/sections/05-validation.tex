@@ -124,5 +124,85 @@ une marche unidirectionnelle en terrain plat : la comparaison portera sur nos
 zones sèches, pas sur la nage, l'extraction aquatique ni la panique.
 
 \subsection{Coherence dimensionnelle}
+\label{sec:dimensions}
 
-% Tableau de toutes les grandeurs avec leurs unites et leurs ordres de grandeur.
+Le tableau~\ref{tab:grandeurs} rassemble les grandeurs du scénario piscine de
+référence (\texttt{experiments/piscine.yaml}), avec leur unité et une échelle de
+comparaison. Toutes sont exprimées en unités SI dans le code, la configuration
+et les archives ; les densités et les débits comptent des personnes (pers).
+
+\begin{table}[ht]
+\centering
+\caption{Grandeurs du scénario de référence, unités et ordres de grandeur.}
+\label{tab:grandeurs}
+\small
+\begin{tabular}{p{5.4cm}rlp{4.4cm}}
+\toprule
+Grandeur & Valeur & Unité & Échelle de comparaison \\
+\midrule
+Rayon d'un agent $r$ & 0,2 & \si{\metre} & demi-largeur d'épaules \\
+Pas de temps $\dt$ & 0,01 & \si{\second} & $\tau/50$ \\
+Temps de relaxation $\tau$ & 0,5 & \si{\second} & \cite{helbing2000} \\
+Vitesse de marche $s$, plage & 1,34 & \si{\metre\per\second} & \cite{weidmann1993} \\
+Vitesse dans l'eau $s$ & 0,69 & \si{\metre\per\second} & environ la moitié de la marche \\
+Facteur de panique $\kappa$ & 1,5 & -- & $\kappa s\approx\SI{2.0}{\metre\per\second}$ sur la plage \\
+Accélération maximale, sec & 5,9 & \si{\metre\per\second\squared} & $0{,}60\,g$ \\
+Accélération maximale, mouillé & 3,3 & \si{\metre\per\second\squared} & $0{,}34\,g$ \\
+Accélération maximale, eau & 1,6 & \si{\metre\per\second\squared} & $\approx 0{,}34\,g\times 0{,}5$ \\
+Temps d'espacement $T$ & 0,35 & \si{\second} & jeu de \SI{0.7}{\metre} à \SI{2}{\metre\per\second} \\
+Durée de franchissement, rebord & 4,0 & \si{\second} & hypothèse \\
+Durée de franchissement, échelle & 2,0 & \si{\second} & hypothèse \\
+Portée de saisie d'un site & 0,25 & \si{\metre} & $1{,}25\,r$ \\
+Pas entre sites de rebord & 0,6 & \si{\metre} & $1{,}5$ diamètre \\
+Largeur de la porte $b$ & 1,2 & \si{\metre} & 3 diamètres \\
+Tolérance d'exclusion $\varepsilon$ & \num{1e-6} & \si{\metre} & $\num{5e-6}\,r$ \\
+Pas de la grille de guidage $h$ & 0,1 & \si{\metre} & $r/2$ \\
+Densité initiale dans le bassin & 0,32 & pers/\si{\metre\squared} & \\
+Densité maximale de Weidmann & 5,4 & pers/\si{\metre\squared} & \cite{weidmann1993} \\
+Densité géométrique maximale & 7,2 & pers/\si{\metre\squared} & $1/(2\sqrt3\,r^2)$ \\
+Débit spécifique maximal de Weidmann & 1,225 & pers/(\si{\metre\second}) & \cite{weidmann1993} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Homogénéité des équations.}
+Chaque relation du modèle est homogène :
+\begin{itemize}
+\item équation eikonale : $\norm{\nabla\varphi}$, en \si{\second\per\metre}, égale
+  $1/F$, inverse d'une vitesse ;
+\item relaxation : $(\vect{U}-\vit)/\tau$ est en
+  \si{\metre\per\second\squared}, comme $a_{\max}=\mu g$, où $\mu$ est sans
+  dimension ;
+\item régulation vitesse--espacement : $g/T$, un jeu sur un temps, est en
+  \si{\metre\per\second}, comme la vitesse souhaitée qu'il borne ;
+\item exclusion : $D_{ij}$, le recouvrement et la tolérance $\varepsilon$ sont
+  des longueurs ; la vitesse relue $(\pos^{n+1}-\pos^n)/\dt$ est en
+  \si{\metre\per\second} ;
+\item mesures : la densité de Voronoï $\sum_i |C_i\cap M|/(|C_i|\,|M|)$ est en
+  pers/\si{\metre\squared}, et le débit spécifique $\Delta N/(\Delta t\,b)$ en
+  pers/(\si{\metre\second}).
+\end{itemize}
+
+\paragraph{Ordres de grandeur.}
+Trois rapports d'échelle conditionnent le schéma :
+\begin{itemize}
+\item \emph{déplacement par pas} : à la vitesse maximale souhaitée,
+  $1{,}5\times\SI{1.34}{\metre\per\second}\times\SI{0.01}{\second}\approx\SI{2}{\centi\metre}$,
+  soit $r/10$. La configuration est refusée si ce déplacement dépasse $r/5$, et
+  la simulation s'arrête si le déplacement \emph{mesuré}, contacts compris, le
+  dépasse : un centre ne peut ainsi pas traverser le bord du bassin en un pas ;
+\item \emph{relaxation} : $\dt/\tau=0{,}02$, si bien que la relaxation est
+  résolue sur une cinquantaine de pas ;
+\item \emph{tolérance} : $\varepsilon/r=\num{5e-6}$. Un recouvrement résiduel
+  de cet ordre ne change l'aire occupée par une foule compacte que d'une part
+  relative de l'ordre de $\varepsilon/r$. L'effet de la tolérance sur la densité
+  au goulot a d'ailleurs été mesuré directement
+  (section~\ref{sec:mesure-densite}) : aucun écart décelable entre \num{1e-7} et
+  \SI{1e-6}{\metre}.
+\end{itemize}
+Enfin, le débit spécifique moyen à la porte de la piscine, \num{2.24}~pers/(\si{\metre\second})
+dans la campagne E1 (tableau~\ref{tab:e1}), dépasse le débit maximal de Weidmann,
+\num{1.225}~pers/(\si{\metre\second}). Il reste du même ordre que les débits de
+goulot mesurés par Seyfried et al.~\cite{seyfried2009}, de \num{1.6} à
+\num{2.0}~pers/(\si{\metre\second}) : la référence de Weidmann décrit une marche
+libre, non une foule pressée devant une porte.
