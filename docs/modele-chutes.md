@@ -7,16 +7,17 @@ Statut : module désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion 
 chutes en séance le 3 novembre ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)).
 Les jalons principaux ne dépendent toujours pas de ce module. Avant d'en tirer des résultats,
 il reste à calibrer ses taux (§ 8) et à décider de son activation dans les campagnes ; ces
-tâches sont à programmer dans le [planning](planning/README.md#pistes-complémentaires-non-programmées).
+tâches sont suivies dans [#130](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/130) et le [planning](planning/README.md#pistes-complémentaires-non-programmées).
 
 ---
 
 **Ce qui est implémenté.** Glissade (§ 1), chute par bousculade et compression (§ 2),
 état à terre et domino (§ 3), relevage (§ 4), contournement (§ 5) et observables de
 cascade (§ 6). L'indépendance du taux de chute à Δt est vérifiée pour la glissade à excès
-constant (§ 7), pas encore pour la bousculade. `λ_chute`, `λ_domino`, `λ_bousculade`,
-`r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) :
-aucun chiffre obtenu avec ce module ne peut encore servir de résultat.
+constant (§ 7), pas encore pour la bousculade. `λ_chute`, `λ_domino`,
+`r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) ;
+`λ_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est actif. Aucun chiffre
+obtenu avec ce module ne peut encore servir de résultat.
 
 ---
 

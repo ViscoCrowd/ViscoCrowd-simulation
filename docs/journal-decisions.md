@@ -26,11 +26,12 @@ oralement, en séance, le mardi 3 novembre 2026, sans réserve rapportée :
 2. *Dimensionnement* : le sujet est tenable à trois, chutes comprises.
 3. *Chutes* : le module (#78, #82, #102) fait partie du rendu.
 
-**Ce qui ne change pas.** Le module de chutes reste désactivé par défaut (`chutes: null`) et
-ses paramètres (`lambda_chute`, `lambda_domino`, `lambda_bousculade`, `facteur_rayon_terre`) restent des valeurs
-par défaut non calibrées. La validation porte sur l'inclusion, pas sur les valeurs : aucun
-chiffre obtenu avec ce module n'est un résultat avant sa calibration. Calibrer ces taux et
-décider de l'activation des chutes dans les campagnes sont deux tâches à programmer.
+**Ce qui ne change pas.** Le module de chutes reste désactivé par défaut (`chutes: null`).
+`lambda_chute`, `lambda_domino` et `facteur_rayon_terre` restent des valeurs par défaut non
+calibrées ; `lambda_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est
+actif. La validation porte sur l'inclusion, pas sur les valeurs : aucun chiffre obtenu avec ce
+module n'est un résultat avant sa calibration. Calibrer ces taux et décider de l'activation des
+chutes dans les campagnes sont suivis dans #130.
 
 **Mise à jour.** [Fiche de cadrage](validation-sujet.md#trace-de-validation), tâches C1 et M1
 et pistes de chutes du [planning](planning/README.md), [modèle de chutes](modele-chutes.md),

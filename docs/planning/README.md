@@ -151,14 +151,16 @@ aux anciennes issues, reviews et preuves à reprendre avant la présentation.
 | R6 | J6 | Vérifier les fichiers remis et déposer sur Moodle | S14 | 05/01/2027 avant 23h59 | À attribuer avant S8 | À faire ; marge S12–S13 si corrections | Échéance officielle |
 | R7 | J6 | Préparer transparents, démonstration et répartition de parole ; répéter | S14–S15 | 06–18/01/2027 avant 18h00 | À attribuer avant S8 | À faire | Soutenance 19/01/2027 |
 
-## Pistes complémentaires non programmées
+<a id="pistes-complémentaires-non-programmées"></a>
+
+## Chutes et pistes complémentaires
 
 Le module de chutes (glissade, domino, relevage, contournement) a été fusionné le 3 novembre
 dans #78 et #82, puis complété le 6 novembre par la chute par bousculade et les observables de
 cascade (#102). L'enseignant a validé son inclusion dans le rendu en séance le 3 novembre (C1,
 [#19]). Il reste désactivé par défaut et non calibré : avant d'en tirer des résultats, il faut
-calibrer ses taux et décider de son activation dans les campagnes. Ces deux tâches sont à
-programmer ; aucune tâche des jalons 3 à 6 n'en dépend.
+calibrer ses taux et décider de son activation dans les campagnes. Ces deux tâches sont suivies
+dans [#130] ; aucune tâche des jalons 3 à 6 n'en dépend.
 
 | Tâche | État | Condition / référence |
 |---|---|---|
@@ -167,7 +169,7 @@ programmer ; aucune tâche des jalons 3 à 6 n'en dépend.
 | Agent à terre et relevage | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §3–4 ; inclusion validée (C1) |
 | Contournement local d'une personne à terre | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §5 ; distinct de l'obstacle fixe G2 |
 | Propagation des chutes | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §3 ; inclusion validée (C1) |
-| Calibrer les taux de chute et décider de l'activation dans les campagnes | À programmer | Addendum chutes §8 ; balayage de `lambda_chute` outillé dans #104 |
+| Calibrer les taux de chute et décider de l'activation dans les campagnes | À programmer ([#130]) | Addendum chutes §8 ; balayage de `lambda_chute` outillé dans #104 |
 | Anticipation du mouvement futur des voisins | Non programmé | Extension au-delà du contournement réactif |
 | Trébuchement distinct sur obstacle | Non programmé | Mécanisme absent de la spécification actuelle |
 
@@ -194,6 +196,7 @@ Les fichiers temporaires Excel `~$…` ne doivent pas être ajoutés aux commits
 [#17]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17
 [#18]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18
 [#19]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19
+[#130]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/130
 [#20]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/20
 [#26]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26
 [#31]: https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/31
