@@ -547,3 +547,64 @@ TOUTES_LES_FIGURES = (
 def produire_toutes(destination: Path) -> list[Path]:
     """Produit l'ensemble des figures de validation du moteur."""
     return [fabrique(destination) for fabrique in TOUTES_LES_FIGURES]
+
+
+def figure_diagramme_fondamental(series: dict, classes, destination: Path) -> Path:
+    """Fig. 8 — diagramme fondamental devant le goulot E0, face a Weidmann (M8, #124).
+
+    Hors de `TOUTES_LES_FIGURES` : elle demande une campagne E0
+    (`viscocrowd diagramme-goulot`). Les points gris sont les instants mesures ; les
+    barres, la moyenne et l'ecart-type de chaque classe de densite, qui decrivent la
+    dispersion des etats et non l'incertitude sur la moyenne (points correles).
+    """
+    from viscocrowd.observables import weidmann
+
+    densites = np.concatenate([s.densite for s in series.values()])
+    vitesses = np.concatenate([s.vitesse for s in series.values()])
+    largeurs = sorted({b for b, _ in series})
+    graines = sorted({g for _, g in series})
+    pleines = classes.effectifs > 0
+    rho = np.linspace(0.0, weidmann.RHO_MAX, 200)
+
+    fig, (gauche, droite) = plt.subplots(1, 2, figsize=(10, 4))
+    for axe, points, moyenne, ecart, reference, nom in (
+        (
+            gauche,
+            vitesses,
+            classes.vitesse,
+            classes.ecart_vitesse,
+            weidmann.vitesse(rho),
+            "vitesse $v$ (m/s)",
+        ),
+        (
+            droite,
+            densites * vitesses,
+            classes.debit,
+            classes.ecart_debit,
+            weidmann.debit_specifique(rho),
+            r"débit spécifique $J = \rho v$ (pers/(m·s))",
+        ),
+    ):
+        axe.scatter(densites, points, s=4, color="0.75", label="instants mesurés")
+        axe.errorbar(
+            classes.densite[pleines],
+            moyenne[pleines],
+            yerr=np.nan_to_num(ecart[pleines]),
+            fmt="o",
+            color="#b4432f",
+            ms=4,
+            capsize=2,
+            label="classes (moyenne ± écart-type)",
+        )
+        axe.plot(rho, reference, color="0.2", ls="--", lw=1.2, label="Weidmann (1993)")
+        axe.set_xlabel(r"densité de Voronoï $\rho$ (pers/m²)")
+        axe.set_ylabel(nom)
+        axe.set_xlim(0.0, max(weidmann.RHO_MAX, float(np.max(densites, initial=0.0))) * 1.02)
+    gauche.legend(fontsize=8)
+    fig.suptitle(
+        f"Fig. 8 — Diagramme fondamental devant le goulot E0 : b = "
+        f"{', '.join(f'{b:g}' for b in largeurs)} m, {len(graines)} graines",
+        fontsize=10,
+    )
+    fig.tight_layout()
+    return _enregistrer(fig, destination, "fig08_diagramme_fondamental")
