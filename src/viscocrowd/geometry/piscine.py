@@ -31,12 +31,13 @@ scenario. Projeter sur le cote ou se trouve le centre revient alors a projeter
 sur la plus proche des deux pieces de l'ensemble admissible.
 
 La porte est un couloir de la largeur de la porte qui traverse le mur. Les
-centres admissibles de la plage sont l'union de l'emprise reduite d'un rayon et
-de ce couloir reduit d'un rayon ; on projette sur la plus proche des deux pieces
-(projection exacte sur une union de convexes), puis hors du bassin. Pres des
-montants de la porte, cette union est un peu plus stricte que l'ensemble exact
-(qui arrondirait les coins) : aucun disque ne touche un mur, au prix d'un passage
-legerement plus etroit aux montants.
+centres admissibles de la plage sont ceux a un rayon au moins de chaque mur :
+pres d'un montant de la porte, leur bord est un arc de cercle de rayon r autour
+du coin du mur. On les obtient comme au goulot E0 : centres ramenes dans la boite
+emprise + couloir, puis hors des deux pans du mur de droite (`montants`), coins
+arrondis compris, puis hors du bassin. Une premiere version projetait sur l'union
+de l'emprise reduite et du couloir reduit, un peu plus stricte aux montants : cet
+angle vif bouchait la porte en arches statiques (#85).
 """
 
 from __future__ import annotations
@@ -310,20 +311,41 @@ class Piscine:
         self.valider_rayons(r)
         return x, r
 
+    @property
+    def montants(self) -> tuple[ObstacleRectangle, ObstacleRectangle]:
+        """Les deux pans du mur de droite, sous et sur la porte, vus comme des obstacles.
+
+        Ils debordent largement de l'emprise, vers le bas ou le haut et au-dela du
+        couloir : un centre entre dans un pan par la salle ou par le couloir, jamais
+        assez loin pour en ressortir par une autre face.
+        """
+        L, W = self.longueur_emprise, self.largeur_emprise
+        (_, y_bas), (_, y_haut) = self.porte
+        marge = self.profondeur_porte + W
+        fond = L + self.profondeur_porte + marge
+        return (
+            ObstacleRectangle(L, fond, -marge, y_bas),
+            ObstacleRectangle(L, fond, y_haut, W + marge),
+        )
+
     def projeter_plage(self, x: np.ndarray, r: np.ndarray) -> np.ndarray:
-        """Projection exacte sur l'union emprise reduite et couloir de la porte (sans le bassin)."""
+        """Projection exacte sur la plage et le couloir de la porte, sans le bassin (#85).
+
+        Les centres sont d'abord ramenes dans la boite qui contient l'emprise et le
+        couloir, puis hors de chaque montant, coins arrondis compris
+        (`ObstacleRectangle.repousser`). C'est la geometrie du goulot E0
+        (`geometry/bande.py`), qui ne s'y bouche plus. L'ancienne projection sur l'union
+        « emprise reduite + couloir reduit » laissait un angle vif a chaque montant, ou
+        la foule se bouchait en arches statiques (balayages M6, #84).
+        """
         x, r = self._entrees(x, r)
         L, W = self.longueur_emprise, self.largeur_emprise
-        a, b = self.porte
-        emprise = np.column_stack((np.clip(x[:, 0], r, L - r), np.clip(x[:, 1], r, W - r)))
-        couloir = np.column_stack(
-            (
-                np.clip(x[:, 0], L - r, L + self.profondeur_porte),
-                np.clip(x[:, 1], a[1] + r, b[1] - r),
-            )
+        resultat = np.column_stack(
+            (np.clip(x[:, 0], r, L + self.profondeur_porte), np.clip(x[:, 1], r, W - r))
         )
-        plus_proche = np.hypot(*(couloir - x).T) < np.hypot(*(emprise - x).T)
-        return np.where(plus_proche[:, None], couloir, emprise)
+        for montant in self.montants:
+            resultat = montant.repousser(resultat, r)
+        return resultat
 
     def projeter(self, x: np.ndarray, r: np.ndarray, t: float) -> np.ndarray:
         """Chaque centre sur son cote : bassin reduit d'un rayon, ou plage hors du bassin."""

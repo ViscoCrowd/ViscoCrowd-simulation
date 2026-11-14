@@ -112,6 +112,84 @@ class TestProjection:
         assert PISCINE.violation(projete, r, 0.0) <= 1e-12
 
 
+class TestMontantsArrondis:
+    """#85 : un disque peut s'approcher du montant de la porte jusqu'au contact, pas moins.
+
+    Les centres admissibles sont ceux a un rayon au moins de chaque mur. Pres d'un
+    montant, cet ensemble a un bord en arc de cercle, de rayon r autour du coin du mur.
+    L'ancienne projection sur l'union « emprise reduite + couloir reduit » y laissait
+    un angle vif, ou la foule se bouchait en arches statiques (balayages M6, #84).
+    """
+
+    L, Y_BAS, Y_HAUT = 48.0, 9.65, 10.85  # mur de droite, montants de la porte
+
+    @staticmethod
+    def distance_aux_murs(x):
+        """Distance (m) de chaque centre au mur de droite, porte comprise, calculee a part.
+
+        Negative pour un centre dans l'epaisseur du mur, au-dela de x = L hors de la porte.
+        """
+        L, bas, haut = (
+            TestMontantsArrondis.L,
+            TestMontantsArrondis.Y_BAS,
+            TestMontantsArrondis.Y_HAUT,
+        )
+        segments = [
+            ((L, 0.0), (L, bas)),
+            ((L, haut), (L, 20.5)),
+            ((L, bas), (49.0, bas)),
+            ((L, haut), (49.0, haut)),
+        ]
+        distances = []
+        for (ax, ay), (bx, by) in segments:
+            a, b = np.array([ax, ay]), np.array([bx, by])
+            t = np.clip(((x - a) @ (b - a)) / ((b - a) @ (b - a)), 0.0, 1.0)
+            distances.append(np.hypot(*(x - (a + t[:, None] * (b - a))).T))
+        dans_le_mur = (x[:, 0] > L) & ((x[:, 1] < bas) | (x[:, 1] > haut))
+        return np.where(dans_le_mur, -1.0, 1.0) * np.min(distances, axis=0)
+
+    def test_centre_admissible_pres_du_montant_inchange(self):
+        """A 1,03 r du coin, le disque ne touche aucun mur : rien ne doit le deplacer."""
+        x = np.array(
+            [[self.L - 0.9 * R, self.Y_BAS + 0.5 * R], [self.L - 0.9 * R, self.Y_HAUT - 0.5 * R]]
+        )
+        r = np.full(2, R)
+        assert np.all(self.distance_aux_murs(x) >= R)
+        np.testing.assert_array_equal(PISCINE.projeter(x, r, 0.0), x)
+        assert PISCINE.violation(x, r, 0.0) == 0.0
+
+    def test_centre_trop_pres_du_montant_repousse_sur_l_arc(self):
+        """Repousse dans l'axe du coin, exactement a un rayon de lui : la projection exacte."""
+        coins = np.array([[self.L, self.Y_BAS], [self.L, self.Y_HAUT]])
+        x = coins + np.array([[-0.05, 0.05], [-0.05, -0.05]])
+        projete = PISCINE.projeter(x, np.full(2, R), 0.0)
+        ecart = projete - coins
+        np.testing.assert_allclose(np.hypot(*ecart.T), R, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(ecart / R, (x - coins) / np.hypot(*(x - coins).T)[:, None])
+
+    def test_projection_exacte_au_voisinage_de_la_porte(self):
+        """Tirages autour de la porte : resultat hors des murs, et deja admissible = inchange."""
+        x = generateur(85).uniform([46.5, 8.0], [49.0, 12.5], size=(20_000, 2))
+        r = np.full(x.shape[0], R)
+        projete = PISCINE.projeter(x, r, 0.0)
+        assert np.all(self.distance_aux_murs(projete) >= R - 1e-12)
+        assert PISCINE.violation(projete, r, 0.0) <= 1e-12
+        # Reprojeter ne bouge plus rien, a l'arrondi pres : un point pose sur l'arc peut
+        # en etre a 1e-16 m, et y etre ramene d'autant.
+        np.testing.assert_allclose(PISCINE.projeter(projete, r, 0.0), projete, rtol=0, atol=1e-12)
+        admissibles = self.distance_aux_murs(x) >= R
+        np.testing.assert_array_equal(projete[admissibles], x[admissibles])
+        # L'ensemble exact contient l'ancienne union « emprise reduite + couloir reduit » :
+        # sa projection ne deplace donc jamais plus loin que la projection sur cette union.
+        emprise = np.clip(x, [R, R], [self.L - R, 20.5 - R])
+        couloir = np.clip(x, [self.L - R, self.Y_BAS + R], [self.L + 1.0, self.Y_HAUT - R])
+        ancien = np.minimum(np.hypot(*(emprise - x).T), np.hypot(*(couloir - x).T))
+        assert np.all(np.hypot(*(projete - x).T) <= ancien + 1e-12)
+        assert np.any(
+            np.hypot(*(projete - x).T) < ancien - 1e-3
+        )  # et strictement moins pres des coins
+
+
 def test_carte_des_milieux():
     carte = CartePiscine(PISCINE)
     x = np.array([[15.0, 10.0], [28.5, 10.0], [31.0, 10.0], [31.5, 10.0], [40.0, 10.0]])
