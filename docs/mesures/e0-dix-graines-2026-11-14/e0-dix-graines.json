@@ -1,0 +1,1133 @@
+{
+ "version": 1,
+ "contexte": {
+  "code": {
+   "commit": "808ae355392d375640d6ffe636d8cf24e6f901c6",
+   "modifications_locales": false,
+   "source": "git"
+  },
+  "sources_sha256": "46ee45a4b61dd6a32169e3264b34b2c0402184d3827f3a9986784c3e43aa870f",
+  "python": "3.12.10",
+  "plateforme": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "versions": {
+   "numpy": "2.5.4",
+   "scipy": "1.18.1",
+   "matplotlib": "3.11.2",
+   "pyyaml": "6.0.3"
+  }
+ },
+ "largeurs": [
+  0.8,
+  0.9,
+  1.0,
+  1.1,
+  1.2
+ ],
+ "graines": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ],
+ "effectifs": {
+  "20": {
+   "mesures": {
+    "0.8": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.7507969328846673
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.758361299909156
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.7552234203658696
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.7444964491931036
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.75134772718189
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.7588156860382482
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.754443674761909
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.7424789827300053
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.7529998685545067
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.7707066538491105
+     }
+    ],
+    "0.9": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 2.0706917482657397
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 2.0686125549425363
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 2.077009564576089
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 2.1224600528546036
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 2.0997563208129524
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 2.0139122293096268
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 2.089731774560922
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 2.086257866880276
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.8846092596272201
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.9945444222195399
+     }
+    ],
+    "1.0": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.981441202361429
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 2.1003578243622574
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 2.11646600148248
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 2.147475960190499
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 2.116172523365228
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 2.136205809848947
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 2.16281646529298
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 2.1792604139328877
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 2.104461705661565
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 2.1574770208286878
+     }
+    ],
+    "1.1": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 2.178114918535287
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 2.1337784892278018
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 2.14963175534573
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.9729914873054761
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.861672481980523
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.9786044683692676
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.9476484024785625
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.9599049103949666
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 2.1727861689502355
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 2.003888843726117
+     }
+    ],
+    "1.2": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.9452776046849527
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.981618066804722
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.9158956559747196
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 2.0538331226661057
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 2.0601731419014198
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 2.062058533061692
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.9948445223739846
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 2.0633381549744154
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.9540171390555643
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 2.0752122597362606
+     }
+    ]
+   },
+   "ecart_moyen_3": 0.09718538613365765,
+   "ecart_moyen_10": 0.07334462386782538,
+   "ecart_moyen_triplets": [
+    0.09718538613365765,
+    0.0832167881613581,
+    0.07153630001558024,
+    0.058140871387909285,
+    0.05701141946634132,
+    0.05855974351154793,
+    0.07366899569369666,
+    0.0761160985709542
+   ]
+  },
+  "40": {
+   "mesures": {
+    "0.8": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.6870681686489475
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.6908139899783838
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.715836323085192
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.6805827494229588
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.6996424268706378
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.7145688305109674
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.7032893049340327
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.7082753389556653
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.6851236069504971
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.6855258969304523
+     }
+    ],
+    "0.9": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.883069101182572
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.7741751513423414
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.7819995834561217
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.7972667514370697
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.9205243567702126
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.8940849070381334
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.9085122458586503
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.7517424116112832
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.8734441558431647
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.8098406964264353
+     }
+    ],
+    "1.0": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.9998843538499944
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 2.0508023374778266
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.8804457465018674
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.968967281965849
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.9774059316696837
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 2.2266149954724974
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.8768984703501217
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.9791199371881476
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 2.175317700339766
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 2.060382763044792
+     }
+    ],
+    "1.1": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 2.1469213808541197
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 2.163301174184323
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 2.1044277440524892
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 2.131644333437757
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 2.1668349354090037
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 2.0697700411526436
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 2.162159972841059
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.9487277676895192
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 2.1692456947628753
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 2.0981512631122143
+     }
+    ],
+    "1.2": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.9049090710883843
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 2.051605056633607
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.9160689954614096
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.9254280967541975
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.978283199722578
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 2.0322407831194527
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.9282140686201765
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 2.0289542347867124
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.9670288333665118
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.877940081556722
+     }
+    ]
+   },
+   "ecart_moyen_3": 0.0660726262551273,
+   "ecart_moyen_10": 0.05741477520598739,
+   "ecart_moyen_triplets": [
+    0.0660726262551273,
+    0.07053073701425078,
+    0.06486393345559072,
+    0.05298600729231915,
+    0.052355473828825126,
+    0.05219895848113283,
+    0.056706801453125885,
+    0.05087626148803981
+   ]
+  },
+  "60": {
+   "mesures": {
+    "0.8": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.6463534335445436
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.6650923621689453
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.6589870151688606
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.668951391483336
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.678721567585714
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.6557485936959686
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.6678409824310776
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.6676059660154954
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.6759176795575592
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.6536330147414247
+     }
+    ],
+    "0.9": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.84393593559032
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.8343192121612109
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.8844381479563668
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.946355151479412
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.7236973297469267
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.9213295272210835
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.919901112484762
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.8788048512684339
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.849700171677188
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.84046611456765
+     }
+    ],
+    "1.0": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.9517568353916395
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.9462169810463426
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.9507354830518309
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 2.10071679752812
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.9634724855317771
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.9572647571961372
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 2.0274057674501016
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 2.0181506770874353
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.9790150372605446
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.788346191422623
+     }
+    ],
+    "1.1": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.9118661211330374
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.8977743182911804
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.9542625690608844
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.9414379687064287
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.9777531061710345
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.9519628798492896
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.9725060616080101
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.933305721123232
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.8120896633861339
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.8645291107790307
+     }
+    ],
+    "1.2": [
+     {
+      "graine": 1,
+      "statut": "ecoulement",
+      "debit": 1.8745504501557295
+     },
+     {
+      "graine": 2,
+      "statut": "ecoulement",
+      "debit": 1.761510004590586
+     },
+     {
+      "graine": 3,
+      "statut": "ecoulement",
+      "debit": 1.8521909466886766
+     },
+     {
+      "graine": 4,
+      "statut": "ecoulement",
+      "debit": 1.8436712749468263
+     },
+     {
+      "graine": 5,
+      "statut": "ecoulement",
+      "debit": 1.852136161459616
+     },
+     {
+      "graine": 6,
+      "statut": "ecoulement",
+      "debit": 1.8359094605023085
+     },
+     {
+      "graine": 7,
+      "statut": "ecoulement",
+      "debit": 1.7754568960911041
+     },
+     {
+      "graine": 8,
+      "statut": "ecoulement",
+      "debit": 1.7990156568619107
+     },
+     {
+      "graine": 9,
+      "statut": "ecoulement",
+      "debit": 1.953272902151114
+     },
+     {
+      "graine": 10,
+      "statut": "ecoulement",
+      "debit": 1.8867774231715488
+     }
+    ]
+   },
+   "ecart_moyen_3": 0.026827028050243597,
+   "ecart_moyen_10": 0.028048798772457972,
+   "ecart_moyen_triplets": [
+    0.026827028050243597,
+    0.03568330194501832,
+    0.03441257869524984,
+    0.034472767164608356,
+    0.03536833255306149,
+    0.04156790197343916,
+    0.036776535255875986,
+    0.025706206891479004
+   ]
+  }
+ },
+ "sans_reglage": {
+  "mesures": {
+   "0.8": [
+    {
+     "graine": 1,
+     "statut": "ecoulement",
+     "debit": 2.8109761610366526
+    },
+    {
+     "graine": 2,
+     "statut": "ecoulement",
+     "debit": 2.9054735971598404
+    },
+    {
+     "graine": 3,
+     "statut": "ecoulement",
+     "debit": 2.540637084618134
+    },
+    {
+     "graine": 4,
+     "statut": "ecoulement",
+     "debit": 2.7285104544276795
+    },
+    {
+     "graine": 5,
+     "statut": "ecoulement",
+     "debit": 3.430122965416692
+    },
+    {
+     "graine": 6,
+     "statut": "ecoulement",
+     "debit": 2.644623563465117
+    },
+    {
+     "graine": 7,
+     "statut": "ecoulement",
+     "debit": 3.2902136853163326
+    },
+    {
+     "graine": 8,
+     "statut": "ecoulement",
+     "debit": 3.5649030900595613
+    },
+    {
+     "graine": 9,
+     "statut": "ecoulement",
+     "debit": 3.4009568577613307
+    },
+    {
+     "graine": 10,
+     "statut": "bouchage",
+     "debit": NaN
+    }
+   ],
+   "0.9": [
+    {
+     "graine": 1,
+     "statut": "ecoulement",
+     "debit": 3.549131576717319
+    },
+    {
+     "graine": 2,
+     "statut": "ecoulement",
+     "debit": 3.268087285592546
+    },
+    {
+     "graine": 3,
+     "statut": "ecoulement",
+     "debit": 3.6602473091831182
+    },
+    {
+     "graine": 4,
+     "statut": "ecoulement",
+     "debit": 3.996538361595371
+    },
+    {
+     "graine": 5,
+     "statut": "ecoulement",
+     "debit": 3.8551065239196642
+    },
+    {
+     "graine": 6,
+     "statut": "ecoulement",
+     "debit": 3.5923391604240074
+    },
+    {
+     "graine": 7,
+     "statut": "ecoulement",
+     "debit": 3.759683445473261
+    },
+    {
+     "graine": 8,
+     "statut": "ecoulement",
+     "debit": 3.6904243563669876
+    },
+    {
+     "graine": 9,
+     "statut": "ecoulement",
+     "debit": 3.8115921501090897
+    },
+    {
+     "graine": 10,
+     "statut": "ecoulement",
+     "debit": 4.016871487599591
+    }
+   ],
+   "1.0": [
+    {
+     "graine": 1,
+     "statut": "ecoulement",
+     "debit": 4.181505646130049
+    },
+    {
+     "graine": 2,
+     "statut": "ecoulement",
+     "debit": 3.937580574001854
+    },
+    {
+     "graine": 3,
+     "statut": "ecoulement",
+     "debit": 4.139864005560139
+    },
+    {
+     "graine": 4,
+     "statut": "ecoulement",
+     "debit": 4.003612705481109
+    },
+    {
+     "graine": 5,
+     "statut": "ecoulement",
+     "debit": 4.2058631705096765
+    },
+    {
+     "graine": 6,
+     "statut": "ecoulement",
+     "debit": 4.014726741233842
+    },
+    {
+     "graine": 7,
+     "statut": "ecoulement",
+     "debit": 4.261970095626761
+    },
+    {
+     "graine": 8,
+     "statut": "ecoulement",
+     "debit": 4.379001924638483
+    },
+    {
+     "graine": 9,
+     "statut": "ecoulement",
+     "debit": 4.103840411208427
+    },
+    {
+     "graine": 10,
+     "statut": "ecoulement",
+     "debit": 4.26658238170612
+    }
+   ],
+   "1.1": [
+    {
+     "graine": 1,
+     "statut": "ecoulement",
+     "debit": 4.4709083542101595
+    },
+    {
+     "graine": 2,
+     "statut": "ecoulement",
+     "debit": 4.486589891293889
+    },
+    {
+     "graine": 3,
+     "statut": "ecoulement",
+     "debit": 4.3130916737468015
+    },
+    {
+     "graine": 4,
+     "statut": "ecoulement",
+     "debit": 4.541779878077116
+    },
+    {
+     "graine": 5,
+     "statut": "ecoulement",
+     "debit": 4.279884290205363
+    },
+    {
+     "graine": 6,
+     "statut": "ecoulement",
+     "debit": 3.9863767525599783
+    },
+    {
+     "graine": 7,
+     "statut": "ecoulement",
+     "debit": 4.3673788310871124
+    },
+    {
+     "graine": 8,
+     "statut": "ecoulement",
+     "debit": 4.171626159866089
+    },
+    {
+     "graine": 9,
+     "statut": "ecoulement",
+     "debit": 4.312263376785377
+    },
+    {
+     "graine": 10,
+     "statut": "ecoulement",
+     "debit": 4.598926442668046
+    }
+   ],
+   "1.2": [
+    {
+     "graine": 1,
+     "statut": "ecoulement",
+     "debit": 4.912844381531138
+    },
+    {
+     "graine": 2,
+     "statut": "ecoulement",
+     "debit": 4.598626975329077
+    },
+    {
+     "graine": 3,
+     "statut": "ecoulement",
+     "debit": 4.786834514884686
+    },
+    {
+     "graine": 4,
+     "statut": "ecoulement",
+     "debit": 5.107830451728204
+    },
+    {
+     "graine": 5,
+     "statut": "ecoulement",
+     "debit": 4.9402626838918
+    },
+    {
+     "graine": 6,
+     "statut": "ecoulement",
+     "debit": 4.586648019323726
+    },
+    {
+     "graine": 7,
+     "statut": "ecoulement",
+     "debit": 4.628281772431673
+    },
+    {
+     "graine": 8,
+     "statut": "ecoulement",
+     "debit": 4.831464059924458
+    },
+    {
+     "graine": 9,
+     "statut": "ecoulement",
+     "debit": 4.899454655505054
+    },
+    {
+     "graine": 10,
+     "statut": "ecoulement",
+     "debit": 4.846009697679406
+    }
+   ]
+  }
+ }
+}

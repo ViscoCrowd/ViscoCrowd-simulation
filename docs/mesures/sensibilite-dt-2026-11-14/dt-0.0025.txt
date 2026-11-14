@@ -1,0 +1,9 @@
+M9 — balayage de dt (s)
+  pas de temps (sensibilite numerique)
+Parametres fixes hors YAML : aucun ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis Delta t100 > 0
+  0.0025     51.29 ± 1.86    -0.024 ± 0.102    -0.004 ± 0.173    -0.029 ± 0.185     0.003 ± 0.013         0/0        8/10
+Mesures graine par graine : docs/mesures/sensibilite-dt-2026-11-14/dt-0.0025.json
+Temps d'execution : 477.5 s
