@@ -11,6 +11,28 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-14 — Compter le risque de bousculade par choc, et non par pas (#130)
+
+**Contexte.** L'entrée suivante montre que la bousculade dépend de Δt dans une évacuation.
+Diagnostic : à Δt = 0,01 et 0,005 s, les épisodes de compression au-dessus du seuil sont aussi
+fréquents (1,33 et 1,32 /s, porte de 0,8 m, graine 1) et aussi forts (0,66 et 0,65 m/s), mais
+chacun ne dure qu'**un pas**. Le risque λ · excès · Δt était donc proportionnel au pas.
+
+**Décision proposée.** Au premier pas d'un choc, le risque est compté sur une durée physique
+fixe, `duree_bousculade` (0,1 s, hypothèse) ; aux pas suivants d'un même choc, sur Δt. Un choc
+d'un pas a ainsi le même risque à Δt et à Δt/2, et une compression qui dure garde un taux par
+seconde. `λ_bousculade` reste à 0 par défaut : rien ne change dans la référence.
+
+**Mesure** (porte de 0,8 m, bousculade seule, λ = 2 /s, graines 1 à 10) : 39 chutes à
+Δt = 0,01 s, 47 à 0,005 s, écart apparié 0,8 ± 1,9 par évacuation, sans signe dominant (5 en
+hausse, 3 en baisse). Avant : 39 contre 21, en baisse sur 8 graines sur 10.
+
+*Écarté : une compression cumulée sur une fenêtre glissante.* Elle demande une durée de
+fenêtre, tout aussi arbitraire, et un historique par agent, pour le même effet sur des chocs
+d'un pas.
+
+---
+
 ## 2026-11-14 — Taux de chute et pas de temps : la bousculade en dépend (#130)
 
 **Statut.** Mesure, et proposition de Lenny pour la décision de #130, à valider par le groupe.

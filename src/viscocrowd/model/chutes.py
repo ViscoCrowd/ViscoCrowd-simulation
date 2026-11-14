@@ -59,6 +59,9 @@ class ParametresChutes:
             laquelle il n'y a pas de risque de trebucher, en m/s.
         seuil_bousculade: seuil d'intensite de correction de projection (en m/s)
             au-dela duquel le risque de chute par bousculade apparait.
+        duree_bousculade: duree d'exposition d'une bousculade, en s. Un choc ne dure
+            qu'un pas de temps, quel que soit dt (mesure du 14 novembre, #130) : le
+            risque d'un choc est donc compte sur cette duree fixe, et non sur dt.
 
     Valeurs par defaut non calibrees (docs/modele-chutes.md, section 8).
     """
@@ -75,6 +78,7 @@ class ParametresChutes:
     vitesse_min_domino: float = 0.1
     vitesse_approche_min: float = 0.05
     seuil_bousculade: float = 0.5
+    duree_bousculade: float = 0.1
 
     def __post_init__(self) -> None:
         for nom in (
@@ -89,6 +93,7 @@ class ParametresChutes:
             "vitesse_min_domino",
             "vitesse_approche_min",
             "seuil_bousculade",
+            "duree_bousculade",
         ):
             valeur = getattr(self, nom)
             if not (isinstance(valeur, (int, float)) and np.isfinite(valeur) and valeur > 0):
@@ -129,6 +134,9 @@ class GestionnaireChutes:
         self._positions_terre: dict[int, tuple[float, float]] = {}
         self._debut_chute: dict[int, float] = {}
         self._historique: list[EvenementChute] = []
+        # Agents comprimes au-dela du seuil au pas precedent : un choc qui dure n'est
+        # compte sur `duree_bousculade` qu'a son premier pas.
+        self._comprime = np.zeros(n_agents, dtype=bool)
 
     @property
     def a_terre(self) -> np.ndarray:
@@ -375,7 +383,17 @@ class GestionnaireChutes:
             exces_bousculade = np.maximum(
                 0.0, vitesse_compression / self.parametres.seuil_bousculade - 1.0
             )
-            p_bousculade = 1.0 - np.exp(-self.parametres.lambda_bousculade * exces_bousculade * dt)
+            # Exposition : `duree_bousculade` au premier pas d'un choc, dt aux suivants. Un
+            # choc d'un seul pas (le cas mesure) a ainsi le meme risque a dt et a dt/2.
+            globaux = idx[locaux_debout]
+            exposition = np.where(
+                self._comprime[globaux], dt, max(dt, self.parametres.duree_bousculade)
+            )
+            self._comprime[idx] = False
+            self._comprime[globaux] = exces_bousculade > 0.0
+            p_bousculade = 1.0 - np.exp(
+                -self.parametres.lambda_bousculade * exces_bousculade * exposition
+            )
             tirages_bousculade = self.rng.uniform(0.0, 1.0, size=locaux_debout.size)
 
             for i, loc in enumerate(locaux_debout):

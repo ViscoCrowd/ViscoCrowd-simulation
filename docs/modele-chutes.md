@@ -14,9 +14,9 @@ tâches sont suivies dans [#130](https://github.com/ViscoCrowd/ViscoCrowd-simula
 **Ce qui est implémenté.** Glissade (§ 1), chute par bousculade et compression (§ 2),
 état à terre et domino (§ 3), relevage (§ 4), contournement (§ 5) et observables de
 cascade (§ 6). À excès donné, le taux de chute ne dépend pas de Δt pour les trois mécanismes
-(glissade, domino, bousculade ; § 7). Mais dans une vraie évacuation, **la bousculade dépend
-de Δt** : diviser le pas par deux divise presque par deux ses chutes (§ 2, mesure du
-14 novembre). Elle doit rester éteinte tant que son indicateur n'est pas reformulé. `λ_chute`, `λ_domino`,
+(glissade, domino, bousculade ; § 7). Dans une vraie évacuation, la bousculade en dépendait :
+un choc ne dure qu'un pas, quel que soit Δt. Son risque est maintenant compté sur une durée
+fixe par choc, `duree_bousculade` (§ 2), et ne dépend plus du pas (mesure du 14 novembre). `λ_chute`, `λ_domino`,
 `r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) ;
 `λ_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est actif. Aucun chiffre
 obtenu avec ce module ne peut encore servir de résultat.
@@ -125,6 +125,14 @@ produite par le solveur.
   `docs/mesures/chutes-dt-2026-11-14/`. Tant que l'indicateur n'est pas reformulé (par exemple
   sur une compression cumulée sur une durée fixe, et non sur un pas), aucun chiffre de
   bousculade n'est un résultat.
+- *Pourquoi, et la correction (14 novembre).* Mesure sur la même porte (graine 1, Δt = 0,01 et
+  0,005 s) : les épisodes au-dessus du seuil sont aussi fréquents (1,33 et 1,32 /s) et aussi
+  forts (pic moyen 0,66 et 0,65 m/s) aux deux pas, mais chacun dure **exactement un pas**. Le
+  risque cumulé, λ · excès · Δt, était donc proportionnel à Δt. Il est maintenant compté sur
+  `duree_bousculade` (0,1 s, hypothèse) au premier pas d'un choc, puis sur Δt aux pas suivants.
+  Même mesure, λ = 2 /s : 39 chutes à Δt = 0,01 s, 47 à Δt = 0,005 s, écart apparié
+  0,8 ± 1,9 (5 graines en hausse, 3 en baisse) : plus d'effet systématique. Les valeurs de
+  λ_bousculade et de `duree_bousculade` restent sans source.
 
 ---
 
