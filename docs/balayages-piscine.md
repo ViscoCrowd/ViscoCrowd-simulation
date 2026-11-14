@@ -311,6 +311,35 @@ E1/E2 refaits sur la même configuration (`comparer-piscine`, graines 1 à 10) :
 médiane +0,014 s, positif sur 7 graines sur 10, la graine 5 seule s'écartant de −0,22 s.
 Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
 
+## Sensibilité au pas de temps sur la référence actuelle (M9, 14 novembre 2026)
+
+Le balayage de Δt du 2 novembre avait été fait sans régulation, avec l'ancienne porte. Refait
+sur la référence actuelle (régulation à T = 0,35 s, porte arrondie, a_max de l'eau à 1,67) :
+commit `3d6d43a`, sans modification locale, macOS arm64, graines 1 à 10, une valeur par
+processus. Bilans dans [`mesures/sensibilite-dt-2026-11-14/`](mesures/sensibilite-dt-2026-11-14/).
+
+| Δt (s) | t100 mouillé (s) | Δ t50 mouillé − sec (s) | Δ t100 (s) | Temps de calcul |
+|---|---|---|---|---|
+| 0,01 | 51,28 ± 1,87 | −0,014 ± 0,074 | −0,08 ± 0,17 | 173 s |
+| 0,005 | 51,27 ± 1,86 | −0,025 ± 0,099 | −0,03 ± 0,20 | 300 s |
+| 0,0025 | 51,29 ± 1,86 | −0,024 ± 0,102 | −0,03 ± 0,19 | 478 s |
+
+Écart apparié au pas de référence, graine par graine, comparé à l'erreur standard entre
+graines (critère 2 de `criteres-acceptation.md`) :
+
+| Grandeur | Δt/2 − Δt | Δt/4 − Δt | Erreur standard entre graines |
+|---|---|---|---|
+| t50 | +0,001 ± 0,049 s | +0,001 ± 0,059 s | 0,165 s |
+| t90 | −0,024 ± 0,103 s | −0,002 ± 0,108 s | 0,240 s |
+| t100 | −0,012 ± 0,169 s | +0,007 ± 0,169 s | 0,592 s |
+| J_s | +0,001 ± 0,010 | −0,000 ± 0,010 | 0,032 pers/(m·s) |
+
+**Le pas de 0,01 s suffit.** Tous les écarts restent 3 à 100 fois sous l'erreur standard
+entre graines. L'écart Δ t50 dû au mouillé bouge d'environ 0,01 s avec le pas, autant que sa
+propre valeur : à la référence, l'effet du mouillé n'est pas distinguable de l'erreur
+numérique, ce qui confirme qu'il n'y en a pas. Ce contrôle ne couvre que la référence ; les
+configurations à effet (#137) seraient à vérifier de la même façon avant d'être publiées.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
