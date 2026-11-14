@@ -1,25 +1,96 @@
 \section{Introduction}
+\label{sec:introduction}
 
-% L'introduction doit a minima presenter :
-%   - le probleme etudie, plus en detail que dans le resume ;
-%   - les idees principales de la modelisation ;
-%   - le plan suivi dans le rapport.
-% Un expose du contexte scientifique sur les approches possibles est un PLUS,
-% avec les references bibliographiques correspondantes.
+\subsection{Le problème étudié}
 
-\subsection{Le probleme etudie}
+Évacuer une piscine couverte n'est pas évacuer une salle. Quand l'alarme
+retentit, les baigneurs doivent d'abord sortir de l'eau, puis traverser une
+plage de carrelage, souvent mouillée, avant d'atteindre une issue. La foule
+traverse ainsi trois milieux successifs, aux propriétés mécaniques très
+différentes :
+\begin{enumerate}
+\item \textbf{le bassin}, où l'on progresse lentement. On n'en sort qu'en se
+  hissant sur le rebord, lentement mais n'importe où, ou par l'une des rares
+  échelles, plus rapides. Chaque point de sortie ne laisse passer qu'une
+  personne à la fois : c'est une \emph{extraction répartie} ;
+\item \textbf{la plage mouillée}, où l'adhérence réduite empêche de freiner ou
+  de tourner aussi vite qu'on le voudrait : c'est un terme d'\emph{inertie} ;
+\item \textbf{le sol sec}, qui mène à une porte unique où la foule se
+  concentre : c'est un \emph{goulot d'étranglement}.
+\end{enumerate}
+Chacun de ces mécanismes est étudié séparément dans la littérature. Leur
+enchaînement l'est beaucoup moins, alors que chacun modifie la façon dont le
+suivant est alimenté. D'où la question qui guide ce travail :
+\begin{quote}
+\emph{Comment la succession d'une extraction aquatique répartie et d'un goulot
+d'étranglement unique en milieu sec, couplée à l'inertie d'une zone de carrelage
+mouillé, altère-t-elle le diagramme fondamental débit--densité d'une foule en
+panique ?}
+\end{quote}
 
-% Evacuation d'urgence d'une piscine couverte. Decrire les trois milieux et
-% pourquoi leur enchainement est interessant.
+Deux mécanismes opposés sont plausibles, et les départager est le cœur du
+travail. Selon une \emph{hypothèse tampon}, l'extraction répartie et la
+traversée de la zone mouillée étalent les arrivées au goulot : la densité de
+pointe y diminue, et le débit augmente par rapport à une alimentation directe.
+Selon une \emph{hypothèse inertielle}, la faible adhérence empêche les personnes
+de régler leur approche : elles se rattrapent, se heurtent, et la densité au
+goulot augmente, au détriment du débit. Ce second mécanisme est apparenté à
+l'effet \emph{faster-is-slower}, où une foule plus pressée sort moins
+vite~\cite{helbing2000}.
 
 \subsection{Contexte scientifique}
 
-% Les deux grandes familles de modeles de foule : approches continues (la foule
-% comme un fluide) et approches particulaires (chaque individu est un objet).
-% Au sein des approches particulaires : forces sociales (Helbing) contre
-% contraintes dures (Maury et Venel). Dire pourquoi nous retenons la seconde.
-% Introduire le diagramme fondamental comme observable de reference.
+Les modèles de foule se rangent en deux grandes familles. Les approches
+\emph{continues} traitent la foule comme un fluide : une densité $\rho(\pos,t)$
+obéit à une loi de conservation, et la vitesse en chaque point dépend de la
+densité locale. Dans le modèle de Hughes~\cite{hughes2002}, chacun cherche le
+chemin de plus court temps de parcours compte tenu de la densité, ce qui conduit
+à une équation eikonale. Ces approches conviennent aux grandes foules, mais
+représentent mal un goulot de quelques personnes de large ou un point de
+franchissement qui ne laisse passer qu'une personne à la fois.
+
+Les approches \emph{particulaires}, que nous retenons, suivent chaque individu.
+Le modèle des forces sociales~\cite{helbing1995,helbing2000} en est la référence :
+chaque personne relaxe sa vitesse vers une vitesse souhaitée en un temps
+$\tau$, et des forces répulsives l'écartent des autres et des murs. Il
+reproduit l'effet \emph{faster-is-slower} et les arches qui se forment aux
+issues. Mais le contact y est une force : les personnes s'interpénètrent d'autant
+plus que la foule est comprimée, et cette pénétration dépend d'une raideur que
+rien ne mesure.
+
+Maury et Venel~\cite{maury2008,maury2011} traitent au contraire le contact comme
+une \emph{contrainte} : les personnes sont des disques rigides, et la vitesse
+souhaitée est projetée sur l'ensemble des mouvements qui n'en font pas se
+recouvrir. Le non-recouvrement est garanti par construction, sans paramètre de
+raideur, et la congestion est traitée naturellement. C'est le cadre du cours,
+et c'est le nôtre. Nous y ajoutons l'inertie : le modèle de Maury et Venel est
+du premier ordre, alors que l'effet du carrelage mouillé passe justement par
+une accélération bornée. Nous reprenons donc le temps de relaxation des forces
+sociales, borné par l'adhérence du sol, et la relation vitesse--espacement du
+modèle de Tordeux et al.~\cite{tordeux2016}, qui fait ralentir un piéton
+derrière celui qui le précède.
+
+Le \emph{diagramme fondamental}, qui relie la densité d'une foule à sa vitesse
+ou à son débit, est l'observable de référence pour confronter un modèle aux
+mesures. Weidmann~\cite{weidmann1993} en donne une synthèse pour la marche
+ordinaire, et Seyfried et al.~\cite{seyfried2009} mesurent le débit d'un goulot
+en fonction de sa largeur. Steffen et Seyfried~\cite{steffen2010} montrent qu'une
+densité calculée par cellules de Voronoï est bien moins bruitée qu'un simple
+comptage. Pour l'eau et le sol mouillé, nous nous appuyons sur la vitesse de
+marche dans l'eau de Shirvani et al.~\cite{shirvani2020} et sur les mesures
+d'adhérence pieds nus sur des sols de piscine de Kendzior~\cite{kendzior2023}.
 
 \subsection{Plan du rapport}
 
-% A rediger en dernier.
+La section suivante pose le modèle continu : état, guidage, milieux, exclusion
+et franchissements. La section~\ref{sec:discretisation} le discrétise, avec un
+schéma d'Euler semi-implicite et une projection itérative, et précise ce que ce
+schéma garantit. La section~\ref{sec:implementation} décrit l'organisation du
+code et la chaîne reproductible qui va de la configuration aux mesures. La
+section~\ref{sec:validation} valide le moteur et le modèle par des chiffres :
+cas analytiques, invariants physiques, sensibilité à la discrétisation et
+comparaison à la littérature. La section~\ref{sec:resultats} présente les
+campagnes, de l'étalonnage d'un goulot sec jusqu'à l'effet du sol mouillé dans la
+piscine, et la section~\ref{sec:conclusion} répond à la problématique et
+discute les limites du travail. Les annexes donnent la répartition des tâches
+dans le groupe et l'usage qui a été fait des outils.
