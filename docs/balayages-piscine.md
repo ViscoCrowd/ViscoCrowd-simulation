@@ -311,6 +311,45 @@ E1/E2 refaits sur la même configuration (`comparer-piscine`, graines 1 à 10) :
 médiane +0,014 s, positif sur 7 graines sur 10, la graine 5 seule s'écartant de −0,22 s.
 Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
 
+## Plage mouillée jusqu'à une porte saturée (14 novembre 2026)
+
+Le test que les sections précédentes réclamaient : mettre le sol glissant au contact de la
+file, devant une porte saturée. Commit `3d6d43a`, sans modification locale, macOS arm64 ;
+`experiments/piscine.yaml` de référence ; porte de 0,8 m (saturée, #128) ; graines 1 à 10.
+Bilans dans [`mesures/mouille-porte-saturee-2026-11-14/`](mesures/mouille-porte-saturee-2026-11-14/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre largeur_mouillee --valeurs 3 20 \
+  --fixer largeur_porte=0.8 --graines 1 2 3 4 5 6 7 8 9 10
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 3.3 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 --graines 1 2 3 4 5 6 7 8 9 10
+```
+
+| Configuration, porte de 0,8 m | t100 mouillé (s) | J_s mouillé | Δ t50 (s) | Δ t100 (s) | Δ t100 > 0 |
+|---|---|---|---|---|---|
+| Bande de 3 m, a_max 3,3 | 70,57 ± 0,90 | — | 0,02 ± 0,22 | 0,06 ± 0,52 | 5/10 |
+| Mouillé jusqu'à la porte, a_max 3,3 | 70,60 ± 0,83 | 2,24 ± 0,03 | 0,05 ± 0,19 | 0,09 ± 0,41 | 6/10 |
+| Mouillé jusqu'à la porte, a_max 2 | 72,99 ± 0,65 | 2,15 ± 0,01 | **0,92 ± 0,45** | **2,47 ± 0,51** | **10/10** |
+| Mouillé jusqu'à la porte, a_max 1 | 84,46 ± 1,18 | 1,81 ± 0,03 | **6,53 ± 0,87** | **13,95 ± 1,53** | **10/10** |
+
+Le témoin sec écoule 2,24 pers/(m·s) dans tous les cas.
+
+1. **Mouiller jusqu'à la porte ne suffit pas.** À l'adhérence de référence (0,34 g), l'écart
+   reste de quelques centièmes de seconde, sans signe dominant.
+2. **Avec une adhérence plus faible, l'inertie fait perdre du débit à la porte saturée.** À
+   2 m/s² (0,2 g), la porte perd 4 % de son débit et t100 recule de 2,5 s, sur les 10 graines.
+   À 1 m/s² (0,1 g), elle perd 19 % et l'évacuation s'allonge de 14 s (20 %). C'est
+   l'hypothèse inertielle de la problématique : des baigneurs qui freinent mal dans la file
+   se présentent moins régulièrement à la porte, qui écoule moins de monde.
+3. **Comparé à la même adhérence loin de la porte** (bande de 3 m, 2 novembre, sans
+   régulation) : à 1 m/s², Δ t50 ne valait que 0,38 s. C'est la proximité de la file qui
+   donne de l'ampleur à l'effet.
+
+Limite : 0,2 g et 0,1 g sont bien sous le seuil de glissance de Kendzior (0,34 g) ; ce sont des
+sols très glissants (savon, produit d'entretien), pas un carrelage mouillé ordinaire. La
+conclusion est donc : **dans ce modèle, le sol mouillé ne dégrade l'évacuation que s'il est très
+glissant et qu'il touche la file d'une porte saturée.**
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de

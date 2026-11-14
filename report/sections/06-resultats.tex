@@ -482,6 +482,39 @@ les interactions sont rares et que seul le mécanisme de relance écrêtée de l
 section~\ref{sec:e2} subsiste. Même à \SI{0.8}{\metre}, où la file freine devant une porte
 saturée, $\Delta t_{100} = \SI{0.06 \pm 0.52}{\second}$ : les \SI{17}{\metre} de sol sec qui
 séparent la bande mouillée de la porte effacent l'inertie avant le goulot. Dans cette
-géométrie, l'hypothèse inertielle ne se manifeste pas ; il faudrait une bande mouillée qui
-atteigne la zone d'accumulation devant une porte saturée, ou une adhérence bien plus faible,
-pour la mettre à l'épreuve.
+géométrie, l'hypothèse inertielle ne se manifeste pas.
+
+\paragraph{Une plage glissante jusqu'à une porte saturée fait apparaître l'inertie.}
+Pour la mettre à l'épreuve, on mouille la plage jusqu'à la porte saturée de
+\SI{0.8}{\metre}, puis on baisse l'adhérence du mouillé (tableau~\ref{tab:e4-inertie}).
+Mouiller jusqu'à la porte ne suffit pas : à l'adhérence de référence, l'écart reste de
+quelques centièmes de seconde. En revanche, dès que l'adhérence descend à
+\SI{2}{\metre\per\second\squared}, l'écart devient systématique (dix graines sur dix) :
+la porte perd \SI{4}{\percent} de son débit et la dernière sortie recule de
+\SI{2.5}{\second}. À \SI{1}{\metre\per\second\squared}, la porte perd \SI{19}{\percent}
+de son débit et l'évacuation s'allonge de \SI{14}{\second}, soit \SI{20}{\percent}. Les
+baigneurs qui freinent mal dans la file devant la porte s'y présentent de façon moins
+régulière, et la porte saturée écoule moins de monde : c'est le mécanisme de l'hypothèse
+inertielle. Il ne joue que si deux conditions sont réunies, une adhérence bien plus faible
+que le seuil de glissance de Kendzior (\num{0.34}~$g$) et un sol glissant au contact même de
+la file.
+
+\begin{table}[ht]
+\centering
+\caption{Plage mouillée jusqu'à la porte, porte saturée de \SI{0.8}{\metre} : effet de
+l'adhérence du mouillé. Dix graines, écart apparié mouillé -- sec. Reproduction :
+\texttt{viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence\_mouille
+--valeurs 1 2 3.3 --fixer largeur\_porte=0.8 largeur\_mouillee=20 --graines 1 2 3 4 5 6 7 8 9
+10}.}
+\label{tab:e4-inertie}
+\begin{tabular}{rrrrr}
+\toprule
+$a_{\max}$ mouillé (\si{\metre\per\second\squared}) & $J_s$ mouillé (pers/(m$\cdot$s)) &
+$\Delta t_{50}$ (s) & $\Delta t_{100}$ (s) & Graines $\Delta t_{100}>0$ \\
+\midrule
+3,3 (référence) & 2,24 (0,03) & 0,05 (0,19) & 0,09 (0,41) & 6/10 \\
+2 & 2,15 (0,01) & 0,92 (0,45) & 2,47 (0,51) & 10/10 \\
+1 & 1,81 (0,03) & 6,53 (0,87) & 13,95 (1,53) & 10/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
