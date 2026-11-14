@@ -24,27 +24,28 @@ diagnostic : les deux mesures diffèrent dès que la cadence des passages varie.
 \centering
 \caption{Débit spécifique du goulot, en personnes par mètre et par seconde.
 Estimateur de la publication, du premier au dernier passage. Moyenne et
-écart-type sur trois graines ; les 30 simulations sont des écoulements, sans
-bouchage ni projection non convergée.
-Reproduction : \texttt{viscocrowd etalonner-goulot experiments/goulot.yaml},
-avec \texttt{temps\_espacement} à \texttt{null} pour la première ligne.}
+écart-type sur dix graines. Sans réglage, la graine 10 se bouche à
+$b=\SI{0.8}{\metre}$ et la moyenne porte sur neuf écoulements ; les 99 autres
+simulations sont des écoulements, sans projection non convergée.
+Reproduction : \texttt{viscocrowd etalonner-goulot experiments/goulot.yaml --graines 1 2
+3 4 5 6 7 8 9 10}, avec \texttt{temps\_espacement} à \texttt{null} pour la première ligne.}
 \label{tab:e0}
 \begin{tabular}{lrrrrr}
 \toprule
 $b$ (m) & 0,8 & 0,9 & 1,0 & 1,1 & 1,2 \\
 \midrule
-Modèle sans réglage & 2,99 (0,10) & 3,94 (0,27) & 4,13 (0,52) & 4,37 (0,19) & 4,96 (0,19) \\
-Modèle, $T=\SI{0.35}{\second}$ & 1,66 (0,01) & 1,85 (0,03) & 1,95 (0,00) & 1,92 (0,03) & 1,83 (0,06) \\
+Modèle sans réglage & 3,04 (0,39) & 3,72 (0,22) & 4,15 (0,14) & 4,35 (0,18) & 4,81 (0,17) \\
+Modèle, $T=\SI{0.35}{\second}$ & 1,66 (0,01) & 1,86 (0,06) & 1,97 (0,08) & 1,92 (0,05) & 1,84 (0,06) \\
 Seyfried et al.~\cite{seyfried2009}, $N=60$ & 1,61 & 1,86 & 1,90 & 1,93 & 1,97 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Le débit croît avec $b$, comme dans l'expérience, mais il vaut 1,9 à 2,5 fois
-la mesure (tableau~\ref{tab:e0}). Ces moyennes de trois graines restent
-sensibles à l'état initial : une première foule, non symétrique par rapport à
-l'axe du goulot, les déplaçait jusqu'à \SI{15}{\percent}. Les campagnes
-utiliseront au moins dix graines. L'écart tient au modèle : un agent marche à sa
+Le débit croît avec $b$, comme dans l'expérience, mais il vaut 1,9 à 2,4 fois
+la mesure (tableau~\ref{tab:e0}). Ces moyennes portent sur dix graines : sur
+trois, elles restaient sensibles à l'état initial, et une première foule, non
+symétrique par rapport à l'axe du goulot, les déplaçait jusqu'à
+\SI{15}{\percent}. L'écart tient au modèle : un agent marche à sa
 vitesse souhaitée jusqu'au contact, que seule la projection arrête, et rien ne le
 fait ralentir derrière celui qui le précède. Au contact et à
 \SI{1.34}{\metre\per\second}, deux disques successifs ne sont séparés que de
@@ -73,15 +74,19 @@ par le champ eikonal, est plus court. Cette dernière condition est la nôtre. E
 ordonne strictement les agents, donc la relation « suivre » ne forme aucun cycle :
 le plus avancé d'un groupe n'attend jamais personne. Appliquée sans elle, la règle
 bouchait le goulot, car deux agents qui convergent s'attendaient l'un l'autre.
-Choisi sur une grille de pas \SI{0.05}{\second} avec $N=60$, $T=\SI{0.35}{\second}$
-ramène le débit à $-7$ à $+3$~\si{\percent} de la mesure selon la largeur
-(tableau~\ref{tab:e0}), contre \SI{7.8}{\percent} d'écart moyen à
-\SI{0.3}{\second} et \SI{4.2}{\percent} à \SI{0.4}{\second}. C'est une qualité
-d'ajustement, pas une validation. Sur les effectifs que l'ajustement n'a pas
-utilisés, le même $T$ s'écarte en moyenne de \SI{6.6}{\percent} pour $N=40$ et de
-\SI{9.7}{\percent} pour $N=20$, dont les mesures sont elles-mêmes irrégulières en
-$b$. Il retrouve le niveau moyen sur les cinq largeurs à \SI{2}{\percent} près, et la
-croissance du débit quand $N$ diminue. Diviser $\Delta t$ par deux change le débit de
+Choisi sur une grille de pas \SI{0.05}{\second} avec $N=60$ et trois graines
+(\SI{7.8}{\percent} d'écart moyen à \SI{0.3}{\second}, \SI{4.2}{\percent} à
+\SI{0.4}{\second}), $T=\SI{0.35}{\second}$ ramène le débit, sur dix graines, à $-6$ à
+$+4$~\si{\percent} de la mesure selon la largeur (tableau~\ref{tab:e0}), soit
+\SI{2.8}{\percent} d'écart moyen. C'est une qualité d'ajustement, pas une validation.
+Sur les effectifs que l'ajustement n'a pas utilisés, le même $T$ s'écarte en moyenne,
+sur dix graines, de \SI{5.7}{\percent} pour $N=40$ et de \SI{7.3}{\percent} pour
+$N=20$, dont les mesures sont des expériences uniques, elles-mêmes irrégulières en
+$b$. Trois graines ne suffisaient pas : selon le triplet retenu parmi les dix,
+l'écart moyen va de \SI{5.1}{\percent} à \SI{7.1}{\percent} pour $N=40$ et de
+\SI{5.7}{\percent} à \SI{9.7}{\percent} pour $N=20$. Le modèle retrouve le niveau
+moyen sur les cinq largeurs à \SI{2.2}{\percent} près, et la croissance du débit
+quand $N$ diminue (\num{1.85}, \num{1.93} puis \num{1.99} pour $N=60$, 40 et 20). Diviser $\Delta t$ par deux change le débit de
 \num{0.04}~personne par mètre et par seconde au plus, de l'ordre de l'écart entre
 graines.
 Notre modèle étant du second ordre
@@ -93,8 +98,10 @@ Son étalonnage ne porte que sur un protocole, en sol sec.
 Une première géométrie raccordait la salle et le goulot par un coin vif. Les
 foules s'y bouchaient en arches statiques à $b\leq\SI{1}{\metre}$, et un bruit
 sur la direction ne les cassait pas. Avec des angles d'entrée arrondis,
-calculés exactement par la projection, aucun bouchage n'apparaît : ce blocage
-était un artefact de la géométrie, non un comportement de la foule.
+calculés exactement par la projection, la régulation ne produit aucun bouchage
+sur les 150 simulations de dix graines ($N=20$, 40 et 60) : ce blocage était un
+artefact de la géométrie, non un comportement de la foule. Sans régulation, une
+arche se forme encore à $b=\SI{0.8}{\metre}$ sur une graine sur dix.
 
 \subsection{Effet de l'extraction repartie}
 \label{sec:e1}
@@ -166,8 +173,8 @@ sur aucune des dix graines. Sans la régulation, ce débit valait \num{3.20 \pm 
 correction des montants et le passage à \SI{1.67}{\metre\per\second\squared} dans l'eau) :
 freiner derrière un meneur le réduit d'environ \SI{30}{\percent} et divise son écart-type
 par cinq.
-Le débit reste au-dessus du goulot E0 régulé à même largeur (\num{1.83},
-moyenne sur trois graines du tableau~\ref{tab:e0}) et de la mesure de
+Le débit reste au-dessus du goulot E0 régulé à même largeur (\num{1.84},
+moyenne sur dix graines du tableau~\ref{tab:e0}) et de la mesure de
 Seyfried et al.\ (\num{1.97}). Le facteur de panique en explique une partie,
 mesurée sur E0. Ce banc est étalonné à la marche normale
 (\SI{1.34}{\metre\per\second}) ; relancé au facteur $1{,}5$ avec la même régulation, sur dix
@@ -451,7 +458,8 @@ rien dire de sa capacité.
 \centering
 \caption{E4 : effet du nombre $N$ de baigneurs, porte de \SI{1.2}{\metre}, témoin sec,
 dix graines (moyenne et écart-type). $\Delta t_{50}$ : écart apparié mouillé -- sec, et
-nombre de graines où il est positif. Reproduction : \texttt{viscocrowd balayer-piscine
+nombre de graines où il est positif. Avec la règle de déblocage des nageurs immobiles,
+qui ne change que la ligne $N=200$. Reproduction : \texttt{viscocrowd balayer-piscine
 experiments/piscine.yaml --parametre n\_agents --valeurs 50 100 150 200 --graines 1 2 3 4
 5 6 7 8 9 10}.}
 \label{tab:e4-population}
@@ -462,7 +470,7 @@ $N$ & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Flux (pers/s) & $\Delta t_{5
 50 & 24,84 (0,77) & 31,68 (0,83) & 34,21 (1,30) & 2,60 (0,17) & 0,012 (0,004), 10/10 \\
 100 & 31,44 (0,51) & 45,42 (0,66) & 51,36 (1,77) & 2,73 (0,11) & $-0{,}01$ (0,07), 7/10 \\
 150 & 39,43 (0,25) & 60,16 (0,95) & 67,89 (2,72) & 2,82 (0,13) & 0,05 (0,15), 8/10 \\
-200 & 47,61 (0,44) & 73,99 (0,56) & 84,78 (1,52) & 2,85 (0,05) & 0,07 (0,24), 8/10 \\
+200 & 47,61 (0,44) & 73,99 (0,56) & 84,73 (1,61) & 2,85 (0,06) & 0,07 (0,24), 7/10 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -482,6 +490,54 @@ les interactions sont rares et que seul le mécanisme de relance écrêtée de l
 section~\ref{sec:e2} subsiste. Même à \SI{0.8}{\metre}, où la file freine devant une porte
 saturée, $\Delta t_{100} = \SI{0.06 \pm 0.52}{\second}$ : les \SI{17}{\metre} de sol sec qui
 séparent la bande mouillée de la porte effacent l'inertie avant le goulot. Dans cette
-géométrie, l'hypothèse inertielle ne se manifeste pas ; il faudrait une bande mouillée qui
-atteigne la zone d'accumulation devant une porte saturée, ou une adhérence bien plus faible,
-pour la mettre à l'épreuve.
+géométrie, l'hypothèse inertielle ne se manifeste pas.
+
+\paragraph{Une plage glissante jusqu'à une porte saturée fait apparaître l'inertie.}
+Pour la mettre à l'épreuve, on mouille la plage jusqu'à la porte saturée de
+\SI{0.8}{\metre}, puis on baisse l'adhérence du mouillé (tableau~\ref{tab:e4-inertie}).
+Mouiller jusqu'à la porte ne suffit pas : à l'adhérence de référence, l'écart reste de
+quelques centièmes de seconde. En revanche, dès que l'adhérence descend à
+\SI{2}{\metre\per\second\squared}, l'écart devient systématique (dix graines sur dix) :
+la porte perd \SI{4}{\percent} de son débit et la dernière sortie recule de
+\SI{2.5}{\second}. À \SI{1}{\metre\per\second\squared}, la porte perd \SI{19}{\percent}
+de son débit et l'évacuation s'allonge de \SI{14}{\second}, soit \SI{20}{\percent}. C'est
+ce qu'annonce l'hypothèse inertielle. Dans le modèle, l'adhérence borne de la même façon le
+freinage, la relance et les virages, mais un baigneur qui freine mal ne perd rien : il bute sur
+celui qui le précède, et la projection l'arrête dans le pas. Ce qui coûte du débit, c'est la
+relance : repartir de l'arrêt demande $U/\tau \approx \SI{4}{\metre\per\second\squared}$,
+que le sec fournit. À \SI{1}{\metre\per\second\squared}, retrouver
+\SI{1}{\metre\per\second} prend \SI{1}{\second} au lieu de \SI{0.34}{\second}, et
+\SI{1.5}{\metre\per\second} prend \SI{1.5}{\second} au lieu de \SI{0.69}{\second}. Nous
+l'interprétons ainsi, sans l'avoir mesuré : dans le va-et-vient de la file, chaque baigneur
+repart plus lentement, et la porte saturée écoule moins de monde (relance écrêtée,
+section~\ref{sec:e2}). L'effet ne joue que si deux conditions sont réunies, une adhérence bien plus faible
+que le seuil de glissance de Kendzior (\num{0.34}~$g$) et un sol glissant au contact même de
+la file.
+
+\begin{table}[ht]
+\centering
+\caption{Plage mouillée jusqu'à la porte, porte saturée de \SI{0.8}{\metre} : effet de
+l'adhérence du mouillé. Dix graines, écart apparié mouillé -- sec. Reproduction :
+\texttt{viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence\_mouille
+--valeurs 1 2 3.3 --fixer largeur\_porte=0.8 largeur\_mouillee=20 --graines 1 2 3 4 5 6 7 8 9
+10}.}
+\label{tab:e4-inertie}
+\begin{tabular}{rrrrr}
+\toprule
+$a_{\max}$ mouillé (\si{\metre\per\second\squared}) & $J_s$ mouillé (pers/(m$\cdot$s)) &
+$\Delta t_{50}$ (s) & $\Delta t_{100}$ (s) & Graines $\Delta t_{100}>0$ \\
+\midrule
+3,3 (adhérence de référence) & 2,24 (0,03) & 0,05 (0,19) & 0,09 (0,41) & 6/10 \\
+2 & 2,15 (0,01) & 0,92 (0,45) & 2,47 (0,51) & 10/10 \\
+1 & 1,81 (0,03) & 6,53 (0,87) & 13,95 (1,53) & 10/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Un témoin attribue cet effet à la file. À la même adhérence de
+\SI{1}{\metre\per\second\squared}, mais sur la seule bande de \SI{3}{\metre}, loin de la
+porte, avec la même porte saturée et la même régulation, la porte garde son débit
+($\Delta J_s = \num{0.000 \pm 0.022}$~pers/(\si{\metre\second})) et la dernière sortie ne
+recule que de \SI{0.57 \pm 0.56}{\second}, contre \SI{13.95}{\second} quand le mouillé
+atteint la file. Ces écarts ne tiennent pas au pas de temps : à $\Delta t/2$,
+$\Delta t_{100}$ et $\Delta J_s$ ne bougent que de \SI{1}{\percent} de leur erreur standard.

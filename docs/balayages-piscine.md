@@ -25,6 +25,9 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; 0,35 s, étalonné sur E0 (#58), dans le YAML depuis le 10 novembre (#57). `temps_espacement: null` dans le YAML la désactive ; `--fixer` n'accepte pas `null` |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
+| `duree_rebord` | E4 | s | durée pour se hisser sur le rebord, à chaque site (4 s dans le YAML, hypothèse sans source) ; un rebord lent envoie aussi plus de nageurs aux échelles, puisque le guidage compte cette durée |
+| `duree_echelle` | E4 | s | durée de montée d'une échelle, à chaque site (2 s dans le YAML, hypothèse sans source) |
+| `adherence_eau` | M9 | m/s² | `a_max` dans l'eau : 0,34 g × un poids apparent supposé de moitié, soit 1,67 m/s² dans le YAML depuis #128 |
 
 **Balayer `lambda_chute` active les chutes.** `experiments/piscine.yaml` n'a pas de section
 `chutes` : le balayage la crée, et toutes les autres valeurs du module (domino, relevage,
@@ -36,6 +39,11 @@ inclusion dans le rendu le 3 novembre (#19), pas ses valeurs. Le témoin sec gar
 
 Le nombre d'échelles n'est pas balayé : il faudrait d'abord choisir où placer les échelles
 ajoutées, ce qui est un choix de scénario à faire en groupe.
+
+**Durées de franchissement.** Comme pour les autres paramètres, le témoin sec reçoit la même
+durée que le mouillé : Δ ne mesure toujours que le sol, et le témoin est recalculé à chaque
+valeur. Sur une vraie évacuation de trois agents (graine 1, facteur 1,5), passer le rebord
+de 1 s à 8 s retarde t100 de 21,6 s à 31,2 s (test `test_rebord_plus_lent_retarde_la_derniere_sortie`).
 
 ## Commande
 
@@ -290,7 +298,23 @@ Population (porte de 1,2 m, témoin sec ; Δ t50 et nombre de graines où il est
 | 50 | 24,84 ± 0,77 | 31,68 ± 0,83 | 34,21 ± 1,30 | 2,60 ± 0,17 | 0,012 ± 0,004, 10/10 |
 | 100 | 31,44 ± 0,51 | 45,42 ± 0,66 | 51,36 ± 1,77 | 2,73 ± 0,11 | −0,01 ± 0,07, 7/10 |
 | 150 | 39,43 ± 0,25 | 60,16 ± 0,95 | 67,89 ± 2,72 | 2,82 ± 0,13 | 0,05 ± 0,15, 8/10 |
-| 200 | 47,61 ± 0,44 | 73,99 ± 0,56 | 84,78 ± 1,52 | 2,85 ± 0,05 | 0,07 ± 0,24, 8/10 |
+| 200 | 47,61 ± 0,44 | 73,99 ± 0,56 | 84,73 ± 1,61 | 2,85 ± 0,06 | 0,07 ± 0,24, 7/10 |
+
+La ligne N = 200 est celle de la relance du 14 novembre, avec la règle de déblocage active
+(#131) : elle se déclenche sur quelques évacuations régulées à 200 baigneurs et y avance la
+dernière sortie (t100 de 84,78 ± 1,52 à 84,73 ± 1,61 s, Δ t50 positif sur 7 graines au lieu
+de 8). Les lignes 50 à 150 sont inchangées aux arrondis du tableau. Commit `7a96db1`, sans
+modification locale, macOS arm64 ; bilans dans
+[`mesures/deblocage-2026-11-14/`](mesures/deblocage-2026-11-14/), avec un contrôle sans la règle
+sur la même machine (`sans-regle/`), qui sépare deux causes d'écart :
+
+- **la règle** ne change aucune évacuation du balayage de largeur de porte (`tab:e4-porte` reste
+  valable) et 10 des 80 évacuations du balayage de population : au plus 0,006 s sur t100, sauf
+  deux à N = 200 (−0,49 s, sec, graine 4 ; −0,76 s, mouillé, graine 8) ;
+- **la plateforme** : sans la règle, macOS et Windows (bilans du 13 novembre) diffèrent sur 16
+  des 160 évacuations, de 0,002 s au plus sur t100 pour la population et de 0,024 s pour la
+  porte. Les résultats ne sont donc pas identiques au bit près d'une machine à l'autre ; les
+  tableaux, arrondis au centième, n'en sont pas affectés.
 
 Ce qu'on en retient :
 
@@ -310,6 +334,215 @@ E1/E2 refaits sur la même configuration (`comparer-piscine`, graines 1 à 10) :
 51,36 ± 1,77 s, mouillé = 51,28 ± 1,87 s, J_s = 2,28 ± 0,09 pers/(m·s) ; Δ t50 = −0,01 ± 0,07 s,
 médiane +0,014 s, positif sur 7 graines sur 10, la graine 5 seule s'écartant de −0,22 s.
 Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
+
+## Sensibilité au pas de temps sur la référence actuelle (M9, 14 novembre 2026)
+
+Le balayage de Δt du 2 novembre avait été fait sans régulation, avec l'ancienne porte. Refait
+sur la référence actuelle (régulation à T = 0,35 s, porte arrondie, a_max de l'eau à 1,67) :
+commit `3d6d43a`, sans modification locale, macOS arm64, graines 1 à 10, une valeur par
+processus. Bilans dans [`mesures/sensibilite-dt-2026-11-14/`](mesures/sensibilite-dt-2026-11-14/).
+
+| Δt (s) | t100 mouillé (s) | Δ t50 mouillé − sec (s) | Δ t100 (s) | Temps de calcul |
+|---|---|---|---|---|
+| 0,01 | 51,28 ± 1,87 | −0,014 ± 0,074 | −0,08 ± 0,17 | 173 s |
+| 0,005 | 51,27 ± 1,86 | −0,025 ± 0,099 | −0,03 ± 0,20 | 300 s |
+| 0,0025 | 51,29 ± 1,86 | −0,024 ± 0,102 | −0,03 ± 0,19 | 478 s |
+
+Écart apparié au pas de référence, graine par graine, comparé à l'erreur standard entre
+graines (critère 2 de `criteres-acceptation.md`) :
+
+| Grandeur | Δt/2 − Δt | Δt/4 − Δt | Erreur standard entre graines |
+|---|---|---|---|
+| t50 | +0,001 ± 0,049 s | +0,001 ± 0,059 s | 0,165 s |
+| t90 | −0,024 ± 0,103 s | −0,002 ± 0,108 s | 0,240 s |
+| t100 | −0,012 ± 0,169 s | +0,007 ± 0,169 s | 0,592 s |
+| J_s | +0,001 ± 0,010 | −0,000 ± 0,010 | 0,032 pers/(m·s) |
+
+La problématique porte sur les écarts Δ mouillé − sec. Pour un Δ, l'erreur standard qui
+compte est celle de Δ lui-même (écart-type des Δ par graine / √10), bien plus petite que
+celle des grandeurs brutes, puisque l'appariement retire la variabilité commune :
+
+| Écart mouillé − sec | Δt/2 − Δt | Δt/4 − Δt | Erreur standard de Δ | Rapport à Δt/2 |
+|---|---|---|---|---|
+| Δ t50 | −0,011 ± 0,029 s | −0,010 ± 0,041 s | 0,023 s | 0,47 |
+| Δ t90 | −0,016 ± 0,050 s | +0,021 ± 0,098 s | 0,046 s | 0,34 |
+| Δ t100 | +0,048 ± 0,144 s | +0,048 ± 0,097 s | 0,053 s | 0,91 |
+| Δ J_s | −0,003 ± 0,009 | −0,003 ± 0,006 | 0,0037 pers/(m·s) | 0,80 |
+
+**Le pas de 0,01 s suffit, mais de peu pour les écarts.** Sur les grandeurs brutes, les écarts
+moyens restent au moins 10 fois sous l'erreur standard entre graines (t90 à Δt/2), et plus de
+100 fois pour t50. Sur les écarts Δ, ils restent sous l'erreur standard de Δ, mais à un
+rapport de 0,3 à 0,9 : à la référence, l'erreur numérique sur Δ t100 est du même ordre que
+son incertitude statistique. L'effet du mouillé y est donc plus petit que la résolution
+numérique et statistique : on peut seulement le borner à quelques centièmes de seconde sur
+t50 (−0,014 ± 0,053 s, intervalle de confiance à 95 % sur 10 graines), pas dire qu'il est
+nul. Ce contrôle ne couvre que la référence ; les configurations à effet (#137) sont à
+vérifier de la même façon avant d'être publiées.
+
+## Sensibilité à τ et à la vitesse sur le mouillé (14 novembre 2026)
+
+Commit `3d6d43a` (empreinte des sources `d1387660…`), sans modification locale, macOS arm64 ;
+`experiments/piscine.yaml` de
+référence (régulation à T = 0,35 s, porte arrondie, a_max de l'eau à 1,67) ; graines 1 à 10 ;
+une valeur par processus. Le balayage de τ change τ sur les trois sols **et** sur le témoin ;
+celui de la vitesse sur le mouillé ne touche que le mouillé. Bilans dans
+[`mesures/sensibilite-2026-11-14/`](mesures/sensibilite-2026-11-14/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.3 \
+  --graines 1 2 3 4 5 6 7 8 9 10 --sortie relaxation-0.3.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre vitesse_mouille --valeurs 0.7 \
+  --graines 1 2 3 4 5 6 7 8 9 10 --sortie vitesse-mouille-0.7.json
+```
+
+| Paramètre | t100 mouillé (s) | Δ t50 (s) | Δ t50 > 0 | Δ t50 / t50 | Δ t100 (s) |
+|---|---|---|---|---|---|
+| τ = 0,3 s | 47,67 ± 1,56 | 0,081 ± 0,028 | 10/10 | 0,27 % | 0,20 ± 0,35 |
+| τ = 0,5 s (référence, E2 de #128) | 51,28 ± 1,87 | −0,01 ± 0,07 | 7/10 | — | — |
+| τ = 0,8 s | 56,60 ± 3,17 | 0,000 ± 0,000 | 2/10 | 0 % | 0,01 ± 0,03 |
+| s mouillé = 1,0 m/s | 51,31 ± 1,41 | 0,73 ± 0,51 | 9/10 | 2,3 % | −0,05 ± 1,02 |
+| s mouillé = 0,7 m/s | 51,70 ± 1,36 | 1,49 ± 0,76 | 10/10 | 4,5 % | 0,34 ± 1,13 |
+
+Ce qu'on en retient, avec les critères proposés dans `criteres-acceptation.md` :
+
+1. **Un τ plus court renforce l'effet inertiel, sans le rendre pertinent.** À τ = 0,3 s, une
+   relance demande |U − v| / τ ≈ 6,7 m/s², au-delà même de l'adhérence du sec : le mouillé
+   écrête plus souvent, et Δ t50 est positif sur les 10 graines. Il reste de 0,08 s, soit
+   0,27 % de t50. À τ = 0,8 s, la relance demande 2,5 m/s², sous l'adhérence du mouillé :
+   aucun effet. L'effet inertiel du modèle dépend donc de τ, qui n'a pas de source pour le
+   mouillé, mais reste petit sur toute la plage.
+2. **Le seul effet pertinent est la marche plus lente sur le mouillé.** Si l'on marche à
+   1,0 ou 0,7 m/s sur le carrelage mouillé (au lieu de 1,34), la première moitié sort
+   0,7 à 1,5 s plus tard (2,3 à 4,5 % de t50, 9 et 10 graines sur 10). Ce n'est pas un effet
+   d'inertie, mais un effet de prudence, que le modèle impose par hypothèse. Il se prédit à
+   la main : traverser la bande de ℓ = 3 m à κ s au lieu de κ × 1,34 m/s (κ = 1,5, facteur de
+   panique) coûte ℓ (1/(κ s) − 1/(κ × 1,34)), soit **1,36 s** à s = 0,7 m/s (1,49 s mesurés)
+   et **0,51 s** à s = 1,0 m/s (0,73 s mesurés). Le reste vient des baigneurs sortis par le
+   haut et le bas du bassin, qui longent la bande sur plus de 3 m, et de la relance. L'effet
+   est cinématique, non inertiel.
+3. **Sur la fin de l'évacuation, l'effet se dilue.** Δ t100 change de signe d'une graine à
+   l'autre, avec un écart-type de 1 s : la porte et l'extraction de l'eau imposent le rythme.
+
+**Niveau de panique, avec la régulation.** Le balayage du 2 novembre avait été fait sans
+régulation. Refait le 14 novembre sur la même référence, depuis le commit de branche
+`29fbca7`, qui ne change que de la documentation : les bilans portent l'empreinte des
+sources `d1387660…`, la même que `3d6d43a`. C'est elle qui reste vérifiable une fois la
+branche supprimée.
+
+| Facteur | t100 mouillé (s) | J_s porte (pers/(m·s)) | Δ t50 (s) | Δ t50 > 0 |
+|---|---|---|---|---|
+| 1 | 62,16 ± 1,33 | 1,98 | 0,000 ± 0,000 | 3/10 |
+| 1,25 | 55,83 ± 1,48 | 2,14 | 0,000 ± 0,001 | 6/10 |
+| 1,5 (référence, E2 de #128) | 51,28 ± 1,87 | 2,28 | −0,01 ± 0,07 | 7/10 |
+| 2 | 47,09 ± 2,58 | 2,39 | 0,095 ± 0,085 | 9/10 |
+
+4. **Avec la régulation, la panique accélère toujours l'évacuation**, jusqu'au facteur 2 :
+   pas d'effet *faster-is-slower* dans cette plage, la porte de 1,2 m n'étant pas saturée.
+5. **L'effet inertiel du mouillé grandit avec la vitesse** : nul jusqu'au facteur 1,25 (une
+   relance demande alors au plus 3,4 m/s², à peine plus que l'adhérence du mouillé), il atteint
+   0,1 s au facteur 2. Il reste sous le seuil de pertinence de 1 %.
+
+## Plage mouillée jusqu'à une porte saturée (14 novembre 2026)
+
+Le test que les sections précédentes réclamaient : mettre le sol glissant au contact de la
+file, devant une porte saturée. Commit `3d6d43a`, sans modification locale, macOS arm64 ;
+`experiments/piscine.yaml` de référence ; porte de 0,8 m (saturée, #128) ; graines 1 à 10.
+Bilans dans [`mesures/mouille-porte-saturee-2026-11-14/`](mesures/mouille-porte-saturee-2026-11-14/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre largeur_mouillee --valeurs 3 20 \
+  --fixer largeur_porte=0.8 --graines 1 2 3 4 5 6 7 8 9 10
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 3.3 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 --graines 1 2 3 4 5 6 7 8 9 10
+```
+
+| Configuration, porte de 0,8 m | t100 mouillé (s) | J_s mouillé | Δ t50 (s) | Δ t100 (s) | Δ t100 > 0 |
+|---|---|---|---|---|---|
+| Bande de 3 m, a_max 3,3 | 70,57 ± 0,90 | — | 0,02 ± 0,22 | 0,06 ± 0,52 | 5/10 |
+| Mouillé jusqu'à la porte, a_max 3,3 | 70,60 ± 0,83 | 2,24 ± 0,03 | 0,05 ± 0,19 | 0,09 ± 0,41 | 6/10 |
+| Mouillé jusqu'à la porte, a_max 2 | 72,99 ± 0,65 | 2,15 ± 0,01 | **0,92 ± 0,45** | **2,47 ± 0,51** | **10/10** |
+| Mouillé jusqu'à la porte, a_max 1 | 84,46 ± 1,18 | 1,81 ± 0,03 | **6,53 ± 0,87** | **13,95 ± 1,53** | **10/10** |
+
+Le témoin sec écoule 2,24 pers/(m·s) dans tous les cas.
+
+1. **Mouiller jusqu'à la porte ne suffit pas.** À l'adhérence de référence (0,34 g), l'écart
+   reste de quelques centièmes de seconde, sans signe dominant.
+2. **Avec une adhérence plus faible, l'inertie fait perdre du débit à la porte saturée.** À
+   2 m/s² (0,2 g), la porte perd 4 % de son débit et t100 recule de 2,5 s, sur les 10 graines.
+   À 1 m/s² (0,1 g), elle perd 19 % et l'évacuation s'allonge de 14 s (20 %). C'est
+   ce qu'annonce l'hypothèse inertielle de la problématique. Dans le modèle, a_max borne la
+   norme de (U − v)/τ : freinage, relance et virages sont limités de la même façon. Mais un
+   baigneur qui freine mal ne perd rien, puisque la projection l'arrête contre celui qui le
+   précède. Ce qui coûte du débit, c'est la **relance** : repartir de l'arrêt demande
+   U/τ ≈ 4 m/s², que le sec fournit ; à 1 m/s², retrouver 1 m/s prend 1 s au lieu de 0,34 s,
+   et 1,5 m/s prend 1,5 s au lieu de 0,69 s. Interprétation, non mesurée : dans le
+   va-et-vient de la file, chaque baigneur repart plus lentement, et la porte saturée écoule
+   moins de monde. C'est le mécanisme de relance écrêtée du rapport (§ 6, `sec:e2`).
+3. **Comparé à la même adhérence loin de la porte** (bande de 3 m, porte de 1,2 m,
+   2 novembre, sans régulation) : à 1 m/s², Δ t50 ne valait que 0,38 s. C'est la proximité de la file qui
+   donne de l'ampleur à l'effet.
+
+Limite : 0,2 g et 0,1 g sont bien sous le seuil de glissance de Kendzior (0,34 g) ; ce sont des
+sols très glissants (savon, produit d'entretien), pas un carrelage mouillé ordinaire. La
+conclusion est donc : **dans ce modèle, le sol mouillé ne dégrade l'évacuation que s'il est très
+glissant et qu'il touche la file d'une porte saturée.**
+
+## Témoin : la même adhérence loin de la file (14 novembre 2026)
+
+La section précédente change deux choses à la fois : l'adhérence et l'étendue du mouillé. Pour
+attribuer l'effet à la file, il faut la même adhérence faible **loin** de la porte, avec la même
+porte saturée et la même régulation. La comparaison du 2 novembre (bande de 3 m, 1 m/s²) ne
+convient pas : porte de 1,2 m, sans régulation, code antérieur. Même configuration que la
+section précédente, bande de 3 m de la référence. Commit `29fbca7` (empreinte des sources
+`d1387660…`, identique à `3d6d43a`), sans modification locale, Windows 11, Python 3.12 ;
+graines 1 à 10. Bilans dans
+[`mesures/temoin-inertie-2026-11-14/`](mesures/temoin-inertie-2026-11-14/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 \
+  --fixer largeur_porte=0.8 --graines 1 2 3 4 5 6 7 8 9 10
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.005 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 adherence_mouille=1 --graines 1 2 3 4 5 6 7 8 9 10
+```
+
+| Porte de 0,8 m, a_max mouillé | Bande de 3 m : Δ t100 (s) | Δ J_s | Δ t100 > 0 | Mouillé jusqu'à la porte : Δ t100 (s) | Δ J_s |
+|---|---|---|---|---|---|
+| 1 m/s² | 0,57 ± 0,56 | −0,000 ± 0,022 | 9/10 | 13,95 ± 1,53 | −0,433 ± 0,044 |
+| 2 m/s² | 0,26 ± 0,36 | −0,005 ± 0,014 | 8/10 | 2,47 ± 0,51 | −0,090 ± 0,020 |
+
+(Δ J_s en pers/(m·s), écart apparié mouillé − sec ; colonnes de droite : section précédente.)
+
+1. **Loin de la file, la porte saturée ne perd rien.** À 1 m/s² sur la seule bande de 3 m, son
+   débit est inchangé à 10⁻³ près, et la dernière sortie ne recule que de 0,6 s : les baigneurs
+   quittent la bande un peu plus tard, puis la porte les écoule au même rythme.
+2. **L'effet de la section précédente vient donc de la file sur sol glissant.** À la même
+   adhérence, la porte ne perd du débit que lorsque le mouillé l'atteint, et Δ t100 est 24 fois
+   plus grand (13,95 s contre 0,57 s). Une porte saturée écoule au rythme de la file qui la
+   presse : c'est cette file, sur sol glissant, qui passe moins vite.
+3. **Ce que le témoin ne sépare pas.** Avec `largeur_mouillee=20`, toute la plage côté porte
+   est glissante, pas seulement la file. Le point 2 repose sur la saturation : la bande de 3 m
+   retarde les arrivées sans changer le débit de la porte, donc ce débit dépend de ce qui se
+   passe devant elle. Un mouillé limité aux abords de la porte demanderait une autre géométrie
+   de la bande, que le scénario ne permet pas aujourd'hui.
+
+**Pas de temps.** Même configuration qu'à la ligne 1 m/s² de la section précédente, à
+Δt = 0,005 s, apparié graine par graine au bilan de cette section (Δt = 0,01 s, macOS).
+Les graines 1 et 2 de ce bilan, relancées sous Windows, donnent des résultats identiques au
+bit près. Ce n'est pas vrai partout : sur 160 évacuations, #131 trouve 16 écarts entre macOS et
+Windows, au plus 0,024 s sur t100. L'effet du pas ci-dessous peut donc contenir un écart de
+plateforme de cet ordre, 40 fois plus petit que sa dispersion entre graines (0,98 s sur Δ t100).
+
+| Écart mouillé − sec | Δt = 0,01 s | Δt = 0,005 s | Effet du pas | Erreur standard de Δ |
+|---|---|---|---|---|
+| Δ t50 (s) | 6,53 ± 0,87 | 6,07 ± 0,77 | −0,45 ± 0,81 | 0,27 |
+| Δ t90 (s) | 12,93 ± 1,20 | 12,96 ± 1,13 | +0,03 ± 0,93 | 0,38 |
+| Δ t100 (s) | 13,95 ± 1,53 | 13,95 ± 1,27 | +0,005 ± 0,98 | 0,48 |
+| Δ J_s (pers/(m·s)) | −0,433 ± 0,044 | −0,433 ± 0,035 | +0,000 ± 0,028 | 0,014 |
+
+Δ t100 et Δ J_s ne dépendent pas du pas : leur moyenne bouge de 1 % de leur erreur standard.
+Δ t50 bouge de 0,45 s, 1,7 fois son erreur standard, sans être significatif sur 10 graines
+(t = 1,8). Avec le critère 2 proposé dans `criteres-acceptation.md` (#134), Δ t50 de cette
+configuration se publie au pas de 0,005 s, ou avec cet écart.
 
 ## Portée et limites
 
