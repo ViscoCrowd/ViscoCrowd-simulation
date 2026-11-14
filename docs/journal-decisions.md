@@ -11,6 +11,36 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-14 — Taux de chute et pas de temps : la bousculade en dépend (#130)
+
+**Statut.** Mesure, et proposition de Lenny pour la décision de #130, à valider par le groupe.
+
+**Contexte.** #130 demande de calibrer le module de chutes et de décider de son activation
+avant la campagne finale. L'un de ses critères : le taux de chute ne dépend pas de Δt, pour
+chaque mécanisme activé. Ce n'était vérifié que pour la glissade.
+
+**Mesure.**
+- *À excès donné*, les trois mécanismes vérifient l'indépendance à Δt (`tests/test_chutes.py`,
+  Δt = 0,02 et 0,01 s, 50 graines) : glissade 6,0 /s, domino 1,2 /s (urgence 0,3), bousculade
+  2,0 /s (vitesse de compression fixée à 1 m/s), chacun à 10 % du taux théorique.
+- *Dans une évacuation*, la bousculade n'est pas indépendante de Δt : son excès se calcule sur
+  la correction d'un seul pas, divisée par Δt. Porte de 0,8 m, bousculade seule active
+  (λ = 20 /s), graines 1 à 10 : 39 chutes à Δt = 0,01 s, 21 à Δt = 0,005 s, moins sur
+  8 graines sur 10. Sur la référence (1,2 m, λ = 2 /s), elle est presque absente (3 contre 1).
+
+**Proposition pour #130.**
+1. Garder le module **désactivé** dans les campagnes de référence et dans les conclusions du
+   rapport : aucun de ses taux n'a de source, et la bousculade dépend du pas de temps.
+2. Garder `λ_bousculade` à 0 tant que l'indicateur n'est pas reformulé sur une durée physique
+   (compression cumulée sur un temps fixe, par exemple) au lieu d'un pas.
+3. Présenter la glissade et le domino, si on les montre, comme un **balayage exploratoire** de
+   `λ_chute` (déjà outillé, #104), avec un témoin sec qui garde les mêmes chutes.
+
+*Écarté : calibrer λ_chute sur un taux « plausible » sans source.* Ce serait ajuster le module
+pour obtenir un résultat attendu.
+
+---
+
 ## 2026-11-13 — Arrondir les montants de la porte de la piscine (#85)
 
 **Contexte.** Les balayages M6 du 2 novembre bouchaient la porte en arches statiques

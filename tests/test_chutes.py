@@ -431,3 +431,78 @@ def test_cas_limite_sans_chute():
     )
     assert len(chutes) == 0
     assert g.nombre_a_terre == 0
+
+
+def _taux_force_debout(p, dt, appel, n_graines=50, duree=10.0, preparer=None):
+    """Taux de chutes par seconde d'un agent remis debout a chaque pas (processus stationnaire).
+
+    `appel(gestionnaire, t, dt)` fait un pas ; `preparer(gestionnaire)` pose l'etat initial.
+    Seules les chutes de l'agent 0 sont comptees.
+    """
+    total = 0
+    n_pas = round(duree / dt)
+    for g in range(n_graines):
+        gest = GestionnaireChutes(2, p, graine=g)
+        if preparer is not None:
+            preparer(gest)
+        for pas in range(n_pas):
+            gest._a_terre[0] = False
+            gest._fin_relevage[0] = np.nan
+            gest._positions_terre.pop(0, None)
+            appel(gest, pas * dt, dt)
+        total += sum(1 for e in gest.historique if e.agent == 0)
+    return total / (n_graines * duree)
+
+
+def test_independance_au_pas_de_temps_domino():
+    """Section 7 (1), pour le domino (#130) : taux = lambda_domino * urgence, quel que soit dt.
+
+    Un agent au sol en (0,85 ; 0) m, un agent debout a l'origine a 1 m/s vers lui. Distance
+    d'arret v^2 / (2 a_max) = 0,5 m ; jeu au corps 0,85 - 0,2 - 1,5 x 0,2 = 0,35 m ; urgence
+    1 - 0,35 / 0,5 = 0,3, d'ou 4,0 x 0,3 = 1,2 chute/s.
+    """
+    p = ParametresChutes(lambda_chute=1e-12, lambda_domino=4.0)
+    x, v = np.array([[0.0, 0.0]]), np.array([[1.0, 0.0]])
+
+    def preparer(gest):
+        gest.faire_tomber(1, 0.0, "pose", (0.85, 0.0))
+        gest._fin_relevage[1] = np.inf  # reste au sol pendant toute la mesure
+
+    def appel(gest, t, dt):
+        gest.mettre_a_jour(
+            t, dt, x, v, v, np.array([1.0]), np.array([0.5]), np.array([0.2]), indices=[0]
+        )
+
+    taux = [_taux_force_debout(p, dt, appel, preparer=preparer) for dt in (0.02, 0.01)]
+    assert taux[0] == pytest.approx(1.2, rel=0.1)
+    assert taux[1] == pytest.approx(1.2, rel=0.1)
+    assert abs(taux[0] - taux[1]) < 0.15
+
+
+def test_independance_au_pas_de_temps_bousculade():
+    """Section 7 (1), pour la bousculade (#130) : taux = lambda * exces, quel que soit dt.
+
+    La correction de projection vaut 1 m/s x dt : vitesse de compression 1 m/s, exces
+    1 / 0,5 - 1 = 1, d'ou 2,0 chutes/s avec lambda_bousculade = 2.
+    """
+    p = ParametresChutes(lambda_chute=1e-12, lambda_domino=1e-12, lambda_bousculade=2.0)
+    x = v = np.array([[0.0, 0.0]])
+
+    def appel(gest, t, dt):
+        gest.mettre_a_jour(
+            t,
+            dt,
+            x,
+            v,
+            v,
+            np.array([3.3]),
+            np.array([0.5]),
+            np.array([0.2]),
+            indices=[0],
+            correction_projection=np.array([[1.0 * dt, 0.0]]),
+        )
+
+    taux = [_taux_force_debout(p, dt, appel) for dt in (0.02, 0.01)]
+    assert taux[0] == pytest.approx(2.0, rel=0.1)
+    assert taux[1] == pytest.approx(2.0, rel=0.1)
+    assert abs(taux[0] - taux[1]) < 0.25

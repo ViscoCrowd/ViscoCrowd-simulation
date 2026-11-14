@@ -1,0 +1,22 @@
+# bousculade_dt.py experiments/piscine.yaml, commit 3d6d43a, macOS arm64, Python 3.14.4, 14 novembre 2026.
+# Reference regulee, bousculade seule active (lambda 2 /s), graines 1 a 10.
+dt 0.005 graine  1 :   0 chutes par bousculade, t100 51.88 s, taux 0.000 /s
+dt 0.005 graine  2 :   0 chutes par bousculade, t100 53.17 s, taux 0.000 /s
+dt 0.005 graine  3 :   0 chutes par bousculade, t100 51.47 s, taux 0.000 /s
+dt 0.005 graine  4 :   0 chutes par bousculade, t100 52.14 s, taux 0.000 /s
+dt 0.005 graine  5 :   0 chutes par bousculade, t100 47.67 s, taux 0.000 /s
+dt 0.005 graine  6 :   0 chutes par bousculade, t100 52.13 s, taux 0.000 /s
+dt 0.005 graine  7 :   0 chutes par bousculade, t100 53.62 s, taux 0.000 /s
+dt 0.005 graine  8 :   0 chutes par bousculade, t100 51.61 s, taux 0.000 /s
+dt 0.005 graine  9 :   0 chutes par bousculade, t100 50.14 s, taux 0.000 /s
+dt 0.005 graine 10 :   1 chutes par bousculade, t100 48.84 s, taux 0.020 /s
+dt 0.010 graine  1 :   0 chutes par bousculade, t100 51.87 s, taux 0.000 /s
+dt 0.010 graine  2 :   0 chutes par bousculade, t100 53.10 s, taux 0.000 /s
+dt 0.010 graine  3 :   0 chutes par bousculade, t100 51.52 s, taux 0.000 /s
+dt 0.010 graine  4 :   0 chutes par bousculade, t100 52.09 s, taux 0.000 /s
+dt 0.010 graine  5 :   0 chutes par bousculade, t100 47.75 s, taux 0.000 /s
+dt 0.010 graine  6 :   2 chutes par bousculade, t100 52.44 s, taux 0.038 /s
+dt 0.010 graine  7 :   0 chutes par bousculade, t100 53.52 s, taux 0.000 /s
+dt 0.010 graine  8 :   0 chutes par bousculade, t100 51.57 s, taux 0.000 /s
+dt 0.010 graine  9 :   0 chutes par bousculade, t100 50.01 s, taux 0.000 /s
+dt 0.010 graine 10 :   1 chutes par bousculade, t100 48.47 s, taux 0.021 /s
