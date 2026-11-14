@@ -145,6 +145,44 @@ class TestAppariement:
         mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
         assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
 
+    @pytest.mark.parametrize(
+        ("parametre", "nature", "autre", "duree_autre"),
+        [("duree_rebord", "rebord", "echelle", 2.0), ("duree_echelle", "echelle", "rebord", 4.0)],
+    )
+    def test_duree_de_franchissement_appliquee_au_mouille_et_au_temoin(
+        self, configuration, appels, parametre, nature, autre, duree_autre
+    ):
+        """La duree change pour le mouille ET le temoin : Delta ne mesure que le sol.
+
+        Le temoin depend donc de la valeur, et il est recalcule a chaque valeur.
+        """
+        balayage.balayer(configuration, parametre, [1.0, 6.0], [1])
+
+        assert len(appels) == 4  # deux valeurs, un mouille et un temoin chacune
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        temoins = [p for p in appels if p.piscine.largeur_mouillee == 0]
+        assert sorted(p.durees[nature] for p in mouilles) == [1.0, 6.0]
+        assert sorted(p.durees[nature] for p in temoins) == [1.0, 6.0]
+        # L'autre nature de site garde la duree du YAML.
+        assert {p.durees[autre] for p in appels} == {duree_autre}
+
+    def test_duree_negative_refusee_avant_calcul(self, configuration, appels):
+        with pytest.raises(ValueError, match="durees"):
+            balayage.balayer(configuration, "duree_rebord", [4.0, -1.0], [1])
+        assert appels == []
+
+    def test_adherence_eau_sans_toucher_au_mouille_ni_au_sec(self, configuration, appels):
+        """Seul a_max de l'eau change, pour le mouille comme pour le temoin."""
+        balayage.balayer(configuration, "adherence_eau", [1.0, 1.67], [1])
+
+        assert sorted({p.parametres_milieux[Milieu.EAU].acceleration_max for p in appels}) == [
+            1.0,
+            1.67,
+        ]
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
+        assert {p.parametres_milieux[Milieu.SEC].acceleration_max for p in appels} == {5.9}
+
     def test_relaxation_plus_courte_que_dt_refusee_avant_calcul(self, configuration, appels):
         with pytest.raises(ValueError, match="relaxation"):
             balayage.balayer(configuration, "relaxation", [0.5, 0.005], [1])
@@ -275,6 +313,19 @@ class TestSimulationReelle:
 
         assert not point.equivaut_au_sec
         assert point.ecart[0, balayage.MESURES.index("t100")] > 0.1  # s
+
+    def test_rebord_plus_lent_retarde_la_derniere_sortie(self, configuration):
+        """Le balayage des durees voit leur effet : 1 s contre 8 s sur le rebord.
+
+        Mesure le 13 novembre, graine 1, trois agents au facteur 1,5 : t100 passe de
+        21,6 s a 31,2 s. Le seuil de 5 s laisse une marge sans accepter une duree ignoree.
+        """
+        config = configuration | {"parametres": configuration["parametres"] | {"n_agents": 3}}
+        rapide, lent = balayage.balayer(config, "duree_rebord", [1.0, 8.0], [1])
+
+        t100 = balayage.MESURES.index("t100")
+        assert lent.mouille[0, t100] - rapide.mouille[0, t100] > 5.0  # s
+        assert lent.temoin[0, t100] - rapide.temoin[0, t100] > 5.0  # s
 
     def test_evacuation_inachevee_conservee_sans_debit(self, configuration):
         """5 s ne suffisent a personne : rien n'est moyenne sur les seuls agents sortis."""

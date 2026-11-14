@@ -7,7 +7,8 @@ Au point de reference, le sol mouille ne change rien de mesurable (#83) : a
 du YAML, pour tracer les courbes de reponse de la spec § 4 :
 
   - E3 : largeur de la bande mouillee et adherence du mouille ;
-  - E4 : niveau de panique, largeur de la porte et population.
+  - E4 : niveau de panique, largeur de la porte, population et durees de
+    franchissement du rebord et des echelles.
 
 Mesure appariee
 ---------------
@@ -138,6 +139,24 @@ PARAMETRES = {
     # Pas un parametre physique : il sert a verifier que les ecarts ne dependent pas
     # du pas de temps (spec § 5), et a fixer un pas plus fin quand la panique l'exige.
     "dt": ParametreBalaye("M9", "s", "pas de temps (sensibilite numerique)", ("dt",)),
+    # Les durees de franchissement n'ont aucune source (piscine.yaml) : la spec § 4
+    # demande de mesurer leur influence. Elles pesent aussi sur le guidage, puisque
+    # phi_eau = T_k + phi_plage : un rebord lent envoie plus de nageurs aux echelles.
+    # Le temoin recoit la meme duree, si bien que Delta ne mesure toujours que le sol.
+    "duree_rebord": ParametreBalaye(
+        "E4", "s", "duree pour se hisser sur le rebord, a chaque site", ("durees", "rebord")
+    ),
+    "duree_echelle": ParametreBalaye(
+        "E4", "s", "duree de montee d'une echelle, a chaque site", ("durees", "echelle")
+    ),
+    # 0,34 g x poids apparent ~0,5 : le poids apparent est une hypothese (journal du
+    # 6 novembre 2026) ; 1,67 m/s^2 dans le YAML depuis la relance du 13 novembre (#128).
+    "adherence_eau": ParametreBalaye(
+        "M9",
+        "m/s^2",
+        "acceleration maximale dans l'eau (hypothese de poids apparent, sensibilite)",
+        ("parametres_milieux", "EAU", "acceleration_max"),
+    ),
 }
 
 

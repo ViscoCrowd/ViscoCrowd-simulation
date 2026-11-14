@@ -25,6 +25,9 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; 0,35 s, étalonné sur E0 (#58), dans le YAML depuis le 10 novembre (#57). `temps_espacement: null` dans le YAML la désactive ; `--fixer` n'accepte pas `null` |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
+| `duree_rebord` | E4 | s | durée pour se hisser sur le rebord, à chaque site (4 s dans le YAML, hypothèse sans source) ; un rebord lent envoie aussi plus de nageurs aux échelles, puisque le guidage compte cette durée |
+| `duree_echelle` | E4 | s | durée de montée d'une échelle, à chaque site (2 s dans le YAML, hypothèse sans source) |
+| `adherence_eau` | M9 | m/s² | `a_max` dans l'eau : 0,34 g × un poids apparent supposé de moitié, soit 1,67 m/s² dans le YAML depuis #128 |
 
 **Balayer `lambda_chute` active les chutes.** `experiments/piscine.yaml` n'a pas de section
 `chutes` : le balayage la crée, et toutes les autres valeurs du module (domino, relevage,
@@ -35,6 +38,11 @@ avec ce module ne peut servir de résultat avant la décision de #19. Le témoin
 
 Le nombre d'échelles n'est pas balayé : il faudrait d'abord choisir où placer les échelles
 ajoutées, ce qui est un choix de scénario à faire en groupe.
+
+**Durées de franchissement.** Comme pour les autres paramètres, le témoin sec reçoit la même
+durée que le mouillé : Δ ne mesure toujours que le sol, et le témoin est recalculé à chaque
+valeur. Sur une vraie évacuation de trois agents (graine 1, facteur 1,5), passer le rebord
+de 1 s à 8 s retarde t100 de 21,6 s à 31,2 s (test `test_rebord_plus_lent_retarde_la_derniere_sortie`).
 
 ## Commande
 
