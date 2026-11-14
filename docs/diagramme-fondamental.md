@@ -51,3 +51,58 @@ Vitesse moyenne de la classe autour de 1 pers/m², par largeur : 0,36 m/s (b = 0
 - **À densité égale, la vitesse dépend de la largeur du goulot**, du simple au double entre 0,8 et 1,2 m. Devant un goulot, l'écoulement est réglé par la capacité du goulot, et non par la seule densité locale. Une partie de cet écart tient aussi à la vidange : un goulot large vide la salle plus vite, si bien qu'à 1 pers/m² on ne compare pas le même moment de l'évacuation.
 - **Ce n'est donc pas une comparaison dans le domaine de Weidmann.** Ses relations valent « sans contrainte extérieure », pour une marche unidirectionnelle (p. 64). L'entonnoir devant un goulot n'en relève pas. Ces chiffres ne valident ni ne réfutent le modèle face à Weidmann. Ils décrivent la file d'attente devant un goulot.
 - **Pour comparer dans le domaine de Weidmann**, il faudrait une mesure en écoulement libre unidirectionnel, par exemple dans le couloir, à plusieurs densités imposées. C'est la prochaine étape proposée dans #124, avec la mesure devant la porte de la piscine.
+
+---
+
+# Devant la porte de la piscine : mouillé contre sec (#124)
+
+La question de la problématique : le carrelage mouillé déplace-t-il le diagramme fondamental devant la porte ? `viscocrowd diagramme-piscine` mesure la densité et la vitesse de Voronoï devant la porte, pour la piscine mouillée (E2) et pour le témoin entièrement sec (E1), appariés graine par graine (`scenarios/diagramme_piscine.py`).
+
+```bash
+viscocrowd diagramme-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10 \
+  --sortie data/m8/piscine.json
+viscocrowd diagramme-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10 \
+  --fixer largeur_porte=0.8 --sortie data/m8/piscine-0.8.json
+```
+
+## Méthode
+
+- **Salle de Voronoï.** La plage n'est pas convexe, puisque le bassin y fait un trou. On prend donc le rectangle de la plage qui va de 10 m avant le mur de la porte jusqu'à ce mur, sur toute la largeur (`x ∈ [38 ; 48] m`). Il ne contient ni le bassin ni les points de réintroduction : la commande refuse tout recul qui les atteindrait, et tout obstacle dans la salle. Les nageurs, les agents sur un bord, les agents déjà sortis et les plagistes plus loin de la porte n'ont pas de cellule. La mesure est exacte près de la porte, et approchée sur le bord gauche du rectangle, à 8 m de la zone.
+- **Zone.** 1,8 m sur 2 m devant la porte, centrée sur son axe, à 0,2 m du mur, comme celle de E0.
+- **Instants.** Toute l'évacuation, un instant toutes les 0,1 s. Comme pour E0, il n'y a pas de phase stationnaire : la file se forme puis se vide.
+
+## Résultats du 14 novembre 2026
+
+Code du commit `0ff523d` (les bilans indiquent `modifications_locales: true`, car ce module a été mesuré juste avant d'être commité, sans autre changement), sur la branche de #126, à jour avec `dev` après #128. macOS arm64, Python 3.14.4. Graines 1 à 10, 20 évacuations par largeur. Bilans dans [`mesures/diagramme-piscine-2026-11-14/`](mesures/diagramme-piscine-2026-11-14/).
+
+**Porte de 1,2 m (référence), 8 339 points.** Pas de file : la porte n'est jamais saturée (E4, #128).
+
+| ρ (pers/m²) | Points sec / mouillé | v sec (m/s) | v mouillé (m/s) | v Weidmann |
+|---|---|---|---|---|
+| 0,12 | 2615 / 2574 | 1,97 ± 0,11 | 1,97 ± 0,11 | 1,34 |
+| 0,38 | 1264 / 1292 | 1,60 ± 0,27 | 1,61 ± 0,26 | 1,33 |
+| 0,62 | 248 / 256 | 1,28 ± 0,20 | 1,28 ± 0,20 | 1,25 |
+| 0,88 | 40 / 38 | 1,12 ± 0,17 | 1,13 ± 0,17 | 1,13 |
+
+**Porte de 0,8 m (saturée), 12 189 points.** Une branche congestionnée apparaît.
+
+| ρ (pers/m²) | Points sec / mouillé | v sec (m/s) | v mouillé (m/s) | v Weidmann |
+|---|---|---|---|---|
+| 0,12 | 1066 / 1092 | 1,68 ± 0,45 | 1,67 ± 0,46 | 1,34 |
+| 0,38 | 302 / 281 | 0,92 ± 0,44 | 0,96 ± 0,43 | 1,33 |
+| 0,62 | 628 / 776 | 0,69 ± 0,19 | 0,67 ± 0,17 | 1,25 |
+| 0,88 | 2973 / 2863 | 0,58 ± 0,07 | 0,58 ± 0,08 | 1,13 |
+| 1,12 | 757 / 707 | 0,54 ± 0,10 | 0,54 ± 0,10 | 0,99 |
+| 1,38 | 264 / 276 | 0,50 ± 0,07 | 0,50 ± 0,07 | 0,87 |
+| 1,62 | 88 / 92 | 0,46 ± 0,09 | 0,45 ± 0,09 | 0,75 |
+| 1,88 | 14 / 10 | 0,39 ± 0,03 | 0,40 ± 0,03 | 0,65 |
+
+(Écart-type = dispersion des états, pas incertitude. Classes de 0,25 pers/m², centre de classe indiqué.)
+
+## Ce que ces mesures disent, et ce qu'elles ne disent pas
+
+- **Le carrelage mouillé ne déplace pas le diagramme devant la porte**, ni à 1,2 m ni à 0,8 m : dans chaque classe, les vitesses du sec et du mouillé diffèrent de quelques centièmes de m/s, bien moins que leur dispersion. C'est cohérent avec E1/E2 et E4 (§ 6 du rapport) : la bande mouillée est à 17 m de la porte, et les agents l'ont quittée bien avant la file.
+- **À 1,2 m, la zone ne voit presque que de la marche libre.** Sous 0,5 pers/m², la vitesse vaut celle souhaitée en panique (2,0 m/s), au-dessus de Weidmann, qui décrit une marche ordinaire.
+- **À 0,8 m, la file freine fort.** Entre 0,6 et 1,9 pers/m², la vitesse vaut 45 à 60 % de celle de Weidmann. Ce n'est pas une comparaison dans son domaine (foule contrainte par une porte saturée, en panique), mais c'est la branche congestionnée que la problématique demande de comparer entre sec et mouillé.
+- **La densité reste modérée** (sous 2 pers/m²) parce que la zone couvre aussi les côtés de la porte, où la foule est plus clairsemée qu'en son centre. Une zone plus étroite, sur l'axe, donnerait des densités plus fortes : c'est l'un des choix à discuter.
+- Une bande mouillée qui atteint la porte saturée (`--fixer largeur_porte=0.8 largeur_mouillee=20`) est la configuration où l'hypothèse inertielle aurait le plus de chances d'apparaître. Elle n'est pas mesurée ici.
