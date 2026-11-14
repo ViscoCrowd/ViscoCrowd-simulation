@@ -251,6 +251,13 @@ capacité d'un agent :
   site libre l'occupe. Quand plusieurs couples (agent, site) sont possibles, ils
   sont servis du plus proche au plus éloigné, si bien que l'attribution dépend
   des positions et non de la numérotation des agents ;
+\item après cette attribution, un nageur immobile (moins de
+  \SI{1}{\milli\metre\per\second}) depuis \SI{2}{\second}, à moins de
+  \SI{0.65}{\metre} du point d'attente d'un site encore libre, le saisit : un
+  diamètre plus la portée, à bout de bras. Cette règle de déblocage défait les
+  réseaux serrés qui se forment à un diamètre du point d'attente d'une échelle,
+  où aucun nageur n'est à portée ; tant qu'aucun nageur n'est bloqué, elle ne
+  change rien ;
 \item l'agent est immobilisé sur le bord pendant $T_k$, hors de la contrainte
   d'exclusion : \SI{4.0}{\second} pour se hisser sur le rebord,
   \SI{2.0}{\second} pour monter une échelle ;
@@ -265,8 +272,8 @@ sortie est interpolé sur la ligne. Le nombre d'agents dans chacun des quatre
 états change, mais leur somme reste égale à $N$ ; cette conservation est
 vérifiée à chaque pas (section~\ref{sec:validation}).
 
-Un module de chutes (glissade, propagation en domino, relevage et contournement
-d'une personne à terre) existe dans le code. Il est désactivé dans toutes les
+Un module de chutes (glissade, bousculade, propagation en domino, relevage et
+contournement d'une personne à terre) existe dans le code. Il est désactivé dans toutes les
 simulations de ce rapport et ses taux ne sont pas calibrés : il n'intervient
 dans aucun résultat présenté.
 
@@ -285,6 +292,9 @@ Les hypothèses à garder en tête pour lire les résultats sont les suivantes :
   compression n'est modélisée ;
 \item les durées de franchissement et le poids apparent dans l'eau sont des
   hypothèses non sourcées, dont l'influence reste à mesurer par balayage ;
+\item le délai, la portée et le seuil d'immobilité du déblocage sont aussi des
+  hypothèses sans source ; la règle n'agit qu'en cas de blocage, une fois sur
+  vingt évacuations de la référence, sans en changer les sorties ;
 \item le temps d'espacement $T$ est étalonné sur un goulot sec, à la marche
   normale ; il est appliqué tel quel au facteur de panique $1{,}5$ et dans
   l'eau. Ce transfert n'est pas neutre : au facteur $1{,}5$, le même goulot
