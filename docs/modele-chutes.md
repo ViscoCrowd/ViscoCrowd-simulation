@@ -116,8 +116,9 @@ produite par le solveur.
   dépasser le seuil sans foule. L'indicateur mesure une compression, pas uniquement une
   bousculade.
 - *Le taux dépend de Δt (mesuré le 14 novembre, #130).* La forme `1 − exp(−λ · excès · Δt)`
-  garantit l'indépendance à excès donné (test du § 7), mais ici l'excès dépend lui-même de Δt,
-  puisque la correction est divisée par Δt. Mesure : porte de 0,8 m (saturée), bousculade
+  garantit l'indépendance à excès donné (test du § 7). Mais un choc ne dure qu'un pas, quel que
+  soit Δt : son exposition, et donc son risque, sont proportionnels au pas (diagnostic dans
+  #135). Mesure : porte de 0,8 m (saturée), bousculade
   seule active (λ = 20 /s), graines 1 à 10. À Δt = 0,01 s, 39 chutes (3,9 ± 1,6 par
   évacuation) ; à Δt = 0,005 s, 21 chutes (2,1 ± 1,0), moins sur 8 graines sur 10. Sur la
   référence (porte de 1,2 m, λ = 2 /s), elle est presque absente (3 chutes contre 1 sur
@@ -228,7 +229,13 @@ Aux critères déjà prévus s'ajoutent :
    probabilité. Relancer à Δt/2 et Δt/4 : le taux de chute par seconde doit être stable.
    *Fait à excès donné pour les trois mécanismes* (`tests/test_chutes.py` : glissade, domino et
    bousculade, Δt = 0,02 et 0,01 s, à 10 % du taux théorique). *Dans une évacuation*, la
-   bousculade ne le vérifie pas (§ 2).
+   bousculade ne le vérifie pas (§ 2). Elle seule est en cause, pour une raison de structure :
+   la glissade et le domino lisent un état qui relaxe en τ ≫ Δt. Après un choc, `|v_d − v|`
+   relaxe en τ = 0,5 s, soit 50 pas, et l'urgence du domino dépend de `v` et des distances,
+   continues d'un pas à l'autre : leur exposition dure un temps physique. La bousculade lit
+   la correction d'un seul pas, et un choc mou est absorbé en un pas, quel que soit Δt. Ce
+   n'est pas une mesure en évacuation pour la glissade et le domino, mais cela suffit pour en
+   présenter un balayage exploratoire.
 2. **Cas limite sans chute** — en fixant μ très grand, le modèle doit redonner **exactement** les
    résultats du modèle sans chute. Un écart signale un couplage parasite.
 3. **Cohérence de la distribution de relevage** — vérifier sur un grand nombre de tirages que la
