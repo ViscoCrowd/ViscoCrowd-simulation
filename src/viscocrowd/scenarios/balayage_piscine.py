@@ -113,7 +113,8 @@ PARAMETRES = {
         "E3",
         "1/s",
         "taux de chute par perte d'adherence (active le module de chutes, avec ses autres "
-        "valeurs par defaut non calibrees : aucun chiffre n'est un resultat avant #19)",
+        "valeurs par defaut non calibrees : inclusion validee (#19), aucun chiffre n'est un "
+        "resultat avant calibration)",
         ("chutes", "lambda_chute"),
     ),
     "temps_espacement": ParametreBalaye(
@@ -171,7 +172,7 @@ def _remplacer(table: dict, chemin: tuple[str, ...], valeur) -> dict:
 
     Un champ absent ou nul est cree : balayer `lambda_chute` sur un YAML sans section
     `chutes` active ainsi le module de chutes, toutes ses autres valeurs restant celles
-    par defaut de `ParametresChutes`, non calibrees (docs/modele-chutes.md, #19).
+    par defaut de `ParametresChutes`, non calibrees (docs/modele-chutes.md).
     """
     tete, *reste = chemin
     sous_table = table.get(tete)
