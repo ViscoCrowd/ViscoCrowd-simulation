@@ -335,6 +335,50 @@ E1/E2 refaits sur la même configuration (`comparer-piscine`, graines 1 à 10) :
 médiane +0,014 s, positif sur 7 graines sur 10, la graine 5 seule s'écartant de −0,22 s.
 Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
 
+## Sensibilité au pas de temps sur la référence actuelle (M9, 14 novembre 2026)
+
+Le balayage de Δt du 2 novembre avait été fait sans régulation, avec l'ancienne porte. Refait
+sur la référence actuelle (régulation à T = 0,35 s, porte arrondie, a_max de l'eau à 1,67) :
+commit `3d6d43a`, sans modification locale, macOS arm64, graines 1 à 10, une valeur par
+processus. Bilans dans [`mesures/sensibilite-dt-2026-11-14/`](mesures/sensibilite-dt-2026-11-14/).
+
+| Δt (s) | t100 mouillé (s) | Δ t50 mouillé − sec (s) | Δ t100 (s) | Temps de calcul |
+|---|---|---|---|---|
+| 0,01 | 51,28 ± 1,87 | −0,014 ± 0,074 | −0,08 ± 0,17 | 173 s |
+| 0,005 | 51,27 ± 1,86 | −0,025 ± 0,099 | −0,03 ± 0,20 | 300 s |
+| 0,0025 | 51,29 ± 1,86 | −0,024 ± 0,102 | −0,03 ± 0,19 | 478 s |
+
+Écart apparié au pas de référence, graine par graine, comparé à l'erreur standard entre
+graines (critère 2 de `criteres-acceptation.md`) :
+
+| Grandeur | Δt/2 − Δt | Δt/4 − Δt | Erreur standard entre graines |
+|---|---|---|---|
+| t50 | +0,001 ± 0,049 s | +0,001 ± 0,059 s | 0,165 s |
+| t90 | −0,024 ± 0,103 s | −0,002 ± 0,108 s | 0,240 s |
+| t100 | −0,012 ± 0,169 s | +0,007 ± 0,169 s | 0,592 s |
+| J_s | +0,001 ± 0,010 | −0,000 ± 0,010 | 0,032 pers/(m·s) |
+
+La problématique porte sur les écarts Δ mouillé − sec. Pour un Δ, l'erreur standard qui
+compte est celle de Δ lui-même (écart-type des Δ par graine / √10), bien plus petite que
+celle des grandeurs brutes, puisque l'appariement retire la variabilité commune :
+
+| Écart mouillé − sec | Δt/2 − Δt | Δt/4 − Δt | Erreur standard de Δ | Rapport à Δt/2 |
+|---|---|---|---|---|
+| Δ t50 | −0,011 ± 0,029 s | −0,010 ± 0,041 s | 0,023 s | 0,47 |
+| Δ t90 | −0,016 ± 0,050 s | +0,021 ± 0,098 s | 0,046 s | 0,34 |
+| Δ t100 | +0,048 ± 0,144 s | +0,048 ± 0,097 s | 0,053 s | 0,91 |
+| Δ J_s | −0,003 ± 0,009 | −0,003 ± 0,006 | 0,0037 pers/(m·s) | 0,80 |
+
+**Le pas de 0,01 s suffit, mais de peu pour les écarts.** Sur les grandeurs brutes, les écarts
+moyens restent au moins 10 fois sous l'erreur standard entre graines (t90 à Δt/2), et plus de
+100 fois pour t50. Sur les écarts Δ, ils restent sous l'erreur standard de Δ, mais à un
+rapport de 0,3 à 0,9 : à la référence, l'erreur numérique sur Δ t100 est du même ordre que
+son incertitude statistique. L'effet du mouillé y est donc plus petit que la résolution
+numérique et statistique : on peut seulement le borner à quelques centièmes de seconde sur
+t50 (−0,014 ± 0,053 s, intervalle de confiance à 95 % sur 10 graines), pas dire qu'il est
+nul. Ce contrôle ne couvre que la référence ; les configurations à effet (#137) sont à
+vérifier de la même façon avant d'être publiées.
+
 ## Sensibilité à τ et à la vitesse sur le mouillé (14 novembre 2026)
 
 Commit `3d6d43a` (empreinte des sources `d1387660…`), sans modification locale, macOS arm64 ;
