@@ -493,9 +493,16 @@ quelques centièmes de seconde. En revanche, dès que l'adhérence descend à
 la porte perd \SI{4}{\percent} de son débit et la dernière sortie recule de
 \SI{2.5}{\second}. À \SI{1}{\metre\per\second\squared}, la porte perd \SI{19}{\percent}
 de son débit et l'évacuation s'allonge de \SI{14}{\second}, soit \SI{20}{\percent}. C'est
-ce qu'annonce l'hypothèse inertielle. Nous l'interprétons ainsi, sans l'avoir mesuré : des
-baigneurs qui freinent mal dans la file s'y présentent de façon moins régulière, et la porte
-saturée écoule moins de monde. L'effet ne joue que si deux conditions sont réunies, une adhérence bien plus faible
+ce qu'annonce l'hypothèse inertielle. Dans le modèle, l'adhérence borne de la même façon le
+freinage, la relance et les virages, mais un baigneur qui freine mal ne perd rien : il bute sur
+celui qui le précède, et la projection l'arrête dans le pas. Ce qui coûte du débit, c'est la
+relance : repartir de l'arrêt demande $U/\tau \approx \SI{4}{\metre\per\second\squared}$,
+que le sec fournit. À \SI{1}{\metre\per\second\squared}, retrouver
+\SI{1}{\metre\per\second} prend \SI{1}{\second} au lieu de \SI{0.34}{\second}, et
+\SI{1.5}{\metre\per\second} prend \SI{1.5}{\second} au lieu de \SI{0.69}{\second}. Nous
+l'interprétons ainsi, sans l'avoir mesuré : dans le va-et-vient de la file, chaque baigneur
+repart plus lentement, et la porte saturée écoule moins de monde (relance écrêtée,
+section~\ref{sec:e2}). L'effet ne joue que si deux conditions sont réunies, une adhérence bien plus faible
 que le seuil de glissance de Kendzior (\num{0.34}~$g$) et un sol glissant au contact même de
 la file.
 
@@ -512,7 +519,7 @@ l'adhérence du mouillé. Dix graines, écart apparié mouillé -- sec. Reproduc
 $a_{\max}$ mouillé (\si{\metre\per\second\squared}) & $J_s$ mouillé (pers/(m$\cdot$s)) &
 $\Delta t_{50}$ (s) & $\Delta t_{100}$ (s) & Graines $\Delta t_{100}>0$ \\
 \midrule
-3,3 (référence) & 2,24 (0,03) & 0,05 (0,19) & 0,09 (0,41) & 6/10 \\
+3,3 (adhérence de référence) & 2,24 (0,03) & 0,05 (0,19) & 0,09 (0,41) & 6/10 \\
 2 & 2,15 (0,01) & 0,92 (0,45) & 2,47 (0,51) & 10/10 \\
 1 & 1,81 (0,03) & 6,53 (0,87) & 13,95 (1,53) & 10/10 \\
 \bottomrule

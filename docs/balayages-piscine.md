@@ -339,10 +339,14 @@ Le témoin sec écoule 2,24 pers/(m·s) dans tous les cas.
 2. **Avec une adhérence plus faible, l'inertie fait perdre du débit à la porte saturée.** À
    2 m/s² (0,2 g), la porte perd 4 % de son débit et t100 recule de 2,5 s, sur les 10 graines.
    À 1 m/s² (0,1 g), elle perd 19 % et l'évacuation s'allonge de 14 s (20 %). C'est
-   ce qu'annonce l'hypothèse inertielle de la problématique. Interprétation, non mesurée :
-   des baigneurs qui freinent mal dans la file s'y présentent moins régulièrement, et la
-   porte écoule moins de monde. Mesurer la densité devant la porte dans ce cas
-   (`diagramme-piscine`, #133) permettrait de le vérifier.
+   ce qu'annonce l'hypothèse inertielle de la problématique. Dans le modèle, a_max borne la
+   norme de (U − v)/τ : freinage, relance et virages sont limités de la même façon. Mais un
+   baigneur qui freine mal ne perd rien, puisque la projection l'arrête contre celui qui le
+   précède. Ce qui coûte du débit, c'est la **relance** : repartir de l'arrêt demande
+   U/τ ≈ 4 m/s², que le sec fournit ; à 1 m/s², retrouver 1 m/s prend 1 s au lieu de 0,34 s,
+   et 1,5 m/s prend 1,5 s au lieu de 0,69 s. Interprétation, non mesurée : dans le
+   va-et-vient de la file, chaque baigneur repart plus lentement, et la porte saturée écoule
+   moins de monde. C'est le mécanisme de relance écrêtée du rapport (§ 6, `sec:e2`).
 3. **Comparé à la même adhérence loin de la porte** (bande de 3 m, porte de 1,2 m,
    2 novembre, sans régulation) : à 1 m/s², Δ t50 ne valait que 0,38 s. C'est la proximité de la file qui
    donne de l'ampleur à l'effet.
