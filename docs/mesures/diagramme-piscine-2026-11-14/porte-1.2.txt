@@ -1,0 +1,10 @@
+M8, piscine devant la porte — graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], fixes aucun
+ecart-type = dispersion des etats, pas incertitude (points correles)
+   rho  pts sec          v sec  pts mouille      v mouille  v Weidmann
+  0.12     2615   1.968 ± 0.109         2574   1.965 ± 0.112       1.340
+  0.38     1264   1.603 ± 0.265         1292   1.609 ± 0.262       1.328
+  0.62      248   1.280 ± 0.200          256   1.280 ± 0.201       1.251
+  0.88       40   1.121 ± 0.167           38   1.125 ± 0.166       1.125
+  1.12        6   1.152 ± 0.091            6   1.158 ± 0.091       0.991
+Bilan : docs/mesures/diagramme-piscine-2026-11-14/porte-1.2.json
+Temps d'execution : 144.0 s
