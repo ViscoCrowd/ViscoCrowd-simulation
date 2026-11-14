@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "parametre": "largeur_porte",
+  "unite": "m",
+  "fixes": {},
+  "graines": [
+    8
+  ],
+  "mesures": [
+    "t50",
+    "t90",
+    "t100",
+    "debit",
+    "non_sortis"
+  ],
+  "unites": {
+    "t50": "s",
+    "t90": "s",
+    "t100": "s",
+    "debit": "pers/(m.s)",
+    "non_sortis": "pers"
+  },
+  "configuration_source": {
+    "version": 1,
+    "scenario": "piscine",
+    "graine": 20262027,
+    "parametres": {
+      "geometrie": {
+        "longueur_bassin": 25.0,
+        "largeur_bassin": 12.5,
+        "plage_gauche": 3.0,
+        "plage_verticale": 4.0,
+        "plage_sortie": 20.0,
+        "largeur_porte": 1.2,
+        "profondeur_porte": 1.0,
+        "largeur_mouillee": 3.0,
+        "pas_rebord": 0.6,
+        "largeur_echelle": 0.5,
+        "echelles": [
+          [
+            "haut",
+            0.9
+          ],
+          [
+            "bas",
+            0.9
+          ]
+        ]
+      },
+      "n_agents": 100,
+      "rayon": 0.2,
+      "espacement": 1.0,
+      "bruit": 0.1,
+      "parametres_milieux": {
+        "EAU": {
+          "relaxation": 0.5,
+          "acceleration_max": 1.67,
+          "vitesse": 0.69
+        },
+        "MOUILLE": {
+          "relaxation": 0.5,
+          "acceleration_max": 3.3,
+          "vitesse": 1.34
+        },
+        "SEC": {
+          "relaxation": 0.5,
+          "acceleration_max": 5.9,
+          "vitesse": 1.34
+        }
+      },
+      "facteur_vitesse": 1.5,
+      "temps_espacement": 0.35,
+      "durees": {
+        "rebord": 4.0,
+        "echelle": 2.0
+      },
+      "portee": 0.25,
+      "dt": 0.01,
+      "duree": 180.0,
+      "tolerance": 1e-06,
+      "pas_guidage": 0.1
+    }
+  },
+  "contexte": {
+    "code": {
+      "commit": "5dc556aee049e5aa3e332e509f1cb4b8e0f54b84",
+      "modifications_locales": true,
+      "source": "git"
+    },
+    "sources_sha256": "fa83b6be074e42a7cdbf5b225d48906df4da5f35d873b08daf7e2f3613dcde07",
+    "python": "3.12.10",
+    "plateforme": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64",
+    "versions": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "pyyaml": "6.0.3"
+    }
+  },
+  "points": [
+    {
+      "valeur": 0.8,
+      "equivaut_au_sec": false,
+      "mouille": [
+        [
+          42.02178819670819,
+          64.51203539663396,
+          70.93436595164498,
+          2.2470720792469403,
+          0.0
+        ]
+      ],
+      "temoin": [
+        [
+          42.12412808686628,
+          64.53096695657823,
+          71.12434724652383,
+          2.238996319922865,
+          0.0
+        ]
+      ]
+    },
+    {
+      "valeur": 1.0,
+      "equivaut_au_sec": false,
+      "mouille": [
+        [
+          31.805035150304494,
+          44.89664055404914,
+          51.63045243949321,
+          2.752387450561923,
+          0.0
+        ]
+      ],
+      "temoin": [
+        [
+          31.798157057380347,
+          45.039638977722284,
+          51.83616560758467,
+          2.7360920980497316,
+          0.0
+        ]
+      ]
+    },
+    {
+      "valeur": 1.2,
+      "equivaut_au_sec": false,
+      "mouille": [
+        [
+          31.463479484023853,
+          44.8275652095004,
+          51.56866777613759,
+          2.296943605186052,
+          0.0
+        ]
+      ],
+      "temoin": [
+        [
+          31.447396927091248,
+          44.9765466753582,
+          51.84449072310266,
+          2.2789473435792624,
+          0.0
+        ]
+      ]
+    },
+    {
+      "valeur": 1.6,
+      "equivaut_au_sec": false,
+      "mouille": [
+        [
+          31.432532265431497,
+          44.79698657738509,
+          51.58300495826605,
+          1.7210010171177097,
+          0.0
+        ]
+      ],
+      "temoin": [
+        [
+          31.416430315953058,
+          44.927728465752125,
+          51.82347740410112,
+          1.709181160681026,
+          0.0
+        ]
+      ]
+    }
+  ]
+}

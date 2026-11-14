@@ -11,6 +11,58 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-13 — Arrondir les montants de la porte de la piscine (#85)
+
+**Contexte.** Les balayages M6 du 2 novembre bouchaient la porte en arches statiques
+(8 graines sur 10 à 0,8 m). Shaleena en avait identifié la cause probable : la plage était
+projetée sur l'union de l'emprise réduite d'un rayon et du couloir de la porte réduit d'un
+rayon. Cette union est plus stricte que l'ensemble admissible exact près des montants. Elle
+y laisse un angle vif, alors que les centres admissibles s'arrêtent sur un arc de rayon r
+autour du coin du mur. C'est la construction de la première géométrie du goulot E0, qui s'y
+bouchait sur toutes les graines jusqu'à ce que ses coins soient arrondis.
+
+**Décision.** La plage reprend la géométrie du goulot (`geometry/bande.py`) : centres
+ramenés dans la boîte emprise + couloir, puis hors des deux pans du mur de droite
+(`Piscine.montants`), des `ObstacleRectangle` dont `repousser` arrondit exactement les
+coins. Le guidage marque ses nœuds libres avec la même projection et suit donc le même
+ensemble.
+
+**Mesure** (commandes de l'issue : `largeur_porte` 0,8 et 1,0 m, puis 200 baigneurs, facteur
+1,5, graines 1 à 10, mouillé et témoin sec, soit 60 évacuations par ligne ; 13 novembre,
+Windows, une graine par processus) :
+
+| Géométrie | Régulation (T) | Bouchées à 0,8 m (mouillé / sec) | à 1,0 m | à 200 baigneurs |
+|---|---|---|---|---|
+| `dev`, coins vifs | aucune | 8 / 7 sur 10 | 2 / 0 (graines 2 et 7) | 1 / 1 (graine 4) |
+| montants arrondis | aucune | 0 / 0 | 0 / 0 | 1 / 1 (graine 4) |
+| `dev`, coins vifs | 0,35 s | 0 / 0 | 0 / 0 | 0 / 0 |
+| montants arrondis | 0,35 s | 0 / 0 | 0 / 0 | 0 / 0 |
+
+- Sans régulation, `dev` reproduit **à l'identique** les bouchages de l'issue, jusqu'au nombre
+  de baigneurs restés (65, 56, 59… à 0,8 m ; 23 et 27 à 1,0 m). Avec les montants arrondis,
+  plus aucun bouchage à la porte.
+- **Le bouchage à 200 baigneurs (graine 4) n'est pas celui de la porte.** Il subsiste avec les
+  montants arrondis, et les 13 (mouillé) et 14 (sec) baigneurs restés sont tous encore
+  **dans l'eau**, groupés en (25,5 ; 15,8) m, juste sous l'échelle du haut, en (25,5 ; 16,5) m.
+  Ils y restent jusqu'à la fin des 180 s : c'est un blocage devant un site de franchissement, et
+  non à la porte. Il n'apparaît que sans régulation et il est suivi dans #127.
+- **La régulation masquait le défaut.** Activée depuis le 10 novembre (#116), elle garde un
+  jeu derrière le meneur : les agents n'atteignent presque jamais l'angle des montants, et
+  les deux géométries donnent alors des moyennes quasi identiques (t100 à 0,8 m : 70,34 s
+  sur `dev`, 70,26 s corrigé ; à 1,0 m et à 200 baigneurs, identiques à 0,01 s près). La
+  correction reste nécessaire : sans elle, tout réglage qui rapproche les agents, T plus
+  court ou régulation coupée, refait apparaître des arches qui ne sont pas un comportement
+  de foule.
+
+*Écarté : laisser la géométrie en l'état puisque la référence régulée ne se bouche plus.*
+Le défaut resterait caché dans chaque balayage qui touche à T, et l'ensemble admissible ne
+serait pas celui que la spec définit.
+
+**Conséquences.** E1/E2 et les balayages de porte et de population sont refaits avec la porte
+arrondie dans #128, empilée sur cette PR.
+
+---
+
 ## 2026-11-10 — Consigner l'accord de l'enseignant du 3 novembre (C1, #19)
 
 **Contexte.** L'issue #19 suivait trois questions de cadrage : l'usage de SciPy pour la densité
