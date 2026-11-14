@@ -352,6 +352,61 @@ sols très glissants (savon, produit d'entretien), pas un carrelage mouillé ord
 conclusion est donc : **dans ce modèle, le sol mouillé ne dégrade l'évacuation que s'il est très
 glissant et qu'il touche la file d'une porte saturée.**
 
+## Témoin : la même adhérence loin de la file (14 novembre 2026)
+
+La section précédente change deux choses à la fois : l'adhérence et l'étendue du mouillé. Pour
+attribuer l'effet à la file, il faut la même adhérence faible **loin** de la porte, avec la même
+porte saturée et la même régulation. La comparaison du 2 novembre (bande de 3 m, 1 m/s²) ne
+convient pas : porte de 1,2 m, sans régulation, code antérieur. Même configuration que la
+section précédente, bande de 3 m de la référence. Commit `29fbca7` (empreinte des sources
+`d1387660…`, identique à `3d6d43a`), sans modification locale, Windows 11, Python 3.12 ;
+graines 1 à 10. Bilans dans
+[`mesures/temoin-inertie-2026-11-14/`](mesures/temoin-inertie-2026-11-14/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 \
+  --fixer largeur_porte=0.8 --graines 1 2 3 4 5 6 7 8 9 10
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.005 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 adherence_mouille=1 --graines 1 2 3 4 5 6 7 8 9 10
+```
+
+| Porte de 0,8 m, a_max mouillé | Bande de 3 m : Δ t100 (s) | Δ J_s | Δ t100 > 0 | Mouillé jusqu'à la porte : Δ t100 (s) | Δ J_s |
+|---|---|---|---|---|---|
+| 1 m/s² | 0,57 ± 0,56 | −0,000 ± 0,022 | 9/10 | 13,95 ± 1,53 | −0,433 ± 0,044 |
+| 2 m/s² | 0,26 ± 0,36 | −0,005 ± 0,014 | 8/10 | 2,47 ± 0,51 | −0,090 ± 0,020 |
+
+(Δ J_s en pers/(m·s), écart apparié mouillé − sec ; colonnes de droite : section précédente.)
+
+1. **Loin de la file, la porte saturée ne perd rien.** À 1 m/s² sur la seule bande de 3 m, son
+   débit est inchangé à 10⁻³ près, et la dernière sortie ne recule que de 0,6 s : les baigneurs
+   quittent la bande un peu plus tard, puis la porte les écoule au même rythme.
+2. **L'effet de la section précédente vient donc de la file sur sol glissant.** À la même
+   adhérence, la porte ne perd du débit que lorsque le mouillé l'atteint, et Δ t100 est 24 fois
+   plus grand (13,95 s contre 0,57 s). Une porte saturée écoule au rythme de la file qui la
+   presse : c'est cette file, sur sol glissant, qui passe moins vite.
+3. **Ce que le témoin ne sépare pas.** Avec `largeur_mouillee=20`, toute la plage côté porte
+   est glissante, pas seulement la file. Le point 2 repose sur la saturation : la bande de 3 m
+   retarde les arrivées sans changer le débit de la porte, donc ce débit dépend de ce qui se
+   passe devant elle. Un mouillé limité aux abords de la porte demanderait une autre géométrie
+   de la bande, que le scénario ne permet pas aujourd'hui.
+
+**Pas de temps.** Même configuration qu'à la ligne 1 m/s² de la section précédente, à
+Δt = 0,005 s, apparié graine par graine au bilan de cette section (Δt = 0,01 s, macOS).
+Les deux plateformes donnent des résultats identiques au bit près : vérifié sur les graines 1
+et 2 de ce bilan, relancées sous Windows.
+
+| Écart mouillé − sec | Δt = 0,01 s | Δt = 0,005 s | Effet du pas | Erreur standard de Δ |
+|---|---|---|---|---|
+| Δ t50 (s) | 6,53 ± 0,87 | 6,07 ± 0,77 | −0,45 ± 0,81 | 0,27 |
+| Δ t90 (s) | 12,93 ± 1,20 | 12,96 ± 1,13 | +0,03 ± 0,93 | 0,38 |
+| Δ t100 (s) | 13,95 ± 1,53 | 13,95 ± 1,27 | +0,005 ± 0,98 | 0,48 |
+| Δ J_s (pers/(m·s)) | −0,433 ± 0,044 | −0,433 ± 0,035 | +0,000 ± 0,028 | 0,014 |
+
+Δ t100 et Δ J_s ne dépendent pas du pas : leur moyenne bouge de 1 % de leur erreur standard.
+Δ t50 bouge de 0,45 s, 1,7 fois son erreur standard, sans être significatif sur 10 graines
+(t = 1,8). Avec le critère 2 proposé dans `criteres-acceptation.md` (#134), Δ t50 de cette
+configuration se publie au pas de 0,005 s, ou avec cet écart.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
