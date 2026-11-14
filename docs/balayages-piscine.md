@@ -392,8 +392,10 @@ viscocrowd balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.0
 
 **Pas de temps.** Même configuration qu'à la ligne 1 m/s² de la section précédente, à
 Δt = 0,005 s, apparié graine par graine au bilan de cette section (Δt = 0,01 s, macOS).
-Les deux plateformes donnent des résultats identiques au bit près : vérifié sur les graines 1
-et 2 de ce bilan, relancées sous Windows.
+Les graines 1 et 2 de ce bilan, relancées sous Windows, donnent des résultats identiques au
+bit près. Ce n'est pas vrai partout : sur 160 évacuations, #131 trouve 16 écarts entre macOS et
+Windows, au plus 0,024 s sur t100. L'effet du pas ci-dessous peut donc contenir un écart de
+plateforme de cet ordre, 40 fois plus petit que sa dispersion entre graines (0,98 s sur Δ t100).
 
 | Écart mouillé − sec | Δt = 0,01 s | Δt = 0,005 s | Effet du pas | Erreur standard de Δ |
 |---|---|---|---|---|
