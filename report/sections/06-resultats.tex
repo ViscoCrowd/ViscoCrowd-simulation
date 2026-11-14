@@ -451,7 +451,8 @@ rien dire de sa capacité.
 \centering
 \caption{E4 : effet du nombre $N$ de baigneurs, porte de \SI{1.2}{\metre}, témoin sec,
 dix graines (moyenne et écart-type). $\Delta t_{50}$ : écart apparié mouillé -- sec, et
-nombre de graines où il est positif. Reproduction : \texttt{viscocrowd balayer-piscine
+nombre de graines où il est positif. Avec la règle de déblocage des nageurs immobiles,
+qui ne change que la ligne $N=200$. Reproduction : \texttt{viscocrowd balayer-piscine
 experiments/piscine.yaml --parametre n\_agents --valeurs 50 100 150 200 --graines 1 2 3 4
 5 6 7 8 9 10}.}
 \label{tab:e4-population}
@@ -462,7 +463,7 @@ $N$ & $t_{50}$ (s) & $t_{90}$ (s) & $t_{100}$ (s) & Flux (pers/s) & $\Delta t_{5
 50 & 24,84 (0,77) & 31,68 (0,83) & 34,21 (1,30) & 2,60 (0,17) & 0,012 (0,004), 10/10 \\
 100 & 31,44 (0,51) & 45,42 (0,66) & 51,36 (1,77) & 2,73 (0,11) & $-0{,}01$ (0,07), 7/10 \\
 150 & 39,43 (0,25) & 60,16 (0,95) & 67,89 (2,72) & 2,82 (0,13) & 0,05 (0,15), 8/10 \\
-200 & 47,61 (0,44) & 73,99 (0,56) & 84,78 (1,52) & 2,85 (0,05) & 0,07 (0,24), 8/10 \\
+200 & 47,61 (0,44) & 73,99 (0,56) & 84,73 (1,61) & 2,85 (0,06) & 0,07 (0,24), 7/10 \\
 \bottomrule
 \end{tabular}
 \end{table}
