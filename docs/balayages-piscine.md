@@ -30,7 +30,8 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 `chutes` : le balayage la crée, et toutes les autres valeurs du module (domino, relevage,
 contournement) restent celles par défaut de `ParametresChutes`. Ces valeurs ne sont pas
 calibrées : comme le précise [`modele-chutes.md`](modele-chutes.md), aucun chiffre obtenu
-avec ce module ne peut servir de résultat avant la décision de #19. Le témoin sec garde les
+avec ce module ne peut servir de résultat avant sa calibration. L'enseignant a validé son
+inclusion dans le rendu le 3 novembre (#19), pas ses valeurs. Le témoin sec garde les
 **mêmes** chutes que le mouillé, si bien que Δ ne mesure que le sol.
 
 Le nombre d'échelles n'est pas balayé : il faudrait d'abord choisir où placer les échelles

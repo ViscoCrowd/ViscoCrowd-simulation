@@ -10,7 +10,7 @@ décrit les opérations de publication.
 
 | Jalon | État technique | Publication |
 |---|---|---|
-| 0 — socle et cadrage | Socle présent depuis #1 ; trace enseignant encore incomplète (#19) | Aucun tag attestant une clôture complète de J0 |
+| 0 — socle et cadrage | Socle présent depuis #1 ; questions de cadrage validées par l'enseignant le 3 novembre ([trace](validation-sujet.md#trace-de-validation), #19) | Aucun tag attestant une clôture complète de J0 |
 | 1 — moteur | Livré sur `main` par #1, correctif Makefile #2/#3 inclus | [`jalon-1`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-1), commit `28252ef6d196caec847e6f957e7282152cf98449` ; repère historique créé le 21 octobre |
 | 2 — exclusion | Validé avec limites connues ; corrections et figures #21–#23, correctifs #28 | [`jalon-2`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-2), publication de rattrapage du 21 octobre ; [provenance, mesures et limites](releases/jalon-2.md) |
 | 3 — guidage et milieux | Livré : C6 et G1–G5 ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire | [`jalon-3`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-3), commit de fusion `190d29e4b60a0864e20b75288dcc854f7f4dddfc` de la PR #112 le 9 novembre, `dev` resynchronisée dans #113 ; [notes de version](releases/jalon-3.md) |
@@ -18,8 +18,9 @@ décrit les opérations de publication.
 | 5 — campagnes | En cours : E0 (#56), E1/E2 refaits au facteur 1,5 (#86, #109), premiers balayages E3/E4 (#84), balayages de τ (#108), de la vitesse sur sol mouillé et du taux de chute (#104) ; biais de densité borné (#101) ; relation vitesse–espacement branchée sur la piscine (#100), activée à T = 0,35 s et validée par le groupe le 10 novembre, E1/E2 refaits (#116) ; campagne finale à faire (#59) | Code et mesures jusqu'à #109 présents dans la version `jalon-3`, non revendiqués comme livrés ; #100, #101, #104 et #116 fusionnées après le tag |
 | 6 — livrables | Rapport en cours ; transparents à préparer | Non publié |
 
-Le module de chutes (#78, #82, #102), désactivé par défaut et en attente de la décision C1
-(#19), est lui aussi présent dans la version `jalon-3` sans y être revendiqué.
+Le module de chutes (#78, #82, #102) est lui aussi présent dans la version `jalon-3` sans y
+être revendiqué. Son inclusion dans le rendu a été validée par l'enseignant le 3 novembre
+(C1, #19) ; il reste désactivé par défaut et non calibré.
 
 Les anciennes versions restent consultables ; elles ne doivent pas être présentées comme
 la version courante ni comme une validation des travaux ultérieurs. La date de création d'un
