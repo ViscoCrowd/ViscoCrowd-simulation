@@ -1,24 +1,293 @@
-\section{Modelisation}
+\section{Modélisation}
+\label{sec:modelisation}
 
-% Le modele mathematique, avant toute discretisation.
+Cette section décrit le modèle en temps continu, avant toute discrétisation :
+ce que représente chaque grandeur et ce que suppose chaque hypothèse. Le schéma
+programmé fait l'objet de la section~\ref{sec:discretisation}. Les grandeurs
+sont en unités SI, et les valeurs citées sont celles de la configuration de
+référence \texttt{experiments/piscine.yaml}.
 
-\subsection{Etat du systeme}
+Le cadre est celui des modèles de foule à contraintes dures de Maury et
+Venel~\cite{maury2008,maury2011} : chaque personne cherche à suivre une vitesse
+souhaitée, et une contrainte d'exclusion corrige ce souhait dès que deux
+personnes se touchent. Notre modèle s'en écarte sur un point, l'inertie. La
+vitesse n'est pas égale à la vitesse souhaitée : elle la rejoint en un temps
+fini, avec une accélération bornée par l'adhérence du sol. C'est par là
+qu'entre l'effet du carrelage mouillé.
 
-% Position, vitesse, rayon. Unites.
+\subsection{État du système}
+\label{sec:etat}
 
-\subsection{Vitesse desiree et champ de guidage}
+La foule compte $N$ personnes, représentées par des disques rigides dans le
+plan. L'agent $i$ est décrit par sa position $\pos_i\in\mathbb{R}^2$
+(\si{\metre}), sa vitesse $\vit_i\in\mathbb{R}^2$ (\si{\metre\per\second}) et
+son rayon $r_i$ (\si{\metre}), fixé à \SI{0.2}{\metre} dans toutes nos
+campagnes. On note $\pos=(\pos_1,\dots,\pos_N)\in\mathbb{R}^{2N}$ la
+configuration de la foule.
 
-% Equation eikonale, et pourquoi le partage rebord/echelles en EMERGE au lieu
-% d'etre impose.
+Chaque agent porte aussi un état discret, qui indique où il en est de son
+évacuation :
+\[
+\text{eau}\ \longrightarrow\ \text{franchissement}\ \longrightarrow\
+\text{plage}\ \longrightarrow\ \text{sorti}.
+\]
+Seuls les agents dans l'eau ou sur la plage suivent la dynamique et les
+contraintes décrites ci-dessous ; les deux autres états sont définis en
+section~\ref{sec:franchissements}.
+
+Le domaine est une emprise rectangulaire de \SI{48}{\metre} sur
+\SI{20.5}{\metre}. Le bassin, de \SI{25}{\metre} sur \SI{12.5}{\metre}, est
+bordé de plages de \SI{3}{\metre} à gauche, de \SI{4}{\metre} en haut et en bas,
+et de \SI{20}{\metre} du côté de la porte. Cette porte unique, de
+\SI{1.2}{\metre} de large, est percée au milieu du mur de droite. Le bord du
+bassin est un mur pour les deux populations : on ne passe de l'eau à la plage
+que par un site de franchissement. Les cent agents partent du bassin, soit une
+densité initiale d'environ \num{0.32} personne par mètre carré.
+
+\subsection{Vitesse souhaitée et champ de guidage}
+\label{sec:guidage}
+
+Chaque agent cherche à suivre la vitesse souhaitée
+\begin{equation}
+\label{eq:vitesse-souhaitee}
+\vect{U}_i = s_i\,\vect{e}(\pos_i),
+\end{equation}
+de norme $s_i$ et de direction unitaire $\vect{e}$. La norme dépend du milieu
+$m$ sous l'agent et du niveau de panique : $s_i=\kappa\,s_m$, où $s_m$ est la
+vitesse de déplacement dans le milieu et $\kappa=1{,}5$ un facteur de panique.
+Sur la plage, $s_i=1{,}5\times\SI{1.34}{\metre\per\second}\approx\SI{2.0}{\metre\per\second}$,
+au-delà du seuil où Helbing et al.\ observent l'effet \emph{faster-is-slower}~\cite{helbing2000}.
+
+\paragraph{Plus court temps de parcours.}
+La direction suit le chemin le plus rapide vers la porte. Soit $\varphi(\pos)$
+le temps minimal pour l'atteindre en se déplaçant à la vitesse locale
+$F(\pos)=\kappa\,s_m$, la vitesse souhaitée du milieu sous $\pos$ ; il est
+solution de l'équation eikonale
+\begin{equation}
+\label{eq:eikonale}
+\norm{\nabla\varphi(\pos)}=\frac{1}{F(\pos)},
+\qquad \varphi=0 \text{ sur la porte},
+\qquad \vect{e}=-\frac{\nabla\varphi}{\norm{\nabla\varphi}} .
+\end{equation}
+Un obstacle est une région où $F=0$ : le temps de parcours y est infini, et le
+champ le contourne. Comme $F$ dépend du milieu, $\varphi$ arbitre de lui-même
+entre un chemin court mais lent et un chemin long mais rapide. L'équation est
+résolue une fois pour toutes par Fast Marching~\cite{sethian1996}, sur une
+grille de pas \SI{0.1}{\metre}.
+
+L'eau et la plage ne communiquent que par les sites de franchissement, d'où
+deux champs. Sur la plage, $\varphi_{\text{plage}}$ est le temps jusqu'à la
+porte, le bassin étant un obstacle. Dans l'eau, chaque site $k$ devient une
+source dont le temps initial vaut
+\begin{equation}
+\label{eq:phi-eau}
+\varphi_{\text{eau}}(\vect{a}_k)=T_k+\varphi_{\text{plage}}(\vect{b}_k),
+\end{equation}
+où $\vect{a}_k$ est le point d'attente du site dans l'eau, $\vect{b}_k$ son
+point d'arrivée sur la plage et $T_k$ la durée du franchissement.
+$\varphi_{\text{eau}}$ est donc le temps \emph{total} jusqu'à la porte, et chaque
+point de l'eau choisit le site qui le minimise : nager plus longtemps vers une
+échelle rapide, ou se hisser sur le rebord tout proche mais lent. Le partage du
+flux entre rebord et échelles n'est pas imposé ; il émerge des vitesses, des
+durées et de la géométrie. C'est la partie « extraction répartie » de la
+problématique. Le champ est statique : il ignore l'attente devant un site occupé
+ou devant une porte encombrée. C'est une limite assumée du modèle.
+
+\paragraph{Régulation vitesse--espacement.}
+Derrière un autre agent, la norme souhaitée est réduite par la fonction de
+vitesse optimale de Tordeux et al.~\cite{tordeux2016} :
+\begin{equation}
+\label{eq:espacement}
+s_i \longleftarrow \min\bigl(s_i,\ \max(0,\ g_i/T)\bigr),
+\end{equation}
+où $g_i$ est le jeu entre le disque de $i$ et celui de son meneur, et
+$T=\SI{0.35}{\second}$ un temps d'espacement. Le meneur est le plus proche des
+agents $j$ situés devant $i$, dans un couloir de demi-largeur $r_i+r_j$ autour
+de $\vect{e}(\pos_i)$, et plus avancés vers la sortie : $\varphi(\pos_j)<\varphi(\pos_i)$.
+Dans la piscine, il est cherché du même côté du bord du bassin. La direction
+n'est pas modifiée, et l'exclusion reste imposée par la seule contrainte de la
+section~\ref{sec:exclusion}. Le choix de cette règle et l'étalonnage de $T$ sont
+présentés en section~\ref{sec:e0}.
 
 \subsection{Les trois milieux}
+\label{sec:milieux}
 
-% Temps de relaxation et acceleration maximale. Justifier physiquement le
-% contraste d'adherence entre carrelage mouille et sol sec.
+Le sol agit sur la façon dont l'agent rejoint sa vitesse souhaitée. Hors
+contact, la dynamique d'un agent s'écrit
+\begin{equation}
+\label{eq:relaxation}
+\frac{\mathrm{d}\pos_i}{\mathrm{d}t}=\vit_i,
+\qquad
+\frac{\mathrm{d}\vit_i}{\mathrm{d}t}
+=\Pi_{a_{\max}(\pos_i)}\!\left(\frac{\vect{U}_i-\vit_i}{\tau(\pos_i)}\right),
+\qquad
+\Pi_{a}(\vect{w})=\vect{w}\,\min\Bigl(1,\frac{a}{\norm{\vect{w}}}\Bigr).
+\end{equation}
+Le temps de relaxation $\tau$ fixe la rapidité de la correction : sans
+saturation, l'écart entre $\vit_i$ et $\vect{U}_i$ décroît comme
+$\mathrm{e}^{-t/\tau}$. L'accélération maximale $a_{\max}$ borne la traction que
+le sol peut fournir ; demander davantage, c'est glisser. La borne porte sur la
+norme et non sur chaque composante : un agent qui freine en diagonale freine
+ainsi dans la direction voulue, seulement moins fort.
+
+\paragraph{Adhérence.}
+La force horizontale que le sol transmet au pied est bornée par le frottement :
+$\norm{M\vect{a}}\leq\mu M g$ pour une personne de masse $M$, soit
+$a_{\max}=\mu g$, où $\mu$ est le coefficient de frottement disponible. Sur des
+sols de piscine mouillés, parcourus pieds nus par 70 sujets,
+Kendzior~\cite{kendzior2023} trouve qu'un coefficient dynamique inférieur ou
+égal à \num{0.34} est perçu comme glissant, et un coefficient supérieur ou égal
+à \num{0.60} comme non glissant. Nous retenons ces deux seuils comme coefficients
+disponibles du carrelage mouillé et du sol sec, d'où
+$a_{\max}=\SI{3.3}{\metre\per\second\squared}$ et
+\SI{5.9}{\metre\per\second\squared}. C'est une hypothèse : un seuil de
+perception n'est pas une mesure du frottement sous une foule qui court. Dans
+l'eau, la poussée d'Archimède réduit le poids apparent, d'environ moitié dans
+un petit bain, d'où $0{,}34\,g\times 0{,}5\approx\SI{1.67}{\metre\per\second\squared}$.
+
+\paragraph{Vitesses et relaxation.}
+Dans un petit bain de \SI{0.7}{\metre} d'eau calme, la vitesse de progression
+suit $s=0{,}53\,A^{-0{,}19}$ avec $A=d^2/2$ (\si{\metre\squared}), où $d$ est la profondeur d'eau, d'après
+Shirvani et al.~\cite{shirvani2020}, soit \SI{0.69}{\metre\per\second}. Sur la
+plage, la vitesse de marche libre est celle de
+Weidmann~\cite{weidmann1993}, \SI{1.34}{\metre\per\second}, sur sol mouillé
+comme sur sol sec. Le temps de relaxation vaut \SI{0.5}{\second} sur les trois
+sols, comme chez Helbing et al.~\cite{helbing2000} : aucune source ne donne un
+$\tau$ propre au carrelage mouillé, et un $\tau$ commun fait que le mouillé ne
+diffère du sec \emph{que} par l'adhérence, ce qui isole l'effet étudié. Le
+tableau~\ref{tab:milieux} résume ces valeurs.
+
+\begin{table}[ht]
+\centering
+\caption{Paramètres des trois milieux, avant application du facteur de panique
+$\kappa=1{,}5$ à la vitesse. Le carrelage mouillé est une bande de
+\SI{3}{\metre} autour du bassin, remplacée par du sol sec dans la campagne
+témoin E1.}
+\label{tab:milieux}
+\begin{tabular}{lrrrl}
+\toprule
+Milieu & $s_m$ (\si{\metre\per\second}) & $\tau$ (\si{\second})
+& $a_{\max}$ (\si{\metre\per\second\squared}) & Sources \\
+\midrule
+Eau, petit bain & 0,69 & 0,5 & 1,67 & \cite{shirvani2020}, hypothèse de poids apparent \\
+Carrelage mouillé & 1,34 & 0,5 & 3,3 & \cite{weidmann1993,kendzior2023} \\
+Sol sec & 1,34 & 0,5 & 5,9 & \cite{weidmann1993,kendzior2023} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Où se loge l'inertie.}
+À la vitesse souhaitée de panique, $U\approx\SI{2.01}{\metre\per\second}$,
+repartir de l'arrêt demande $U/\tau\approx\SI{4.0}{\metre\per\second\squared}$.
+C'est moins que les \SI{5.9}{\metre\per\second\squared} du sol sec, mais plus que
+les \SI{3.3}{\metre\per\second\squared} du mouillé : seul le mouillé écrête
+l'accélération, et un agent n'y peut ni freiner ni tourner aussi vite qu'il le
+voudrait. Ce contraste porte l'effet d'inertie de la problématique.
 
 \subsection{Principe d'exclusion}
+\label{sec:exclusion}
 
-% L'ensemble admissible, et le fait qu'il N'EST PAS convexe. C'est le point
-% delicat du rapport : ne pas le passer sous silence.
+Deux personnes ne peuvent pas se recouvrir, et chacune reste dans la partie du
+domaine où elle se trouve. Les configurations admissibles forment l'ensemble
+\begin{equation}
+\label{eq:admissible}
+\admissible=\bigl\{\pos\in\mathbb{R}^{2N} :
+D_{ij}(\pos)=\norm{\pos_j-\pos_i}-r_i-r_j\geq 0\ \ \forall\, i<j,\
+\pos_i\in\Omega_i\bigr\},
+\end{equation}
+où $\Omega_i$ est la région accessible au centre de l'agent $i$ : le bassin
+réduit de son rayon pour un agent dans l'eau ; pour un agent sur la plage,
+l'ensemble des points de la plage et du couloir de la porte situés à une
+distance au moins $r_i$ de tout mur et du bord du bassin. Autour d'un coin
+saillant, montant de la porte ou coin du bassin, ce bord est donc un arc de
+cercle de rayon $r_i$ ; dans un coin rentrant de la salle, il reste un angle
+droit, puisque les deux murs y écartent le centre chacun de $r_i$. Une
+première version du code remplaçait cet arc par un angle vif aux montants de
+la porte : la foule s'y bloquait en arches statiques, sans que ce soit un
+comportement de foule.
 
-\subsection{Franchissements a capacite limitee}
+\paragraph{$\admissible$ n'est pas convexe.}
+C'est le point délicat du modèle. Prenons deux disques de rayon $r$ tangents,
+centrés en $(-r,0)$ et $(r,0)$ : la configuration est admissible, et celle où
+les deux disques échangent leurs places l'est aussi. Leur milieu place pourtant
+les deux centres à l'origine, avec $D_{12}=-2r<0$. Chaque contrainte
+$D_{ij}\geq0$ décrit l'extérieur d'une boule de $\mathbb{R}^{2N}$, et le
+domaine de la plage, un anneau autour du bassin, n'est pas convexe non plus. La
+projection sur $\admissible$ n'est donc en général ni unique ni calculable
+directement ; la section~\ref{sec:discretisation} explique comment on la
+remplace par une suite de projections sur des ensembles convexes.
+
+\paragraph{Contact et choc mou.}
+Dans le modèle de Maury et Venel, du premier ordre, la vitesse effective est la
+projection de la vitesse souhaitée sur le cône des vitesses admissibles :
+\[
+\frac{\mathrm{d}\pos}{\mathrm{d}t}=P_{C_{\pos}}(\vect{U}),
+\qquad
+C_{\pos}=\bigl\{\vect{w}\in\mathbb{R}^{2N} :
+D_{ij}(\pos)=0\ \Rightarrow\ \nabla D_{ij}(\pos)\cdot\vect{w}\geq 0\bigr\}.
+\]
+Notre modèle garde l'inertie de l'équation~\eqref{eq:relaxation}. Au contact,
+la vitesse est corrigée de la même façon : la composante qui ferait se
+recouvrir deux disques est annulée, l'autre est conservée. Le choc est donc
+\emph{mou}, sans rebond, et sans frottement entre agents puisque la correction
+agit le long de la ligne des centres. Le modèle ne contient aucune force de
+contact : seule la géométrie limite la densité. Pour des disques de rayon
+\SI{0.2}{\metre}, l'empilement hexagonal compact atteint
+$1/(2\sqrt{3}\,r^2)\approx\num{7.2}$ personnes par mètre carré, au-dessus de la
+densité maximale de \num{5.4} personnes par mètre carré retenue par
+Weidmann~\cite{weidmann1993}.
+
+\subsection{Franchissements à capacité limitée}
+\label{sec:franchissements}
+
+Le bord du bassin est découpé en \emph{sites de franchissement}. Le rebord
+compte un site tous les \SI{0.6}{\metre}, soit 118 sites, et deux échelles de
+\SI{0.5}{\metre} de large sont placées en haut et en bas, aux neuf dixièmes de
+la longueur du bassin, du côté de la porte. Chaque site $k$ a un point d'attente $\vect{a}_k$ dans
+l'eau, un point d'arrivée $\vect{b}_k$ sur la plage, une durée $T_k$ et une
+capacité d'un agent :
+\begin{itemize}
+\item un agent dans l'eau à moins de \SI{0.25}{\metre} du point d'attente d'un
+  site libre l'occupe. Quand plusieurs couples (agent, site) sont possibles, ils
+  sont servis du plus proche au plus éloigné, si bien que l'attribution dépend
+  des positions et non de la numérotation des agents ;
+\item l'agent est immobilisé sur le bord pendant $T_k$, hors de la contrainte
+  d'exclusion : \SI{4.0}{\second} pour se hisser sur le rebord,
+  \SI{2.0}{\second} pour monter une échelle ;
+\item il est ensuite réintroduit sur la plage en $\vect{b}_k$ dès que ce point
+  est libre de tout agent actif. Le site reste occupé jusque-là.
+\end{itemize}
+Les durées ne reposent sur aucune source : ce sont des hypothèses, dont
+l'influence doit être mesurée par balayage (E4). Un agent dont le centre franchit la ligne de la porte
+passe dans l'état \emph{sorti}, qui est absorbant : il quitte la contrainte
+d'exclusion et le guidage, et ne peut plus gêner la porte. Son instant de
+sortie est interpolé sur la ligne. Le nombre d'agents dans chacun des quatre
+états change, mais leur somme reste égale à $N$ ; cette conservation est
+vérifiée à chaque pas (section~\ref{sec:validation}).
+
+Un module de chutes (glissade, propagation en domino, relevage et contournement
+d'une personne à terre) existe dans le code. Il est désactivé dans toutes les
+simulations de ce rapport et ses taux ne sont pas calibrés : il n'intervient
+dans aucun résultat présenté.
+
+\subsection{Hypothèses principales}
+
+Les hypothèses à garder en tête pour lire les résultats sont les suivantes :
+\begin{itemize}
+\item le modèle est plan, et chaque personne est un disque rigide de même
+  rayon ;
+\item la population est homogène : mêmes vitesses souhaitées, même
+  relaxation, même facteur de panique pour tous ;
+\item le milieu est constant par morceaux et lu sous le centre de l'agent ;
+\item le guidage est statique et ne voit ni les autres agents ni l'attente aux
+  sites ;
+\item les contacts sont des chocs mous sans frottement, et aucune force de
+  compression n'est modélisée ;
+\item les durées de franchissement et le poids apparent dans l'eau sont des
+  hypothèses non sourcées, dont l'influence reste à mesurer par balayage ;
+\item le temps d'espacement $T$ est étalonné sur un goulot sec, à la marche
+  normale ; il est appliqué tel quel au facteur de panique $1{,}5$ et dans
+  l'eau. Ce transfert n'est pas neutre : au facteur $1{,}5$, le même goulot
+  écoule \num{2.04} au lieu de \num{1.84}~personnes par mètre et par seconde
+  (section~\ref{sec:e1}).
+\end{itemize}
