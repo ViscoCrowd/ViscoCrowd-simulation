@@ -198,8 +198,10 @@ D_{ij}(\pos)=\norm{\pos_j-\pos_i}-r_i-r_j\geq 0\ \ \forall\, i<j,\
 où $\Omega_i$ est la région accessible au centre de l'agent $i$ : le bassin
 réduit de son rayon pour un agent dans l'eau ; pour un agent sur la plage,
 l'ensemble des points de la plage et du couloir de la porte situés à une
-distance au moins $r_i$ de tout mur et du bord du bassin. Près d'un coin, de
-mur ou de bassin, ce bord est donc un arc de cercle de rayon $r_i$. Une
+distance au moins $r_i$ de tout mur et du bord du bassin. Autour d'un coin
+saillant, montant de la porte ou coin du bassin, ce bord est donc un arc de
+cercle de rayon $r_i$ ; dans un coin rentrant de la salle, il reste un angle
+droit, puisque les deux murs y écartent le centre chacun de $r_i$. Une
 première version du code remplaçait cet arc par un angle vif aux montants de
 la porte : la foule s'y bloquait en arches statiques, sans que ce soit un
 comportement de foule.
