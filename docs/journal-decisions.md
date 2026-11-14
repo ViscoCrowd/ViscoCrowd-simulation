@@ -802,6 +802,21 @@ largeurs : 2,00 contre 2,04 pour N = 20, 1,92 contre 1,90 pour N = 40, 1,84 cont
 N = 60. Il retrouve aussi la tendance du débit à croître quand N diminue. C'est une
 validation partielle : un seul protocole, sol sec, trois graines.
 
+*Mise à jour du 14 novembre : dix graines.* Relancé sur les graines 1 à 10, au commit
+`808ae35` : `dev` à `3d6d43a`, plus la seule option `--agents` de `etalonner-goulot`
+(`docs/mesures/e0-dix-graines-2026-11-14/`). Les graines 1 à 3 redonnent
+exactement les chiffres ci-dessus. Sur dix graines, l'écart moyen vaut **5,7 % pour N = 40** et
+**7,3 % pour N = 20** (2,8 % pour N = 60). Selon le triplet de graines consécutives retenu, il
+va de 5,1 à 7,1 % et de 5,7 à 9,7 % : les trois premières graines tombaient sur le triplet le
+plus défavorable pour N = 20. Le niveau moyen sur les cinq largeurs est retrouvé à 2,2 % près
+(1,99 contre 2,04 pour N = 20, 1,93 contre 1,90 pour N = 40, 1,85 contre 1,85 pour N = 60).
+Aucun bouchage sur les 150 simulations régulées. La ligne « sans règle » du tableau
+d'étalonnage ci-dessus (2,99 à 4,96) ne se reproduit plus, ni avec le code actuel, ni au commit
+qui l'a introduite (`48ccb4c`, #56), et pas davantage avec le débit des 80 % centraux : à
+b = 0,9 m, graines 1 à 3, on obtient 3,49 au lieu de 3,94. Sur dix graines, elle vaut 3,04,
+3,72, 4,15, 4,35 et 4,81, soit 1,9 à 2,4 fois Seyfried (écart moyen de 115 %), avec une arche
+à b = 0,8 m sur la graine 10. Le rapport (`tab:e0`) reprend ces valeurs.
+
 **Sensibilité au pas de temps** (T = 0,35 s, N = 60). Avec Δt = 0,005 s : 1,65, 1,86, 1,92, 1,96
 et 1,87, contre 1,66, 1,85, 1,95, 1,92 et 1,83 avec Δt = 0,01 s. L'écart le plus fort, 0,04 à
 b = 1,1 et 1,2 m, reste de l'ordre de l'écart-type entre graines (0,03 à 0,08). Une étude à
