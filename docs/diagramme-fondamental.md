@@ -102,7 +102,7 @@ Code du commit `0ff523d` (les bilans indiquent `modifications_locales: true`, ca
 ## Ce que ces mesures disent, et ce qu'elles ne disent pas
 
 - **Le carrelage mouillé ne déplace pas le diagramme devant la porte**, ni à 1,2 m ni à 0,8 m : dans chaque classe, les vitesses du sec et du mouillé diffèrent de quelques centièmes de m/s, bien moins que leur dispersion. C'est cohérent avec E1/E2 et E4 (§ 6 du rapport) : la bande mouillée est à 17 m de la porte, et les agents l'ont quittée bien avant la file.
-- **À 1,2 m, la zone ne voit presque que de la marche libre.** Sous 0,5 pers/m², la vitesse vaut celle souhaitée en panique (2,0 m/s), au-dessus de Weidmann, qui décrit une marche ordinaire.
+- **À 1,2 m, la zone ne voit presque que de la marche libre.** Vers 0,1 pers/m², la vitesse vaut celle souhaitée en panique (2,0 m/s), au-dessus de Weidmann, qui décrit une marche ordinaire ; elle tombe à 1,6 m/s vers 0,4 pers/m².
 - **À 0,8 m, la file freine fort.** Entre 0,6 et 1,9 pers/m², la vitesse vaut 45 à 60 % de celle de Weidmann. Ce n'est pas une comparaison dans son domaine (foule contrainte par une porte saturée, en panique), mais c'est la branche congestionnée que la problématique demande de comparer entre sec et mouillé.
 - **La densité reste modérée** (sous 2 pers/m²) parce que la zone couvre aussi les côtés de la porte, où la foule est plus clairsemée qu'en son centre. Une zone plus étroite, sur l'axe, donnerait des densités plus fortes : c'est l'un des choix à discuter.
 - Une bande mouillée qui atteint la porte saturée (`--fixer largeur_porte=0.8 largeur_mouillee=20`) est la configuration où l'hypothèse inertielle aurait le plus de chances d'apparaître. Elle n'est pas mesurée ici.
