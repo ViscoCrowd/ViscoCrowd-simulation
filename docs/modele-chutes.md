@@ -13,8 +13,10 @@ tâches sont suivies dans [#130](https://github.com/ViscoCrowd/ViscoCrowd-simula
 
 **Ce qui est implémenté.** Glissade (§ 1), chute par bousculade et compression (§ 2),
 état à terre et domino (§ 3), relevage (§ 4), contournement (§ 5) et observables de
-cascade (§ 6). L'indépendance du taux de chute à Δt est vérifiée pour la glissade à excès
-constant (§ 7), pas encore pour la bousculade. `λ_chute`, `λ_domino`,
+cascade (§ 6). À excès donné, le taux de chute ne dépend pas de Δt pour les trois mécanismes
+(glissade, domino, bousculade ; § 7). Mais dans une vraie évacuation, **la bousculade dépend
+de Δt** : diviser le pas par deux divise presque par deux ses chutes (§ 2, mesure du
+14 novembre). Elle doit rester éteinte tant que son indicateur n'est pas reformulé. `λ_chute`, `λ_domino`,
 `r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) ;
 `λ_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est actif. Aucun chiffre
 obtenu avec ce module ne peut encore servir de résultat.
@@ -113,9 +115,17 @@ produite par le solveur.
   murs, le bord du bassin et les obstacles. Un agent poussé seul contre un mur peut donc
   dépasser le seuil sans foule. L'indicateur mesure une compression, pas uniquement une
   bousculade.
-- *L'indépendance à Δt n'est pas acquise.* La forme `1 − exp(−λ · excès · Δt)` la garantit à
-  excès donné, mais ici l'excès dépend lui-même de Δt, puisque la correction est divisée par
-  Δt. Elle reste à vérifier par le test du § 7 avant toute calibration.
+- *Le taux dépend de Δt (mesuré le 14 novembre, #130).* La forme `1 − exp(−λ · excès · Δt)`
+  garantit l'indépendance à excès donné (test du § 7). Mais un choc ne dure qu'un pas, quel que
+  soit Δt : son exposition, et donc son risque, sont proportionnels au pas (diagnostic dans
+  #135). Mesure : porte de 0,8 m (saturée), bousculade
+  seule active (λ = 20 /s), graines 1 à 10. À Δt = 0,01 s, 39 chutes (3,9 ± 1,6 par
+  évacuation) ; à Δt = 0,005 s, 21 chutes (2,1 ± 1,0), moins sur 8 graines sur 10. Sur la
+  référence (porte de 1,2 m, λ = 2 /s), elle est presque absente (3 chutes contre 1 sur
+  10 graines) : la compression y dépasse rarement le seuil de 0,5 m/s. Mesures et scripts :
+  `docs/mesures/chutes-dt-2026-11-14/`. Tant que l'indicateur n'est pas reformulé (par exemple
+  sur une compression cumulée sur une durée fixe, et non sur un pas), aucun chiffre de
+  bousculade n'est un résultat.
 
 ---
 
@@ -217,6 +227,15 @@ Aux critères déjà prévus s'ajoutent :
 
 1. **Indépendance à Δt du taux de chute** — c'est le test qui valide la forme exponentielle de la
    probabilité. Relancer à Δt/2 et Δt/4 : le taux de chute par seconde doit être stable.
+   *Fait à excès donné pour les trois mécanismes* (`tests/test_chutes.py` : glissade, domino et
+   bousculade, Δt = 0,02 et 0,01 s, à 10 % du taux théorique). *Dans une évacuation*, la
+   bousculade ne le vérifie pas (§ 2). Elle seule est en cause, pour une raison de structure :
+   la glissade et le domino lisent un état qui relaxe en τ ≫ Δt. Après un choc, `|v_d − v|`
+   relaxe en τ = 0,5 s, soit 50 pas, et l'urgence du domino dépend de `v` et des distances,
+   continues d'un pas à l'autre : leur exposition dure un temps physique. La bousculade lit
+   la correction d'un seul pas, et un choc mou est absorbé en un pas, quel que soit Δt. Ce
+   n'est pas une mesure en évacuation pour la glissade et le domino, mais cela suffit pour en
+   présenter un balayage exploratoire.
 2. **Cas limite sans chute** — en fixant μ très grand, le modèle doit redonner **exactement** les
    résultats du modèle sans chute. Un écart signale un couplage parasite.
 3. **Cohérence de la distribution de relevage** — vérifier sur un grand nombre de tirages que la
