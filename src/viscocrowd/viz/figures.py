@@ -66,7 +66,10 @@ def figure_respect_contrainte(destination: Path) -> Path:
 
     ax.set_yscale("log")
     ax.set_xlabel("temps $t$ (s)")
-    ax.set_ylabel(r"$\max_i \left( x \cdot n_i - (R-r) \right)$  (m)")
+    # Valeur absolue : en vol, l'ecart est negatif (bille a l'interieur) ; une echelle
+    # logarithmique ne peut tracer que sa valeur absolue. Au contact, il est nul a
+    # l'arrondi pres : ce sont les plateaux a 1e-16 m.
+    ax.set_ylabel(r"$\left|\max_i \left( x \cdot n_i - (R-r) \right)\right|$  (m)")
     ax.set_title(
         "Fig. 1 — Respect de la contrainte de confinement\n"
         "$R$ = 1 m, $r$ = 0,05 m, $\\omega$ = 1 rad/s",
