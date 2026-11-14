@@ -1,0 +1,37 @@
+N = 60, sans reglage (temps_espacement null), statuts ['bouchage', 'ecoulement']
+  b 0.8 m : J_s 3.035 ± 0.386 pers/(m.s), 1.89 fois Seyfried
+  b 0.9 m : J_s 3.720 ± 0.223 pers/(m.s), 2.00 fois Seyfried
+  b 1.0 m : J_s 4.149 ± 0.137 pers/(m.s), 2.18 fois Seyfried
+  b 1.1 m : J_s 4.353 ± 0.184 pers/(m.s), 2.26 fois Seyfried
+  b 1.2 m : J_s 4.814 ± 0.168 pers/(m.s), 2.44 fois Seyfried
+N = 20
+  b 0.8 m : 10 ecoulements, J_s 1.754 ± 0.008 pers/(m.s), Seyfried 1.86
+  b 0.9 m : 10 ecoulements, J_s 2.051 ± 0.070 pers/(m.s), Seyfried 2.06
+  b 1.0 m : 10 ecoulements, J_s 2.120 ± 0.055 pers/(m.s), Seyfried 2.19
+  b 1.1 m : 10 ecoulements, J_s 2.036 ± 0.112 pers/(m.s), Seyfried 1.78
+  b 1.2 m : 10 ecoulements, J_s 2.011 ± 0.059 pers/(m.s), Seyfried 2.31
+  ecart moyen, graines 1 a 3  : 9.7 %
+  ecart moyen, graines 1 a 10 : 7.3 %
+  triplets de graines consecutives : de 5.7 a 9.7 %
+  niveau moyen sur les cinq largeurs : 1.994 contre 2.040 (-2.2 %)
+N = 40
+  b 0.8 m : 10 ecoulements, J_s 1.697 ± 0.013 pers/(m.s), Seyfried 1.77
+  b 0.9 m : 10 ecoulements, J_s 1.839 ± 0.063 pers/(m.s), Seyfried 1.91
+  b 1.0 m : 10 ecoulements, J_s 2.020 ± 0.113 pers/(m.s), Seyfried 2.08
+  b 1.1 m : 10 ecoulements, J_s 2.116 ± 0.068 pers/(m.s), Seyfried 1.93
+  b 1.2 m : 10 ecoulements, J_s 1.961 ± 0.060 pers/(m.s), Seyfried 1.81
+  ecart moyen, graines 1 a 3  : 6.6 %
+  ecart moyen, graines 1 a 10 : 5.7 %
+  triplets de graines consecutives : de 5.1 a 7.1 %
+  niveau moyen sur les cinq largeurs : 1.927 contre 1.900 (+1.4 %)
+N = 60
+  b 0.8 m : 10 ecoulements, J_s 1.664 ± 0.010 pers/(m.s), Seyfried 1.61
+  b 0.9 m : 10 ecoulements, J_s 1.864 ± 0.063 pers/(m.s), Seyfried 1.86
+  b 1.0 m : 10 ecoulements, J_s 1.968 ± 0.080 pers/(m.s), Seyfried 1.90
+  b 1.1 m : 10 ecoulements, J_s 1.922 ± 0.052 pers/(m.s), Seyfried 1.93
+  b 1.2 m : 10 ecoulements, J_s 1.843 ± 0.056 pers/(m.s), Seyfried 1.97
+  ecart moyen, graines 1 a 3  : 2.7 %
+  ecart moyen, graines 1 a 10 : 2.8 %
+  triplets de graines consecutives : de 2.6 a 4.2 %
+  niveau moyen sur les cinq largeurs : 1.852 contre 1.854 (-0.1 %)
+Bilan : docs\mesures\e0-dix-graines-2026-11-14\e0-dix-graines.json

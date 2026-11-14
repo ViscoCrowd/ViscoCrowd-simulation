@@ -192,6 +192,25 @@ def test_commande_etalonner_affiche_regimes_et_reference_du_meme_n(
     assert f"Seyfried N={n_agents}" in sortie
 
 
+def test_commande_etalonner_remplace_n_par_agents(tmp_path, capsys):
+    """--agents mesure N = 20 ou 40 sans copier la configuration de reference (N = 60)."""
+    config = yaml.safe_load(EXEMPLE.read_text(encoding="utf-8"))
+    config["parametres"]["duree"] = 25.0
+    fichier = tmp_path / "goulot.yaml"
+    fichier.write_text(yaml.safe_dump(config), encoding="utf-8")
+    arguments = ["etalonner-goulot", str(fichier), "--largeurs", "1.2", "--graines", "1"]
+    assert main([*arguments, "--agents", "20"]) == 0
+    sortie = capsys.readouterr().out
+    assert "20 agents" in sortie and "Seyfried N=20" in sortie
+    ligne = next(ligne for ligne in sortie.splitlines() if ligne.split()[:1] == ["1.20"])
+    assert ligne.split()[-1] == "2.31"
+
+
+def test_commande_etalonner_refuse_un_n_invalide(capsys):
+    assert main(["etalonner-goulot", str(EXEMPLE), "--agents", "1"]) == 1
+    assert "n_agents" in capsys.readouterr().err
+
+
 def test_commande_etalonner_refuse_un_autre_scenario(capsys):
     racine = Path(__file__).parents[1]
     assert main(["etalonner-goulot", str(racine / "experiments/couloir.yaml")]) == 1
