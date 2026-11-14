@@ -150,7 +150,7 @@ PARAMETRES = {
         "E4", "s", "duree de montee d'une echelle, a chaque site", ("durees", "echelle")
     ),
     # 0,34 g x poids apparent ~0,5 : le poids apparent est une hypothese (journal du
-    # 6 novembre 2026), et 1,6 m/s^2 une valeur provisoire, 1,67 a la prochaine relance.
+    # 6 novembre 2026) ; 1,67 m/s^2 dans le YAML depuis la relance du 13 novembre (#128).
     "adherence_eau": ParametreBalaye(
         "M9",
         "m/s^2",

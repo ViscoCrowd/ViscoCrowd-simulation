@@ -27,7 +27,7 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
 | `duree_rebord` | E4 | s | durée pour se hisser sur le rebord, à chaque site (4 s dans le YAML, hypothèse sans source) ; un rebord lent envoie aussi plus de nageurs aux échelles, puisque le guidage compte cette durée |
 | `duree_echelle` | E4 | s | durée de montée d'une échelle, à chaque site (2 s dans le YAML, hypothèse sans source) |
-| `adherence_eau` | M9 | m/s² | `a_max` dans l'eau : 0,34 g × un poids apparent supposé de moitié ; 1,6 m/s² provisoire, 1,67 à la prochaine relance |
+| `adherence_eau` | M9 | m/s² | `a_max` dans l'eau : 0,34 g × un poids apparent supposé de moitié, soit 1,67 m/s² dans le YAML depuis #128 |
 
 **Balayer `lambda_chute` active les chutes.** `experiments/piscine.yaml` n'a pas de section
 `chutes` : le balayage la crée, et toutes les autres valeurs du module (domino, relevage,
