@@ -40,6 +40,10 @@ parametres:
     rebord: 4.0
     echelle: 2.0
   portee: 0.25                 # m : on saisit le bord a moins d'une demi-echelle
+  deblocage:                   # #127 : un nageur bloque pres d'un site libre finit par le saisir
+    delai: 2.0                 # s immobile avant de tendre le bras (hypothese, sans source)
+    portee: 0.65               # m : un diametre plus la portee, a bout de bras
+    vitesse: 0.001             # m/s : en dessous, le nageur est tenu pour immobile
   dt: 0.01                     # s
   duree: 180.0                 # s, borne ; le calcul s'arrete quand tous sont sortis
   tolerance: 1.0e-6            # m

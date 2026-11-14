@@ -1,0 +1,10 @@
+E3 — balayage de largeur_mouillee (m)
+  largeur de la bande mouillee autour du bassin (distance mouille-porte = plage_sortie - largeur)
+Parametres fixes hors YAML : largeur_porte = 0.8 ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis Delta t100 > 0
+       3     70.57 ± 0.90     0.017 ± 0.216     0.035 ± 0.389     0.060 ± 0.520    -0.002 ± 0.021         0/0        5/10
+      20     70.60 ± 0.83     0.051 ± 0.187     0.101 ± 0.254     0.085 ± 0.406    -0.003 ± 0.016         0/0        6/10
+Mesures graine par graine : docs/mesures/mouille-porte-saturee-2026-11-14/largeur-mouillee.json
+Temps d'execution : 688.5 s
