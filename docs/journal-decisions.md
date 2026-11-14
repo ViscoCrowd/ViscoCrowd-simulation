@@ -24,8 +24,16 @@ d'un pas a ainsi le même risque à Δt et à Δt/2, et une compression qui dure
 seconde. `λ_bousculade` reste à 0 par défaut : rien ne change dans la référence.
 
 **Mesure** (porte de 0,8 m, bousculade seule, λ = 2 /s, graines 1 à 10) : 39 chutes à
-Δt = 0,01 s, 47 à 0,005 s, écart apparié 0,8 ± 1,9 par évacuation, sans signe dominant (5 en
-hausse, 3 en baisse). Avant : 39 contre 21, en baisse sur 8 graines sur 10.
+Δt = 0,01 s, 47 à Δt/2 et 38 à Δt/4. Écart apparié à Δt : 0,8 ± 1,9 par évacuation à Δt/2
+(IC à 95 % : −0,5 à +2,1 ; 5 en hausse, 3 en baisse), −0,1 ± 2,0 à Δt/4 (−1,5 à +1,3 ; 5 et 5).
+Avant : 39 contre 21, en baisse sur 8 graines sur 10. Le taux n'est donc plus divisé par le
+pas, sans tendance sur trois pas ; 10 graines ne bornent la dépendance résiduelle qu'à
+quelques dizaines de pour cent (jusqu'à +55 % à Δt/2, ±35 % à Δt/4).
+
+**Un seul paramètre.** Pour un choc d'un pas, λ_bousculade et `duree_bousculade` n'entrent que
+par leur produit (0,2 ici) : c'est lui qu'il faudrait calibrer. Le point 2 de l'entrée suivante
+devient donc : `λ_bousculade` reste à 0 tant que λ_bousculade · `duree_bousculade` n'a pas de
+source.
 
 *Écarté : une compression cumulée sur une fenêtre glissante.* Elle demande une durée de
 fenêtre, tout aussi arbitraire, et un historique par agent, pour le même effet sur des chocs

@@ -16,7 +16,9 @@ tâches sont suivies dans [#130](https://github.com/ViscoCrowd/ViscoCrowd-simula
 cascade (§ 6). À excès donné, le taux de chute ne dépend pas de Δt pour les trois mécanismes
 (glissade, domino, bousculade ; § 7). Dans une vraie évacuation, la bousculade en dépendait :
 un choc ne dure qu'un pas, quel que soit Δt. Son risque est maintenant compté sur une durée
-fixe par choc, `duree_bousculade` (§ 2), et ne dépend plus du pas (mesure du 14 novembre). `λ_chute`, `λ_domino`,
+fixe par choc, `duree_bousculade` (§ 2) : il n'est plus divisé par deux quand le pas l'est, et
+aucun écart n'est décelable sur 10 graines entre Δt, Δt/2 et Δt/4 (mesure du 14 novembre).
+`λ_chute`, `λ_domino`,
 `r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) ;
 `λ_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est actif. Aucun chiffre
 obtenu avec ce module ne peut encore servir de résultat.
@@ -131,9 +133,18 @@ produite par le solveur.
   forts (pic moyen 0,66 et 0,65 m/s) aux deux pas, mais chacun dure **exactement un pas**. Le
   risque cumulé, λ · excès · Δt, était donc proportionnel à Δt. Il est maintenant compté sur
   `duree_bousculade` (0,1 s, hypothèse) au premier pas d'un choc, puis sur Δt aux pas suivants.
-  Même mesure, λ = 2 /s : 39 chutes à Δt = 0,01 s, 47 à Δt = 0,005 s, écart apparié
-  0,8 ± 1,9 (5 graines en hausse, 3 en baisse) : plus d'effet systématique. Les valeurs de
-  λ_bousculade et de `duree_bousculade` restent sans source.
+  Même mesure, λ = 2 /s : **39 chutes à Δt = 0,01 s, 47 à Δt/2, 38 à Δt/4**, pour 3,9 par
+  évacuation au pas de référence. Écart apparié à Δt : 0,8 ± 1,9 à Δt/2 (intervalle de
+  confiance à 95 % : −0,5 à +2,1 chute par évacuation ; 5 graines en hausse, 3 en baisse) et
+  −0,1 ± 2,0 à Δt/4 (−1,5 à +1,3 ; 5 et 5). Compté par pas, le taux aurait été divisé par
+  deux puis par quatre : la mesure l'exclut nettement. Elle ne montre pas de tendance avec
+  le pas, mais sur 10 graines elle ne peut exclure une dépendance résiduelle de quelques
+  dizaines de pour cent (jusqu'à +55 % à Δt/2, ±35 % à Δt/4). Sortie : `par_choc_porte_08.txt` et `par_choc_porte_08_dt4.txt`.
+- *Un seul paramètre identifiable.* Pour un choc d'un pas, le risque vaut
+  `1 − exp(−λ_bousculade · excès · duree_bousculade)` : λ_bousculade et `duree_bousculade`
+  n'y entrent que par leur **produit** (0,2 ici). Tant que presque tous les chocs durent un
+  pas, on ne peut calibrer que ce produit, et c'est lui qui reste une hypothèse sans source.
+  Balayer l'un des deux n'explore pas un second paramètre.
 
 ---
 
