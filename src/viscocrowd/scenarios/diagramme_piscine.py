@@ -15,8 +15,12 @@ fait un trou. On retient donc le rectangle de la plage qui va de `recul` metres
 avant le mur de la porte jusqu'a ce mur, sur toute la largeur de l'emprise. Il ne
 contient ni le bassin ni les points de reintroduction (refuse sinon). Les agents
 encore dans l'eau, sur un bord, deja sortis ou plus loin de la porte n'ont pas de
-cellule : c'est exact pres de la porte, approche sur le bord gauche du rectangle,
-loin de la zone de mesure.
+cellule. Les cellules sont exactes le long des murs. Elles sont approchees devant
+l'ouverture : les agents engages dans le couloir de la porte (L < x < L + 1 m)
+sont encore actifs mais hors de la salle, et la ligne x = L borne les cellules de
+ceux qui attendent a leur place. C'est la reserve de E0 a l'ouverture du goulot
+(`diagramme_goulot`), et la zone de mesure, a 0,2 m du mur, y est exposee. Elles
+le sont aussi sur le bord gauche du rectangle, loin de la zone.
 
 Choix a discuter avant toute conclusion (#124)
 ----------------------------------------------
