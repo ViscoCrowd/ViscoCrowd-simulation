@@ -349,6 +349,23 @@ Ce qu'on en retient, avec les critères proposés dans `criteres-acceptation.md`
 3. **Sur la fin de l'évacuation, l'effet se dilue.** Δ t100 change de signe d'une graine à
    l'autre, avec un écart-type de 1 s : la porte et l'extraction de l'eau imposent le rythme.
 
+**Niveau de panique, avec la régulation.** Le balayage du 2 novembre avait été fait sans
+régulation. Refait le 14 novembre sur la même référence (code identique à `3d6d43a`,
+commit de branche `29fbca7`, qui ne change que de la documentation) :
+
+| Facteur | t100 mouillé (s) | J_s porte (pers/(m·s)) | Δ t50 (s) | Δ t50 > 0 |
+|---|---|---|---|---|
+| 1 | 62,16 ± 1,33 | 1,98 | 0,000 ± 0,000 | 3/10 |
+| 1,25 | 55,83 ± 1,48 | 2,14 | 0,000 ± 0,001 | 6/10 |
+| 1,5 (référence, #128) | 51,36 ± 1,77 | 2,28 | −0,01 ± 0,07 | 7/10 |
+| 2 | 47,09 ± 2,58 | 2,39 | 0,095 ± 0,085 | 9/10 |
+
+4. **Avec la régulation, la panique accélère toujours l'évacuation**, jusqu'au facteur 2 :
+   pas d'effet *faster-is-slower* dans cette plage, la porte de 1,2 m n'étant pas saturée.
+5. **L'effet inertiel du mouillé grandit avec la vitesse** : nul jusqu'au facteur 1,25 (une
+   relance demande alors au plus 3,4 m/s², à peine plus que l'adhérence du mouillé), il atteint
+   0,1 s au facteur 2. Il reste sous le seuil de pertinence de 1 %.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
