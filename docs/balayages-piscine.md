@@ -313,7 +313,8 @@ Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
 
 ## Sensibilité à τ et à la vitesse sur le mouillé (14 novembre 2026)
 
-Commit `3d6d43a`, sans modification locale, macOS arm64 ; `experiments/piscine.yaml` de
+Commit `3d6d43a` (empreinte des sources `d1387660…`), sans modification locale, macOS arm64 ;
+`experiments/piscine.yaml` de
 référence (régulation à T = 0,35 s, porte arrondie, a_max de l'eau à 1,67) ; graines 1 à 10 ;
 une valeur par processus. Le balayage de τ change τ sur les trois sols **et** sur le témoin ;
 celui de la vitesse sur le mouillé ne touche que le mouillé. Bilans dans
@@ -345,19 +346,26 @@ Ce qu'on en retient, avec les critères proposés dans `criteres-acceptation.md`
 2. **Le seul effet pertinent est la marche plus lente sur le mouillé.** Si l'on marche à
    1,0 ou 0,7 m/s sur le carrelage mouillé (au lieu de 1,34), la première moitié sort
    0,7 à 1,5 s plus tard (2,3 à 4,5 % de t50, 9 et 10 graines sur 10). Ce n'est pas un effet
-   d'inertie, mais un effet de prudence, que le modèle impose par hypothèse.
+   d'inertie, mais un effet de prudence, que le modèle impose par hypothèse. Il se prédit à
+   la main : traverser la bande de ℓ = 3 m à κ s au lieu de κ × 1,34 m/s (κ = 1,5, facteur de
+   panique) coûte ℓ (1/(κ s) − 1/(κ × 1,34)), soit **1,36 s** à s = 0,7 m/s (1,49 s mesurés)
+   et **0,51 s** à s = 1,0 m/s (0,73 s mesurés). Le reste vient des baigneurs sortis par le
+   haut et le bas du bassin, qui longent la bande sur plus de 3 m, et de la relance. L'effet
+   est cinématique, non inertiel.
 3. **Sur la fin de l'évacuation, l'effet se dilue.** Δ t100 change de signe d'une graine à
    l'autre, avec un écart-type de 1 s : la porte et l'extraction de l'eau imposent le rythme.
 
 **Niveau de panique, avec la régulation.** Le balayage du 2 novembre avait été fait sans
-régulation. Refait le 14 novembre sur la même référence (code identique à `3d6d43a`,
-commit de branche `29fbca7`, qui ne change que de la documentation) :
+régulation. Refait le 14 novembre sur la même référence, depuis le commit de branche
+`29fbca7`, qui ne change que de la documentation : les bilans portent l'empreinte des
+sources `d1387660…`, la même que `3d6d43a`. C'est elle qui reste vérifiable une fois la
+branche supprimée.
 
 | Facteur | t100 mouillé (s) | J_s porte (pers/(m·s)) | Δ t50 (s) | Δ t50 > 0 |
 |---|---|---|---|---|
 | 1 | 62,16 ± 1,33 | 1,98 | 0,000 ± 0,000 | 3/10 |
 | 1,25 | 55,83 ± 1,48 | 2,14 | 0,000 ± 0,001 | 6/10 |
-| 1,5 (référence, #128) | 51,36 ± 1,77 | 2,28 | −0,01 ± 0,07 | 7/10 |
+| 1,5 (référence, E2 de #128) | 51,28 ± 1,87 | 2,28 | −0,01 ± 0,07 | 7/10 |
 | 2 | 47,09 ± 2,58 | 2,39 | 0,095 ± 0,085 | 9/10 |
 
 4. **Avec la régulation, la panique accélère toujours l'évacuation**, jusqu'au facteur 2 :
