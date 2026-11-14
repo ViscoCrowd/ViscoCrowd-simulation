@@ -255,11 +255,67 @@ Le 10 novembre, la régulation est activée à T = 0,35 s dans la configuration 
 qu'ils comparent (mouillé contre sec à réglage égal), mais leurs valeurs absolues ne sont
 plus celles de la référence.
 
+## Porte arrondie et a_max de l'eau à 1,67 (13 novembre 2026)
+
+Les montants de la porte sont arrondis comme ceux du goulot E0 (#85, PR #125), et l'eau
+passe à `a_max = 1,67 m/s²`, la valeur prévue à la prochaine relance (C6, journal du
+6 novembre). Configuration de référence pour le reste : facteur 1,5, T = 0,35 s. Graines 1
+à 10, une graine par processus (mêmes séries qu'en un seul appel). Code du commit `5dc556a`
+et `piscine.yaml` de `773d6f3` : c'est ce que signale `modifications_locales: true` dans
+les bilans de [`mesures/porte-arrondie-2026-11-13/`](mesures/porte-arrondie-2026-11-13/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre largeur_porte --valeurs 0.8 1.0 1.2 1.6 --graines 1 2 3 4 5 6 7 8 9 10
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre n_agents --valeurs 50 100 150 200 --graines 1 2 3 4 5 6 7 8 9 10
+```
+
+**Aucune évacuation incomplète** sur les 160 simulations (mouillé et témoin). Avant la
+correction et sans régulation, les mêmes commandes bouchaient 8 graines sur 10 à 0,8 m
+(section « Bouchage » ci-dessus, reproduite à l'identique le 13 novembre).
+
+Largeur de porte (témoin sec ; flux = J_s × b, en sorties par seconde) :
+
+| b (m) | t50 (s) | t90 (s) | t100 (s) | J_s (pers/(m·s)) | Flux (pers/s) | Δ t100 mouillé − sec (s) |
+|---|---|---|---|---|---|---|
+| 0,8 | 41,96 ± 0,36 | 64,25 ± 0,50 | 70,52 ± 0,75 | 2,24 ± 0,01 | 1,79 ± 0,01 | 0,06 ± 0,52 |
+| 1,0 | 31,95 ± 0,77 | 45,74 ± 0,85 | 51,35 ± 1,79 | 2,73 ± 0,11 | 2,73 ± 0,11 | 0,00 ± 0,12 |
+| 1,2 | 31,44 ± 0,51 | 45,42 ± 0,66 | 51,36 ± 1,77 | 2,28 ± 0,09 | 2,73 ± 0,11 | −0,08 ± 0,17 |
+| 1,6 | 31,30 ± 0,54 | 45,43 ± 0,64 | 51,23 ± 1,77 | 1,71 ± 0,07 | 2,74 ± 0,11 | −0,09 ± 0,16 |
+
+Population (porte de 1,2 m, témoin sec ; Δ t50 et nombre de graines où il est positif) :
+
+| N | t50 (s) | t90 (s) | t100 (s) | Flux (pers/s) | Δ t50 mouillé − sec (s) |
+|---|---|---|---|---|---|
+| 50 | 24,84 ± 0,77 | 31,68 ± 0,83 | 34,21 ± 1,30 | 2,60 ± 0,17 | 0,012 ± 0,004, 10/10 |
+| 100 | 31,44 ± 0,51 | 45,42 ± 0,66 | 51,36 ± 1,77 | 2,73 ± 0,11 | −0,01 ± 0,07, 7/10 |
+| 150 | 39,43 ± 0,25 | 60,16 ± 0,95 | 67,89 ± 2,72 | 2,82 ± 0,13 | 0,05 ± 0,15, 8/10 |
+| 200 | 47,61 ± 0,44 | 73,99 ± 0,56 | 84,78 ± 1,52 | 2,85 ± 0,05 | 0,07 ± 0,24, 8/10 |
+
+Ce qu'on en retient :
+
+1. **La porte ne limite l'évacuation que sous un mètre.** Dès 1,0 m, t100 ne bouge plus et
+   le flux de sorties reste de 2,73 pers/s : c'est l'extraction de l'eau qui fixe le rythme.
+   À 0,8 m, le flux tombe à 1,79 ± 0,01 pers/s, presque sans dispersion : la porte est
+   saturée, et t100 s'allonge de 19 s.
+2. **J_s se lit avec prudence.** Tant que la porte n'est pas saturée, il vaut le flux imposé
+   en amont divisé par b : il baisse quand la porte s'élargit, sans rien dire de sa capacité.
+3. **La durée croît linéairement avec la population** : 16,5 à 17,2 s de plus par tranche de
+   cinquante baigneurs, avec un flux de sorties qui ne passe que de 2,60 à 2,85 pers/s.
+4. **Le mouillé reste sans effet mesurable**, même devant une porte saturée (0,8 m :
+   Δ t100 = 0,06 ± 0,52 s). Il n'est systématique qu'à cinquante baigneurs (Δ t50 de 0,007 à
+   0,019 s sur les dix graines), quand peu d'interactions couvrent la relance écrêtée.
+
+E1/E2 refaits sur la même configuration (`comparer-piscine`, graines 1 à 10) : t100 sec =
+51,36 ± 1,77 s, mouillé = 51,28 ± 1,87 s, J_s = 2,28 ± 0,09 pers/(m·s) ; Δ t50 = −0,01 ± 0,07 s,
+médiane +0,014 s, positif sur 7 graines sur 10, la graine 5 seule s'écartant de −0,22 s.
+Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
 référence, le carrelage mouillé n'a pas d'effet mesurable sur l'évacuation**, parce que les
-changements de vitesse ont lieu loin du goulot et que la porte n'est jamais encombrée. C'est
+changements de vitesse ont lieu loin du goulot et que la porte n'est saturée que sous un
+mètre de large, à 17 m de la bande mouillée. C'est
 une conclusion conditionnelle. Elle ne dit pas que le sol mouillé est sans effet en général,
 pour quatre raisons :
 
@@ -268,17 +324,18 @@ pour quatre raisons :
    fusionné), et il ne ralentit pas la marche : `s` est le même sur le sec et le mouillé.
    C'est un choix de protocole, pour isoler l'effet de l'adhérence (#26), pas une
    observation.
-2. **La porte n'est jamais encombrée** dans la piscine de référence. Or c'est devant un
-   bouchon qu'il faut freiner. L'effet du mouillé près d'une porte encombrée reste à mesurer.
+2. **La porte n'est encombrée qu'à 0,8 m** (section précédente), et la bande mouillée de
+   3 m en est à 17 m. L'effet du mouillé sur la zone d'accumulation elle-même, avec du
+   mouillé jusqu'à la porte, reste à mesurer.
 3. **La foule est trop rapide au goulot.** E0 mesure un débit 1,9 à 2,5 fois celui de
    Seyfried : nos baigneurs ne ralentissent pas derrière celui qui les précède. La relation
    vitesse–espacement (#58) corrige ce point sur E0. Les balayages du 2 novembre ont été
    faits sans elle. Elle est activée dans la piscine depuis le 10 novembre (#57) et ramène
    le débit à la porte de 3,20 à 2,25 pers/(m·s) (section précédente), encore au-dessus de
    Seyfried.
-4. **La porte se bouche artificiellement** (ci-dessus), ce qui empêche pour l'instant de
-   créer un bouchon réaliste en rétrécissant la porte ou en ajoutant du monde.
+4. **La porte se bouchait artificiellement** (ci-dessus). Ses montants sont arrondis
+   depuis le 13 novembre (#125), et les balayages de porte et de population ont été
+   refaits sans aucun bouchage.
 
-Avant de conclure le rapport, il reste donc à arrondir les coins de la porte, puis à refaire
-les balayages de porte et de population, avec du mouillé jusqu'à la porte et la régulation
-vitesse–espacement activée ; et à mesurer l'effet des chutes.
+Avant de conclure le rapport, il reste donc à combiner une porte saturée (0,8 m) et du
+mouillé jusqu'à la porte, et à mesurer l'effet des chutes.
