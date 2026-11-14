@@ -12,7 +12,12 @@ Chaque agent passe par quatre etats :
     d'attente d'un site LIBRE l'occupe (la portee est la distance a laquelle on
     saisit le bord ou l'echelle ; plus courte que le rayon, deux agents serres de
     part et d'autre d'une echelle se bloquaient mutuellement a un rayon du point
-    d'attente, sans que l'un ou l'autre ne puisse jamais l'atteindre). Il est
+    d'attente, sans que l'un ou l'autre ne puisse jamais l'atteindre). Le meme
+    blocage se forme un rang plus loin dans une foule dense : quatre nageurs a un
+    diametre du point d'attente, en reseau serre contre le bord, et aucun a portee
+    (#127). D'ou le DEBLOCAGE, facultatif : un nageur immobile depuis `delai`, a moins
+    de la portee de deblocage d'un site libre, le saisit (a bout de bras). Tant qu'aucun
+    nageur n'est bloque, la regle ne change rien, au bit pres. Il est
     immobilise sur le bord pendant la duree du site (rebord ou echelle), hors de
     la projection. Le site reste occupe
     jusqu'a ce que l'agent soit reintroduit sur la plage, au point d'arrivee du
@@ -78,6 +83,7 @@ class ParametresPiscine:
     graine: int
     chutes: ParametresChutes | dict | None = None
     temps_espacement: float | None = None
+    deblocage: dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -94,6 +100,19 @@ class ParametresPiscine:
             or self.temps_espacement <= 0
         ):
             raise ValueError("temps_espacement doit etre un nombre reel strictement positif fini")
+        if self.deblocage is not None:
+            if not isinstance(self.deblocage, dict) or set(self.deblocage) != {
+                "delai",
+                "portee",
+                "vitesse",
+            }:
+                raise ValueError("deblocage doit donner delai (s), portee (m) et vitesse (m/s)")
+            if not all(
+                type(v) in (int, float) and np.isfinite(v) and v > 0
+                for v in self.deblocage.values()
+            ):
+                raise ValueError("deblocage : delai, portee et vitesse strictement positifs finis")
+            object.__setattr__(self, "deblocage", {k: float(v) for k, v in self.deblocage.items()})
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -153,6 +172,10 @@ class ParametresPiscine:
         # portee de deux sites, mais l'attribution du plus proche ne lui en donne qu'un.
         if self.portee >= piscine.pas_rebord / 2:
             raise ValueError("portee doit rester sous la moitie de pas_rebord")
+        # La portee de deblocage ne sert qu'apres la portee ordinaire : plus courte, elle
+        # ne debloquerait personne.
+        if self.deblocage is not None and self.deblocage["portee"] <= self.portee:
+            raise ValueError("deblocage : la portee doit depasser la portee ordinaire")
         # Ce qui doit tenir partout, coins compris : deux agents immobilises sur le
         # bord, hors de la projection, ne se recouvrent pas.
         bords = np.array([s.position for s in piscine.sites()])
@@ -228,6 +251,7 @@ class ResultatPiscine:
         franchissements: (M, 4) [agent, site, debut, fin] ; fin = reintroduction.
         natures: nature de chaque site, par indice.
         sorties: (N,) instant de passage de la porte, en s ; NaN si jamais sorti.
+        deblocages: nombre de franchissements commences par la regle de deblocage.
     """
 
     t: np.ndarray
@@ -242,6 +266,7 @@ class ResultatPiscine:
     parametres: ParametresPiscine
     violation_tous_pas: float | None = None
     chutes: tuple[EvenementChute, ...] = ()
+    deblocages: int = 0
 
     def violation_paroi_max(self) -> float:
         """Plus grand depassement des murs, sur tous les agents actifs et tous les instants."""
@@ -384,6 +409,8 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     sorties = np.full(n, np.nan)
     evenements: list[list[float]] = []
     correction_derniere = np.zeros((n, 2))
+    immobile = np.zeros(n)  # s : duree depuis laquelle chaque agent ne bouge plus (#127)
+    n_deblocages = 0
 
     t = 0.0
     historique_t, historique_x, historique_v, historique_e = (
@@ -442,6 +469,9 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                     f"deplacement mesure de {deplacement:.3g} m en un pas, > rayon/5 a "
                     f"t = {t:.2f} s ; reduire dt"
                 )
+            if p.deblocage is not None:
+                lent = np.hypot(*(nouveau.x - x[actifs]).T) < p.deblocage["vitesse"] * p.dt
+                immobile[actifs] = np.where(lent, immobile[actifs] + p.dt, 0.0)
             x[actifs], v[actifs] = nouveau.x, nouveau.v
         t = pas * p.dt  # sans accumulation d'arrondis : les durees restent exactes
 
@@ -474,18 +504,27 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
 
         # Debuts de franchissement : un agent de l'eau pres du point d'attente d'un site
         # libre. Les couples les plus proches sont servis d'abord.
-        dans_l_eau = np.flatnonzero(etat == EAU)
-        libres = np.flatnonzero(occupant < 0)
-        if dans_l_eau.size and libres.size:
+        # Puis, si la regle est active, les nageurs bloques assez longtemps pres d'un site
+        # encore libre, a la portee de deblocage (#127).
+        portees = [p.portee] + ([p.deblocage["portee"]] if p.deblocage is not None else [])
+        for rang, portee in enumerate(portees):
+            nageurs = etat == EAU
+            if rang:
+                nageurs &= immobile >= p.deblocage["delai"] - 1e-9
+            nageurs = np.flatnonzero(nageurs)
+            libres = np.flatnonzero(occupant < 0)
+            if not (nageurs.size and libres.size):
+                continue
             distances = np.hypot(
-                x[dans_l_eau, None, 0] - attentes[None, libres, 0],
-                x[dans_l_eau, None, 1] - attentes[None, libres, 1],
+                x[nageurs, None, 0] - attentes[None, libres, 0],
+                x[nageurs, None, 1] - attentes[None, libres, 1],
             )
-            for a, s in _attribuer_sites(distances, p.portee):
-                i, k = dans_l_eau[a], libres[s]
+            for a, s in _attribuer_sites(distances, portee):
+                i, k = nageurs[a], libres[s]
                 occupant[k], fin[k] = i, t + durees[k]
                 etat[i], debut_agent[i], site_agent[i] = FRANCHISSEMENT, t, k
                 x[i], v[i] = positions_bord[k], 0.0
+                n_deblocages += rang
 
         verifier_coherence(etat, occupant, site_agent, x, piscine)
         actifs = (etat == EAU) | (etat == PLAGE)
@@ -513,4 +552,5 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         parametres=p,
         violation_tous_pas=violation,
         chutes=gestionnaire.historique if gestionnaire is not None else (),
+        deblocages=n_deblocages,
     )

@@ -1,0 +1,7 @@
+# Sortie de ecarts_200_regules.py (memes conditions).
+mouille graine  1: t50 47.13->47.13  t90 73.71->73.71  t100 83.86->83.86  (deblocages 1)
+sec     graine  4: t50 47.89->47.89  t90 74.21->74.21  t100 82.31->81.83  (deblocages 1)
+mouille graine  4: t50 47.92->47.92  t90 74.26->74.26  t100 82.95->82.95  (deblocages 1)
+mouille graine  6: t50 48.03->48.03  t90 74.45->74.45  t100 85.90->85.90  (deblocages 1)
+mouille graine  8: t50 47.59->47.55  t90 74.93->74.26  t100 88.71->87.96  (deblocages 1)
+
