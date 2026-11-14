@@ -46,6 +46,24 @@ l'attribution ordinaire : tant qu'aucun nageur n'est bloqué, elle ne change rie
 - **À 200 baigneurs régulés, l'effet est minime** : t50 et t90 identiques dans 4 cas sur 5,
   t100 avancé de 0,48 s (sec, graine 4) et de 0,75 s (mouillé, graine 8), inchangé ailleurs.
 
+**Pourquoi l'activer par défaut, alors que la référence ne se bloque plus.** Avec a_max de
+l'eau à 1,67 m/s² (`piscine.yaml` depuis #128), le blocage de #127 ne se produit plus, même
+sans régulation : 0 évacuation incomplète et 0 déblocage. La règle protège surtout les
+**balayages** qui s'écartent de la référence : l'adhérence dans l'eau (#119 la balaie, et
+toute valeur autour de 1,6 m/s² retombe sur l'arche de #127) et les populations sans
+régulation. C'est ce qui justifie d'ajouter trois hypothèses sans source. L'autre option,
+`deblocage: null` dans le YAML et activation seulement dans les balayages concernés, est
+écartée : un modèle qui change selon la campagne serait plus dur à défendre.
+
+**Effet sur les résultats publiés** (relance du 14 novembre, commit `7a96db1`, graines 1 à
+10, `docs/mesures/deblocage-2026-11-14/`, avec un contrôle sans la règle sur la même machine).
+La règle ne change aucune évacuation du balayage de largeur de porte, et 10 des 80 du balayage
+de population : au plus 0,006 s sur t100, sauf deux à N = 200 (−0,49 et −0,76 s). Dans
+`tab:e4-population`, seule la ligne N = 200 bouge : t100 passe de 84,78 ± 1,52 à
+84,73 ± 1,61 s et Δ t50 est positif sur 7 graines au lieu de 8. Le contrôle montre aussi que
+macOS et Windows ne donnent pas les mêmes résultats au bit près (16 évacuations sur 160, au
+plus 0,024 s sur t100), sans effet aux arrondis des tableaux.
+
 *Écarté : agrandir la portée.* Elle doit rester sous la moitié du pas des sites de rebord, et
 tous les résultats changeraient, E1/E2 compris. *Écarté : un bruit sur la direction des
 nageurs.* Au goulot E0, il ne cassait pas les arches (entrée E0).

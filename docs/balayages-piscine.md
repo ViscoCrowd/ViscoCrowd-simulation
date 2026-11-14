@@ -290,7 +290,23 @@ Population (porte de 1,2 m, témoin sec ; Δ t50 et nombre de graines où il est
 | 50 | 24,84 ± 0,77 | 31,68 ± 0,83 | 34,21 ± 1,30 | 2,60 ± 0,17 | 0,012 ± 0,004, 10/10 |
 | 100 | 31,44 ± 0,51 | 45,42 ± 0,66 | 51,36 ± 1,77 | 2,73 ± 0,11 | −0,01 ± 0,07, 7/10 |
 | 150 | 39,43 ± 0,25 | 60,16 ± 0,95 | 67,89 ± 2,72 | 2,82 ± 0,13 | 0,05 ± 0,15, 8/10 |
-| 200 | 47,61 ± 0,44 | 73,99 ± 0,56 | 84,78 ± 1,52 | 2,85 ± 0,05 | 0,07 ± 0,24, 8/10 |
+| 200 | 47,61 ± 0,44 | 73,99 ± 0,56 | 84,73 ± 1,61 | 2,85 ± 0,06 | 0,07 ± 0,24, 7/10 |
+
+La ligne N = 200 est celle de la relance du 14 novembre, avec la règle de déblocage active
+(#131) : elle se déclenche sur quelques évacuations régulées à 200 baigneurs et y avance la
+dernière sortie (t100 de 84,78 ± 1,52 à 84,73 ± 1,61 s, Δ t50 positif sur 7 graines au lieu
+de 8). Les lignes 50 à 150 sont inchangées aux arrondis du tableau. Commit `7a96db1`, sans
+modification locale, macOS arm64 ; bilans dans
+[`mesures/deblocage-2026-11-14/`](mesures/deblocage-2026-11-14/), avec un contrôle sans la règle
+sur la même machine (`sans-regle/`), qui sépare deux causes d'écart :
+
+- **la règle** ne change aucune évacuation du balayage de largeur de porte (`tab:e4-porte` reste
+  valable) et 10 des 80 évacuations du balayage de population : au plus 0,006 s sur t100, sauf
+  deux à N = 200 (−0,49 s, sec, graine 4 ; −0,76 s, mouillé, graine 8) ;
+- **la plateforme** : sans la règle, macOS et Windows (bilans du 13 novembre) diffèrent sur 16
+  des 160 évacuations, de 0,002 s au plus sur t100 pour la population et de 0,024 s pour la
+  porte. Les résultats ne sont donc pas identiques au bit près d'une machine à l'autre ; les
+  tableaux, arrondis au centième, n'en sont pas affectés.
 
 Ce qu'on en retient :
 
