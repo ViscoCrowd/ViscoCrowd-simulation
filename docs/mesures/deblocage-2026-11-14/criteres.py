@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print(f"{len(taches)} simulations en {time.perf_counter() - t0:.0f} s")
 
     agg = defaultdict(lambda: [0, 0, 0])
-    for nom, sol, g, deb, restes, nd, _ in res:
+    for nom, _sol, _g, deb, restes, nd, _ in res:
         a = agg[(nom, deb)]
         a[0] += restes > 0
         a[1] += restes

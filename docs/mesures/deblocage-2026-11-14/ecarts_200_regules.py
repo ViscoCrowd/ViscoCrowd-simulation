@@ -1,6 +1,7 @@
-import copy, numpy as np
+import copy
 from multiprocessing import Pool
 from pathlib import Path
+
 import viscocrowd.scenarios.piscine as s
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.scenarios.balayage_piscine import temoin
@@ -34,5 +35,7 @@ if __name__ == "__main__":
     for so, g in cas:
         sans, avec = res[(so, g, False)], res[(so, g, True)]
         print(
-            f"{so:7s} graine {g:2d}: t50 {sans[0]:.2f}->{avec[0]:.2f}  t90 {sans[1]:.2f}->{avec[1]:.2f}  t100 {sans[2]:.2f}->{avec[2]:.2f}  (deblocages {avec[3]})"
+            f"{so:7s} graine {g:2d}: t50 {sans[0]:.2f}->{avec[0]:.2f}  "
+            f"t90 {sans[1]:.2f}->{avec[1]:.2f}  t100 {sans[2]:.2f}->{avec[2]:.2f}  "
+            f"(deblocages {avec[3]})"
         )
