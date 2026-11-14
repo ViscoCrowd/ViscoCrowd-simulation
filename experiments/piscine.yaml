@@ -23,8 +23,8 @@ parametres:
   parametres_milieux:
     EAU:                       # petit bain de 0,7 m, eau calme : V = 0,53 (d^2/2)^-0,19 (shirvani2020)
       relaxation: 0.5          # s (Helbing et al. 2000)
-      acceleration_max: 1.6    # m/s^2 : 0,34 g x poids apparent ~0,5 = 1,67 (hypothese) ;
-                               # 1,6 provisoire, 1,67 a la prochaine relance des balayages
+      acceleration_max: 1.67   # m/s^2 : 0,34 g x poids apparent ~0,5 (hypothese) ;
+                               # 1,6 provisoire jusqu'a la relance du 13 novembre 2026
       vitesse: 0.69            # m/s
     MOUILLE:
       relaxation: 0.5
