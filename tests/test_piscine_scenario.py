@@ -391,3 +391,78 @@ def test_temps_espacement_ralentit_l_ecoulement():
     assert np.all(np.isfinite(libre)) and np.all(np.isfinite(regule))
     assert regule.mean() > libre.mean() + 0.1
     assert regule.max() >= libre.max()
+
+
+# --- Deblocage pres d'un site libre (#127) ------------------------------------------
+
+DEBLOCAGE = {"delai": 0.3, "portee": 0.65, "vitesse": 0.001}
+
+# Les 13 nageurs restes a la fin de l'evacuation de #127 (200 baigneurs, graine 4,
+# sans regulation, a_max de l'eau a 1,6) : un reseau serre sous l'echelle du haut,
+# dont le point d'attente (25,5 ; 16,3) est libre mais a un diametre de tous.
+ARCHE_ECHELLE = [
+    [25.1001, 16.3],
+    [24.7, 15.6073],
+    [24.9, 15.9536],
+    [25.1, 15.6072],
+    [25.3, 15.9535],
+    [25.3, 15.2607],
+    [25.5, 15.6071],
+    [25.7, 15.9535],
+    [25.7, 15.2607],
+    [25.9, 15.6072],
+    [26.1, 15.9536],
+    [26.3, 15.6073],
+    [25.8999, 16.3],
+]
+
+
+def _simuler_arche(monkeypatch, deblocage):
+    import viscocrowd.scenarios.piscine as scenario
+
+    p = parametres(
+        n_agents=len(ARCHE_ECHELLE), duree=1.0, temps_espacement=None, deblocage=deblocage
+    )
+    monkeypatch.setattr(scenario, "positions_initiales", lambda _: np.array(ARCHE_ECHELLE))
+    return simuler_piscine(p)
+
+
+def test_arche_devant_l_echelle_sans_deblocage(monkeypatch):
+    """Le blocage de #127 : point d'attente libre, mais aucun nageur a portee, ni ne bouge."""
+    r = _simuler_arche(monkeypatch, None)
+    assert r.franchissements.shape[0] == 0
+    assert np.all(r.etats[-1] == 0)  # tous encore dans l'eau
+    assert np.max(np.hypot(*(r.x[-1] - r.x[0]).T)) < 1e-3  # m, immobiles
+    assert r.deblocages == 0
+
+
+def test_deblocage_d_une_arche_devant_l_echelle(monkeypatch):
+    """Immobile depuis `delai`, un nageur a bout de bras d'un site libre le saisit."""
+    r = _simuler_arche(monkeypatch, DEBLOCAGE)
+    assert r.deblocages >= 1
+    # Un franchissement n'est enregistre qu'a la reintroduction, apres la duree du site :
+    # on lit donc l'etat des nageurs qui ont saisi un site.
+    assert np.sum(r.etats[-1] == FRANCHISSEMENT) == r.deblocages
+
+
+def test_deblocage_sans_effet_sans_blocage():
+    """Sans nageur bloque, la regle ne change rien, au bit pres (critere de #127)."""
+    sans = simuler_piscine(parametres(n_agents=15, duree=60.0, deblocage=None))
+    avec = simuler_piscine(parametres(n_agents=15, duree=60.0, deblocage=DEBLOCAGE))
+    assert avec.deblocages == 0
+    np.testing.assert_array_equal(avec.sorties, sans.sorties)
+    np.testing.assert_array_equal(avec.franchissements, sans.franchissements)
+
+
+@pytest.mark.parametrize(
+    "deblocage, message",
+    [
+        ({"delai": 2.0, "portee": 0.65}, "delai"),
+        ({"delai": 0.0, "portee": 0.65, "vitesse": 0.001}, "strictement positifs"),
+        ({"delai": 2.0, "portee": float("nan"), "vitesse": 0.001}, "strictement positifs"),
+        ({"delai": 2.0, "portee": 0.2, "vitesse": 0.001}, "portee ordinaire"),
+    ],
+)
+def test_deblocage_invalide_refuse(deblocage, message):
+    with pytest.raises(ValueError, match=message):
+        parametres(deblocage=deblocage)

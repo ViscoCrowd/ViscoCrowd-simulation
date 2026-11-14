@@ -11,6 +11,51 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-14 — Débloquer un nageur immobile près d'un site libre (#127)
+
+**Statut.** Proposition de Lenny, à valider en relecture.
+
+**Contexte.** Sans régulation, à 200 baigneurs et a_max de l'eau à 1,6 m/s², la graine 4
+ne finit pas son évacuation : 13 baigneurs restent dans l'eau jusqu'aux 180 s. Diagnostic
+du 14 novembre : ils sont **immobiles** (déplacement nul sur les 10 dernières secondes), en
+réseau serré sous l'échelle du haut. Le point d'attente de l'échelle, en (25,5 ; 16,3) m, est
+libre, mais les quatre nageurs les plus proches en sont tous à 0,40 m, un diamètre, au-delà de
+la portée de 0,25 m. Les deux du dessous poussent vers ce trou par symétrie et se bloquent
+l'un l'autre. C'est le blocage mutuel qui avait fixé la portée (docstring du scénario), un rang
+plus loin. Avec a_max de l'eau à 1,67 (depuis #128), la graine 4 passe, mais par chance.
+
+**Décision proposée.** Une règle facultative, `deblocage` dans `piscine.yaml` : un nageur
+immobile (moins de 1 mm/s) depuis 2 s, à moins de 0,65 m (un diamètre plus la portée, à bout
+de bras) du point d'attente d'un site **libre**, le saisit. Elle ne sert qu'après
+l'attribution ordinaire : tant qu'aucun nageur n'est bloqué, elle ne change rien, au bit près.
+
+**Mesure** (14 novembre, macOS arm64, graines 1 à 10, mouillé et témoin sec, 160 évacuations) :
+
+| Cas | Évacuations incomplètes | Déblocages | Sorties identiques au bit près |
+|---|---|---|---|
+| Sans régulation, 200 baigneurs, a_max eau 1,6 | 0 (2 avant) | 6 | — (c'est la correction) |
+| Sans régulation, 200 baigneurs, a_max eau 1,67 | 0 | 0 | — |
+| Référence régulée | 0 | 1 | oui |
+| Porte de 0,8 m, régulée | 0 | 0 | oui |
+| 200 baigneurs, régulée | 0 | 5 | non |
+
+- **La règle trouve aussi de petits blocages dans les cas régulés.** Sur la référence (témoin
+  sec, graine 8), un nageur restait immobile **7 s** à 0,269 m d'un site de rebord libre ; il le
+  saisit au bout de 2 s, mais sa réintroduction sur la plage attend de toute façon que le point
+  d'arrivée se libère, et les sorties ne changent pas.
+- **À 200 baigneurs régulés, l'effet est minime** : t50 et t90 identiques dans 4 cas sur 5,
+  t100 avancé de 0,48 s (sec, graine 4) et de 0,75 s (mouillé, graine 8), inchangé ailleurs.
+
+*Écarté : agrandir la portée.* Elle doit rester sous la moitié du pas des sites de rebord, et
+tous les résultats changeraient, E1/E2 compris. *Écarté : un bruit sur la direction des
+nageurs.* Au goulot E0, il ne cassait pas les arches (entrée E0).
+
+**Limites.** Le délai (2 s), la portée (0,65 m) et le seuil d'immobilité (1 mm/s) sont des
+hypothèses sans source. Le nageur débloqué est placé sur le bord comme les autres, depuis un
+peu plus loin.
+
+---
+
 ## 2026-11-13 — Arrondir les montants de la porte de la piscine (#85)
 
 **Contexte.** Les balayages M6 du 2 novembre bouchaient la porte en arches statiques
