@@ -1,0 +1,9 @@
+M9 — balayage de relaxation (s)
+  temps de relaxation tau, commun a l'eau, au mouille et au sec (sensibilite)
+Parametres fixes hors YAML : aucun ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis Delta t100 > 0
+     0.3     47.67 ± 1.56     0.081 ± 0.028     0.059 ± 0.031     0.199 ± 0.347    -0.008 ± 0.024         0/0       10/10
+Mesures graine par graine : docs/mesures/sensibilite-2026-11-14/relaxation-0.3.json
+Temps d'execution : 311.9 s

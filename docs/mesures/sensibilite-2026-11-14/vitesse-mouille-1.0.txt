@@ -1,0 +1,9 @@
+E3 — balayage de vitesse_mouille (m/s)
+  vitesse souhaitee sur le carrelage mouille
+Parametres fixes hors YAML : aucun ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis Delta t100 > 0
+       1     51.31 ± 1.41     0.728 ± 0.514     0.357 ± 0.710    -0.045 ± 1.016     0.052 ± 0.056         0/0        5/10
+Mesures graine par graine : docs/mesures/sensibilite-2026-11-14/vitesse-mouille-1.0.json
+Temps d'execution : 348.7 s

@@ -311,6 +311,44 @@ E1/E2 refaits sur la même configuration (`comparer-piscine`, graines 1 à 10) :
 médiane +0,014 s, positif sur 7 graines sur 10, la graine 5 seule s'écartant de −0,22 s.
 Le rapport (§ 6.2, 6.4 et 6.5) reprend ces chiffres.
 
+## Sensibilité à τ et à la vitesse sur le mouillé (14 novembre 2026)
+
+Commit `3d6d43a`, sans modification locale, macOS arm64 ; `experiments/piscine.yaml` de
+référence (régulation à T = 0,35 s, porte arrondie, a_max de l'eau à 1,67) ; graines 1 à 10 ;
+une valeur par processus. Le balayage de τ change τ sur les trois sols **et** sur le témoin ;
+celui de la vitesse sur le mouillé ne touche que le mouillé. Bilans dans
+[`mesures/sensibilite-2026-11-14/`](mesures/sensibilite-2026-11-14/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.3 \
+  --graines 1 2 3 4 5 6 7 8 9 10 --sortie relaxation-0.3.json
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre vitesse_mouille --valeurs 0.7 \
+  --graines 1 2 3 4 5 6 7 8 9 10 --sortie vitesse-mouille-0.7.json
+```
+
+| Paramètre | t100 mouillé (s) | Δ t50 (s) | Δ t50 > 0 | Δ t50 / t50 | Δ t100 (s) |
+|---|---|---|---|---|---|
+| τ = 0,3 s | 47,67 ± 1,56 | 0,081 ± 0,028 | 10/10 | 0,27 % | 0,20 ± 0,35 |
+| τ = 0,5 s (référence, E2 de #128) | 51,28 ± 1,87 | −0,01 ± 0,07 | 7/10 | — | — |
+| τ = 0,8 s | 56,60 ± 3,17 | 0,000 ± 0,000 | 2/10 | 0 % | 0,01 ± 0,03 |
+| s mouillé = 1,0 m/s | 51,31 ± 1,41 | 0,73 ± 0,51 | 9/10 | 2,3 % | −0,05 ± 1,02 |
+| s mouillé = 0,7 m/s | 51,70 ± 1,36 | 1,49 ± 0,76 | 10/10 | 4,5 % | 0,34 ± 1,13 |
+
+Ce qu'on en retient, avec les critères proposés dans `criteres-acceptation.md` :
+
+1. **Un τ plus court renforce l'effet inertiel, sans le rendre pertinent.** À τ = 0,3 s, une
+   relance demande |U − v| / τ ≈ 6,7 m/s², au-delà même de l'adhérence du sec : le mouillé
+   écrête plus souvent, et Δ t50 est positif sur les 10 graines. Il reste de 0,08 s, soit
+   0,27 % de t50. À τ = 0,8 s, la relance demande 2,5 m/s², sous l'adhérence du mouillé :
+   aucun effet. L'effet inertiel du modèle dépend donc de τ, qui n'a pas de source pour le
+   mouillé, mais reste petit sur toute la plage.
+2. **Le seul effet pertinent est la marche plus lente sur le mouillé.** Si l'on marche à
+   1,0 ou 0,7 m/s sur le carrelage mouillé (au lieu de 1,34), la première moitié sort
+   0,7 à 1,5 s plus tard (2,3 à 4,5 % de t50, 9 et 10 graines sur 10). Ce n'est pas un effet
+   d'inertie, mais un effet de prudence, que le modèle impose par hypothèse.
+3. **Sur la fin de l'évacuation, l'effet se dilue.** Δ t100 change de signe d'une graine à
+   l'autre, avec un écart-type de 1 s : la porte et l'extraction de l'eau imposent le rythme.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
