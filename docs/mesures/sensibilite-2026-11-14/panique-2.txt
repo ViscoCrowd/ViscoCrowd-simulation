@@ -1,0 +1,9 @@
+E4 — balayage de facteur_vitesse (-)
+  niveau de panique, multiplie toutes les vitesses souhaitees
+Parametres fixes hors YAML : aucun ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis Delta t100 > 0
+       2     47.09 ± 2.58     0.095 ± 0.085     0.208 ± 0.230     0.365 ± 1.144    -0.023 ± 0.075         0/0        8/10
+Mesures graine par graine : docs/mesures/sensibilite-2026-11-14/panique-2.json
+Temps d'execution : 238.1 s

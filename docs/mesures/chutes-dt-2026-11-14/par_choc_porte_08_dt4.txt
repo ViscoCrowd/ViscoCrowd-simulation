@@ -1,0 +1,11 @@
+# bousculade_par_choc_porte_08.py experiments/piscine.yaml 0.0025, commit 229ebd5 de fix/bousculade-par-choc (duree_bousculade = 0,1 s), porte de 0,8 m, lambda 2 /s, macOS arm64. Le pas est affiche a trois decimales : « dt 0.003 » = 0,0025 s.
+dt 0.003 graine  1 :   5 chutes par bousculade, t100 70.65 s, taux 0.071 /s
+dt 0.003 graine  2 :   3 chutes par bousculade, t100 69.94 s, taux 0.043 /s
+dt 0.003 graine  3 :   4 chutes par bousculade, t100 69.00 s, taux 0.058 /s
+dt 0.003 graine  4 :   5 chutes par bousculade, t100 69.84 s, taux 0.072 /s
+dt 0.003 graine  5 :   3 chutes par bousculade, t100 69.30 s, taux 0.043 /s
+dt 0.003 graine  6 :   2 chutes par bousculade, t100 69.74 s, taux 0.029 /s
+dt 0.003 graine  7 :   2 chutes par bousculade, t100 71.00 s, taux 0.028 /s
+dt 0.003 graine  8 :   5 chutes par bousculade, t100 70.10 s, taux 0.071 /s
+dt 0.003 graine  9 :   4 chutes par bousculade, t100 68.72 s, taux 0.058 /s
+dt 0.003 graine 10 :   5 chutes par bousculade, t100 68.80 s, taux 0.073 /s
