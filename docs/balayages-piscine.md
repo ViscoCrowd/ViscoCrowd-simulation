@@ -334,11 +334,26 @@ graines (critère 2 de `criteres-acceptation.md`) :
 | t100 | −0,012 ± 0,169 s | +0,007 ± 0,169 s | 0,592 s |
 | J_s | +0,001 ± 0,010 | −0,000 ± 0,010 | 0,032 pers/(m·s) |
 
-**Le pas de 0,01 s suffit.** Tous les écarts moyens restent au moins 10 fois sous l'erreur
-standard entre graines (t90 à Δt/2), et plus de 100 fois pour t50. L'écart Δ t50 dû au mouillé bouge d'environ 0,01 s avec le pas, autant que sa
-propre valeur : à la référence, l'effet du mouillé n'est pas distinguable de l'erreur
-numérique, ce qui confirme qu'il n'y en a pas. Ce contrôle ne couvre que la référence ; les
-configurations à effet (#137) seraient à vérifier de la même façon avant d'être publiées.
+La problématique porte sur les écarts Δ mouillé − sec. Pour un Δ, l'erreur standard qui
+compte est celle de Δ lui-même (écart-type des Δ par graine / √10), bien plus petite que
+celle des grandeurs brutes, puisque l'appariement retire la variabilité commune :
+
+| Écart mouillé − sec | Δt/2 − Δt | Δt/4 − Δt | Erreur standard de Δ | Rapport à Δt/2 |
+|---|---|---|---|---|
+| Δ t50 | −0,011 ± 0,029 s | −0,010 ± 0,041 s | 0,023 s | 0,47 |
+| Δ t90 | −0,016 ± 0,050 s | +0,021 ± 0,098 s | 0,046 s | 0,34 |
+| Δ t100 | +0,048 ± 0,144 s | +0,048 ± 0,097 s | 0,053 s | 0,91 |
+| Δ J_s | −0,003 ± 0,009 | −0,003 ± 0,006 | 0,0037 pers/(m·s) | 0,80 |
+
+**Le pas de 0,01 s suffit, mais de peu pour les écarts.** Sur les grandeurs brutes, les écarts
+moyens restent au moins 10 fois sous l'erreur standard entre graines (t90 à Δt/2), et plus de
+100 fois pour t50. Sur les écarts Δ, ils restent sous l'erreur standard de Δ, mais à un
+rapport de 0,3 à 0,9 : à la référence, l'erreur numérique sur Δ t100 est du même ordre que
+son incertitude statistique. L'effet du mouillé y est donc plus petit que la résolution
+numérique et statistique : on peut seulement le borner à quelques centièmes de seconde sur
+t50 (−0,014 ± 0,053 s, intervalle de confiance à 95 % sur 10 graines), pas dire qu'il est
+nul. Ce contrôle ne couvre que la référence ; les configurations à effet (#137) sont à
+vérifier de la même façon avant d'être publiées.
 
 ## Portée et limites
 
