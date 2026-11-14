@@ -334,8 +334,8 @@ graines (critère 2 de `criteres-acceptation.md`) :
 | t100 | −0,012 ± 0,169 s | +0,007 ± 0,169 s | 0,592 s |
 | J_s | +0,001 ± 0,010 | −0,000 ± 0,010 | 0,032 pers/(m·s) |
 
-**Le pas de 0,01 s suffit.** Tous les écarts restent 3 à 100 fois sous l'erreur standard
-entre graines. L'écart Δ t50 dû au mouillé bouge d'environ 0,01 s avec le pas, autant que sa
+**Le pas de 0,01 s suffit.** Tous les écarts moyens restent au moins 10 fois sous l'erreur
+standard entre graines (t90 à Δt/2), et plus de 100 fois pour t50. L'écart Δ t50 dû au mouillé bouge d'environ 0,01 s avec le pas, autant que sa
 propre valeur : à la référence, l'effet du mouillé n'est pas distinguable de l'erreur
 numérique, ce qui confirme qu'il n'y en a pas. Ce contrôle ne couvre que la référence ; les
 configurations à effet (#137) seraient à vérifier de la même façon avant d'être publiées.
