@@ -173,7 +173,9 @@ class ParametresPiscine:
         if self.portee >= piscine.pas_rebord / 2:
             raise ValueError("portee doit rester sous la moitie de pas_rebord")
         # La portee de deblocage ne sert qu'apres la portee ordinaire : plus courte, elle
-        # ne debloquerait personne.
+        # ne debloquerait personne. Elle ne tient pas la contrainte ci-dessus : a 0,65 m,
+        # avec un rebord tous les 0,6 m, un nageur colle au bord peut etre a portee de
+        # trois points d'attente. L'attribution du plus proche ne lui en donne qu'un.
         if self.deblocage is not None and self.deblocage["portee"] <= self.portee:
             raise ValueError("deblocage : la portee doit depasser la portee ordinaire")
         # Ce qui doit tenir partout, coins compris : deux agents immobilises sur le

@@ -445,6 +445,14 @@ def test_deblocage_d_une_arche_devant_l_echelle(monkeypatch):
     assert np.sum(r.etats[-1] == FRANCHISSEMENT) == r.deblocages
 
 
+def test_deblocage_attend_le_delai(monkeypatch):
+    """Immobile depuis moins que `delai`, personne n'est debloque (1 s simulee)."""
+    r = _simuler_arche(monkeypatch, DEBLOCAGE | {"delai": 1.05})
+    assert r.deblocages == 0
+    r = _simuler_arche(monkeypatch, DEBLOCAGE | {"delai": 0.95})
+    assert r.deblocages >= 1
+
+
 def test_deblocage_sans_effet_sans_blocage():
     """Sans nageur bloque, la regle ne change rien, au bit pres (critere de #127)."""
     sans = simuler_piscine(parametres(n_agents=15, duree=60.0, deblocage=None))
