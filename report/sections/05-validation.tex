@@ -5,18 +5,117 @@
 % Cette section doit donner des NOMBRES, pas des impressions visuelles.
 
 \subsection{Validation du moteur sur un cas de reference}
+\label{sec:bille}
 
-% La bille dans une boite en rotation. Violation de contrainte mesuree a
-% \num{2.2e-16} m, independante de $\dt$. Energie strictement non croissante
-% en boite fixe.
-%
-% Figures disponibles : fig01_respect_contrainte, fig02_energie,
-% fig03_entrainement, fig04_trajectoire.
-%
-% Resultat a mettre en avant : le critere d'entrainement solide n'est verifie
-% que dans le regime centrifuge ($\omega^2 R / g \gtrsim 1$), et les
-% parametres suggeres par le sujet ne s'y trouvent pas. Bon exemple d'analyse
-% critique d'un resultat de simulation.
+Avant toute foule, le couple « pas semi-implicite et projection » est vérifié sur
+le cas de référence du module : une bille de rayon $r=\SI{0.05}{\metre}$ dans une
+boîte carrée de demi-côté $R=\SI{1}{\metre}$, qui tourne autour de son centre à
+la vitesse angulaire $\omega$, sous une gravité de \SI{9.81}{\metre\per\second\squared}.
+La bille part au repos en $(0{,}3\,;\,0{,}5)$~\si{\metre}. Chaque paroi est une
+contrainte dont la projection est exacte : ce banc isole le schéma en temps. Tous
+les chiffres ci-dessous sont reproduits par \texttt{viscocrowd valider-moteur}
+(\SI{57}{\second}), qui échoue si un critère dépasse son seuil.
+
+\paragraph{Respect de la contrainte.}
+À $\omega=\SI{1}{\radian\per\second}$, la plus forte violation des parois sur
+\SI{10}{\second} vaut \SI{2.2e-16}{\metre} pour $\dt=\SI{0.1}{\second}$ et
+\SI{0.01}{\second}, et \SI{3.3e-16}{\metre} pour $\dt=\SI{1e-3}{\second}$ :
+c'est la précision machine, quel que soit le pas, même cent fois trop grand.
+La position étant projetée à chaque pas, aucun pas ne peut laisser la bille
+hors de la boîte. La figure~\ref{fig:contrainte} trace la valeur absolue de
+l'écart à la paroi la plus contraignante. Les plateaux à \SI{1e-16}{\metre} sont
+les phases de contact, où la bille glisse le long d'une paroi ; les pics sont
+des phases de vol, où elle est à l'intérieur de la boîte.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\linewidth]{fig01_respect_contrainte}
+\caption{Écart à la paroi la plus contraignante, en valeur absolue, pour trois
+pas de temps. $R=\SI{1}{\metre}$, $r=\SI{0.05}{\metre}$,
+$\omega=\SI{1}{\radian\per\second}$ ; scénario déterministe, sans graine
+(manifeste : \texttt{fig01\_respect\_contrainte}).}
+\label{fig:contrainte}
+\end{figure}
+
+\paragraph{Dissipation.}
+Dans la boîte fixe ($\omega=0$), aucune paroi ne travaille : l'énergie mécanique
+ne peut que décroître. Elle vaut \SI{4.905}{\joule} au départ, soit $mgy_0$ pour
+$m=\SI{1}{\kilogram}$ et $y_0=\SI{0.5}{\metre}$, et \SI{-9.3195}{\joule} à la
+fin, soit $-mg(R-r)$ : la bille est au repos sur le fond. Sur les
+\SI{14.2245}{\joule} dissipés, l'essentiel part au premier impact, après
+\SI{1.45}{\metre} de chute à $\sqrt{2g\times\SI{1.45}{\metre}}\approx\SI{5.33}{\metre\per\second}$ :
+le choc mou annule la vitesse normale et son énergie cinétique, environ
+\SI{14.2}{\joule}. Le reste vient du schéma lui-même, qui perd
+$\frac12 m\dt^2 g^2\approx\SI{4.8e-5}{\joule}$ par pas en vol libre. La plus forte
+remontée d'énergie d'un pas au suivant est nulle (seuil : \SI{1e-12}{\joule}).
+
+\paragraph{Entraînement solide.}
+Le sujet annonce qu'après dissipation, la bille se cale dans un coin et tourne
+avec la boîte. Le tableau~\ref{tab:entrainement} donne l'écart
+$\norm{\vit-\omega\pos^{\perp}}$ entre la vitesse de la bille et celle du solide,
+moyenné sur la dernière des \SI{20}{\second} simulées, avec
+$\dt=\SI{1e-3}{\second}$.
+
+\begin{table}[ht]
+\centering
+\caption{Écart à l'entraînement solide sur la dernière seconde. La dernière
+colonne est l'écart attendu pour une bille calée dans un coin, à
+$\rho=\sqrt2\,(R-r)=\SI{1.3435}{\metre}$ du centre, du seul fait de la
+discrétisation.}
+\label{tab:entrainement}
+\begin{tabular}{rrrr}
+\toprule
+$\omega$ (\si{\radian\per\second}) & $\omega^2R/g$ & Écart mesuré (\si{\metre\per\second})
+& $\omega^2\rho\,\dt/2$ (\si{\metre\per\second}) \\
+\midrule
+1 & 0,10 & \num{1.858} & -- \\
+3 & 0,92 & \num{3.62e-2} & \num{6.05e-3} \\
+5 & 2,55 & \num{1.679e-2} & \num{1.679e-2} \\
+10 & 10,19 & \num{6.717e-2} & \num{6.718e-2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Trois comportements apparaissent (figure~\ref{fig:entrainement}). À
+$\omega=\SI{1}{\radian\per\second}$, la gravité domine d'un facteur dix : la bille
+dégringole de coin en coin, sans jamais être entraînée. À
+\SI{3}{\radian\per\second}, à la limite du régime centrifuge, elle reste plaquée
+par moments, avec un écart de \SI{6e-3}{\metre\per\second}, mais se détache
+périodiquement ; la moyenne dépend alors de la fenêtre retenue. À 5 et
+\SI{10}{\radian\per\second}, elle se cale dans un coin
+(figure~\ref{fig:trajectoire}) et l'écart devient constant.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\linewidth]{fig03_entrainement}
+\caption{Écart à la vitesse d'entraînement du solide pour quatre vitesses de
+rotation. $R=\SI{1}{\metre}$, $r=\SI{0.05}{\metre}$, $\dt=\SI{1e-3}{\second}$
+(manifeste : \texttt{fig03\_entrainement}).}
+\label{fig:entrainement}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{fig04_trajectoire}
+\caption{Instantanés de la boîte et de la trajectoire de la bille à
+$\omega=\SI{5}{\radian\per\second}$ : la bille finit calée dans un coin
+(manifeste : \texttt{fig04\_trajectoire}).}
+\label{fig:trajectoire}
+\end{figure}
+
+Cet écart résiduel n'est pas un défaut d'entraînement. La vitesse relue sur un pas,
+$(\pos^{n+1}-\pos^n)/\dt$, suit la corde de l'arc parcouru, alors que la vitesse du
+solide est tangente : les deux font un angle $\omega\dt/2$, d'où un écart
+$\omega^2\rho\,\dt/2$. Le calcul retrouve la mesure à \SI{2e-7}{\metre\per\second}
+près (tableau~\ref{tab:entrainement}), et diviser le pas par deux divise l'écart par
+deux : \num{8.397e-3} et \SI{3.359e-2}{\metre\per\second} à
+$\dt=\SI{5e-4}{\second}$. C'est une erreur de consistance d'ordre un, qui tend
+vers zéro avec $\dt$.
+
+Le critère d'entraînement du sujet n'est donc pas faux, mais il a un domaine de
+validité, le régime centrifuge $\omega^2R/g\gtrsim1$, et la valeur suggérée
+$\omega=\SI{1}{\radian\per\second}$ n'y est pas. Les deux régimes sont testés
+séparément dans l'intégration continue.
 
 \subsection{Invariants du modele de foule}
 
