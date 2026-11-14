@@ -45,8 +45,9 @@ chaque mécanisme activé. Ce n'était vérifié que pour la glissade.
 - *À excès donné*, les trois mécanismes vérifient l'indépendance à Δt (`tests/test_chutes.py`,
   Δt = 0,02 et 0,01 s, 50 graines) : glissade 6,0 /s, domino 1,2 /s (urgence 0,3), bousculade
   2,0 /s (vitesse de compression fixée à 1 m/s), chacun à 10 % du taux théorique.
-- *Dans une évacuation*, la bousculade n'est pas indépendante de Δt : son excès se calcule sur
-  la correction d'un seul pas, divisée par Δt. Porte de 0,8 m, bousculade seule active
+- *Dans une évacuation*, la bousculade n'est pas indépendante de Δt : un choc ne dure qu'un
+  pas, quel que soit Δt, et son risque λ · excès · Δt est donc proportionnel au pas (diagnostic :
+  #135). Porte de 0,8 m, bousculade seule active
   (λ = 20 /s), graines 1 à 10 : 39 chutes à Δt = 0,01 s, 21 à Δt = 0,005 s, moins sur
   8 graines sur 10. Sur la référence (1,2 m, λ = 2 /s), elle est presque absente (3 contre 1).
 
