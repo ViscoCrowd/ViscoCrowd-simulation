@@ -62,6 +62,10 @@ class ParametresChutes:
         duree_bousculade: duree d'exposition d'une bousculade, en s. Un choc ne dure
             qu'un pas de temps, quel que soit dt (mesure du 14 novembre, #130) : le
             risque d'un choc est donc compte sur cette duree fixe, et non sur dt.
+            Pour un choc d'un pas, le risque vaut 1 - exp(-lambda_bousculade * exces *
+            duree_bousculade) : seul le PRODUIT lambda_bousculade * duree_bousculade
+            compte (0,2 avec 2 /s et 0,1 s). Balayer l'un des deux n'explore pas un
+            second parametre.
 
     Valeurs par defaut non calibrees (docs/modele-chutes.md, section 8).
     """
