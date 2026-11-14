@@ -22,9 +22,10 @@ domaine convexe comme un rectangle, ce procede donne EXACTEMENT les cellules
 decoupees par la salle (les cellules pavent la salle).
 
 Le calcul des cellules est confie a `scipy.spatial.Voronoi` (calcul geometrique
-generaliste, cf. issue #19) ; le decoupage par la zone de mesure, les aires et
-les moyennes sont ecrits ici. `mesures_voronoi` rend densite et vitesse d'un
-meme calcul de cellules, comme le demande un diagramme fondamental.
+generaliste, valide par l'enseignant le 3 novembre : issue #19) ; le decoupage par la
+zone de mesure, les aires et les moyennes sont ecrits ici. `mesures_voronoi` rend
+densite et vitesse d'un meme calcul de cellules, comme le demande un diagramme
+fondamental.
 
 Limite de portee
 ----------------
