@@ -506,3 +506,47 @@ def test_independance_au_pas_de_temps_bousculade():
     assert taux[0] == pytest.approx(2.0, rel=0.1)
     assert taux[1] == pytest.approx(2.0, rel=0.1)
     assert abs(taux[0] - taux[1]) < 0.25
+
+
+def test_bousculade_par_choc_independante_de_dt():
+    """#130 : un choc ne dure qu'un pas, quel que soit dt ; son risque ne doit pas en dependre.
+
+    Un choc toutes les 0,5 s, d'un seul pas, a 1 m/s de compression (exces 1). Avec
+    lambda = 2 /s et duree_bousculade = 0,1 s, chaque choc fait tomber avec la probabilite
+    1 - exp(-0,2) = 0,181, soit 0,363 chute/s, a dt comme a dt/2. Compte sur dt, comme
+    avant, ce taux etait divise par deux avec le pas.
+    """
+    p = ParametresChutes(lambda_chute=1e-12, lambda_domino=1e-12, lambda_bousculade=2.0)
+    x = v = np.array([[0.0, 0.0]])
+    attendu = (1.0 - np.exp(-2.0 * 1.0 * 0.1)) / 0.5
+
+    def taux(dt, n_graines=100, duree=10.0):
+        periode = round(0.5 / dt)
+        total = 0
+        for g in range(n_graines):
+            gest = GestionnaireChutes(1, p, graine=g)
+            for pas in range(round(duree / dt)):
+                gest._a_terre[0] = False
+                gest._fin_relevage[0] = np.nan
+                choc = 1.0 * dt if pas % periode == 0 else 0.0
+                gest.mettre_a_jour(
+                    pas * dt,
+                    dt,
+                    x,
+                    v,
+                    v,
+                    np.array([3.3]),
+                    np.array([0.5]),
+                    np.array([0.2]),
+                    correction_projection=np.array([[choc, 0.0]]),
+                )
+            total += len(gest.historique)
+        return total / (n_graines * duree)
+
+    assert taux(0.02) == pytest.approx(attendu, rel=0.12)
+    assert taux(0.01) == pytest.approx(attendu, rel=0.12)
+
+
+def test_duree_bousculade_invalide_refusee():
+    with pytest.raises(ValueError, match="duree_bousculade"):
+        ParametresChutes(duree_bousculade=0.0)
