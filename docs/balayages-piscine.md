@@ -339,10 +339,12 @@ Le témoin sec écoule 2,24 pers/(m·s) dans tous les cas.
 2. **Avec une adhérence plus faible, l'inertie fait perdre du débit à la porte saturée.** À
    2 m/s² (0,2 g), la porte perd 4 % de son débit et t100 recule de 2,5 s, sur les 10 graines.
    À 1 m/s² (0,1 g), elle perd 19 % et l'évacuation s'allonge de 14 s (20 %). C'est
-   l'hypothèse inertielle de la problématique : des baigneurs qui freinent mal dans la file
-   se présentent moins régulièrement à la porte, qui écoule moins de monde.
-3. **Comparé à la même adhérence loin de la porte** (bande de 3 m, 2 novembre, sans
-   régulation) : à 1 m/s², Δ t50 ne valait que 0,38 s. C'est la proximité de la file qui
+   ce qu'annonce l'hypothèse inertielle de la problématique. Interprétation, non mesurée :
+   des baigneurs qui freinent mal dans la file s'y présentent moins régulièrement, et la
+   porte écoule moins de monde. Mesurer la densité devant la porte dans ce cas
+   (`diagramme-piscine`, #133) permettrait de le vérifier.
+3. **Comparé à la même adhérence loin de la porte** (bande de 3 m, porte de 1,2 m,
+   2 novembre, sans régulation) : à 1 m/s², Δ t50 ne valait que 0,38 s. C'est la proximité de la file qui
    donne de l'ampleur à l'effet.
 
 Limite : 0,2 g et 0,1 g sont bien sous le seuil de glissance de Kendzior (0,34 g) ; ce sont des
