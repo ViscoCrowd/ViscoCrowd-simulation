@@ -275,6 +275,11 @@ def construire_analyseur() -> argparse.ArgumentParser:
         nargs="+",
         help="graines distinctes (defaut : celle de la configuration et les deux suivantes)",
     )
+    etalonner.add_argument(
+        "--agents",
+        type=int,
+        help="nombre d'agents N, a la place de celui du YAML (Seyfried mesure N = 20, 40, 60)",
+    )
     etalonner.set_defaults(fonction=commande_etalonner_goulot)
 
     from viscocrowd.io.diagnostic_projection import ajouter_commande
@@ -308,6 +313,10 @@ def commande_etalonner_goulot(args: argparse.Namespace) -> int:
     debut = time.perf_counter()
     try:
         configuration = lire_configuration(args.configuration)
+        if args.agents is not None:
+            # Meme protocole a un autre N : la validation reste celle de ParametresGoulot.
+            parametres = configuration["parametres"] | {"n_agents": args.agents}
+            configuration = configuration | {"parametres": parametres}
         graine = configuration["graine"]
         graines = args.graines or [graine, graine + 1, graine + 2]
         resultats = etalonner(configuration, args.largeurs, graines)
