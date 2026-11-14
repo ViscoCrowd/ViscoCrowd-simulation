@@ -49,10 +49,12 @@ ensemble chaque démonstration avant la soutenance.
   mêmes agents sortis, écart inférieur à un pas de temps. La sortie absorbante est actée, et le repère `N / (J w)` est confronté au goulot et à la piscine avec le débit maximal de Weidmann, J = 1,225 ([#11](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/11)).
   Les valeurs numériques de [#26](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/26)
   restent une proposition soumise à la validation collective avant les campagnes finales.
-- **Porte de la piscine (#85).** Au facteur de panique 1,5, une porte de 0,8 m se bouche sur 8 graines
-  sur 10 en arches statiques, comme la première géométrie de E0. Les coins vifs des montants sont la
-  cause probable : tant qu'ils ne sont pas corrigés, les balayages de porte et de population (E4) ne
-  mesurent pas un comportement de foule.
+- **Porte de la piscine (#85, #125).** Sans régulation, une porte de 0,8 m se bouchait sur 8 graines
+  sur 10 en arches statiques, comme la première géométrie de E0 : l'union « plage réduite + couloir
+  réduit » laissait un angle vif aux montants. Arrondis comme ceux du goulot, plus aucun bouchage à la
+  porte. Piège à connaître : la régulation (T = 0,35 s) masquait le défaut, puisque la référence
+  régulée ne se bouchait déjà plus. Un blocage distinct, dans l'eau devant l'échelle du haut à
+  200 baigneurs sans régulation, est suivi dans #127.
 - **Chutes (#78/#82).** Le module existe sur `dev`, désactivé par défaut. La médiane de relevage
   vient de Becker et al. (2016) ; les taux de chute et de cascade ne sont pas calibrés. Son inclusion dans le rendu attend la décision du groupe et l'avis de l'enseignant
   ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)) : ses chiffres ne sont pas des résultats.
