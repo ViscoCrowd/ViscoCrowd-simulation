@@ -1,0 +1,21 @@
+# bousculade_dt_porte_08.py experiments/piscine.yaml, memes conditions, porte de 0,8 m, lambda 20 /s.
+dt 0.005 graine  1 :   3 chutes par bousculade, t100 70.45 s, taux 0.043 /s
+dt 0.005 graine  2 :   2 chutes par bousculade, t100 70.06 s, taux 0.029 /s
+dt 0.005 graine  3 :   1 chutes par bousculade, t100 69.95 s, taux 0.014 /s
+dt 0.005 graine  4 :   1 chutes par bousculade, t100 69.62 s, taux 0.014 /s
+dt 0.005 graine  5 :   2 chutes par bousculade, t100 67.67 s, taux 0.030 /s
+dt 0.005 graine  6 :   1 chutes par bousculade, t100 69.78 s, taux 0.014 /s
+dt 0.005 graine  7 :   4 chutes par bousculade, t100 70.02 s, taux 0.057 /s
+dt 0.005 graine  8 :   3 chutes par bousculade, t100 70.52 s, taux 0.043 /s
+dt 0.005 graine  9 :   2 chutes par bousculade, t100 69.09 s, taux 0.029 /s
+dt 0.005 graine 10 :   2 chutes par bousculade, t100 69.37 s, taux 0.029 /s
+dt 0.010 graine  1 :   3 chutes par bousculade, t100 71.72 s, taux 0.042 /s
+dt 0.010 graine  2 :   5 chutes par bousculade, t100 69.45 s, taux 0.072 /s
+dt 0.010 graine  3 :   3 chutes par bousculade, t100 69.32 s, taux 0.043 /s
+dt 0.010 graine  4 :   2 chutes par bousculade, t100 69.82 s, taux 0.029 /s
+dt 0.010 graine  5 :   5 chutes par bousculade, t100 67.83 s, taux 0.074 /s
+dt 0.010 graine  6 :   1 chutes par bousculade, t100 71.89 s, taux 0.014 /s
+dt 0.010 graine  7 :   5 chutes par bousculade, t100 70.22 s, taux 0.071 /s
+dt 0.010 graine  8 :   6 chutes par bousculade, t100 70.41 s, taux 0.085 /s
+dt 0.010 graine  9 :   5 chutes par bousculade, t100 68.74 s, taux 0.073 /s
+dt 0.010 graine 10 :   4 chutes par bousculade, t100 68.86 s, taux 0.058 /s
