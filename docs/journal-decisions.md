@@ -11,6 +11,69 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-14 — Débloquer un nageur immobile près d'un site libre (#127)
+
+**Statut.** Proposition de Lenny, à valider en relecture.
+
+**Contexte.** Sans régulation, à 200 baigneurs et a_max de l'eau à 1,6 m/s², la graine 4
+ne finit pas son évacuation : 13 baigneurs restent dans l'eau jusqu'aux 180 s. Diagnostic
+du 14 novembre : ils sont **immobiles** (déplacement nul sur les 10 dernières secondes), en
+réseau serré sous l'échelle du haut. Le point d'attente de l'échelle, en (25,5 ; 16,3) m, est
+libre, mais les quatre nageurs les plus proches en sont tous à 0,40 m, un diamètre, au-delà de
+la portée de 0,25 m. Les deux du dessous poussent vers ce trou par symétrie et se bloquent
+l'un l'autre. C'est le blocage mutuel qui avait fixé la portée (docstring du scénario), un rang
+plus loin. Avec a_max de l'eau à 1,67 (depuis #128), la graine 4 passe, mais par chance.
+
+**Décision proposée.** Une règle facultative, `deblocage` dans `piscine.yaml` : un nageur
+immobile (moins de 1 mm/s) depuis 2 s, à moins de 0,65 m (un diamètre plus la portée, à bout
+de bras) du point d'attente d'un site **libre**, le saisit. Elle ne sert qu'après
+l'attribution ordinaire : tant qu'aucun nageur n'est bloqué, elle ne change rien, au bit près.
+
+**Mesure** (14 novembre, macOS arm64, graines 1 à 10, mouillé et témoin sec, 160 évacuations) :
+
+| Cas | Évacuations incomplètes | Déblocages | Sorties identiques au bit près |
+|---|---|---|---|
+| Sans régulation, 200 baigneurs, a_max eau 1,6 | 0 (2 avant) | 6 | — (c'est la correction) |
+| Sans régulation, 200 baigneurs, a_max eau 1,67 | 0 | 0 | — |
+| Référence régulée | 0 | 1 | oui |
+| Porte de 0,8 m, régulée | 0 | 0 | oui |
+| 200 baigneurs, régulée | 0 | 5 | non |
+
+- **La règle trouve aussi de petits blocages dans les cas régulés.** Sur la référence (témoin
+  sec, graine 8), un nageur restait immobile **7 s** à 0,269 m d'un site de rebord libre ; il le
+  saisit au bout de 2 s, mais sa réintroduction sur la plage attend de toute façon que le point
+  d'arrivée se libère, et les sorties ne changent pas.
+- **À 200 baigneurs régulés, l'effet est minime** : t50 et t90 identiques dans 4 cas sur 5,
+  t100 avancé de 0,48 s (sec, graine 4) et de 0,75 s (mouillé, graine 8), inchangé ailleurs.
+
+**Pourquoi l'activer par défaut, alors que la référence ne se bloque plus.** Avec a_max de
+l'eau à 1,67 m/s² (`piscine.yaml` depuis #128), le blocage de #127 ne se produit plus, même
+sans régulation : 0 évacuation incomplète et 0 déblocage. La règle protège surtout les
+**balayages** qui s'écartent de la référence : l'adhérence dans l'eau (#119 la balaie, et
+toute valeur autour de 1,6 m/s² retombe sur l'arche de #127) et les populations sans
+régulation. C'est ce qui justifie d'ajouter trois hypothèses sans source. L'autre option,
+`deblocage: null` dans le YAML et activation seulement dans les balayages concernés, est
+écartée : un modèle qui change selon la campagne serait plus dur à défendre.
+
+**Effet sur les résultats publiés** (relance du 14 novembre, commit `7a96db1`, graines 1 à
+10, `docs/mesures/deblocage-2026-11-14/`, avec un contrôle sans la règle sur la même machine).
+La règle ne change aucune évacuation du balayage de largeur de porte, et 10 des 80 du balayage
+de population : au plus 0,006 s sur t100, sauf deux à N = 200 (−0,49 et −0,76 s). Dans
+`tab:e4-population`, seule la ligne N = 200 bouge : t100 passe de 84,78 ± 1,52 à
+84,73 ± 1,61 s et Δ t50 est positif sur 7 graines au lieu de 8. Le contrôle montre aussi que
+macOS et Windows ne donnent pas les mêmes résultats au bit près (16 évacuations sur 160, au
+plus 0,024 s sur t100), sans effet aux arrondis des tableaux.
+
+*Écarté : agrandir la portée.* Elle doit rester sous la moitié du pas des sites de rebord, et
+tous les résultats changeraient, E1/E2 compris. *Écarté : un bruit sur la direction des
+nageurs.* Au goulot E0, il ne cassait pas les arches (entrée E0).
+
+**Limites.** Le délai (2 s), la portée (0,65 m) et le seuil d'immobilité (1 mm/s) sont des
+hypothèses sans source. Le nageur débloqué est placé sur le bord comme les autres, depuis un
+peu plus loin.
+
+---
+
 ## 2026-11-13 — Arrondir les montants de la porte de la piscine (#85)
 
 **Contexte.** Les balayages M6 du 2 novembre bouchaient la porte en arches statiques
@@ -60,6 +123,35 @@ serait pas celui que la spec définit.
 
 **Conséquences.** E1/E2 et les balayages de porte et de population sont refaits avec la porte
 arrondie dans #128, empilée sur cette PR.
+
+---
+
+## 2026-11-10 — Consigner l'accord de l'enseignant du 3 novembre (C1, #19)
+
+**Contexte.** L'issue #19 suivait trois questions de cadrage : l'usage de SciPy pour la densité
+de Voronoï, le dimensionnement du sujet et l'inclusion des chutes. Lenny l'a close le
+3 novembre pendant la séance, sans compte rendu. Les documents présentaient encore ces
+réponses comme attendues : le module de chutes restait « à décider », et Voronoï « à
+confirmer ».
+
+**Ce qui est consigné.** D'après le compte rendu de Shaleena, O. Pantz a validé l'ensemble
+oralement, en séance, le mardi 3 novembre 2026, sans réserve rapportée :
+1. *SciPy pour Voronoï* : la densité de Voronoï de #53 est retenue. Le repli par comptage n'est
+   plus nécessaire.
+2. *Dimensionnement* : le sujet est tenable à trois, chutes comprises.
+3. *Chutes* : le module (#78, #82, #102) fait partie du rendu.
+
+**Ce qui ne change pas.** Le module de chutes reste désactivé par défaut (`chutes: null`).
+`lambda_chute`, `lambda_domino` et `facteur_rayon_terre` restent des valeurs par défaut non
+calibrées ; `lambda_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est
+actif. La validation porte sur l'inclusion, pas sur les valeurs : aucun chiffre obtenu avec ce
+module n'est un résultat avant sa calibration. Calibrer ces taux et décider de l'activation des
+chutes dans les campagnes sont suivis dans #130.
+
+**Mise à jour.** [Fiche de cadrage](validation-sujet.md#trace-de-validation), tâches C1 et M1
+et pistes de chutes du [planning](planning/README.md), [modèle de chutes](modele-chutes.md),
+README, [registre des livraisons](livraisons.md), [repères de soutenance](repères-soutenance.md)
+et messages du balayage de `lambda_chute`.
 
 ---
 
@@ -1327,7 +1419,7 @@ figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est 
 
 ## 2026-10-21 — Mesurer la densité par cellules de Voronoï (M1) et le biais de la tolérance (#10)
 
-**Décision (proposée dans #19, à confirmer).** La densité suit Steffen & Seyfried (2010) :
+**Décision (proposée dans #19, confirmée par l'enseignant le 3 novembre : entrée du 10 novembre).** La densité suit Steffen & Seyfried (2010) :
 `ρ_V = (1/|M|) Σᵢ |Cᵢ ∩ M| / |Cᵢ|`, et la vitesse `v_V = (1/|M|) Σᵢ |vᵢ| |Cᵢ ∩ M|`.
 Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
 quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;
