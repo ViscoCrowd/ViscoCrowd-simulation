@@ -134,3 +134,51 @@ Le témoin sec est le même qu'à la section précédente, au bit près.
 - **À densité égale, la file glissante va 20 à 25 % moins vite** entre 1,1 et 1,9 pers/m² (0,43 contre 0,54 m/s à 1,12 pers/m², 0,35 contre 0,46 m/s à 1,62 pers/m²). En dessous de 1 pers/m², les vitesses moyennes se confondent, mais la dispersion du mouillé est plus grande, 2 à 4 fois entre 0,6 et 0,9 pers/m².
 - **Le diagramme se déplace donc**, et c'est la première mesure directe de l'hypothèse inertielle devant la porte. Deux lectures, compatibles, restent des interprétations : une vitesse plus faible à densité égale est ce qu'on attend de relances écrêtées dans le va-et-vient de la file (#137) ; une file plus dense est ce qu'on attend d'agents qui ne peuvent pas ralentir assez tôt pour garder l'espacement que demande la régulation (T = 0,35 s), et que la projection arrête au contact. Séparer les deux demanderait de mesurer les accélérations écrêtées dans la zone.
 - Mêmes réserves que plus haut : points corrélés, pas de phase stationnaire, cellules approchées devant l'ouverture. Et la plage très glissante (0,1 g) est un sol savonneux, pas un carrelage mouillé ordinaire.
+
+---
+
+# En écoulement libre, sur un anneau (#124)
+
+Devant le goulot comme devant la porte, la foule attend : la vitesse y dépend de la capacité de l'ouverture, et rien n'est stationnaire. Pour se comparer à Weidmann **dans son domaine**, une marche unidirectionnelle sans contrainte extérieure, il faut une densité imposée et un régime établi. `viscocrowd diagramme-anneau` fait tourner N agents sur un couloir circulaire, sans entrée ni sortie (`scenarios/anneau.py`). C'est le dispositif de Jelić et al. (2012) et de Seyfried et al. (2005).
+
+```bash
+viscocrowd diagramme-anneau experiments/anneau.yaml --effectifs 19 38 75 113 151 188 226 264 302 339 \
+  --sortie data/m8/anneau.json
+```
+
+## Méthode
+
+- **Anneau** de rayons 5 et 7 m : couloir de 2 m, aire de marche A = 75,4 m². La densité est imposée, ρ = N / A. Mêmes paramètres de marche que E0 : sol sec, v0 = 1,34 m/s, τ = 0,5 s, T = 0,35 s.
+- **Vitesse** : moyenne, sur les agents et sur la fenêtre de 30 à 60 s, de la composante tangentielle du déplacement réalisé à chaque pas (après projection). J = ρ v. L'écart-type est pris **entre graines**, qui sont indépendantes.
+- **Pourquoi un anneau.** Un couloir droit périodique demanderait de raccorder les contacts à travers la couture, donc de modifier la projection du moteur. L'anneau est périodique par construction : la géométrie se réduit à deux contraintes radiales.
+- **Guidage.** Chaque agent vise la tangente à sa vitesse souhaitée, plus le terme centripète que demande la relaxation pour tenir son cercle, avec une correction d'un demi-pas pour le schéma explicite. Sans cette correction, un agent seul à R = 6 m dérive vers le centre de 1,50 mm/s ; avec elle, de 0,02 mm/s.
+- **Meneur cherché le long du cercle**, pas de la tangente. Le long de la tangente, un agent de la voie voisine, 0,42 m plus loin du centre et 0,7 m devant, passait à 0,376 m de l'axe, sous le seuil de 0,4 m : c'était un faux meneur, et l'agent marchait à 1,24 au lieu de 1,34 m/s. Sur l'anneau, le latéral est l'écart **radial**, et l'ordre d'avance de `model.espacement` n'a pas lieu d'être, puisqu'il n'y a pas de sortie.
+- **Contrôle analytique** (`tests/test_anneau.py`) : en file indienne (une seule voie, 30 agents à pas uniforme), le régime établi vaut exactement V = (s − 2r)/T, à 10⁻³ près. À faible densité, la foule marche à v0, à 10⁻³ près.
+
+## Résultats du 16 novembre 2026
+
+Commit `fc248ab` (empreinte des sources `5ebe7e01…`, identique à celle des bilans, mesurés juste avant le commit), Linux x86_64, Python 3.12.3, NumPy 2.5.5. Graines 1 à 10, 100 simulations. Bilans dans [`mesures/diagramme-anneau-2026-11-16/`](mesures/diagramme-anneau-2026-11-16/).
+
+| ρ (pers/m²) | v (m/s) | v Weidmann | J (pers/(m·s)) | J Weidmann | v intérieur / extérieur | Dérive | Recouvrement max |
+|---|---|---|---|---|---|---|---|
+| 0,25 | 1,340 ± 0,000 | 1,339 | 0,338 | 0,337 | 1,340 / 1,340 | 0,0 % | 0 |
+| 0,50 | 1,340 ± 0,000 | 1,297 | 0,675 | 0,654 | 1,340 / 1,340 | 0,0 % | 0 |
+| 0,99 | 1,340 ± 0,000 | 1,061 | 1,333 | 1,055 | 1,340 / 1,340 | 0,0 % | 0 |
+| 1,50 | 1,340 ± 0,000 | 0,807 | 2,008 | 1,210 | 1,340 / 1,340 | 0,0 % | 0 |
+| 2,00 | 1,339 ± 0,000 | 0,605 | 2,681 | 1,212 | 1,339 / 1,339 | 0,0 % | 0 |
+| 2,49 | 0,582 ± 0,014 | 0,453 | 1,451 ± 0,035 | 1,130 | 0,538 / 0,617 | 5,2 % | 10⁻⁶ m |
+| 3,00 | 0,431 ± 0,011 | 0,331 | 1,291 ± 0,034 | 0,993 | 0,402 / 0,453 | 4,1 % | 10⁻⁶ m |
+| 3,50 | 0,310 ± 0,012 | 0,234 | 1,085 ± 0,044 | 0,820 | 0,288 / 0,328 | 13,0 % | 10⁻⁶ m |
+| 4,01 | 0,202 ± 0,015 | 0,155 | 0,808 ± 0,059 | 0,623 | 0,188 / 0,213 | 28,9 % | 10⁻⁶ m |
+| 4,50 | 0,089 ± 0,007 | 0,092 | 0,398 ± 0,034 | 0,414 | 0,082 / 0,094 | 36,4 % | 10⁻⁶ m |
+
+« Dérive » : plus grand écart relatif, sur les 10 graines, entre les vitesses moyennes des deux moitiés de la fenêtre. Recouvrement : au plus la tolérance de projection, 10⁻⁶ m ; aucune sortie des murs. Calcul : 9 à 49 min par densité pour les 10 graines, un processus par densité.
+
+## Ce que ces mesures disent, et ce qu'elles ne disent pas
+
+- **Jusqu'à 2 pers/m², le modèle ne ralentit pas du tout** : 1,340 m/s sur les 10 graines, sans aucune dispersion. Les agents gardent leur voie, et tant que le jeu au meneur dépasse T·v0 = 0,47 m, rien ne les freine. Weidmann, lui, perd déjà 21 % de vitesse à 1 pers/m² et 55 % à 2 pers/m². **Le débit spécifique du modèle monte jusqu'à 2,68 pers/(m·s), 2,2 fois le maximum de Weidmann** (1,225 à 1,75 pers/m²).
+- **Au-delà, la branche congestionnée a la forme de Weidmann**, 25 à 33 % au-dessus de 2,5 à 4 pers/m², et confondue avec elle à 4,5 pers/m² (0,089 contre 0,092 m/s).
+- **La transition est brutale**, entre 2,0 et 2,5 pers/m². C'est l'ordre de grandeur attendu si la foule s'organise en quatre voies dans 2 m : le jeu tombe sous T·v0 à ρ ≈ 4 / (2 × 0,87) ≈ 2,3 pers/m². Le nombre de voies n'est pas mesuré : c'est une lecture, pas un résultat.
+- **Au-dessus de 3 pers/m², le régime n'est pas établi en 30 s** : la vitesse change de 13 à 36 % entre les deux moitiés de la fenêtre. Ces trois lignes sont à refaire sur une durée plus longue avant d'être citées. Leur vitesse diffère aussi de 10 à 15 % entre les moitiés intérieure et extérieure de l'anneau : la courbure compte quand la foule est dense.
+- **Limite de densité** : le départ sur voies concentriques plafonne à 4,5 pers/m² (N = 377 est refusé). Weidmann va jusqu'à 5,4 pers/m².
+- **Conséquence pour E0 et la piscine.** T = 0,35 s a été étalonné sur le débit d'un goulot saturé. En écoulement libre, le même modèle ne freine que lorsque la foule est déjà dense : il n'a aucune anticipation à faible densité. Ce n'est pas un défaut à corriger dans cette PR, c'est une limite à écrire dans le rapport (§ 6 et analyse critique). Une piste serait une vitesse souhaitée qui dépend de la densité locale (Weidmann comme loi de comportement), mais elle reviendrait à ajuster le modèle sur la courbe qui sert à le valider.
