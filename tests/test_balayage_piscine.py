@@ -50,6 +50,7 @@ def appels(monkeypatch):
             "t100": p.facteur_vitesse,
             "debit": p.piscine.largeur_mouillee,
             "non_sortis": 0.0,
+            "chutes": 0.0,
         }
 
     monkeypatch.setattr(balayage, "mesurer", factice)
@@ -336,11 +337,33 @@ class TestSimulationReelle:
         assert mesures["t100"] == math.inf
         assert math.isnan(mesures["debit"])
 
+    def test_mesure_compte_les_chutes(self, configuration):
+        """Le balayage de lambda_chute dit combien tombent : 0 sans module, > 0 avec.
+
+        Meme cas que `test_simulation_piscine_avec_chutes_actives` (8 agents, facteur 1,4,
+        taux de 50 /s, graine 123), ou des chutes sont deja observees.
+        """
+        base = configuration["parametres"] | {
+            "n_agents": 8,
+            "facteur_vitesse": 1.4,
+            "duree": 40.0,
+            "durees": {"rebord": 1.0, "echelle": 0.5},
+        }
+        sans = balayage.mesurer(ParametresPiscine(**base, graine=123))
+        avec = balayage.mesurer(
+            ParametresPiscine(
+                **base, chutes={"lambda_chute": 50.0, "lambda_domino": 50.0}, graine=123
+            )
+        )
+        assert sans["chutes"] == 0.0
+        assert avec["chutes"] >= 1.0 and avec["chutes"].is_integer()
+
     def test_pas_de_debit_sur_les_seuls_agents_sortis(self, configuration, monkeypatch):
         """Deux sortis sur trois suffiraient a `debit_seyfried` : le debit doit rester indefini."""
         resultat = SimpleNamespace(
             sorties=np.array([10.0, 12.0, np.nan]),
             projection=SimpleNamespace(verifier_convergence=lambda: None),
+            chutes=(),
             temps_evacuation=lambda fraction: Sorties(
                 np.array([10.0, 12.0, np.nan])
             ).temps_evacuation(fraction),
@@ -390,8 +413,11 @@ class TestCommande:
         assert bilan["contexte"]["code"]["source"] in ("git", "environnement", "indisponible")
         premier, second = bilan["points"]
         assert premier["valeur"] == 1.0 and not premier["equivaut_au_sec"]
-        assert premier["mouille"] == [[3.0, 1.0, 1.5, 3.0, 0.0], [4.0, 1.0, 1.5, 3.0, 0.0]]
-        assert premier["temoin"] == [[3.0, 5.9, 1.5, 0.0, 0.0], [4.0, 5.9, 1.5, 0.0, 0.0]]
+        assert premier["mouille"] == [
+            [3.0, 1.0, 1.5, 3.0, 0.0, 0.0],
+            [4.0, 1.0, 1.5, 3.0, 0.0, 0.0],
+        ]
+        assert premier["temoin"] == [[3.0, 5.9, 1.5, 0.0, 0.0, 0.0], [4.0, 5.9, 1.5, 0.0, 0.0, 0.0]]
         assert second["equivaut_au_sec"]
         assert "(= temoin)" in capsys.readouterr().out
 
@@ -408,6 +434,7 @@ class TestCommande:
                 "t100": math.inf if bouche else 30.0,
                 "debit": math.nan if bouche else 1.5,
                 "non_sortis": 4.0 if bouche else 0.0,
+                "chutes": 0.0,
             }
 
         monkeypatch.setattr(balayage, "mesurer", mesure)
@@ -421,7 +448,7 @@ class TestCommande:
         assert "4/4" in bouche  # non sortis : mouille/temoin, total sur les graines
         assert "incomplet" not in normal
         bilan = json.loads(sortie.read_text(encoding="utf-8"))
-        assert bilan["points"][0]["mouille"][1] == [10.0, 20.0, None, None, 4.0]
+        assert bilan["points"][0]["mouille"][1] == [10.0, 20.0, None, None, 4.0, 0.0]
         assert [p["valeur"] for p in bilan["points"]] == [2.0, 1.0]
 
     @pytest.mark.parametrize(

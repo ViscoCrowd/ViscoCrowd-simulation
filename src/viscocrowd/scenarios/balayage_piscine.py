@@ -34,7 +34,9 @@ Mesures, par simulation, sur TOUTE la population :
   - t50, t90, t100 : instants ou 50, 90 et 100 % des agents sont sortis, en s ;
   - debit : debit specifique a la porte, en pers/(m.s), avec l'estimateur du
     goulot E0 (`debit_seyfried`), pour que les deux restent comparables ;
-  - non_sortis : agents encore presents a la fin de `duree`.
+  - non_sortis : agents encore presents a la fin de `duree` ;
+  - chutes : nombre de chutes (toutes causes) pendant l'evacuation, 0 sans le module.
+    Sans lui, balayer `lambda_chute` ne disait pas combien de baigneurs tombaient (#130).
 
 Une evacuation INCOMPLETE (non_sortis > 0) est un resultat, pas une erreur : une
 porte qui se bouche en est un. Elle est donc conservee, avec t100 = +inf et un
@@ -60,8 +62,15 @@ from viscocrowd.model.milieu import Milieu
 from viscocrowd.scenarios.goulot import debit_seyfried
 from viscocrowd.scenarios.piscine import ParametresPiscine, simuler_piscine
 
-MESURES = ("t50", "t90", "t100", "debit", "non_sortis")
-UNITES = {"t50": "s", "t90": "s", "t100": "s", "debit": "pers/(m.s)", "non_sortis": "pers"}
+MESURES = ("t50", "t90", "t100", "debit", "non_sortis", "chutes")
+UNITES = {
+    "t50": "s",
+    "t90": "s",
+    "t100": "s",
+    "debit": "pers/(m.s)",
+    "non_sortis": "pers",
+    "chutes": "chutes",
+}
 
 
 @dataclass(frozen=True)
@@ -250,6 +259,7 @@ def mesurer(p: ParametresPiscine) -> dict[str, float]:
         "t100": r.temps_evacuation(1.0),
         "debit": debit_seyfried(r.sorties, p.piscine.largeur_porte) if not restants else math.nan,
         "non_sortis": float(restants),
+        "chutes": float(len(r.chutes)),
     }
 
 
@@ -403,11 +413,13 @@ def _ligne_tableau(point: PointBalayage) -> str:
     finis = np.isfinite(ecart)
     non_sortis = f"{point.mouille[:, k['non_sortis']].sum():.0f}/"
     non_sortis += f"{point.temoin[:, k['non_sortis']].sum():.0f}"
+    chutes = f"{point.mouille[:, k['chutes']].sum():.0f}/{point.temoin[:, k['chutes']].sum():.0f}"
     cellules = [
         f"{point.valeur:>8g}",
         f"{_moyenne_ecart(point.mouille[:, k['t100']], 2):>16}",
         *(f"{_moyenne_ecart(point.ecart[:, k[m]], 3):>17}" for m in _ECARTS),
         f"{non_sortis:>11}",
+        f"{chutes:>11}",
         f"{int(np.sum(ecart[finis] > 0)):>8}/{int(finis.sum())}",
     ]
     if point.equivaut_au_sec:
@@ -487,10 +499,11 @@ def commande_balayer(args) -> int:
         print(f"Parametres fixes hors YAML : {autres} ; graines {graines}")
         print("Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart")
         print("non sortis : total sur les graines, mouille/temoin, a la fin de la duree")
+        print("chutes : total sur les graines, mouille/temoin (0 sans module de chutes)")
         print(
             f"{'valeur':>8} {'t100 mouille (s)':>16} "
             + " ".join(f"{'Delta ' + m + ' (' + UNITES[m] + ')':>17}" for m in _ECARTS)
-            + f" {'non sortis':>11} Delta t100 > 0"
+            + f" {'non sortis':>11} {'chutes':>11} Delta t100 > 0"
         )
 
         def apres_point(point: PointBalayage) -> None:
