@@ -118,109 +118,113 @@ $\omega=\SI{1}{\radian\per\second}$ n'y est pas. Les deux régimes sont testés
 séparément dans l'intégration continue.
 
 \subsection{Invariants du modele de foule}
+\label{sec:invariants}
 
-\paragraph{Banc guidé en couloir.}
-Le domaine est $x\geq0$, $|y|\leq W/2$, avec $W=\SI{3}{\metre}$.
-Pour un disque de rayon $r$, les centres respectent $x\geq r$ et
-$|y|\leq W/2-r$. La section $x=L=\SI{12}{\metre}$ sert à compter les passages ;
-le domaine et les agents continuent en aval. Le guidage est $(1,0)$, direction
-analytique du temps de parcours pour une vitesse positive dépendant seulement de $x$
-dans un couloir sans obstacle. Le calcul eikonal avec obstacle reste à valider séparément.
+Les invariants sont mesurés sur la piscine de référence, pendant les vingt évacuations de E1
+et E2 (dix graines, plage sèche et bande mouillée, $N=100$). À chacun des \num{102662}
+instants archivés, toutes les paires d'agents actifs et leurs distances aux murs sont
+contrôlées (\texttt{docs/mesures/invariants-piscine-2026-11-16/mesurer.py}).
 
-Le fichier \texttt{experiments/couloir.yaml}, graine 20262027, initialise 24 disques
-de rayon \SI{0.2}{\metre}, sur quatre rangées et six colonnes. L'espacement est
-\SI{0.55}{\metre} et la perturbation est bornée par \SI{0.02}{\metre} par coordonnée.
-La bande mouillée occupe $4\leq x<8$ (m) entre deux zones sèches.
-Les paramètres illustratifs $(\tau,a_{\max},s)$ valent respectivement
-$(0{,}3\,;\,3\,;\,1{,}5)$ sur le sec et $(0{,}6\,;\,0{,}7\,;\,1)$ sur le mouillé,
-en secondes, mètres par seconde carrée et mètres par seconde.
-
-Avec $\dt=\SI{0.01}{\second}$ et une durée de \SI{14}{\second}, le calcul conserve
-\num{1401} instants et les 24 agents. Les mesures du 21 octobre 2026 sont :
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{lr}
 \toprule
 Grandeur & Mesure \\
 \midrule
-Recouvrement maximal entre deux disques & \SI{9.99457e-7}{\metre} \\
-Tolérance d'exclusion & \SI{1e-6}{\metre} \\
-Violation maximale des parois & \SI{0}{\metre} \\
+Recouvrement maximal entre deux agents & \SI{9.9996e-7}{\metre} \\
+Tolérance de la projection & \SI{1e-6}{\metre} \\
+Violation maximale des murs et du bord du bassin & \SI{7.2e-16}{\metre} \\
 Projections non convergées & 0 \\
-Agents distincts ayant franchi la section & 24 sur 24 \\
-Premier et dernier passage interpolés & \SI{7.225}{\second} et \SI{9.228}{\second} \\
+Agents sortis & 100 sur 100, dans les 20 évacuations \\
+Franchissements par agent & exactement 1 \\
+Eau + bord + plage + sortis $=N$ & à chaque instant \\
 \bottomrule
 \end{tabular}
 \end{center}
-Les distances entre centres confirment des contacts effectifs ; l'absence de
-recouvrement n'est donc pas obtenue en gardant tous les agents isolés.
-Le test d'invariant vérifie toutes les paires à tous les instants archivés.
-Un second test égalise exactement les paramètres des deux sols : la trajectoire
-devient identique à celle d'un sol uniforme, sans effet artificiel de la frontière.
+
+Le recouvrement atteint la tolérance sans la dépasser : c'est le critère d'arrêt de la
+projection, pas un défaut. La violation des murs est au niveau de la précision machine, car
+chaque mur est une contrainte projetée exactement. Les mêmes contrôles tournent dans
+l'intégration continue sur une évacuation de 20 agents (\texttt{tests/test\_piscine\_scenario.py}).
 
 \subsection{Sensibilite a la discretisation}
+\label{sec:sensibilite}
 
-Pour isoler l'erreur temporelle, un seul agent part au repos en $x_0=\SI{0.5}{\metre}$,
-sur un sol uniforme, avec $s=\SI{1}{\metre\per\second}$ et $\tau=\SI{0.5}{\second}$.
-La borne $a_{\max}=\SI{100}{\metre\per\second\squared}$ évite la saturation ; aucun
-contact ne se produit. La solution de $\dot v=(s-v)/\tau$ est
-\[
-v(t)=s(1-e^{-t/\tau}),\qquad
-x(t)=x_0+s\bigl[t-\tau(1-e^{-t/\tau})\bigr].
-\]
-À $T=\SI{2}{\second}$, l'erreur de position mesurée donne :
-\begin{center}
-\begin{tabular}{rrr}
+\paragraph{Ordre du schéma.} Un agent seul part au repos sur un sol uniforme, avec
+$s=\SI{1}{\metre\per\second}$, $\tau=\SI{0.5}{\second}$ et sans saturation. La solution
+exacte est $x(t)=x_0+s\bigl[t-\tau(1-e^{-t/\tau})\bigr]$. À $t=\SI{2}{\second}$, l'erreur vaut
+\SI{1.894e-2}{\metre}, \SI{9.460e-3}{\metre} et \SI{4.728e-3}{\metre} pour $\dt=0{,}02$, $0{,}01$
+et \SI{0.005}{\second} : diviser le pas par deux divise l'erreur par deux (rapports
+\num{0.4995} et \num{0.4997}), ce qui est l'ordre un attendu.
+
+\paragraph{Pas de temps sur la piscine.} La référence est relancée à $\dt/2$ et $\dt/4$, sur
+les dix mêmes graines. Le tableau~\ref{tab:sensibilite-dt} donne l'écart apparié au pas de
+\SI{0.01}{\second}, à comparer à l'erreur standard entre graines (écart-type$/\sqrt{10}$).
+Pour un écart mouillé -- sec $\Delta$, c'est l'erreur standard de $\Delta$ lui-même qui compte.
+
+\begin{table}[ht]
+\centering
+\caption{Effet du pas de temps sur la piscine de référence : écart apparié moyen
+(écart-type) au pas de \SI{0.01}{\second}, dix graines. Reproduction :
+\texttt{viscocrowd balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.01
+0.005 0.0025 --graines 1 2 3 4 5 6 7 8 9 10}.}
+\label{tab:sensibilite-dt}
+\begin{tabular}{lrrr}
 \toprule
-$\dt$ (s) & $|x_{\mathrm{num}}(T)-x(T)|$ (m) & Rapport à l'erreur précédente \\
+Grandeur & $\dt/2-\dt$ & $\dt/4-\dt$ & Erreur standard \\
 \midrule
-0,020 & 0,01893993 & -- \\
-0,010 & 0,00946027 & 0,49949 \\
-0,005 & 0,00472770 & 0,49974 \\
+$t_{50}$ (s) & 0,001 (0,049) & 0,001 (0,059) & 0,165 \\
+$t_{100}$ (s) & $-0{,}012$ (0,169) & 0,007 (0,169) & 0,592 \\
+$J_s$ (pers/(m$\cdot$s)) & 0,001 (0,010) & 0,000 (0,010) & 0,032 \\
+$\Delta t_{50}$ (s) & $-0{,}011$ (0,029) & $-0{,}010$ (0,041) & 0,023 \\
+$\Delta t_{100}$ (s) & 0,048 (0,144) & 0,048 (0,097) & 0,053 \\
 \bottomrule
 \end{tabular}
-\end{center}
-Diviser le pas par deux divise l'erreur par environ deux, conformément à l'ordre un
-attendu. Le test \texttt{test\_agent\_isole\_converge\_vers\_la\_solution\_analytique}
-reproduit ces trois calculs et vérifie leurs rapports.
+\end{table}
 
-Cette validation concerne le banc et ce régime de relaxation. Elle ne démontre pas
-la convergence de la foule dense, ni la calibration de la piscine. La bande mouillée
-change simultanément vitesse souhaitée, relaxation et accélération maximale : les
-mesures ne permettent pas d'attribuer un effet à la seule adhérence. Le banc n'a
-ni rétrécissement de sortie, ni extraction aquatique, ni état absorbant. Le nombre de
-passages n'est donc pas un nombre d'évacués définitifs. Les campagnes en population,
-graines et pas de temps, ainsi que le biais de contacts multiples suivi dans l'issue 10,
-restent à étudier avant de conclure sur la problématique.
+Sur les grandeurs brutes, l'effet du pas est au moins dix fois plus petit que l'erreur
+standard. Sur les écarts $\Delta$, il reste dessous, mais seulement d'un facteur 1 à 3 : le pas
+de \SI{0.01}{\second} suffit, sans grande marge pour un effet aussi petit que celui de la
+bande mouillée. Dans la configuration où l'effet est net (plage glissante jusqu'à la porte,
+section~\ref{sec:e4}), diviser le pas par deux change $\Delta t_{100}$ de \SI{0.005}{\second}
+sur \SI{13.95}{\second}, et le débit pas du tout. $\Delta t_{50}$ y bouge de
+\SI{0.45}{\second}, 1,7 fois son erreur standard, sans changer la conclusion.
+
+\paragraph{Effectif, graines et tolérance.} Le nombre de baigneurs varie de 50 à 200
+(tableau~\ref{tab:e4-population}) : $t_{100}$ croît de \SIrange{16.5}{17.2}{\second} par
+tranche de 50, et l'effet de la bande mouillée reste du centième de seconde à tous les
+effectifs. Chaque point est calculé sur dix graines : sur le goulot E0, trois graines
+déplaçaient l'écart à la mesure de Seyfried jusqu'à 4~points de pourcentage selon le triplet choisi.
+L'effet de la tolérance de projection sur la densité est mesuré en
+section~\ref{sec:mesure-densite} : aucun écart décelable entre \num{1e-7} et
+\SI{1e-6}{\metre}.
 
 \subsection{Comparaison a un resultat connu}
+\label{sec:comparaison}
 
-% Diagramme fondamental de Weidmann et debit specifique de goulot de la
-% litterature.
+\paragraph{Débit de goulot.} Sur le protocole de Seyfried et
+al.~\cite{seyfried2009}, le temps d'espacement $T=\SI{0.35}{\second}$ a été choisi sur
+$N=60$ : l'écart moyen de \SI{2.8}{\percent} y est un ajustement. Sur les effectifs non
+utilisés pour le choisir, l'écart moyen au débit mesuré vaut \SI{5.7}{\percent} pour $N=40$
+et \SI{7.3}{\percent} pour $N=20$, sur dix graines, sous le seuil de \SI{10}{\percent} retenu
+dans nos critères de validation (section~\ref{sec:e0}). C'est une validation partielle : un seul protocole, en
+sol sec.
 
-\paragraph{Référence retenue.} La relation entre densité $D$ et vitesse de
-marche que nous comparerons à nos mesures est la fonction de Kladek reprise par
-Weidmann~\cite[\S\,4.31.1, éq.~(15)--(16), p.~62]{weidmann1993} :
+\paragraph{Diagramme fondamental.} La référence est la relation de Kladek reprise par
+Weidmann~\cite[\S\,4.31.1, p.~62]{weidmann1993},
 \[
-v(D)=v_0\Bigl[1-\exp\Bigl(-\gamma\Bigl(\frac1D-\frac1{D_{\max}}\Bigr)\Bigr)\Bigr].
-\]
-Les constantes sont
-\[
-v_0=\SI{1.34}{\metre\per\second},\quad
-\gamma=\num{1.913}~\mathrm{P/m^2},\quad
+v(D)=v_0\Bigl[1-\exp\Bigl(-\gamma\Bigl(\frac1D-\frac1{D_{\max}}\Bigr)\Bigr)\Bigr],
+\qquad v_0=\SI{1.34}{\metre\per\second},\ \gamma=\num{1.913}~\mathrm{P/m^2},\
 D_{\max}=\num{5.4}~\mathrm{P/m^2}.
 \]
-Le débit spécifique $J=D\,v(D)$ y culmine à \num{1.225}~P/(s\,m)
-pour $D=\num{1.75}~\mathrm{P/m^2}$ et $v=\SI{0.70}{\metre\per\second}$
-(p.~63--64) ; notre implémentation retrouve 1,22492, 1,7507 et 0,6997 dans ces
-unités. La vitesse libre $v_0$ synthétise 52 valeurs moyennes de la littérature
-(p.~43). Séparément, 17 estimations de dispersion issues de 12 sources donnent
-un écart-type moyen des vitesses de \SI{0.26}{\metre\per\second}, soit
-\SI{19.3}{\percent} (p.~53). Cette dispersion n'est ni l'incertitude sur $v_0$
-ni un seuil de validation du modèle : juger un écart demande un protocole
-comparable, les effectifs et les incertitudes des moyennes étudiées.
-Ces relations valent « sans contrainte extérieure » (p.~64), pour
-une marche unidirectionnelle en terrain plat : la comparaison portera sur nos
-zones sèches, pas sur la nage, l'extraction aquatique ni la panique.
+Le débit $J=D\,v(D)$ y culmine à \num{1.225}~P/(s\,m) pour $D=\num{1.75}~\mathrm{P/m^2}$
+(p.~63--64) ; notre implémentation retrouve \num{1.22492} et \num{1.7507}. L'écart-type de
+\SI{0.26}{\metre\per\second} que Weidmann donne pour les vitesses (p.~53) décrit la
+dispersion entre piétons, pas une tolérance de validation. Ces relations valent « sans
+contrainte extérieure » (p.~64). Devant un goulot (figure~\ref{fig:diagramme-e0}) ou une
+porte saturée (figure~\ref{fig:diagramme-piscine}), la vitesse mesurée vaut environ la
+moitié de celle de Weidmann, mais ce n'est pas son domaine. La mesure qui permettrait de
+conclure, en écoulement libre et à plusieurs densités imposées, n'est pas encore faite : la
+comparaison au diagramme de Weidmann n'est donc pas, à ce stade, un critère de validation.
 
 \subsection{Coherence dimensionnelle}
 \label{sec:dimensions}

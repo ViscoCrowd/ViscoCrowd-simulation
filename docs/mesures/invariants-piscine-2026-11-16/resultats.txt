@@ -1,0 +1,22 @@
+# contexte : {'commit': '2f573fe0665a524ea0fb124eb390f5cbe273cc15', 'modifications_locales': False, 'source': 'git'} 364a72a5abc35b0e
+# sol graine recouvrement_max_m violation_murs_m non_convergees sortis un_franchissement_par_agent conservation instants
+sec      1 9.998e-07 7.216e-16 0 100 True True 5202
+sec      2 9.998e-07 7.216e-16 0 100 True True 5306
+sec      3 9.997e-07 7.216e-16 0 100 True True 5152
+sec      4 9.999e-07 7.216e-16 0 100 True True 5211
+sec      5 9.998e-07 7.216e-16 0 100 True True 4822
+sec      6 9.999e-07 7.216e-16 0 100 True True 5259
+sec      7 9.993e-07 7.216e-16 0 100 True True 5344
+sec      8 9.996e-07 7.216e-16 0 100 True True 5186
+sec      9 9.997e-07 7.216e-16 0 100 True True 5007
+sec     10 9.998e-07 7.216e-16 0 100 True True 4881
+mouille  1 9.998e-07 7.216e-16 0 100 True True 5188
+mouille  2 9.994e-07 7.216e-16 0 100 True True 5311
+mouille  3 1.000e-06 7.216e-16 0 100 True True 5154
+mouille  4 9.999e-07 7.216e-16 0 100 True True 5210
+mouille  5 9.993e-07 7.216e-16 0 100 True True 4777
+mouille  6 9.996e-07 7.216e-16 0 100 True True 5260
+mouille  7 9.994e-07 7.216e-16 0 100 True True 5353
+mouille  8 9.998e-07 7.216e-16 0 100 True True 5158
+mouille  9 9.999e-07 7.216e-16 0 100 True True 5002
+mouille 10 9.991e-07 7.216e-16 0 100 True True 4879
