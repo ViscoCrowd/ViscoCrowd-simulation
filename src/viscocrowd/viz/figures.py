@@ -605,9 +605,63 @@ def figure_diagramme_fondamental(series: dict, classes, destination: Path) -> Pa
         axe.set_xlim(0.0, max(weidmann.RHO_MAX, float(np.max(densites, initial=0.0))) * 1.02)
     gauche.legend(fontsize=8)
     fig.suptitle(
-        f"Fig. 8 — Diagramme fondamental devant le goulot E0 : b = "
+        f"Diagramme fondamental devant le goulot E0 : b = "
         f"{', '.join(f'{b:g}' for b in largeurs)} m, {len(graines)} graines",
         fontsize=10,
     )
     fig.tight_layout()
     return _enregistrer(fig, destination, "fig08_diagramme_fondamental")
+
+
+def figure_diagramme_piscine(classes: dict, titre: str, destination: Path) -> Path:
+    """Diagramme fondamental devant la porte de la piscine, sec contre mouille (M8, #124).
+
+    Hors de `TOUTES_LES_FIGURES` : elle demande vingt evacuations
+    (`viscocrowd diagramme-piscine --figure`). `classes` associe a "sec" et "mouille"
+    leurs classes de densite, calculees sur les memes bornes (`diagramme_piscine.agreger`).
+    Pas de nuage de points : les deux series se recouvrent. Les barres sont
+    l'ecart-type de chaque classe, soit la dispersion des etats, et non l'incertitude
+    sur la moyenne (points correles).
+    """
+    from viscocrowd.observables import weidmann
+
+    styles = {
+        "sec": ("#3b6ea8", "o", "plage sèche (témoin)"),
+        "mouille": ("#b4432f", "s", "plage mouillée"),
+    }
+    haut = max(
+        float(np.nanmax(np.where(c.effectifs > 0, c.densite, np.nan))) for c in classes.values()
+    )
+    rho = np.linspace(0.0, max(haut, 1.0) * 1.05, 200)
+    fig, (gauche, droite) = plt.subplots(1, 2, figsize=(10, 4))
+    for axe, moyenne, ecart, reference, nom in (
+        (gauche, "vitesse", "ecart_vitesse", weidmann.vitesse(rho), "vitesse $v$ (m/s)"),
+        (
+            droite,
+            "debit",
+            "ecart_debit",
+            weidmann.debit_specifique(rho),
+            r"débit spécifique $J = \rho v$ (pers/(m·s))",
+        ),
+    ):
+        for sol, (couleur, marque, libelle) in styles.items():
+            c = classes[sol]
+            pleines = c.effectifs > 0
+            axe.errorbar(
+                c.densite[pleines],
+                getattr(c, moyenne)[pleines],
+                yerr=np.nan_to_num(getattr(c, ecart)[pleines]),
+                fmt=marque,
+                color=couleur,
+                ms=4,
+                capsize=2,
+                label=libelle,
+            )
+        axe.plot(rho, reference, color="0.2", ls="--", lw=1.2, label="Weidmann (1993)")
+        axe.set_xlabel(r"densité de Voronoï $\rho$ (pers/m²)")
+        axe.set_ylabel(nom)
+        axe.set_xlim(0.0, rho[-1])
+    gauche.legend(fontsize=8)
+    fig.suptitle(titre, fontsize=10)
+    fig.tight_layout()
+    return _enregistrer(fig, destination, "fig09_diagramme_piscine")
