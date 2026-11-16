@@ -467,6 +467,7 @@ make test        # suite de tests
 make simu        # lance une simulation de la piscine, archivée dans data/
 make rejouer     # relit la dernière archive à l'écran
 make comparer    # compare la piscine sèche et mouillée sur dix graines (E1/E2)
+make campagne-finale  # rejoue toute la campagne finale, avec reprise (data/finale)
 make test-invariants  # seulement les invariants physiques
 make test-lents  # seulement les scénarios lents
 make lint        # ruff

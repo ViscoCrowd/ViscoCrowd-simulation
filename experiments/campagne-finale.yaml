@@ -1,0 +1,76 @@
+# Campagne finale : chaque mesure du rapport et la commande qui la produit (#59).
+#
+#   viscocrowd rejouer-campagne experiments/campagne-finale.yaml --lister
+#   viscocrowd rejouer-campagne experiments/campagne-finale.yaml --sortie data/finale
+#
+# {graines} : les graines ci-dessous, ou celles de --graines (11 a 20 pour confirmer un
+# effet de balayage, docs/criteres-acceptation.md § 3). {sortie} : le bilan JSON du calcul.
+#
+# PROPOSITION du 16 novembre 2026, reprise des commandes deja publiees dans
+# docs/balayages-piscine.md, docs/diagramme-fondamental.md et le rapport (§ 6). La liste
+# definitive se valide en groupe avec les criteres d'acceptation, avant la campagne.
+# Absent de la liste : la premiere ligne de tab:e0, sans regulation, qui demande
+# temps_espacement: null dans goulot.yaml (aucune option de la commande ne le fixe).
+version: 1
+graines: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+calculs:
+  # --- References (E0, M4) ---------------------------------------------------------
+  - identifiant: e0-n60
+    mesure: "tab:e0, debit du goulot sec contre Seyfried, N = 60 (ajustement de T)"
+    commande: etalonner-goulot experiments/goulot.yaml --graines {graines}
+  - identifiant: e0-n40
+    mesure: "tab:e0, N = 40 (validation)"
+    commande: etalonner-goulot experiments/goulot.yaml --agents 40 --graines {graines}
+  - identifiant: e0-n20
+    mesure: "tab:e0, N = 20 (validation)"
+    commande: etalonner-goulot experiments/goulot.yaml --agents 20 --graines {graines}
+
+  # --- Comparaison principale (E1/E2, M5) ------------------------------------------
+  - identifiant: e1-e2
+    mesure: "comparaison principale, piscine seche contre mouillee, appariee"
+    commande: comparer-piscine experiments/piscine.yaml --graines {graines}
+
+  # --- Balayages exploratoires (E3/E4, M6) -----------------------------------------
+  - identifiant: e4-largeur-porte
+    mesure: "balayage de la largeur de porte"
+    commande: balayer-piscine experiments/piscine.yaml --parametre largeur_porte --valeurs 0.8 1.0 1.2 1.6 --graines {graines} --sortie {sortie}
+  - identifiant: e4-population
+    mesure: "balayage de la population"
+    commande: balayer-piscine experiments/piscine.yaml --parametre n_agents --valeurs 50 100 150 200 --graines {graines} --sortie {sortie}
+  - identifiant: e3-temps-espacement
+    mesure: "sensibilite a T de la regulation"
+    commande: balayer-piscine experiments/piscine.yaml --parametre temps_espacement --valeurs 0.25 0.35 0.5 --graines {graines} --sortie {sortie}
+  - identifiant: e3-relaxation
+    mesure: "sensibilite au temps de relaxation commun"
+    commande: balayer-piscine experiments/piscine.yaml --parametre relaxation --valeurs 0.3 0.5 1.0 --graines {graines} --sortie {sortie}
+  - identifiant: e3-vitesse-mouille
+    mesure: "marche plus lente sur le mouille"
+    commande: balayer-piscine experiments/piscine.yaml --parametre vitesse_mouille --valeurs 0.7 --graines {graines} --sortie {sortie}
+  - identifiant: e4-mouille-porte-saturee
+    mesure: "plage mouillee jusqu'a une porte saturee (0,8 m)"
+    commande: balayer-piscine experiments/piscine.yaml --parametre largeur_mouillee --valeurs 3 20 --fixer largeur_porte=0.8 --graines {graines} --sortie {sortie}
+  - identifiant: e4-adherence-porte-saturee
+    mesure: "adherence du mouille devant la porte saturee"
+    commande: balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 3.3 --fixer largeur_porte=0.8 largeur_mouillee=20 --graines {graines} --sortie {sortie}
+  - identifiant: e4-temoin-inertie
+    mesure: "temoin : meme adherence sur la seule bande de 3 m"
+    commande: balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 --fixer largeur_porte=0.8 --graines {graines} --sortie {sortie}
+
+  # --- Convergence numerique (M9) --------------------------------------------------
+  - identifiant: m9-dt
+    mesure: "pas de temps Dt/2 et Dt/4 sur la reference"
+    commande: balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.01 0.005 0.0025 --graines {graines} --sortie {sortie}
+  - identifiant: m9-dt-effet
+    mesure: "pas de temps sur la configuration a effet (porte saturee, plage glissante)"
+    commande: balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.01 0.005 --fixer largeur_porte=0.8 largeur_mouillee=20 adherence_mouille=1 --graines {graines} --sortie {sortie}
+
+  # --- Diagramme fondamental (M8) --------------------------------------------------
+  - identifiant: m8-goulot
+    mesure: "diagramme fondamental devant le goulot E0"
+    commande: diagramme-goulot experiments/goulot.yaml --graines {graines} --sortie {sortie}
+  - identifiant: m8-piscine
+    mesure: "diagramme fondamental devant la porte, sec contre mouille"
+    commande: diagramme-piscine experiments/piscine.yaml --graines {graines} --sortie {sortie}
+  - identifiant: m8-piscine-porte-saturee
+    mesure: "le meme, porte de 0,8 m"
+    commande: diagramme-piscine experiments/piscine.yaml --graines {graines} --fixer largeur_porte=0.8 --sortie {sortie}
