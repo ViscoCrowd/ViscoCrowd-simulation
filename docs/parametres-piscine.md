@@ -68,9 +68,18 @@ mesures publiées ; « non balayé » veut dire qu'aucune mesure n'existe encore
 
 ## Chutes
 
-`chutes: null` : le module est **désactivé** dans la référence. Ses taux n'ont pas de source
-(`docs/modele-chutes.md`, § 8), et la bousculade dépendait du pas de temps (#132, corrigé dans
-#135). La décision de l'activer est suivie dans #130.
+`chutes: null` : le module est **désactivé** dans la référence, par décision du 16 novembre
+(#130, journal). Ses paramètres libres n'ont pas de source (`docs/modele-chutes.md`, § 8) ; ils
+sont balayés comme hypothèses dans une campagne exploratoire (`docs/balayages-piscine.md`,
+section « Chutes »), qui mesure leur influence :
+
+| Paramètre | Défaut | Unité | Statut | Plage balayée | Effet mesuré sur Δ t100 |
+|---|---|---|---|---|---|
+| `lambda_chute` | 2,0 | 1/s | Hypothèse sans source | 0,5 à 10 | +7,0 à +24,8 s |
+| `lambda_domino` | 4,0 | 1/s | Hypothèse sans source | 1 à 16 | +6,1 à +17,8 s |
+| `lambda_bousculade` | 0 | 1/s | Hypothèse sans source (produit avec `duree_bousculade` = 0,1 s) | 0 à 10 | +9,4 à +12,0 s, sans tendance |
+| `facteur_rayon_terre` | 1,5 | – | Hypothèse sans source | 1 à 2 | +11,5 à +21,0 s, non monotone |
+| `mediane_relevage` | 3,7 | s | Sourcé (Becker et al. 2016, 20 à 50 ans) | non balayé | – |
 
 ## Ce que le tableau montre
 
