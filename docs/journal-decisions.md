@@ -11,6 +11,27 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-16 — Chutes : ce que mesure le balayage de λ_chute (#130)
+
+**Statut.** Mesure versée au dossier de #130 ; la décision reste celle du groupe.
+
+**Mesure** (`docs/balayages-piscine.md`, section du 16 novembre ; référence, graines 1 à 10) :
+57, 117 et 245 chutes par évacuation de 100 baigneurs à λ_chute = 0,5, 2 et 8 /s, toutes
+sur le mouillé ; le témoin sec n'en a aucune. Δ t100 = +7,0, +12,2 et +23,2 s, contre
+−0,08 s sans module. Sur une évacuation (graine 1, λ = 2 /s), 111 chutes sur 145 sont des
+dominos, réglés par λ_domino = 4 /s, valeur par défaut sans source.
+
+**Conséquence pour la proposition du 14 novembre.** Elle en sort renforcée sur deux points :
+1. l'effet du module écrase celui du sol (facteur 100 sur t100), donc l'activer dans la
+   campagne de référence ferait porter la conclusion sur des taux non sourcés ;
+2. un balayage de λ_chute seul n'est pas « la glissade » : à 75 %, c'est la cascade.
+   S'il est montré, il faut le présenter avec λ_domino, ou balayer les deux.
+
+*Écarté : baisser λ_chute jusqu'à un nombre de chutes « raisonnable ».* Ce serait choisir
+le taux sur le résultat attendu, comme l'entrée du 14 novembre l'écartait déjà.
+
+---
+
 ## 2026-11-14 — Compter le risque de bousculade par choc, et non par pas (#130)
 
 **Contexte.** L'entrée suivante montre que la bousculade dépend de Δt dans une évacuation.

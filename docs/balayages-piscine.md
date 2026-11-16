@@ -573,3 +573,36 @@ pour quatre raisons :
 
 Avant de conclure le rapport, il reste donc à combiner une porte saturée (0,8 m) et du
 mouillé jusqu'à la porte, et à mesurer l'effet des chutes.
+
+## Chutes : balayage exploratoire de λ_chute (16 novembre 2026, #130)
+
+**Statut : exploratoire.** Aucun taux du module de chutes n'a de source (`docs/modele-chutes.md` § 8) : ces chiffres disent ce que le module **fait**, pas ce qui se passerait dans une vraie piscine. Le balayage compte désormais les chutes (colonne `chutes`, mouillé/témoin).
+
+Code du commit `41d3451` (empreinte des sources `d0033e49…`, identique à celle des bilans), Linux x86_64, Python 3.12.3, NumPy 2.5.5. Référence `piscine.yaml` ; le balayage crée la section `chutes`, avec les autres valeurs par défaut de `ParametresChutes` (λ_domino = 4 /s, λ_bousculade = 0). Graines 1 à 10. Bilans dans [`mesures/chutes-exploratoire-2026-11-16/`](mesures/chutes-exploratoire-2026-11-16/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre lambda_chute --valeurs 0.5 \
+  --graines 1 2 3 4 5 6 7 8 9 10 --sortie lambda-0.5.json        # puis 2 et 8
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre dt --valeurs 0.01 0.005 \
+  --fixer lambda_chute=2 --graines 1 2 3 4 5 6 7 8 9 10
+```
+
+| λ_chute (1/s) | Chutes par évacuation (mouillé) | Témoin sec | t100 mouillé (s) | Δ t50 (s) | Δ t100 (s) | Δ J_s | Δ t100 > 0 |
+|---|---|---|---|---|---|---|---|
+| sans module (#128) | 0 | 0 | 51,28 ± 1,87 | −0,01 ± 0,07 | −0,08 ± 0,17 | — | — |
+| 0,5 | 57,0 ± 21,8 (38 à 108) | 0 | 58,32 ± 7,95 | 0,53 ± 1,30 | 6,97 ± 7,84 | −0,32 ± 0,30 | 10/10 |
+| 2 | 116,5 ± 29,4 (86 à 177) | 0 | 63,52 ± 6,20 | 1,64 ± 1,27 | 12,17 ± 5,34 | −0,55 ± 0,17 | 10/10 |
+| 8 | 245,2 ± 46,6 (180 à 326) | 0 | 74,60 ± 6,19 | 7,81 ± 4,27 | 23,24 ± 6,65 | −0,87 ± 0,18 | 10/10 |
+
+**Où et comment** (graine 1, λ_chute = 2 /s, une seule évacuation) : 145 chutes, **toutes sur le carrelage mouillé**, aucune dans l'eau ni sur le sec ; 34 glissades et **111 dominos** ; 55 baigneurs distincts sur 100.
+
+**Pas de temps** (λ_chute = 2 /s) : 1 165 chutes au total sur les 10 graines à Δt = 0,01 s, 1 088 à Δt/2 (−6,6 %) ; t100 mouillé 63,52 ± 6,20 contre 61,88 ± 6,10 s. Seuls les totaux sont disponibles : le code a été commité pendant ce calcul, et la garde de provenance a refusé d'écrire le second point dans le bilan, comme elle le doit (sortie console dans `dt-console.txt`). L'écart apparié graine par graine reste à mesurer.
+
+### Lecture
+
+- **Le module domine tout le reste.** Même au plus petit taux, l'effet sur t100 (+7 s, 10 graines sur 10) est cent fois celui du sol mouillé sans chutes (−0,08 s). Toute conclusion sur le sol mouillé avec chutes serait donc une conclusion sur des taux sans source.
+- **Ce n'est pas λ_chute qu'on mesure surtout, c'est la cascade.** Trois chutes sur quatre sont des dominos (λ_domino = 4 /s par défaut, sans source). Diviser λ_chute par 4 ne divise les chutes que par 2. Un balayage de λ_chute à λ_domino fixé n'isole donc pas la glissade.
+- **Les ordres de grandeur sont invraisemblables** : à λ = 0,5 /s, plus d'une chute pour deux baigneurs par évacuation, et jusqu'à 108 pour 100 baigneurs. Rien ne permet d'y lire un comportement réel.
+- Le témoin sec ne tombe jamais (a_max = 5,9 m/s², jamais dépassé) : Δ compte donc bien l'effet du sol **avec** ses chutes, et non deux populations qui tombent autant.
+
+Ces mesures vont dans le sens de la proposition du 14 novembre au journal (module désactivé dans les campagnes de référence, présenté comme exploratoire) ; elles ne la tranchent pas.

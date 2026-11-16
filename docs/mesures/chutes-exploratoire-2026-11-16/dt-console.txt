@@ -1,0 +1,10 @@
+M9 — balayage de dt (s)
+  pas de temps (sensibilite numerique)
+Parametres fixes hors YAML : lambda_chute = 2 ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+chutes : total sur les graines, mouille/temoin (0 sans module de chutes)
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis      chutes Delta t100 > 0
+    0.01     63.52 ± 6.20     1.639 ± 1.274     7.185 ± 3.898    12.169 ± 5.340    -0.548 ± 0.169         0/0      1165/0       10/10
+   0.005     61.88 ± 6.10     1.316 ± 1.839     5.467 ± 3.751    10.586 ± 6.394    -0.486 ± 0.259         0/0      1088/0        9/10
+Balayage refuse : code ou environnement modifie pendant le balayage ; relancer
