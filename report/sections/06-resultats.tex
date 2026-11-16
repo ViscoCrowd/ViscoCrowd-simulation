@@ -103,6 +103,30 @@ sur les 150 simulations de dix graines ($N=20$, 40 et 60) : ce blocage était un
 artefact de la géométrie, non un comportement de la foule. Sans régulation, une
 arche se forme encore à $b=\SI{0.8}{\metre}$ sur une graine sur dix.
 
+Le débit global ne dit pas comment la vitesse varie avec la densité. La
+figure~\ref{fig:diagramme-e0} mesure cette relation devant le goulot, par cellules de
+Voronoï~\cite{steffen2010} (section~\ref{sec:mesure-densite}), un instant toutes les
+\SI{0.1}{\second}. Entre \num{0.3} et \num{3}~pers/\si{\metre\squared}, la vitesse vaut à
+peu près la moitié de celle de Weidmann (48 à \SI{58}{\percent}), et le débit plafonne vers
+\num{0.7}~pers/(m$\cdot$s) au lieu de \num{1.23}. À densité égale, elle varie du simple au
+double entre $b=\SI{0.8}{\metre}$ et \SI{1.2}{\metre} : devant un goulot, c'est sa capacité
+qui règle l'écoulement, pas la densité locale. Weidmann décrit une marche « sans contrainte
+extérieure »~\cite[p.~64]{weidmann1993} ; l'entonnoir d'un goulot n'en relève pas, et cette
+figure ne valide ni ne réfute le modèle face à lui. Elle sert de repère pour la porte de la
+piscine (section~\ref{sec:e4}).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{fig08_diagramme_fondamental}
+\caption{Diagramme fondamental devant le goulot E0 : vitesse (à gauche) et débit
+spécifique (à droite) en fonction de la densité de Voronoï, cinq largeurs de 0,8 à
+\SI{1.2}{\metre}, dix graines, $T=\SI{0.35}{\second}$. Points gris : instants mesurés ;
+barres : moyenne et écart-type par classe de \num{0.25}~pers/\si{\metre\squared} (dispersion
+des états, pas incertitude). Reproduction : \texttt{viscocrowd diagramme-goulot
+experiments/goulot.yaml --figure report/figures} (manifeste, \texttt{fig08}).}
+\label{fig:diagramme-e0}
+\end{figure}
+
 \subsection{Effet de l'extraction repartie}
 \label{sec:e1}
 
@@ -541,3 +565,34 @@ porte, avec la même porte saturée et la même régulation, la porte garde son 
 recule que de \SI{0.57 \pm 0.56}{\second}, contre \SI{13.95}{\second} quand le mouillé
 atteint la file. Ces écarts ne tiennent pas au pas de temps : à $\Delta t/2$,
 $\Delta t_{100}$ et $\Delta J_s$ ne bougent que de \SI{1}{\percent} de leur erreur standard.
+
+\paragraph{Le diagramme fondamental se déplace devant la porte.}
+C'est la question posée en introduction. La figure~\ref{fig:diagramme-piscine} mesure la
+relation densité--vitesse devant la porte saturée, dans la configuration où l'effet apparaît
+(plage glissante à \SI{1}{\metre\per\second\squared} jusqu'à la porte), avec la même méthode
+que pour E0. Sur la plage sèche, la densité ne dépasse jamais \num{2}~pers/\si{\metre\squared}.
+Sur la plage glissante, \SI{30}{\percent} des instants la dépassent, jusqu'à
+\num{3.9}~pers/\si{\metre\squared}. À densité égale, entre 1,1 et
+\num{1.9}~pers/\si{\metre\squared}, la file glissante avance 18 à \SI{24}{\percent} moins vite
+(\num{0.43} contre \SI{0.54}{\metre\per\second} à \num{1.1}~pers/\si{\metre\squared}). Sous
+\num{1}~pers/\si{\metre\squared}, les deux vitesses moyennes se confondent. La file glissante
+est donc plus dense et plus lente. La vitesse plus faible correspond aux relances écrêtées
+décrites plus haut. La densité plus forte correspond à des baigneurs qui ne ralentissent pas
+assez tôt pour garder l'espacement de la régulation, et que la projection arrête au contact.
+Ces deux lectures restent des interprétations : il faudrait mesurer les accélérations
+écrêtées dans la zone pour les séparer. Avec la seule bande mouillée de la référence, devant
+la même porte, les deux diagrammes se superposent à quelques centièmes de m/s près.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{fig09_diagramme_piscine}
+\caption{Diagramme fondamental devant la porte saturée de \SI{0.8}{\metre}, plage sèche
+(témoin) et plage mouillée très glissante ($a_{\max}=\SI{1}{\metre\per\second\squared}$
+jusqu'à la porte), dix graines
+appariées. Zone de \SI{1.8}{\metre}$\times$\SI{2}{\metre} devant la porte ; barres :
+moyenne et écart-type par classe de \num{0.25}~pers/\si{\metre\squared}. Reproduction :
+\texttt{viscocrowd diagramme-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
+--fixer largeur\_porte=0.8 largeur\_mouillee=20 adherence\_mouille=1 --figure
+report/figures} (manifeste, \texttt{fig09}).}
+\label{fig:diagramme-piscine}
+\end{figure}
