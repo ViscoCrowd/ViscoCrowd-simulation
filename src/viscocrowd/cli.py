@@ -192,6 +192,7 @@ def construire_analyseur() -> argparse.ArgumentParser:
     # Chaque module declare sa sous-commande ; noms qualifies, les deux fonctions
     # portant le meme nom.
     from viscocrowd.scenarios import (
+        anneau,
         balayage_piscine,
         campagne,
         diagramme_goulot,
@@ -203,6 +204,7 @@ def construire_analyseur() -> argparse.ArgumentParser:
     balayage_piscine.ajouter_commande(sous)
     diagramme_goulot.ajouter_commande(sous)
     diagramme_piscine.ajouter_commande(sous)
+    anneau.ajouter_commande(sous)
     interface = sous.add_parser(
         "interface", help="ouvre une maquette visuelle de la piscine, sans simulation"
     )

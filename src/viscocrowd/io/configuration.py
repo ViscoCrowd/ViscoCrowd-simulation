@@ -38,8 +38,9 @@ def lire_configuration(chemin: str | Path) -> dict:
         raise ValueError("configuration attendue : version, scenario, graine, parametres")
     if type(config["version"]) is not int or config["version"] != 1:
         raise ValueError("version de configuration non prise en charge (attendu : 1)")
-    if config["scenario"] not in ("bille_boite", "tassement", "couloir", "piscine", "goulot"):
-        raise ValueError("scenario attendu : bille_boite, tassement, couloir, piscine ou goulot")
+    scenarios = ("bille_boite", "tassement", "couloir", "piscine", "goulot", "anneau")
+    if config["scenario"] not in scenarios:
+        raise ValueError(f"scenario attendu : {', '.join(scenarios)}")
     if not isinstance(config["parametres"], dict):
         raise ValueError("parametres doit etre une table YAML")
     graine = config["graine"]
