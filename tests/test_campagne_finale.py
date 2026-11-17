@@ -54,3 +54,34 @@ def test_reprise_et_echec(tmp_path):
     assert any("ok : deja fait" in ligne for ligne in lignes)
     with pytest.raises(ValueError, match="inconnus"):
         rejouer(plan, tmp_path, seulement=["absent"])
+
+
+def test_bilan_partiel_mis_de_cote_a_la_reprise(tmp_path, monkeypatch):
+    """Un balayage interrompu laisse son JSON sans journal : la relance doit le refaire.
+
+    `balayer-piscine` ecrit son bilan apres chaque valeur et refuse une sortie existante.
+    Sans precaution, la reprise echouait donc a chaque relance (revue de #148).
+    """
+    import viscocrowd.cli as cli
+
+    appels = []
+
+    def commande(argv):
+        bilan = Path(argv[argv.index("--sortie") + 1])
+        if bilan.exists():
+            return 1  # comme balayer-piscine : « existe deja »
+        bilan.write_text("{}", encoding="utf-8")
+        appels.append(argv)
+        return 1 if len(appels) == 1 else 0  # interrompu la premiere fois
+
+    monkeypatch.setattr(cli, "main", commande)
+    plan = {
+        "version": 1,
+        "graines": [1],
+        "calculs": [{"identifiant": "b", "mesure": "m", "commande": "x --sortie {sortie}"}],
+    }
+    assert rejouer(plan, tmp_path, progression=lambda _: None) == ["b"]
+    assert (tmp_path / "b.json").exists() and not (tmp_path / "b.txt").exists()
+    assert rejouer(plan, tmp_path, progression=lambda _: None) == []
+    assert (tmp_path / "b.txt").exists()
+    assert (tmp_path / "b.json.precedent").exists()

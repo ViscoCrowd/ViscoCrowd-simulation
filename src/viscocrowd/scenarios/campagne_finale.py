@@ -97,7 +97,14 @@ def rejouer(
         if journal.exists():
             progression(f"{identifiant} : deja fait, {journal}")
             continue
-        argv = arguments(calcul["commande"], graines, sortie / f"{identifiant}.json")
+        bilan = sortie / f"{identifiant}.json"
+        # Un balayage ecrit son bilan apres chaque valeur : interrompu, il laisse un JSON
+        # partiel sans journal, que la commande refuserait ensuite d'ecraser (revue de
+        # Shaleena sur #148). On le met de cote, et le calcul est refait en entier.
+        if bilan.exists():
+            bilan.replace(bilan.with_name(bilan.name + ".precedent"))
+            progression(f"{identifiant} : bilan partiel mis de cote ({bilan.name}.precedent)")
+        argv = arguments(calcul["commande"], graines, bilan)
         progression(f"{identifiant} : viscocrowd {shlex.join(argv)}")
         tampon, debut = io.StringIO(), time.perf_counter()
         with contextlib.redirect_stdout(tampon), contextlib.redirect_stderr(tampon):

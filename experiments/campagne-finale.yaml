@@ -74,3 +74,6 @@ calculs:
   - identifiant: m8-piscine-porte-saturee
     mesure: "le meme, porte de 0,8 m"
     commande: diagramme-piscine experiments/piscine.yaml --graines {graines} --fixer largeur_porte=0.8 --sortie {sortie}
+  - identifiant: m8-piscine-plage-glissante
+    mesure: "figure 9 : porte de 0,8 m, plage glissante (1 m/s^2) jusqu'a la porte"
+    commande: diagramme-piscine experiments/piscine.yaml --graines {graines} --fixer largeur_porte=0.8 largeur_mouillee=20 adherence_mouille=1 --sortie {sortie}
