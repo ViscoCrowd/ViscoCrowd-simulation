@@ -11,6 +11,45 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-17 — Navigation locale par heuristiques visuelles (#158)
+
+**Statut.** Module livré, facultatif (`navigation: null` dans la référence). Son activation
+dans la référence est proposée par Shaleena et reste à décider par le groupe dans #158.
+
+**Contexte.** Les baigneurs marchaient en file indienne contre le bord du bassin, puis en
+deux lignes parfaites vers la porte : 93 % des positions de plage le long du bassin au
+plus près possible, un flux de 6 cm d'épaisseur. Deux causes : le champ eikonal donne à
+tous le même plus court chemin, qui longe le bassin, et rien n'en écartait un agent
+(vitesses identiques, aucune anticipation des autres).
+
+**Décision.** Ajouter la navigation locale de Moussaïd, Helbing et Theraulaz (2011),
+vérifiée sur l'original : chaque baigneur de la plage choisit, dans son champ de vision,
+la direction qui le rapproche le plus de la porte compte tenu de la place libre, puis
+règle sa vitesse sur la distance au premier obstacle. Chacun a sa propre vitesse souhaitée
+(coefficient de variation de 0,15, celui de l'article). Le champ eikonal reste la
+destination, et la projection l'exclusion. Les nageurs ne sont pas concernés.
+
+**Mesure** (graines 1 à 10, commit `89da62c`, `docs/navigation.md`) : 9 % des positions
+contre le bord au lieu de 93 %, un flux de 0,78 m d'épaisseur au lieu de 6 cm, et t100
+avancé de 4,1 ± 1,1 s (10 graines sur 10). Le pas de temps ne change rien de décelable.
+L'effet du sol mouillé n'est pas résolu sur dix graines (Δt50 = +0,36 ± 0,73 s).
+
+**Options écartées.**
+- *Un bruit sur la direction.* Il casse les lignes, mais c'est un artifice statistique,
+  pas un comportement : il ne dit pas pourquoi les gens s'écartent.
+- *Une marge de confort imposée au bord du bassin.* Elle décale la file sans l'élargir, et
+  aucune source ne fixe sa valeur.
+- *Un guidage qui tient compte de la densité (Hughes, 2002).* Il est plus lourd, et il
+  répond surtout au choix du côté du bassin, pas à la marche en file. On le garde pour plus
+  tard.
+
+**Ce qu'il resterait à faire pour l'activer.** Adopter la navigation dans le goulot E0
+aussi, et revérifier E0 contre Seyfried, la seconde heuristique remplaçant T. Puis refaire
+E1/E2, les balayages, les diagrammes et la campagne des chutes, et reprendre les § 2, 5 et
+6 du rapport.
+
+---
+
 ## 2026-11-16 — Chutes : référence sans chutes, campagne exploratoire à part (#130)
 
 **Statut.** Décision proposée par Shaleena, à valider en relecture de la PR. Elle reprend la

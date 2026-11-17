@@ -1,0 +1,4 @@
+﻿reference {'t50': 31.427, 't100': 51.278, 'contre_le_bord': 0.929, 'epaisseur_flux': 0.056, 'calcul_s': 16.102}
+navigation {'t50': 30.826, 't100': 47.158, 'contre_le_bord': 0.091, 'epaisseur_flux': 0.775, 'calcul_s': 40.007}
+navigation_dt2 {'t50': 30.433, 't100': 47.468, 'contre_le_bord': 0.088, 'epaisseur_flux': 0.764, 'calcul_s': 76.755}
+navigation_sec {'t50': 30.465, 't100': 46.995, 'contre_le_bord': 0.091, 'epaisseur_flux': 0.76, 'calcul_s': 38.797}
