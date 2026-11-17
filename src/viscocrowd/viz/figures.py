@@ -628,9 +628,10 @@ def figure_diagramme_piscine(classes: dict, titre: str, destination: Path) -> Pa
         "sec": ("#3b6ea8", "o", "plage sèche (témoin)"),
         "mouille": ("#b4432f", "s", "plage mouillée"),
     }
-    haut = max(
-        float(np.nanmax(np.where(c.effectifs > 0, c.densite, np.nan))) for c in classes.values()
-    )
+    # Un sol sans aucune classe remplie ne compte pas (nanmax d'un tableau vide de
+    # valeurs avertirait et rendrait NaN ; revue de #142).
+    remplies = [c.densite[c.effectifs > 0] for c in classes.values() if np.any(c.effectifs > 0)]
+    haut = max((float(np.max(d)) for d in remplies), default=1.0)
     rho = np.linspace(0.0, max(haut, 1.0) * 1.05, 200)
     fig, (gauche, droite) = plt.subplots(1, 2, figsize=(10, 4))
     for axe, moyenne, ecart, reference, nom in (
