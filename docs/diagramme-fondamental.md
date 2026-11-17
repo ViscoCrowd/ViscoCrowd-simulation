@@ -107,9 +107,9 @@ Code du commit `0ff523d` (les bilans indiquent `modifications_locales: true`, ca
 - **La densité reste modérée** (sous 2 pers/m²) parce que la zone couvre aussi les côtés de la porte, où la foule est plus clairsemée qu'en son centre. Une zone plus étroite, sur l'axe, donnerait des densités plus fortes : c'est l'un des choix à discuter.
 - À l'adhérence de référence, mouiller la plage jusqu'à la porte ne change rien non plus (#137 : Δ t100 = 0,09 ± 0,41 s). La configuration où l'hypothèse inertielle apparaît est une plage **très glissante** jusqu'à la porte saturée : elle est mesurée ci-dessous.
 
-## Plage très glissante jusqu'à la porte saturée (14 novembre 2026)
+## Plage très glissante jusqu'à la porte saturée (14 novembre, refait le 17 novembre)
 
-#137 trouve que la porte de 0,8 m perd 19 % de son débit quand la plage est mouillée jusqu'à elle avec `a_max = 1 m/s²` (0,1 g), et un témoin (#140) montre que cet effet disparaît quand seule la bande de 3 m est glissante. Le diagramme mesure ce qui se passe dans la file. Commit `9520606` (empreinte des sources `92da281f…`, sans modification locale), macOS arm64, graines 1 à 10, 20 évacuations, 450 s de calcul. Bilan : [`porte-0.8-mouille-porte-a1.json`](mesures/diagramme-piscine-2026-11-14/porte-0.8-mouille-porte-a1.json).
+#137 trouve que la porte de 0,8 m perd 19 % de son débit quand la plage est mouillée jusqu'à elle avec `a_max = 1 m/s²` (0,1 g), et un témoin (#140) montre que cet effet disparaît quand seule la bande de 3 m est glissante. Le diagramme mesure ce qui se passe dans la file. Première mesure le 14 novembre (commit `9520606`, [bilan](mesures/diagramme-piscine-2026-11-14/porte-0.8-mouille-porte-a1.json)), **avant** la règle de déblocage de #131 ; les chiffres ci-dessous sont ceux du 17 novembre, avec le code actuel, qui produit aussi la figure 9 du rapport : commit `4479cd9`, sans modification locale, macOS arm64, graines 1 à 10, 20 évacuations, 244 s. Bilan : [`bilan.json`](mesures/diagramme-piscine-glissante-2026-11-17/bilan.json). Shaleena retrouve les mêmes chiffres sous Windows, à un instant près (revue de #142).
 
 ```bash
 viscocrowd diagramme-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10 \
@@ -120,17 +120,17 @@ Le témoin sec est le même qu'à la section précédente, au bit près.
 
 | ρ (pers/m²) | Points sec / mouillé | v sec (m/s) | v mouillé (m/s) | v Weidmann |
 |---|---|---|---|---|
-| 0,12 | 1066 / 1004 | 1,68 ± 0,45 | 1,53 ± 0,56 | 1,34 |
-| 0,38 | 302 / 298 | 0,92 ± 0,44 | 0,91 ± 0,54 | 1,33 |
-| 0,62 | 628 / 296 | 0,69 ± 0,19 | 0,68 ± 0,40 | 1,25 |
-| 0,88 | 2973 / 311 | 0,58 ± 0,07 | 0,55 ± 0,27 | 1,13 |
-| 1,12 | 757 / 430 | 0,54 ± 0,10 | 0,43 ± 0,17 | 0,99 |
-| 1,38 | 264 / 996 | 0,50 ± 0,07 | 0,38 ± 0,11 | 0,87 |
-| 1,62 | 88 / 1151 | 0,46 ± 0,09 | 0,35 ± 0,09 | 0,75 |
-| 1,88 | 14 / 741 | 0,39 ± 0,03 | 0,32 ± 0,08 | 0,65 |
-| 2,12 à 3,88 | 0 / 2198 | — | de 0,29 à 0,11 | de 0,56 à 0,17 |
+| 0,12 | 1066 / 1002 | 1,68 ± 0,45 | 1,53 ± 0,55 | 1,34 |
+| 0,38 | 302 / 295 | 0,92 ± 0,44 | 0,93 ± 0,53 | 1,33 |
+| 0,62 | 628 / 300 | 0,69 ± 0,19 | 0,68 ± 0,40 | 1,25 |
+| 0,88 | 2973 / 298 | 0,58 ± 0,07 | 0,56 ± 0,28 | 1,13 |
+| 1,12 | 757 / 419 | 0,54 ± 0,10 | 0,43 ± 0,17 | 0,99 |
+| 1,38 | 264 / 1004 | 0,50 ± 0,07 | 0,38 ± 0,11 | 0,87 |
+| 1,62 | 88 / 1121 | 0,46 ± 0,09 | 0,35 ± 0,09 | 0,75 |
+| 1,88 | 14 / 747 | 0,39 ± 0,03 | 0,32 ± 0,08 | 0,65 |
+| 2,12 à 3,88 | 0 / 2224 | — | de 0,29 à 0,11 | de 0,56 à 0,17 |
 
-- **La file devient bien plus dense.** Sur le sec, la zone ne dépasse jamais 2 pers/m², et la classe la plus peuplée est 0,88 pers/m². Sur la plage glissante, 30 % des points du mouillé (2 198 sur 7 425) dépassent 2 pers/m², jusqu'à 3,9 pers/m².
+- **La file devient bien plus dense.** Sur le sec, la zone ne dépasse jamais 2 pers/m², et la classe la plus peuplée est 0,88 pers/m². Sur la plage glissante, 30 % des points du mouillé (2 224 sur 7 410) dépassent 2 pers/m², jusqu'à 3,9 pers/m².
 - **À densité égale, la file glissante va 20 à 24 % moins vite** entre 1,1 et 1,7 pers/m², où chaque sol compte des centaines d'instants (0,43 contre 0,54 m/s à 1,12 pers/m², 0,35 contre 0,46 m/s à 1,62 pers/m²). Vers 1,9 pers/m², l'écart de 18 % ne repose que sur 14 instants secs. En dessous de 1 pers/m², les vitesses moyennes se confondent, mais la dispersion du mouillé est plus grande, 2 à 4 fois entre 0,6 et 0,9 pers/m².
 - **Le diagramme se déplace donc**, et c'est la première mesure directe de l'hypothèse inertielle devant la porte. Deux lectures, compatibles, restent des interprétations : une vitesse plus faible à densité égale est ce qu'on attend de relances écrêtées dans le va-et-vient de la file (#137) ; une file plus dense est ce qu'on attend d'agents qui ne peuvent pas ralentir assez tôt pour garder l'espacement que demande la régulation (T = 0,35 s), et que la projection arrête au contact. Séparer les deux demanderait de mesurer les accélérations écrêtées dans la zone.
 - Mêmes réserves que plus haut : points corrélés, pas de phase stationnaire, cellules approchées devant l'ouverture. Et la plage très glissante (0,1 g) est un sol savonneux, pas un carrelage mouillé ordinaire.
