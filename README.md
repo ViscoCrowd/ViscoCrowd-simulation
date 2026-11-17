@@ -213,6 +213,11 @@ viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
 viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 ```
 
+`viscocrowd diagramme-anime data/piscine.npz` rejoue la même archive avec, à droite, le
+diagramme fondamental devant la porte (mesure de Voronoï de M8, #124) qui se trace en
+direct : point courant, traînée des 2 dernières secondes, relation de Weidmann en repère.
+Mêmes exports que `rejouer` (`--image`, `--gif`, `--instant`), lecture ×4 par défaut.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
