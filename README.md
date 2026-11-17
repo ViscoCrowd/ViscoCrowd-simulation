@@ -204,7 +204,10 @@ toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relan
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
 les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
 
-Pour relire une évacuation réelle, avec les états et les occupations des sites :
+Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
+simule la piscine puis ouvre directement la relecture de l'archive produite
+(`make lancer CONFIG=experiments/couloir.yaml` pour le couloir ; `.\run.ps1 lancer` sous Windows).
+Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
 viscocrowd simuler experiments/piscine.yaml --sortie data/piscine.npz
@@ -466,6 +469,7 @@ make install     # environnement de développement
 make test        # suite de tests
 make simu        # lance une simulation de la piscine, archivée dans data/
 make rejouer     # relit la dernière archive à l'écran
+make lancer      # enchaîne les deux : simule la piscine puis ouvre sa relecture
 make comparer    # compare la piscine sèche et mouillée sur dix graines (E1/E2)
 make test-invariants  # seulement les invariants physiques
 make test-lents  # seulement les scénarios lents
