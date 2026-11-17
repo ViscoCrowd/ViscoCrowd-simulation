@@ -80,3 +80,14 @@ def test_mesure_reelle_courte(configuration):
     classes = dp.agreger(series, 0.25)
     assert set(classes) == {"mouille", "sec"}
     np.testing.assert_array_equal(classes["mouille"].bornes, classes["sec"].bornes)
+
+
+def test_figure_sec_contre_mouille(configuration, tmp_path):
+    """La figure se trace sur les classes communes aux deux sols."""
+    from viscocrowd.viz.figures import figure_diagramme_piscine
+
+    config = configuration | {"parametres": configuration["parametres"] | {"n_agents": 10}}
+    series = dp.mesurer(config, [1], recul=10.0, zone=None, debut=0.0, pas_mesure=10)
+    chemin = figure_diagramme_piscine(dp.agreger(series, 0.25), "essai", tmp_path)
+    assert chemin == tmp_path / "fig09_diagramme_piscine.png"
+    assert chemin.stat().st_size > 0
