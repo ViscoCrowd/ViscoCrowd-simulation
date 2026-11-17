@@ -19,6 +19,33 @@ from viscocrowd.scenarios.piscine import (
 from viscocrowd.ui.relecture import LecteurTrajectoire
 
 COULEURS = ("#61c6ed", "#ffb454", "#f4f8fb", "#91a2b4")
+COULEUR_TERRE = "#ff4d5e"
+
+
+def agents_a_terre(t: np.ndarray, n_agents: int, chutes: list) -> np.ndarray:
+    """Agents au sol (P, N) a chaque instant archive, d'apres les evenements de chute.
+
+    Un agent tombe a `instant` reste au sol tant que t < instant + duree_relevage :
+    c'est la regle du module (`GestionnaireChutes`, relevage des que la duree est
+    ecoulee). Rien n'est interpole : la vue lit les evenements, pas le moteur.
+
+    Raises:
+        ValueError: si un evenement est mal forme ou hors de l'archive.
+    """
+    terre = np.zeros((len(t), n_agents), dtype=bool)
+    for chute in chutes:
+        try:
+            agent, instant, duree = chute["agent"], chute["instant"], chute["duree_relevage"]
+        except (KeyError, TypeError) as erreur:
+            raise ValueError("evenement de chute incomplet") from erreur
+        if type(agent) is not int or not 0 <= agent < n_agents:
+            raise ValueError("chute d'un agent inconnu")
+        if not all(type(v) in (int, float) and np.isfinite(v) for v in (instant, duree)):
+            raise ValueError("instant ou duree de relevage d'une chute invalide")
+        if duree < 0 or not t[0] <= instant <= t[-1]:
+            raise ValueError("chute hors de l'archive ou de duree negative")
+        terre[:, agent] |= (t >= instant) & (t < instant + duree)
+    return terre
 
 
 def occupations_sites(
@@ -96,6 +123,15 @@ class LecteurPiscine(LecteurTrajectoire):
                 raise ValueError("sorties incoherentes avec les etats archives")
         except (KeyError, TypeError) as erreur:
             raise ValueError("evenements de sortie absents ou incomplets") from erreur
+        # Chutes : facultatives, archivees seulement si le module etait actif.
+        chutes = donnees.metadonnees["evenements"].get("chutes")
+        self.avec_chutes = chutes is not None
+        self.chutes = list(chutes or [])
+        self.terre = agents_a_terre(donnees.t, self.p.n_agents, self.chutes)
+        self.instants_chutes = np.sort([c["instant"] for c in self.chutes])
+        self.rayon_terre = (
+            self.p.rayon * self.p.chutes.facteur_rayon_terre if self.p.chutes else self.p.rayon
+        )
         self.donnees, self.vitesse = donnees, vitesse
         self.index, self.en_lecture = 0, False
         self.slider = self.bouton = None
@@ -182,10 +218,15 @@ class LecteurPiscine(LecteurTrajectoire):
                     COULEURS[:3], ["Dans l'eau", "Franchissement", "Sur la plage"], strict=True
                 )
             ]
-            + [Line2D([], [], marker="s", linestyle="", color="#8193a6", label="Échelle libre")],
+            + [Line2D([], [], marker="s", linestyle="", color="#8193a6", label="Échelle libre")]
+            + (
+                [Line2D([], [], marker="o", linestyle="", color=COULEUR_TERRE, label="À terre")]
+                if self.avec_chutes
+                else []
+            ),
             loc="lower left",
             bbox_to_anchor=(0.06, 0.18),
-            ncol=4,
+            ncol=5,
             frameon=False,
             labelcolor="#b7c5d0",
             fontsize=9,
@@ -195,6 +236,9 @@ class LecteurPiscine(LecteurTrajectoire):
         tous_les_pas = donnees.metadonnees.get("archivage", {}).get("tous_les_pas", 1)
         if tous_les_pas != 1:
             legende += f" · 1 image tous les {tous_les_pas} pas"
+        if self.avec_chutes:
+            # Decision du 16 novembre (#130) : aucun chiffre de chute n'est un resultat.
+            legende += " · chutes exploratoires, taux non calibrés"
         self.legende = self.figure.text(
             0.07,
             0.15,
@@ -209,9 +253,11 @@ class LecteurPiscine(LecteurTrajectoire):
         self.index = int(np.clip(index, 0, len(self.donnees.t) - 1))
         x, etats = self.donnees.x[self.index], self.donnees.etats[self.index]
         self.occupes = self.occupations[self.index]
-        for disque, position, etat in zip(self.disques, x, etats, strict=True):
+        terre = self.terre[self.index]
+        for disque, position, etat, au_sol in zip(self.disques, x, etats, terre, strict=True):
             disque.set_center(position)
-            disque.set_facecolor(COULEURS[etat])
+            disque.set_facecolor(COULEUR_TERRE if au_sol else COULEURS[etat])
+            disque.set_radius(self.rayon_terre if au_sol else self.p.rayon)
             disque.set_visible(etat != SORTI)
         for marqueur, occupe in zip(self.marqueurs_sites, self.occupes, strict=True):
             marqueur.set_color(COULEURS[FRANCHISSEMENT] if occupe else "#8193a6")
@@ -223,6 +269,12 @@ class LecteurPiscine(LecteurTrajectoire):
         self.effectifs.set_text(
             f"Eau : {effectifs[EAU]}    Franchissement : {effectifs[FRANCHISSEMENT]}"
             f"    Plage : {effectifs[PLAGE]}    Sites occupés : {self.occupes.sum()}"
+            + (
+                f"    À terre : {terre.sum()}    Chutes : "
+                f"{np.searchsorted(self.instants_chutes, self.donnees.t[self.index], 'right')}"
+                if self.avec_chutes
+                else ""
+            )
         )
         if self.slider is not None:
             self.slider.eventson = False
