@@ -409,8 +409,9 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             if not np.any(sur_plage):
                 return u
             u = u.copy()
+            x_plage = etat_courant.x[sur_plage]
             u[sur_plage] = vitesses_souhaitees(
-                etat_courant.x[sur_plage],
+                x_plage,
                 etat_courant.v[sur_plage],
                 etat_courant.r[sur_plage],
                 nominale[sur_plage],
@@ -418,6 +419,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                 tau[sur_plage],
                 scene,
                 navigation,
+                guidage.temps(x_plage),
             )
             return u
 

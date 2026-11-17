@@ -190,6 +190,36 @@ class TestHeuristiques:
         # Jeu vu a 1 mm pres (marge face aux parois, tolerance de projection) : 0,301 m.
         assert vitesse == pytest.approx((0.5 - R + 1e-3) / 0.5, abs=1e-9)
 
+    @pytest.mark.parametrize(
+        ("avance", "vitesse"),
+        [
+            (None, (0.5 - 2 * R) / 0.5),  # sans ordre, il s'arrete derriere l'autre
+            ([2.0, 1.0], (0.5 - 2 * R) / 0.5),  # l'autre est plus avance : idem
+            ([1.0, 2.0], 1.3),  # l'autre est moins avance : il ne l'attend pas
+        ],
+    )
+    def test_on_n_attend_que_plus_avance_que_soi(self, avance, vitesse):
+        """Seconde heuristique : seuls freinent les agents plus pres de la sortie.
+
+        Devant un goulot etroit, deux agents cote a cote s'attendaient l'un l'autre, a
+        l'arret, et la foule se figeait (E0, 17 novembre : N = 40, b = 0,8 m, 10 graines
+        sur 10 bouchees). Champ de vision reduit : seule la ligne droite est examinee.
+        """
+        x = np.array([[0.0, 0.0], [0.5, 0.0]])
+        u = vitesses_souhaitees(
+            x,
+            np.zeros((2, 2)),
+            np.full(2, R),
+            np.array([1.3, 0.0]),
+            np.array([[1.0, 0.0], [1.0, 0.0]]),
+            np.full(2, 0.5),
+            SALLE,
+            ParametresNavigation(champ_vision=1.0, directions=3),
+            None if avance is None else np.array(avance),
+        )
+        # A 1 degre pres de l'axe, le jeu vu change de 2e-5 m.
+        assert np.hypot(*u[0]) == pytest.approx(vitesse, abs=1e-3)
+
     def test_sans_destination_pas_de_vitesse(self):
         u = vitesses_souhaitees(
             np.zeros((1, 2)),

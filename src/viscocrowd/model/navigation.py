@@ -38,8 +38,11 @@ Adaptations, et pourquoi
   et les nageurs restent guides par le champ de l'eau. Les obstacles vus sur la plage
   sont les murs, le bassin, les montants de la porte, les obstacles fixes et les autres
   agents de la plage.
-- Un rectangle est vu gonfle du rayon de l'agent, a coins vifs : un peu prudent aux
-  angles, ce qui ne change pas le choix de direction a la resolution angulaire utilisee.
+- Un rectangle est vu gonfle du rayon de l'agent, a coins arrondis, comme le voit la
+  projection (`_distance_rectangles`).
+- La seconde heuristique ne compte que les agents plus avances vers la sortie quand le
+  scenario donne cet ordre (`avance`) : sans lui, devant un goulot etroit, deux voisins
+  s'attendaient l'un l'autre et la foule se figeait (voir `vitesses_souhaitees`).
 - La vitesse souhaitee de chaque agent est la vitesse du sol multipliee par un facteur
   individuel tire une fois (`facteurs_individuels`) : les sols et le facteur de panique
   gardent leur sens, et la dispersion relative est celle de l'article.
@@ -235,6 +238,7 @@ def _collisions_pietons(
     portee: float,
     *,
     figes: bool,
+    avance: np.ndarray | None = None,
 ) -> np.ndarray:
     """Distance (N, K) parcourue par i avant de toucher un autre agent, inf sinon.
 
@@ -249,6 +253,12 @@ def _collisions_pietons(
         return d
     i = np.concatenate((paires[:, 0], paires[:, 1]))
     j = np.concatenate((paires[:, 1], paires[:, 0]))
+    if avance is not None:
+        # Seuls comptent les agents plus avances vers la sortie : voir `vitesses_souhaitees`.
+        garde = avance[j] < avance[i]
+        i, j = i[garde], j[garde]
+        if i.size == 0:
+            return d
     p = (x[j] - x[i])[:, None, :]  # (P, 1, 2)
     vj = np.zeros_like(p) if figes else v[j][:, None, :]
     w = vj - v0[i][:, None, None] * e[i]  # (P, K, 2), vitesse relative de j vu de i
@@ -310,8 +320,18 @@ def vitesses_souhaitees(
     tau: np.ndarray,
     scene: ScenePlage,
     parametres: ParametresNavigation,
+    avance: np.ndarray | None = None,
 ) -> np.ndarray:
     """Vitesse souhaitee (N, 2) de chaque agent selon les deux heuristiques.
+
+    `avance` (facultatif) : temps restant jusqu'a la sortie (N,), en s. Donne, la seconde
+    heuristique ne compte que les agents PLUS AVANCES : on ne s'arrete que derriere
+    quelqu'un qui est plus pres de la sortie. Sans cela, devant un goulot etroit, deux
+    agents cote a cote s'attendaient l'un l'autre, a l'arret : l'article sort de cette
+    attente par des forces de contact, que la projection ne reproduit pas (elle ne
+    pousse pas un agent arrete). C'est la regle d'ordre deja retenue pour la relation
+    vitesse-espacement (`model.espacement`, revue de #58). Le choix de direction, lui,
+    continue d'eviter tout le monde.
 
     Args:
         x, v, r: positions (N, 2), vitesses (N, 2) et rayons (N,) des agents de la plage.
@@ -358,7 +378,7 @@ def vitesses_souhaitees(
     e_choisie = e_des[:, None, :]
     d_h = np.minimum(
         statique[rang, choix],
-        _collisions_pietons(x, v, r, v0, e_choisie, d_max, figes=True)[:, 0],
+        _collisions_pietons(x, v, r, v0, e_choisie, d_max, figes=True, avance=avance)[:, 0],
     )
     d_h = np.minimum(d_h, d_max)
     tau_h = tau if parametres.temps_anticipation is None else parametres.temps_anticipation
