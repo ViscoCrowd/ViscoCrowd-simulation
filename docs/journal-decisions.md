@@ -29,10 +29,17 @@ règle sa vitesse sur la distance au premier obstacle. Chacun a sa propre vitess
 (coefficient de variation de 0,15, celui de l'article). Le champ eikonal reste la
 destination, et la projection l'exclusion. Les nageurs ne sont pas concernés.
 
-**Mesure** (graines 1 à 10, commit `89da62c`, `docs/navigation.md`) : 9 % des positions
-contre le bord au lieu de 93 %, un flux de 0,78 m d'épaisseur au lieu de 6 cm, et t100
-avancé de 4,1 ± 1,1 s (10 graines sur 10). Le pas de temps ne change rien de décelable.
-L'effet du sol mouillé n'est pas résolu sur dix graines (Δt50 = +0,36 ± 0,73 s).
+**Mesure** (graines 1 à 10, commit `907ec49`, `docs/navigation.md`) : 9 % des positions
+contre le bord au lieu de 93 %, un flux de 0,77 m d'épaisseur au lieu de 6 cm, et t100
+avancé de 4,1 ± 1,7 s (10 graines sur 10). Ni le pas de temps ni les paramètres de la
+fig. 3 de l'article (45°, 8 m) ne changent rien de décelable.
+
+**Validation, sans réglage.** Sur E0, la navigation figeait d'abord la foule devant les
+goulots étroits : deux voisins s'attendaient l'un l'autre. Seuls les agents plus avancés
+vers la sortie comptent désormais dans la seconde heuristique, comme pour la régulation T ;
+288 simulations sur 300 s'écoulent. Mais le débit reste de 16 à 38 % sous Seyfried avec
+τ = 0,5 s (1 à 25 % avec τ = 0,35 s). Sur l'anneau, la vitesse baisse progressivement
+avec la densité, comme chez Weidmann, mais 23 à 68 % trop vite au-dessus de 1,5 pers/m².
 
 **Options écartées.**
 - *Un bruit sur la direction.* Il casse les lignes, mais c'est un artifice statistique,
@@ -43,10 +50,9 @@ L'effet du sol mouillé n'est pas résolu sur dix graines (Δt50 = +0,36 ± 0,73
   répond surtout au choix du côté du bassin, pas à la marche en file. On le garde pour plus
   tard.
 
-**Ce qu'il resterait à faire pour l'activer.** Adopter la navigation dans le goulot E0
-aussi, et revérifier E0 contre Seyfried, la seconde heuristique remplaçant T. Puis refaire
-E1/E2, les balayages, les diagrammes et la campagne des chutes, et reprendre les § 2, 5 et
-6 du rapport.
+**Ce qu'il resterait à faire pour l'activer.** Décider si l'on accepte l'écart à Seyfried
+ou si l'on règle τ sur E0, comme on a réglé T. Puis refaire E1/E2, les balayages, les
+diagrammes et la campagne des chutes, et reprendre les § 2, 5 et 6 du rapport.
 
 ---
 

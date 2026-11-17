@@ -5,7 +5,9 @@ Pour chaque graine (1 a 10), quatre evacuations de la piscine de reference :
   - reference : guidage seul (navigation: null) ;
   - navigation : heuristiques de Moussaid et al. (2011), valeurs de l'article ;
   - navigation_dt2 : la meme au pas de temps divise par deux ;
-  - navigation_sec : la meme, sol entierement sec (temoin du mouille).
+  - navigation_sec : la meme, sol entierement sec (temoin du mouille) ;
+  - navigation_fig3 : champ de vision et horizon de la fig. 3 de l'article (45 deg,
+    8 m, foules denses) au lieu de ceux de la fig. 2 (75 deg, 10 m).
 
 Mesures : t50, t90, t100 (s), debit a la porte (pers/(m.s), estimateur de E0), part
 des positions de plage le long du bassin a moins de 1 cm du plus pres possible,
@@ -35,6 +37,7 @@ CAS = {
     "navigation": BASE | {"navigation": {}},
     "navigation_dt2": BASE | {"navigation": {}, "dt": BASE["dt"] / 2},
     "navigation_sec": temoin(BASE) | {"navigation": {}},
+    "navigation_fig3": BASE | {"navigation": {"champ_vision": 45.0, "horizon": 8.0}},
 }
 
 

@@ -1,0 +1,10 @@
+rho=0.25 v=1.208±0.017 Weidmann=1.339 derive_max=3.5% viol=8.3e-16 calcul=8s
+rho=0.50 v=1.163±0.012 Weidmann=1.297 derive_max=2.1% viol=0.0e+00 calcul=19s
+rho=0.99 v=1.106±0.007 Weidmann=1.061 derive_max=2.3% viol=9.7e-07 calcul=76s
+rho=1.50 v=0.991±0.012 Weidmann=0.807 derive_max=1.4% viol=9.9e-07 calcul=184s
+rho=2.00 v=0.830±0.009 Weidmann=0.605 derive_max=1.4% viol=1.0e-06 calcul=393s
+rho=2.49 v=0.645±0.006 Weidmann=0.453 derive_max=0.7% viol=1.0e-06 calcul=844s
+rho=3.00 v=0.488±0.001 Weidmann=0.331 derive_max=2.3% viol=1.0e-06 calcul=1264s
+rho=3.50 v=0.360±0.009 Weidmann=0.234 derive_max=4.3% viol=1.0e-06 calcul=1566s
+rho=4.01 v=0.261±0.003 Weidmann=0.155 derive_max=3.8% viol=1.0e-06 calcul=1759s
+duree 29 min

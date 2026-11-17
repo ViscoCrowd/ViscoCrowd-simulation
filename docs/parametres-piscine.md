@@ -89,14 +89,15 @@ la référence. Son activation est à décider dans #158 (`docs/navigation.md`).
 
 | Paramètre | Défaut | Unité | Statut | Effet mesuré |
 |---|---|---|---|---|
-| `champ_vision` | 75 | ° | Sourcé (Moussaïd 2011, fig. 2) | non balayé |
-| `horizon` | 10 | m | Sourcé (Moussaïd 2011, fig. 2) | non balayé |
+| `champ_vision` | 75 | ° | Sourcé (Moussaïd 2011, fig. 2) | 45° (fig. 3) : rien de décelable |
+| `horizon` | 10 | m | Sourcé (Moussaïd 2011, fig. 2) | 8 m (fig. 3) : rien de décelable |
 | `directions` | 31 | – | Numérique (résolution angulaire de 5°) | non balayé |
 | `dispersion_vitesse` | 0,15 | – | Sourcé (0,2/1,3, Moussaïd 2011, fig. 3) | non balayé |
-| `temps_anticipation` | τ du sol (0,5 s) | s | Sourcé (même τ que la relaxation, Moussaïd 2011) | non balayé |
+| `temps_anticipation` | τ du sol (0,5 s) | s | Sourcé (même τ que la relaxation, Moussaïd 2011) | E0 : 0,35 s relève J_s de 8 à 24 % |
 
 L'ensemble, activé, fait passer les positions contre le bord du bassin de 93 à 9 % et
-avance t100 de 4,1 s (10 graines, `docs/navigation.md`).
+avance t100 de 4,1 s (10 graines). Sur E0, sans réglage, le débit est de 16 à 38 % sous
+Seyfried (`docs/navigation.md`, validation).
 
 ## Ce que le tableau montre
 
