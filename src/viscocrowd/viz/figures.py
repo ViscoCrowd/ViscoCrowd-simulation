@@ -45,7 +45,7 @@ def _enregistrer(fig: plt.Figure, destination: Path, nom: str) -> Path:
 
 
 def figure_respect_contrainte(destination: Path) -> Path:
-    """le depassement de contrainte reste nul a la precision machine.
+    """Le depassement de contrainte reste nul a la precision machine.
 
     Trace pour plusieurs pas de temps, y compris un dt volontairement grossier :
     le confinement ne depend pas de dt, parce que la position est projetee a
@@ -79,7 +79,7 @@ def figure_respect_contrainte(destination: Path) -> Path:
 
 
 def figure_energie(destination: Path) -> Path:
-    """l'energie mecanique decroit par sauts, en boite fixe.
+    """L'energie mecanique decroit par sauts, en boite fixe.
 
     On se place a omega = 0 : aucune paroi ne travaille, donc l'energie ne peut
     que decroitre. En vol libre elle baisse de (1/2) dt^2 |g|^2 par pas, et
@@ -102,7 +102,7 @@ def figure_energie(destination: Path) -> Path:
 
 
 def figure_entrainement(destination: Path) -> Path:
-    """l'entrainement solide n'a lieu qu'en regime centrifuge.
+    """L'entrainement solide n'a lieu qu'en regime centrifuge.
 
     Resultat non trivial : le critere de validation du sujet (« la bille se
     stabilise dans un coin et tourne solidairement avec la boite ») n'est
@@ -139,7 +139,7 @@ def figure_entrainement(destination: Path) -> Path:
 
 
 def figure_trajectoire(destination: Path) -> Path:
-    """instantanes de la configuration a des instants choisis."""
+    """Instantanes de la configuration a des instants choisis."""
     resultat = simuler_bille(ParametresBille(omega=5.0, dt=1e-3, duree=20.0))
     instants = [0.0, 1.0, 5.0, 20.0]
 
@@ -193,7 +193,7 @@ CONVERGENCE_DT = (4e-3, 2e-3, 1e-3, 5e-4, 2.5e-4)
 
 
 def figure_tassement(destination: Path) -> Path:
-    """instantanes de l'empilement de 36 disques.
+    """Instantanes de l'empilement de 36 disques.
 
     Le jalon 2 n'avait aucune figure : il se validait par des tableaux de
     nombres. Or le reproche fait a une simulation de foule est d'abord visuel —
@@ -312,7 +312,7 @@ def _hauteur_finale_tassement(dt: float) -> float:
 
 
 def figure_convergence_dt(destination: Path) -> Path:
-    """ordre de convergence en pas de temps, avec et sans contacts.
+    """Ordre de convergence en pas de temps, avec et sans contacts.
 
     Une simulation qui ne converge pas en dt ne mesure rien : ses resultats
     dependent d'un parametre numerique et non de la physique. Cette figure
@@ -408,7 +408,7 @@ def figure_convergence_dt(destination: Path) -> Path:
 def figure_comparaison_mouille(
     resultats: dict[str, np.ndarray], n_agents: int, destination: Path
 ) -> Path:
-    """effet separe des parametres du sol mouille, sur le banc de couloir.
+    """Effet separe des parametres du sol mouille, sur le banc de couloir.
 
     Hors de `TOUTES_LES_FIGURES` : ce n'est pas une validation du moteur, et elle
     demande une trentaine de simulations (`viscocrowd comparer-mouille`).
@@ -552,7 +552,7 @@ def produire_toutes(destination: Path) -> list[Path]:
 
 
 def figure_diagramme_fondamental(series: dict, classes, destination: Path) -> Path:
-    """diagramme fondamental devant le goulot E0, face a Weidmann (M8, #124).
+    """Diagramme fondamental devant le goulot E0, face a Weidmann (M8, #124).
 
     Hors de `TOUTES_LES_FIGURES` : elle demande une campagne E0
     (`viscocrowd diagramme-goulot`). Les points gris sont les instants mesures ; les
