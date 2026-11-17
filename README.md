@@ -213,6 +213,12 @@ viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
 viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 ```
 
+`viscocrowd pression config.yaml --image figures/forces.png --instant 35` simule la piscine en
+mesurant ce que la projection retire à chaque agent, puis retrouve l'intensité de chaque
+contact (moindres carrés positifs) : les chaînes de force et les arches devant la porte
+apparaissent en rouge, avec un zoom sur la porte. Intensités non étalonnées ; voir
+`viz/pression.py` pour la méthode et ses limites.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
