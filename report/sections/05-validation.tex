@@ -136,13 +136,21 @@ Violation maximale des murs et du bord du bassin & \SI{7.2e-16}{\metre} \\
 Projections non convergées & 0 \\
 Agents sortis & 100 sur 100, dans les 20 évacuations \\
 Franchissements par agent & exactement 1 \\
-Eau + bord + plage + sortis $=N$ & à chaque instant \\
+État conforme à la position (eau, bord, plage, sorti) & à chaque instant \\
+États sans retour en arrière & à chaque instant \\
+Sortis conformes aux instants de sortie enregistrés & à chaque instant \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 Le recouvrement atteint la tolérance sans la dépasser : c'est le critère d'arrêt de la
-projection, pas un défaut. La violation des murs est au niveau de la précision machine, car
+projection, pas un défaut. La somme des effectifs par état vaut $N$ par construction, puisque
+chaque agent a toujours un état : ce n'est donc pas un contrôle. On confronte plutôt l'état de
+chaque agent à sa position (un nageur dans le bassin, un plagiste hors du bassin et avant la
+porte, un agent sur le bord à la position d'un site, un sorti au point extérieur), à l'ordre
+eau, bord, plage, sorti, et au nombre d'instants de sortie enregistrés à part. Échanger les
+états d'un nageur et d'un plagiste, ou ramener un sorti sur la plage, fait échouer ces
+contrôles. La violation des murs est au niveau de la précision machine, car
 chaque mur est une contrainte projetée exactement. Les mêmes contrôles tournent dans
 l'intégration continue sur une évacuation de 20 agents (\texttt{tests/test\_piscine\_scenario.py}).
 
