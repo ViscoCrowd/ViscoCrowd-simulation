@@ -202,7 +202,7 @@ les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facte
 Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
-les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
+les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `make maquette`.
 
 Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
 simule la piscine puis ouvre directement la relecture de l'archive produite
@@ -260,7 +260,7 @@ sections [implémentation](report/sections/04-implementation.tex) et
 ### Aperçu de la piscine
 
 ```bash
-make interface
+make maquette
 # Ou, avec l'environnement virtuel activé :
 viscocrowd interface
 ```
@@ -270,6 +270,8 @@ un bassin noir à contour blanc, une échelle à barreaux et une sortie unique �
 Le cadre extérieur reste continu derrière la sortie. Un petit repère indique les
 directions x et y. Les différents sols ne sont pas encore détaillés.
 La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une image.
+Cette maquette ne simule rien : pour voir une évacuation, utiliser `make lancer`.
+La cible s'appelait `make interface` jusqu'au 17 novembre 2026.
 
 **Une unité du plan représente un mètre**, avec la même échelle horizontale et verticale.
 Les dimensions de travail sont regroupées dans `DimensionsPlan` : bassin de **25 × 12,5 m**

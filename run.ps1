@@ -32,14 +32,14 @@ function Show-Help {
     Write-Host "  lint        Verifie le style et le formatage avec ruff"
     Write-Host "  format      Reformate le code avec ruff"
     Write-Host "  valider     Rejoue les criteres de validation du moteur, chiffres"
-    Write-Host "  interface   Ouvre la maquette de la piscine, sans simulation"
+    Write-Host "  maquette    Ouvre la maquette de la piscine, sans simulation"
     Write-Host "  figures     Regenere toutes les figures dans report/figures"
     Write-Host "  report      Compile le rapport LaTeX (report/main.tex)"
     Write-Host "  docker      Construit l'image Docker de reproductibilite"
     Write-Host "  clean       Supprime les caches et artefacts temporaires"
     Write-Host "  help        Affiche cette aide"
     Write-Host ""
-    Write-Host "Apres test, test-all, valider, interface et figures, les arguments sont transmis"
+    Write-Host "Apres test, test-all, valider, maquette et figures, les arguments sont transmis"
     Write-Host "tels quels, par exemple : .\run.ps1 test -v -k milieu"
 }
 
@@ -65,7 +65,7 @@ function Invoke-Py {
 $Commandes = @(
     "help", "install", "test", "test-all", "test-invariants", "test-lents",
     "lint", "format", "valider", "simu", "rejouer", "lancer", "comparer",
-    "interface", "figures", "report", "docker", "clean"
+    "maquette", "figures", "report", "docker", "clean"
 )
 $Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
 $ExtraArgs = @(if ($args.Count -gt 1) { $args[1..($args.Count - 1)] })  # @() : jamais $null
@@ -166,8 +166,8 @@ switch ($Command) {
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "valider-moteur") -MoreArgs $ExtraArgs
     }
 
-    "interface" {
-        Write-Host "==> Lancement de l'interface..." -ForegroundColor Green
+    "maquette" {
+        Write-Host "==> Ouverture de la maquette..." -ForegroundColor Green
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "interface") -MoreArgs $ExtraArgs
     }
 
