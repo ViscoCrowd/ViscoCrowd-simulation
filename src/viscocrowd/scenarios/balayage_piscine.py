@@ -34,7 +34,9 @@ Mesures, par simulation, sur TOUTE la population :
   - t50, t90, t100 : instants ou 50, 90 et 100 % des agents sont sortis, en s ;
   - debit : debit specifique a la porte, en pers/(m.s), avec l'estimateur du
     goulot E0 (`debit_seyfried`), pour que les deux restent comparables ;
-  - non_sortis : agents encore presents a la fin de `duree`.
+  - non_sortis : agents encore presents a la fin de `duree` ;
+  - chutes_glissade, chutes_domino, chutes_bousculade : nombre de chutes de chaque
+    cause pendant l'evacuation, nul quand le module de chutes est desactive.
 
 Une evacuation INCOMPLETE (non_sortis > 0) est un resultat, pas une erreur : une
 porte qui se bouche en est un. Elle est donc conservee, avec t100 = +inf et un
@@ -60,8 +62,24 @@ from viscocrowd.model.milieu import Milieu
 from viscocrowd.scenarios.goulot import debit_seyfried
 from viscocrowd.scenarios.piscine import ParametresPiscine, simuler_piscine
 
-MESURES = ("t50", "t90", "t100", "debit", "non_sortis")
-UNITES = {"t50": "s", "t90": "s", "t100": "s", "debit": "pers/(m.s)", "non_sortis": "pers"}
+# Les chutes par cause valent 0 quand le module est desactive (`chutes: null`).
+CAUSES_CHUTE = ("glissade", "domino", "bousculade")
+MESURES = (
+    "t50",
+    "t90",
+    "t100",
+    "debit",
+    "non_sortis",
+    *(f"chutes_{cause}" for cause in CAUSES_CHUTE),
+)
+UNITES = {
+    "t50": "s",
+    "t90": "s",
+    "t100": "s",
+    "debit": "pers/(m.s)",
+    "non_sortis": "pers",
+    **{f"chutes_{cause}": "chutes" for cause in CAUSES_CHUTE},
+}
 
 
 @dataclass(frozen=True)
@@ -117,6 +135,32 @@ PARAMETRES = {
         "valeurs par defaut non calibrees : inclusion validee (#19), aucun chiffre n'est un "
         "resultat avant calibration)",
         ("chutes", "lambda_chute"),
+    ),
+    # Les trois parametres suivants n'ont pas de source (docs/modele-chutes.md, § 8) : la
+    # campagne exploratoire des chutes les balaie comme hypotheses (#130). Comme pour
+    # lambda_chute, balayer l'un active le module avec les autres valeurs par defaut.
+    "lambda_domino": ParametreBalaye(
+        "E3",
+        "1/s",
+        "taux de chute par effet domino, pres d'un corps au sol (active le module de chutes ; "
+        "hypothese sans source, #130)",
+        ("chutes", "lambda_domino"),
+    ),
+    # Seul le produit lambda_bousculade x duree_bousculade compte pour un choc d'un pas
+    # (0,1 s par defaut, #135) : balayer lambda revient a balayer ce produit.
+    "lambda_bousculade": ParametreBalaye(
+        "E3",
+        "1/s",
+        "taux de chute par bousculade (0 l'eteint ; active le module de chutes ; hypothese "
+        "sans source, #130)",
+        ("chutes", "lambda_bousculade"),
+    ),
+    "facteur_rayon_terre": ParametreBalaye(
+        "E3",
+        "-",
+        "rayon d'un corps au sol rapporte au rayon debout (active le module de chutes ; "
+        "hypothese sans source, #130)",
+        ("chutes", "facteur_rayon_terre"),
     ),
     "temps_espacement": ParametreBalaye(
         "E4",
@@ -244,12 +288,17 @@ def mesurer(p: ParametresPiscine) -> dict[str, float]:
     r = simuler_piscine(p, archiver_tous=math.ceil(p.duree / p.dt))
     r.projection.verifier_convergence()
     restants = int(np.sum(~np.isfinite(r.sorties)))
+    causes = [evenement.cause for evenement in r.chutes]
+    inconnues = set(causes) - set(CAUSES_CHUTE)
+    if inconnues:
+        raise ValueError(f"cause de chute inconnue du balayage : {sorted(inconnues)}")
     return {
         "t50": r.temps_evacuation(0.5),
         "t90": r.temps_evacuation(0.9),
         "t100": r.temps_evacuation(1.0),
         "debit": debit_seyfried(r.sorties, p.piscine.largeur_porte) if not restants else math.nan,
         "non_sortis": float(restants),
+        **{f"chutes_{cause}": float(causes.count(cause)) for cause in CAUSES_CHUTE},
     }
 
 
@@ -403,11 +452,15 @@ def _ligne_tableau(point: PointBalayage) -> str:
     finis = np.isfinite(ecart)
     non_sortis = f"{point.mouille[:, k['non_sortis']].sum():.0f}/"
     non_sortis += f"{point.temoin[:, k['non_sortis']].sum():.0f}"
+    colonnes_chutes = [k[f"chutes_{cause}"] for cause in CAUSES_CHUTE]
+    chutes = f"{point.mouille[:, colonnes_chutes].sum(axis=1).mean():.1f}/"
+    chutes += f"{point.temoin[:, colonnes_chutes].sum(axis=1).mean():.1f}"
     cellules = [
         f"{point.valeur:>8g}",
         f"{_moyenne_ecart(point.mouille[:, k['t100']], 2):>16}",
         *(f"{_moyenne_ecart(point.ecart[:, k[m]], 3):>17}" for m in _ECARTS),
         f"{non_sortis:>11}",
+        f"{chutes:>11}",
         f"{int(np.sum(ecart[finis] > 0)):>8}/{int(finis.sum())}",
     ]
     if point.equivaut_au_sec:
@@ -487,10 +540,11 @@ def commande_balayer(args) -> int:
         print(f"Parametres fixes hors YAML : {autres} ; graines {graines}")
         print("Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart")
         print("non sortis : total sur les graines, mouille/temoin, a la fin de la duree")
+        print("chutes : moyenne par evacuation, toutes causes, mouille/temoin")
         print(
             f"{'valeur':>8} {'t100 mouille (s)':>16} "
             + " ".join(f"{'Delta ' + m + ' (' + UNITES[m] + ')':>17}" for m in _ECARTS)
-            + f" {'non sortis':>11} Delta t100 > 0"
+            + f" {'non sortis':>11} {'chutes':>11} Delta t100 > 0"
         )
 
         def apres_point(point: PointBalayage) -> None:
