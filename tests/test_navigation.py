@@ -89,6 +89,32 @@ class TestDistances:
         assert vers[0, 0] == 0.0
         assert np.isinf(loin[0, 0])
 
+    def test_murs_circulaires(self):
+        """Anneau 5-7 m : vers l'exterieur on touche le mur exterieur, vers le centre l'interieur."""
+        anneau = ScenePlage(
+            boite=(-100.0, 100.0, -100.0, 100.0),
+            rectangles=(),
+            disques=((0.0, 0.0, 5.0),),
+            enceinte=(0.0, 0.0, 7.0),
+        )
+        x, v, v0, tau = np.array([[6.0, 0.0]]), np.zeros((1, 2)), np.array([2.0]), np.array([0.5])
+        params = ParametresNavigation(champ_vision=1.0, directions=3)
+        # Vers l'exterieur : jeu de 7 - 0,2 - 6 = 0,8 m (a 1 mm pres), v = jeu / tau, plafonne.
+        u = vitesses_souhaitees(
+            x, v, np.array([R]), v0, np.array([[1.0, 0.0]]), tau, anneau, params
+        )
+        assert np.hypot(*u[0]) == pytest.approx((0.8 + 1e-3) / 0.5, rel=1e-3)
+        # Vers le centre : jeu de 6 - 5 - 0,2 = 0,8 m.
+        u = vitesses_souhaitees(
+            x, v, np.array([R]), v0, np.array([[-1.0, 0.0]]), tau, anneau, params
+        )
+        assert np.hypot(*u[0]) == pytest.approx((0.8 + 1e-3) / 0.5, rel=1e-3)
+        # Le long du cercle, ni l'un ni l'autre n'est atteint avant longtemps : v0.
+        u = vitesses_souhaitees(
+            x, v, np.array([R]), np.array([0.3]), np.array([[0.0, 1.0]]), tau, anneau, params
+        )
+        assert np.hypot(*u[0]) == pytest.approx(0.3)
+
     def test_rectangle_derriere_ignore(self):
         rect = ObstacleRectangle(-6.0, -5.0, -1.0, 1.0)
         d = _distance_rectangles(np.zeros((1, 2)), np.array([R]), une_direction(0.0), [rect])

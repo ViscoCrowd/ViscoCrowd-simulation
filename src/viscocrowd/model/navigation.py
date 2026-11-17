@@ -267,18 +267,38 @@ def _collisions_pietons(
     return d
 
 
+def _distance_enceinte(
+    px: np.ndarray, py: np.ndarray, e: np.ndarray, cx: float, cy: float, rr: np.ndarray
+) -> np.ndarray:
+    """Distance (N, K) avant que le point ne sorte du disque de centre c et de rayon rr.
+
+    Un point deja dehors (tolerance de projection) n'est bloque que s'il s'eloigne encore.
+    """
+    ox, oy = px - cx, py - cy
+    b = ox * e[..., 0] + oy * e[..., 1]
+    c = ox**2 + oy**2 - rr**2
+    sortie = -b + np.sqrt(np.maximum(b**2 - c, 0.0))
+    return np.where(c <= 0.0, np.maximum(sortie, 0.0), np.where(b > 0.0, 0.0, np.inf))
+
+
 @dataclass(frozen=True)
 class ScenePlage:
-    """Ce qu'un baigneur voit sur la plage : une boite et des rectangles.
+    """Ce qu'un pieton voit : une boite, des rectangles, et eventuellement des cercles.
 
     Attributes:
-        boite: [x0, x1] x [y0, y1] ou les centres restent, en m ; x1 est pris au-dela
-            du couloir de la porte, que seuls les montants bornent.
-        rectangles: bassin, montants de la porte et obstacles fixes.
+        boite: [x0, x1] x [y0, y1] ou les centres restent, en m ; sur la piscine, x1 est
+            pris au-dela du couloir de la porte, que seuls les montants bornent.
+        rectangles: obstacles rectangulaires (bassin, montants de la porte, obstacles).
+        disques: obstacles circulaires (cx, cy, rayon), en m ; le mur interieur de
+            l'anneau de mesure (M8), par exemple.
+        enceinte: cercle (cx, cy, rayon) dont les centres ne sortent pas, en m ; le mur
+            exterieur de l'anneau. None : pas d'enceinte circulaire.
     """
 
     boite: tuple[float, float, float, float]
     rectangles: tuple[ObstacleRectangle, ...]
+    disques: tuple[tuple[float, float, float], ...] = ()
+    enceinte: tuple[float, float, float] | None = None
 
 
 def vitesses_souhaitees(
@@ -321,6 +341,12 @@ def vitesses_souhaitees(
         _distance_boite(x, r_paroi, e, scene.boite),
         _distance_rectangles(x, r_paroi, e, scene.rectangles),
     )
+    px, py, rr = x[:, None, 0], x[:, None, 1], r_paroi[:, None]
+    for cx, cy, rayon in scene.disques:
+        statique = np.minimum(statique, _distance_disque(px, py, e, cx, cy, rayon + rr))
+    if scene.enceinte is not None:
+        cx, cy, rayon = scene.enceinte
+        statique = np.minimum(statique, _distance_enceinte(px, py, e, cx, cy, rayon - rr))
     f = np.minimum(statique, _collisions_pietons(x, v, r, v0, e, d_max, figes=False))
     f = np.minimum(f, d_max)
     d2 = d_max**2 + f**2 - 2.0 * d_max * f * np.cos(a0[:, None] - angles)
