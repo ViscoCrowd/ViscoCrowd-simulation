@@ -58,6 +58,12 @@ ensemble chaque démonstration avant la soutenance.
 - **Chutes (#78/#82).** Le module existe sur `dev`, désactivé par défaut. La médiane de relevage
   vient de Becker et al. (2016) ; les taux de chute et de cascade ne sont pas calibrés. L'enseignant a validé son inclusion dans le rendu en séance le 3 novembre
   ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19), [trace](validation-sujet.md#trace-de-validation)). Tant que ses taux ne sont pas calibrés, ses chiffres ne sont pas des résultats.
+  Décision du 16 novembre (#130) : la référence reste sans chutes, et une campagne exploratoire
+  balaie les quatre hypothèses sans source. Question probable du jury, « pourquoi ne pas les
+  avoir calibrés ? » : aucun taux de chute n'est observé en évacuation de piscine, et caler
+  λ_chute sur un taux « plausible » reviendrait à fabriquer le résultat. La campagne montre
+  que les chutes donnent au mouillé son premier effet net (t100 retardé de 6 à 25 s), surtout
+  par effet domino, mais avec 57 à 252 chutes pour 100 baigneurs, ce qui n'est pas plausible.
 
 ## Relecture avant la présentation
 

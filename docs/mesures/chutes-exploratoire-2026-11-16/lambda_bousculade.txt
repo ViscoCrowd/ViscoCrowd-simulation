@@ -1,0 +1,12 @@
+E3 — balayage de lambda_bousculade (1/s)
+  taux de chute par bousculade (0 l'eteint ; active le module de chutes ; hypothese sans source, #130)
+Parametres fixes hors YAML : aucun ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+chutes : moyenne par evacuation, toutes causes, mouille/temoin
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis      chutes Delta t100 > 0
+       0     63.36 ± 6.09     1.639 ± 1.274     6.894 ± 3.412    12.007 ± 5.251    -0.543 ± 0.166         0/0   115.0/0.0       10/10
+       2     61.35 ± 8.38     1.722 ± 2.296     6.557 ± 6.462     9.417 ± 7.942    -0.404 ± 0.303         0/0   122.6/8.1        9/10
+      10     65.00 ± 5.60     1.607 ± 1.515     5.759 ± 2.911    11.722 ± 8.037    -0.502 ± 0.328         0/0  129.2/36.6       10/10
+Mesures graine par graine : docs\mesures\chutes-exploratoire-2026-11-16\lambda_bousculade.json
+Temps d'execution : 1137.1 s
