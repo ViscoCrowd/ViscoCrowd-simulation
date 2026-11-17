@@ -136,3 +136,43 @@ figures:
       (t50 a 0,001 s pres) ; vitesse seule : t50 retarde de 1,29 s et 65 paires.s de
       contacts ; avec l'adherence puis la relaxation du mouille, freinage allonge de
       0,53 a 0,73 puis 1,86 m et contacts reduits a 63 puis 55 paires.s
+
+  - identifiant: fig08_diagramme_fondamental
+    titre: "Diagramme fondamental devant le goulot E0, face a Weidmann"
+    section_rapport: "Interpretation et analyse des resultats"
+    produite_par: "viscocrowd diagramme-goulot experiments/goulot.yaml --figure report/figures"
+    scenario: goulot
+    configuration: experiments/goulot.yaml   # 60 agents, T = 0,35 s
+    parametres:
+      largeurs: [0.8, 0.9, 1.0, 1.1, 1.2]   # m
+      zone: [6.0, 7.8, 1.5, 3.5]             # m, x_min x_max y_min y_max
+      debut: 3.0                             # s, premier instant mesure
+      pas_mesure: 10                         # un instant sur 10, soit 0,1 s
+      pas_classe: 0.25                       # pers/m^2
+    graine: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    resultat_attendu: >
+      entre 0,3 et 3 pers/m^2, vitesse a 48 a 58 % de celle de Weidmann, debit
+      plafonnant vers 0,7 pers/(m.s) ; a densite egale, vitesse du simple au double
+      entre b = 0,8 et 1,2 m
+
+  - identifiant: fig09_diagramme_piscine
+    titre: "Diagramme fondamental devant la porte de la piscine, plage seche et plage glissante"
+    section_rapport: "Interpretation et analyse des resultats"
+    produite_par: >
+      viscocrowd diagramme-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
+      --fixer largeur_porte=0.8 largeur_mouillee=20 adherence_mouille=1 --figure report/figures
+    scenario: piscine
+    configuration: experiments/piscine.yaml
+    parametres:
+      largeur_porte: 0.8                     # m, porte saturee
+      largeur_mouillee: 20.0                 # m, plage mouillee jusqu'a la porte
+      adherence_mouille: 1.0                 # m/s^2, sol tres glissant (0,1 g)
+      recul: 10.0                            # m, salle de Voronoi
+      zone: "1,8 m x 2 m devant la porte, a 0,2 m du mur"
+      pas_mesure: 10                         # un instant sur 10, soit 0,1 s
+      pas_classe: 0.25                       # pers/m^2
+    graine: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]   # memes populations pour les deux sols
+    resultat_attendu: >
+      plage seche sous 2 pers/m^2 ; plage glissante jusqu'a 3,9 pers/m^2 (30 % des
+      instants au-dessus de 2), et 20 a 24 % moins vite a densite egale entre 1,1 et
+      1,7 pers/m^2 (18 % vers 1,9 pers/m^2, sur 14 instants secs seulement)
