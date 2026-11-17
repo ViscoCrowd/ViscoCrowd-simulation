@@ -19,6 +19,9 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `adherence_mouille` | E3 | m/s² | `a_max` du carrelage mouillé |
 | `vitesse_mouille` | E3 | m/s | vitesse souhaitée sur le carrelage mouillé (#26) |
 | `lambda_chute` | E3 | 1/s | taux de chute par perte d'adhérence ; **active le module de chutes**, voir ci-dessous |
+| `lambda_domino` | E3 | 1/s | taux de chute par effet domino, près d'un corps au sol ; active le module (#130) |
+| `lambda_bousculade` | E3 | 1/s | taux de chute par bousculade (0 l'éteint ; seul compte son produit avec `duree_bousculade`, #135) ; active le module (#130) |
+| `facteur_rayon_terre` | E3 | – | rayon d'un corps au sol rapporté au rayon debout ; active le module (#130) |
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
@@ -29,9 +32,9 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `duree_echelle` | E4 | s | durée de montée d'une échelle, à chaque site (2 s dans le YAML, hypothèse sans source) |
 | `adherence_eau` | M9 | m/s² | `a_max` dans l'eau : 0,34 g × un poids apparent supposé de moitié, soit 1,67 m/s² dans le YAML depuis #128 |
 
-**Balayer `lambda_chute` active les chutes.** `experiments/piscine.yaml` n'a pas de section
-`chutes` : le balayage la crée, et toutes les autres valeurs du module (domino, relevage,
-contournement) restent celles par défaut de `ParametresChutes`. Ces valeurs ne sont pas
+**Balayer un paramètre des chutes active le module.** `experiments/piscine.yaml` n'a pas de
+section `chutes` : le balayage la crée, et toutes les autres valeurs du module (domino,
+relevage, contournement) restent celles par défaut de `ParametresChutes`. Ces valeurs ne sont pas
 calibrées : comme le précise [`modele-chutes.md`](modele-chutes.md), aucun chiffre obtenu
 avec ce module ne peut servir de résultat avant sa calibration. L'enseignant a validé son
 inclusion dans le rendu le 3 novembre (#19), pas ses valeurs. Le témoin sec garde les
@@ -100,13 +103,15 @@ L'effet du sol mouillé est l'écart **Δ = mouillé − témoin**, graine par g
 deux graines différentes mélangerait l'effet du sol et le hasard du placement de départ.
 
 Chaque évacuation donne `t50`, `t90`, `t100` (instants où 50, 90 et 100 % des baigneurs sont
-sortis, en s), le débit à la porte, en pers/(m·s), et le nombre de baigneurs encore présents
-à la fin de `duree`. Le débit utilise le même estimateur que le goulot E0 (`debit_seyfried`,
+sortis, en s), le débit à la porte, en pers/(m·s), le nombre de baigneurs encore présents
+à la fin de `duree`, et le nombre de chutes de chaque cause (glissade, domino, bousculade),
+nul quand le module est désactivé. Le débit utilise le même estimateur que le goulot E0 (`debit_seyfried`,
 ΔN/(Δt·b)), pour que les deux restent comparables.
 
 Le tableau affiche, pour chaque valeur, `t100` du mouillé, la moyenne ± écart-type de chaque
-Δ, les non-sortis (total sur les graines, mouillé/témoin) et le nombre de graines où le
-mouillé est plus lent (`Δ t100 > 0`). Le JSON garde toutes
+Δ, les non-sortis (total sur les graines, mouillé/témoin), les chutes (moyenne par
+évacuation, toutes causes, mouillé/témoin) et le nombre de graines où le mouillé est plus
+lent (`Δ t100 > 0`). Le JSON garde toutes
 les mesures brutes, graine par graine, avec la configuration et la provenance du code : tout
 tableau ou figure peut en être recalculé sans relancer les simulations.
 
@@ -544,6 +549,77 @@ plateforme de cet ordre, 40 fois plus petit que sa dispersion entre graines (0,9
 (t = 1,8). Avec le critère 2 proposé dans `criteres-acceptation.md` (#134), Δ t50 de cette
 configuration se publie au pas de 0,005 s, ou avec cet écart.
 
+## Chutes : campagne exploratoire (16 novembre 2026)
+
+**Ce ne sont pas des résultats.** Aucun des quatre paramètres balayés n'a de source primaire
+(`modele-chutes.md`, § 8). La référence reste sans chutes, et cette campagne montre
+seulement ce que les chutes changeraient, et à quelles hypothèses c'est sensible (journal,
+16 novembre).
+
+Référence régulée (`experiments/piscine.yaml`, T = 0,35 s), graines 1 à 10, un paramètre à
+la fois, les autres valeurs du module par défaut (λ_chute = 2 /s, λ_domino = 4 /s,
+λ_bousculade = 0, r_terre = 1,5 r). Le témoin sec garde les mêmes chutes. Commit `4400d84`,
+sans modification locale ; cinq balayages en parallèle, 35 min sous Windows. Une première
+exécution, sur le même code, avait donné exactement les mêmes mesures au bit près.
+[Bilans bruts](mesures/chutes-exploratoire-2026-11-16/) ; répartition par cause et test
+apparié sur le pas de temps : `analyse.py`, dans le même dossier.
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre lambda_chute \
+  --valeurs 0.5 1 2 5 10 --graines 1 2 3 4 5 6 7 8 9 10
+# de même : lambda_domino 1 4 16 ; lambda_bousculade 0 2 10 ; facteur_rayon_terre 1 1.5 2 ;
+# dt 0.01 0.005 avec --fixer lambda_chute=2
+```
+
+Chutes par évacuation sur le mouillé (moyenne sur 10 graines) et écarts Δ = mouillé − témoin :
+
+| Balayage | Valeur | Glissades | Domino | Bousculade | t100 mouillé (s) | Δ t50 (s) | Δ t100 (s) | Δ t100 > 0 |
+|---|---|---|---|---|---|---|---|---|
+| λ_chute (1/s) | 0,5 | 11,5 | 45,5 | 0 | 58,32 ± 7,95 | 0,53 ± 1,30 | 6,97 ± 7,84 | 10/10 |
+| | 1 | 21,1 | 62,5 | 0 | 61,52 ± 6,32 | 0,94 ± 0,98 | 10,16 ± 6,22 | 10/10 |
+| | **2** | **29,6** | **85,4** | **0** | **63,36 ± 6,09** | **1,64 ± 1,27** | **12,01 ± 5,25** | **10/10** |
+| | 5 | 58,6 | 126,0 | 0 | 68,35 ± 6,56 | 3,93 ± 2,42 | 17,00 ± 7,56 | 10/10 |
+| | 10 | 105,7 | 145,8 | 0 | 76,14 ± 7,11 | 8,48 ± 2,85 | 24,79 ± 7,57 | 10/10 |
+| λ_domino (1/s) | 1 | 34,0 | 29,0 | 0 | 57,42 ± 4,35 | 0,26 ± 0,62 | 6,06 ± 4,74 | 9/10 |
+| | 16 | 25,9 | 149,0 | 0 | 69,11 ± 6,00 | 3,30 ± 4,17 | 17,76 ± 5,78 | 10/10 |
+| λ_bousculade (1/s) | 2 | 30,7 | 89,6 | 2,3 | 61,35 ± 8,38 | 1,72 ± 2,30 | 9,42 ± 7,94 | 9/10 |
+| | 10 | 26,3 | 93,6 | 9,3 | 65,00 ± 5,60 | 1,61 ± 1,52 | 11,72 ± 8,04 | 10/10 |
+| r_terre (× r) | 1 | 68,2 | 55,8 | 0 | 72,36 ± 12,61 | 2,41 ± 2,63 | 21,01 ± 12,96 | 10/10 |
+| | 2 | 25,9 | 99,1 | 0 | 62,82 ± 4,90 | 0,88 ± 0,81 | 11,47 ± 4,95 | 10/10 |
+
+La ligne en gras est le point par défaut, commun aux cinq balayages. Le témoin sec ne tombe
+jamais sans bousculade ; avec λ_bousculade = 2 et 10 /s, il compte 8,1 et 36,6 chutes par
+évacuation (1,4 et 7,0 bousculades, que le domino propage).
+
+**Pas de temps, glissade et domino actifs** (λ_chute = 2 /s, mêmes graines) :
+
+| Δt (s) | Chutes par évacuation | Glissades | Domino | Δ t100 (s) |
+|---|---|---|---|---|
+| 0,01 | 115,0 | 29,6 | 85,4 | 12,01 ± 5,25 |
+| 0,005 | 108,5 | 30,2 | 78,3 | 10,00 ± 6,24 |
+
+Écart apparié Δt/2 − Δt : −6,5 ± 22,0 chutes (IC 95 % : −22,2 à +9,2 ; p = 0,37 par
+permutation exacte des signes). Glissade +0,6 ± 10,6 (+2 %, p = 0,88), domino −7,1 ± 13,8
+(−8 %, p = 0,15).
+
+Ce qu'on en retient :
+
+1. **Avec des chutes, le sol mouillé a un effet net**, le premier de ce modèle : t100 recule
+   de 6 à 25 s selon les hypothèses, sur 9 ou 10 graines sur 10. Les glissades partent de la
+   bande mouillée, où les relances dépassent 3,3 m/s², et le domino les propage.
+2. **Le domino domine** : 85 des 115 chutes au point par défaut, près de trois par glissade.
+   C'est lui qui transforme une glissade en retard.
+3. **Les nombres ne sont pas plausibles** : 115 chutes pour 100 baigneurs au point par
+   défaut, 57 même à λ_chute = 0,5 /s. L'amplitude dépend entièrement de taux sans source ;
+   seuls le sens et la sensibilité sont lisibles.
+4. **r_terre n'est pas monotone.** À r_terre = r, il y a deux fois plus de glissades (68
+   contre 30) et le plus grand retard (+21 s). Ce n'est pas expliqué.
+5. **La bousculade ne dépend pas du sol** : elle touche aussi le témoin, par compression
+   devant la porte, et Δ ne croît pas avec elle.
+6. **Aucune dépendance décelable au pas de temps** dans une évacuation, pour la glissade
+   comme pour le domino. Sur 10 graines, une dépendance de l'ordre de 20 % ne peut pas être
+   exclue.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
@@ -553,9 +629,10 @@ mètre de large, à 17 m de la bande mouillée. C'est
 une conclusion conditionnelle. Elle ne dit pas que le sol mouillé est sans effet en général,
 pour quatre raisons :
 
-1. **Le modèle ne prête au mouillé qu'un effet.** Il borne l'accélération : on freine et on
-   tourne moins vite. Il ne fait pas tomber (modèle de chutes, #78 et #82, pas encore
-   fusionné), et il ne ralentit pas la marche : `s` est le même sur le sec et le mouillé.
+1. **La référence ne prête au mouillé qu'un effet.** Elle borne l'accélération : on freine et
+   on tourne moins vite. Elle ne fait pas tomber : les chutes, sans taux sourcés, ne sont que
+   dans la campagne exploratoire (section précédente), où elles donnent au mouillé un effet
+   net. Elle ne ralentit pas non plus la marche : `s` est le même sur le sec et le mouillé.
    C'est un choix de protocole, pour isoler l'effet de l'adhérence (#26), pas une
    observation.
 2. **La porte n'est encombrée qu'à 0,8 m** (section précédente), et la bande mouillée de
@@ -572,4 +649,5 @@ pour quatre raisons :
    refaits sans aucun bouchage.
 
 Avant de conclure le rapport, il reste donc à combiner une porte saturée (0,8 m) et du
-mouillé jusqu'à la porte, et à mesurer l'effet des chutes.
+mouillé jusqu'à la porte. L'effet des chutes est mesuré de façon exploratoire (16 novembre) ;
+il ne deviendra un résultat qu'avec des taux sourcés.
