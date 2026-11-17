@@ -77,6 +77,10 @@ python docs/mesures/navigation-2026-11-17/mesurer.py experiments/piscine.yaml
 | Δt/2 − Δt (navigation) | −0,39 ± 0,79 (p = 0,14) | +0,31 ± 0,81 (p = 0,24) | −0,02 ± 0,06 (p = 0,24) |
 | Mouillé − sec (navigation) | +0,36 ± 0,73 (p = 0,14) | +0,16 ± 1,32 (p = 0,78) | −0,01 ± 0,10 (p = 0,82) |
 
+![Graine 1, à 20, 28 et 36 s : en haut la référence, en bas la navigation](mesures/navigation-2026-11-17/avant-apres.png)
+
+*Graine 1, à 20, 28 et 36 s. En haut, la référence : deux files contre le bassin, puis deux lignes vers la porte. En bas, la navigation : des flux diffus, puis une foule devant la porte. Pointillés : limite de la bande mouillée.*
+
 ## Ce qu'on en retient
 
 1. **La file indienne disparaît.** Les baigneurs s'écartent du bord du bassin (9 % contre
