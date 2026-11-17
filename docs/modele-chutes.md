@@ -23,6 +23,12 @@ aucun écart n'est décelable sur 10 graines entre Δt, Δt/2 et Δt/4 (mesure d
 `λ_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est actif. Aucun chiffre
 obtenu avec ce module ne peut encore servir de résultat.
 
+**Décision du 16 novembre (#130, journal).** La référence reste sans chutes. Les chutes sont
+présentées dans une campagne exploratoire, qui balaie les quatre hypothèses sans source
+(`docs/balayages-piscine.md`, section « Chutes ») : elles y donnent au sol mouillé son premier
+effet net (t100 retardé de 6 à 25 s), mais avec des nombres de chutes qui ne sont pas
+plausibles.
+
 ---
 
 ## Pourquoi ce module change la nature du projet
@@ -252,9 +258,12 @@ Aux critères déjà prévus s'ajoutent :
    la glissade et le domino lisent un état qui relaxe en τ ≫ Δt. Après un choc, `|v_d − v|`
    relaxe en τ = 0,5 s, soit 50 pas, et l'urgence du domino dépend de `v` et des distances,
    continues d'un pas à l'autre : leur exposition dure un temps physique. La bousculade lit
-   la correction d'un seul pas, et un choc mou est absorbé en un pas, quel que soit Δt. Ce
-   n'est pas une mesure en évacuation pour la glissade et le domino, mais cela suffit pour en
-   présenter un balayage exploratoire.
+   la correction d'un seul pas, et un choc mou est absorbé en un pas, quel que soit Δt.
+   *Mesuré en évacuation le 16 novembre* pour la glissade et le domino (référence régulée,
+   λ_chute = 2 /s, graines 1 à 10) : 115,0 chutes par évacuation à Δt = 0,01 s, 108,5 à
+   Δt/2. Écart apparié −6,5 ± 22,0 (p = 0,37) ; glissade +2 % (p = 0,88), domino −8 %
+   (p = 0,15). Aucune dépendance décelable, mais 10 graines ne peuvent exclure un écart de
+   l'ordre de 20 %.
 2. **Cas limite sans chute** — en fixant μ très grand, le modèle doit redonner **exactement** les
    résultats du modèle sans chute. Un écart signale un couplage parasite.
 3. **Cohérence de la distribution de relevage** — vérifier sur un grand nombre de tirages que la
@@ -264,12 +273,22 @@ Aux critères déjà prévus s'ajoutent :
 
 ---
 
-## 8. Ce qu'il reste à décider
+## 8. Décisions (16 novembre 2026, #130)
 
-- [ ] Valeur de `λ_chute` : par calibration sur un taux de chute plausible, ou par balayage assumé ?
-- [ ] Le rayon au sol `r_terre` : 1,5 · r est une estimation. Trouver une source, ou l'assumer explicitement comme hypothèse.
-- [ ] Les agents à terre sont-ils piétinés (blessés, immobilisés définitivement) ou se relèvent-ils toujours ? La littérature modélise les deux ; le second est plus simple et suffit probablement à notre question.
-- [ ] Hétérogénéité de la population : faut-il une fraction d'agents plus lents à se relever (la source donne 5,7 s pour les 60 ans et plus) ?
+- [x] **`λ_chute` : balayage assumé** (0,5 à 10 /s), pas de calibration. Aucun taux de chute
+  observé en évacuation de piscine ne permet de le caler, et le caler sur un taux
+  « plausible » reviendrait à ajuster le module pour obtenir le résultat attendu.
+  `λ_domino` (1 à 16 /s) et `λ_bousculade` (0 à 10 /s) sont traités de la même façon.
+- [x] **Rayon au sol `r_terre` : hypothèse assumée**, 1,5 · r par défaut, balayée de r à 2 r.
+  Aucune source trouvée.
+- [x] **Relevage systématique**, sans piétinement : c'est le plus simple, et cela suffit pour
+  une question de débit.
+- [x] **Population homogène**, médiane de relevage 3,7 s (adultes de 20 à 50 ans, Becker et
+  al. 2016). La fraction de 60 ans et plus n'est pas modélisée : sa part dans une piscine
+  serait une hypothèse de plus.
+- [x] **Activation : la référence reste sans chutes** (`chutes: null`). Les chutes sont
+  présentées dans une campagne exploratoire à part ([balayages](balayages-piscine.md),
+  section « Chutes »), dont aucun chiffre n'est un résultat.
 
 ---
 

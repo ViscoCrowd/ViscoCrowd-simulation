@@ -111,6 +111,30 @@ experiments/goulot.yaml --figure report/figures} (manifeste, \texttt{fig08}).}
 \label{fig:diagramme-e0}
 \end{figure}
 
+Le débit global ne dit pas comment la vitesse varie avec la densité. La
+figure~\ref{fig:diagramme-e0} mesure cette relation devant le goulot, par cellules de
+Voronoï~\cite{steffen2010} (section~\ref{sec:mesure-densite}), un instant toutes les
+\SI{0.1}{\second}. Entre \num{0.3} et \num{3}~pers/\si{\metre\squared}, la vitesse vaut à
+peu près la moitié de celle de Weidmann (48 à \SI{58}{\percent}), et le débit plafonne vers
+\num{0.7}~pers/(m$\cdot$s) au lieu de \num{1.23}. À densité égale, elle varie du simple au
+double entre $b=\SI{0.8}{\metre}$ et \SI{1.2}{\metre} : devant un goulot, c'est sa capacité
+qui règle l'écoulement, pas la densité locale. Weidmann décrit une marche « sans contrainte
+extérieure »~\cite[p.~64]{weidmann1993} ; l'entonnoir d'un goulot n'en relève pas, et cette
+figure ne valide ni ne réfute le modèle face à lui. Elle sert de repère pour la porte de la
+piscine (section~\ref{sec:e4}).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{fig08_diagramme_fondamental}
+\caption{Diagramme fondamental devant le goulot E0 : vitesse (à gauche) et débit
+spécifique (à droite) en fonction de la densité de Voronoï, cinq largeurs de 0,8 à
+\SI{1.2}{\metre}, dix graines, $T=\SI{0.35}{\second}$. Points gris : instants mesurés ;
+barres : moyenne et écart-type par classe de \num{0.25}~pers/\si{\metre\squared} (dispersion
+des états, pas incertitude). Reproduction : \texttt{viscocrowd diagramme-goulot
+experiments/goulot.yaml --figure report/figures} (manifeste, \texttt{fig08}).}
+\label{fig:diagramme-e0}
+\end{figure}
+
 \subsection{Effet de l'extraction repartie}
 \label{sec:e1}
 
@@ -215,7 +239,12 @@ Sur $t_{100}$, l'écart change de signe d'une graine à l'autre (écart-type
 sites, donc le dernier sorti. La bande mouillée est séparée de la porte par \SI{17}{\metre} de
 sol sec. Les relances écrêtées ont lieu près du bassin, et la porte n'en garde pas de trace.
 Pour un effet net, il faudrait une adhérence bien plus faible et un sol glissant devant une
-porte saturée : la section~\ref{sec:e4} teste ces deux conditions.
+porte saturée : la section~\ref{sec:e4} teste ces deux conditions. Le module de chutes,
+désactivé dans ce rapport, ouvrirait une autre voie. Dans une campagne exploratoire, qui
+balaie ses taux faute de source, la même bande mouillée retarde $t_{100}$ de 6 à
+\SI{25}{\second}, surtout par effet domino, mais avec 57 à 252 chutes pour 100 baigneurs
+(\texttt{docs/balayages-piscine.md}). Ce n'est pas un résultat : l'amplitude y dépend
+entièrement de taux non calibrés.
 
 \subsection{Sensibilite aux parametres de scenario}
 \label{sec:e4}
