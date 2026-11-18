@@ -53,16 +53,20 @@ def test_lire_fixes_convertit_n_agents_en_entier():
     assert fixes == {"n_agents": 150, "largeur_porte": 0.8}
     assert type(fixes["n_agents"]) is int
 
+
 def test_lire_fixes_refuse_un_entier_non_entier():
     with pytest.raises(ValueError, match="entier"):
         lire_fixes(["n_agents=150.5"])
+
 
 def test_appliquer_fixes_laisse_l_original_intact():
     config = lire_configuration(EXEMPLE)["parametres"]
     nouveau = appliquer_fixes(config, {"largeur_porte": 0.8, "relaxation": 0.4})
     assert config["geometrie"]["largeur_porte"] == 1.2
     assert nouveau["geometrie"]["largeur_porte"] == 0.8
-    assert {nouveau["parametres_milieux"][m]["relaxation"] for m in ("EAU", "MOUILLE", "SEC")} == {0.4}
+    assert {nouveau["parametres_milieux"][m]["relaxation"] for m in ("EAU", "MOUILLE", "SEC")} == {
+        0.4
+    }
 ```
 
 - [ ] **Step 2 :** `pytest tests/test_balayage_piscine.py -k "fixes" -v` → échec à l'import de `lire_fixes`.
@@ -90,9 +94,11 @@ def test_fixer_archive_la_configuration_effective(tmp_path):
     assert meta["configuration"]["parametres"]["geometrie"]["largeur_porte"] == 0.9
     assert meta["surcharges"] == {"largeur_porte": 0.9}
 
+
 def test_sans_fixer_aucune_surcharge_archivee(tmp_path):
     executer_configuration(piscine_reduite(tmp_path), tmp_path / "a.npz")
     assert "surcharges" not in lire_trajectoire(tmp_path / "a.npz").metadonnees
+
 
 def test_fixer_refuse_hors_piscine(tmp_path):
     with pytest.raises(ValueError, match="piscine"):
@@ -115,13 +121,28 @@ def test_fixer_refuse_hors_piscine(tmp_path):
 ```python
 def test_simuler_accepte_fixer(tmp_path):
     sortie = tmp_path / "a.npz"
-    assert main(["simuler", str(piscine_reduite(tmp_path)), "--sortie", str(sortie),
-                 "--fixer", "n_agents=4", "largeur_porte=0.9"]) == 0
+    assert (
+        main(
+            [
+                "simuler",
+                str(piscine_reduite(tmp_path)),
+                "--sortie",
+                str(sortie),
+                "--fixer",
+                "n_agents=4",
+                "largeur_porte=0.9",
+            ]
+        )
+        == 0
+    )
     assert lire_trajectoire(sortie).x.shape[1] == 4
 
+
 def test_simuler_refuse_un_nom_inconnu(tmp_path, capsys):
-    assert main(["simuler", str(EXEMPLE), "--sortie", str(tmp_path / "a.npz"),
-                 "--fixer", "porte=0.9"]) == 1
+    assert (
+        main(["simuler", str(EXEMPLE), "--sortie", str(tmp_path / "a.npz"), "--fixer", "porte=0.9"])
+        == 1
+    )
     assert "--fixer attend" in capsys.readouterr().err
 ```
 
@@ -148,14 +169,18 @@ Branche `feat/nombre-echelles`. Taille : une demi-journée. Dépend de E1.
 - [ ] **Step 1 : tests qui échouent**
 
 ```python
-@pytest.mark.parametrize("n, attendu", [
-    (0, ()),
-    (1, (("haut", 0.5),)),
-    (3, (("haut", 0.25), ("haut", 0.75), ("bas", 0.5))),
-    (4, (("haut", 0.25), ("haut", 0.75), ("bas", 0.25), ("bas", 0.75))),
-])
+@pytest.mark.parametrize(
+    "n, attendu",
+    [
+        (0, ()),
+        (1, (("haut", 0.5),)),
+        (3, (("haut", 0.25), ("haut", 0.75), ("bas", 0.5))),
+        (4, (("haut", 0.25), ("haut", 0.75), ("bas", 0.25), ("bas", 0.75))),
+    ],
+)
 def test_repartir_echelles(n, attendu):
     assert repartir_echelles(n, 25.0, 0.5) == attendu
+
 
 @pytest.mark.parametrize("n", [-1, 2.0, True, 60])
 def test_repartir_echelles_refuse(n):
@@ -186,12 +211,17 @@ def test_echelles_entier_equivaut_a_la_liste():
     b = parametres_reduits(geometrie={"echelles": [["haut", 0.5], ["bas", 0.5]]})
     assert a.piscine.sites() == b.piscine.sites()
 
+
 def test_zero_echelle_ne_laisse_que_des_rebords():
     p = parametres_reduits(geometrie={"echelles": 0})
     assert {s.nature for s in p.piscine.sites()} == {"rebord"}
 
+
 def test_archive_ecrit_la_liste_explicite():
-    assert parametres_reduits(geometrie={"echelles": 2}).en_dictionnaire()["geometrie"]["echelles"] == [["haut", 0.5], ["bas", 0.5]]
+    assert parametres_reduits(geometrie={"echelles": 2}).en_dictionnaire()["geometrie"][
+        "echelles"
+    ] == [["haut", 0.5], ["bas", 0.5]]
+
 
 def test_balayer_echelles_valeurs_entieres():
     assert _valeurs_valides("echelles", [0.0, 2.0, 4.0]) == [0, 2, 4]
@@ -222,6 +252,7 @@ Branche `feat/lanceur`. Taille : 1 à 2 jours. Vague 4 (après le 21/12 si le re
 ```python
 def test_capacite_de_la_reference():
     assert capacite_initiale(parametres_reduits()) == 300  # 25 x 12 emplacements
+
 
 def test_population_trop_grande_refusee():
     with pytest.raises(ValueError, match="300 emplacements"):
@@ -254,14 +285,17 @@ def test_reponse_vide_garde_la_reference():
     reponses = iter(["", "", "", "", ""])
     assert demander(reference(), lire=lambda _: next(reponses), ecrire=lambda _: None) == {}
 
+
 def test_saisie_invalide_reposee_puis_acceptee():
     reponses = iter(["150", "", "abc", "0.8", "", ""])
     fixes = demander(reference(), lire=lambda _: next(reponses), ecrire=lambda _: None)
     assert fixes == {"n_agents": 150, "largeur_porte": 0.8}
 
+
 def test_trois_saisies_invalides_abandonnent():
     with pytest.raises(ValueError):
         demander(reference(), lire=lambda _: "abc", ecrire=lambda _: None)
+
 
 def test_la_question_affiche_la_reference():
     vus = []
@@ -292,11 +326,22 @@ Déroulé de `commande_lancer` : surcharges du préréglage → `demander` → v
 def test_lancer_ecrit_configuration_et_archive(tmp_path, monkeypatch):
     reponses = iter(["4", "", "0.9", "", ""])
     monkeypatch.setattr("builtins.input", lambda _: next(reponses))
-    assert main(["lancer", str(piscine_reduite(tmp_path)), "--dossier", str(tmp_path / "s"),
-                 "--sans-relecture"]) == 0
+    assert (
+        main(
+            [
+                "lancer",
+                str(piscine_reduite(tmp_path)),
+                "--dossier",
+                str(tmp_path / "s"),
+                "--sans-relecture",
+            ]
+        )
+        == 0
+    )
     (run,) = (tmp_path / "s").iterdir()
     assert lire_configuration(run / "configuration.yaml")["parametres"]["n_agents"] == 4
     assert lire_trajectoire(run / "trajectoire.npz").x.shape[1] == 4
+
 
 def test_lancer_refuse_une_population_trop_grande(tmp_path, monkeypatch, capsys):
     reponses = iter(["100000", "", "", "", ""])
@@ -304,8 +349,12 @@ def test_lancer_refuse_une_population_trop_grande(tmp_path, monkeypatch, capsys)
     assert main(["lancer", str(EXEMPLE), "--dossier", str(tmp_path), "--sans-relecture"]) == 1
     assert "emplacements" in capsys.readouterr().err
 
+
 def test_prereglage_olympique():
-    assert appliquer_fixes(reference(), PREREGLAGES["olympique"])["geometrie"]["longueur_bassin"] == 50.0
+    assert (
+        appliquer_fixes(reference(), PREREGLAGES["olympique"])["geometrie"]["longueur_bassin"]
+        == 50.0
+    )
 ```
 
 - [ ] **Step 2 :** `pytest tests/test_lanceur.py -v` → échec.

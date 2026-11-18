@@ -51,8 +51,11 @@ Branche `chore/arrondi-bilans`. Convenu dans la revue de #133. Taille : 1 h.
 def test_arrondir():
     assert arrondir(np.array([1.23456, np.nan, 2.0]), 2) == [1.23, None, 2.0]
 
+
 def test_serie_en_json_arrondie():
-    s = SimpleNamespace(t=np.array([0.123456]), densite=np.array([1.234567]), vitesse=np.array([np.nan]))
+    s = SimpleNamespace(
+        t=np.array([0.123456]), densite=np.array([1.234567]), vitesse=np.array([np.nan])
+    )
     assert serie_en_json(s) == {"t": [0.12], "densite": [1.2346], "vitesse": [None]}
 ```
 
@@ -115,14 +118,21 @@ Branche `feat/intervalles-sorties`. Taille : une journée. Référence : Zurigue
 
 ```python
 def test_intervalles_ignorent_les_non_sortis_et_trient():
-    np.testing.assert_array_equal(intervalles_sorties(np.array([5.0, 0.0, np.nan, 1.0, 2.0])), [1, 1, 3])
+    np.testing.assert_array_equal(
+        intervalles_sorties(np.array([5.0, 0.0, np.nan, 1.0, 2.0])), [1, 1, 3]
+    )
+
 
 @pytest.mark.parametrize("sorties", [np.array([]), np.array([3.0]), np.array([np.nan, 2.0])])
 def test_moins_de_deux_sorties(sorties):
     assert intervalles_sorties(sorties).size == 0
 
+
 def test_survie_stricte():
-    np.testing.assert_allclose(survie(np.array([1.0, 1.0, 3.0]), np.array([0.5, 1.0, 2.0, 3.0])), [1, 1/3, 1/3, 0])
+    np.testing.assert_allclose(
+        survie(np.array([1.0, 1.0, 3.0]), np.array([0.5, 1.0, 2.0, 3.0])), [1, 1 / 3, 1 / 3, 0]
+    )
+
 
 def test_resumer_signale_une_evacuation_incomplete():
     r = resumer(np.array([0.0, 1.0, np.nan]), seuil_bouchon=0.5)
@@ -150,7 +160,9 @@ def test_resumer_signale_une_evacuation_incomplete():
 ```python
 def test_commande_bouchons(tmp_path, capsys):
     a = simuler_archive_reduite(tmp_path / "a.npz", duree=2.0)  # 6 agents : certains non sortis
-    assert main(["bouchons", str(a), "--etiquettes", "essai", "--image", str(tmp_path / "b.png")]) == 0
+    assert (
+        main(["bouchons", str(a), "--etiquettes", "essai", "--image", str(tmp_path / "b.png")]) == 0
+    )
     assert (tmp_path / "b.png").stat().st_size > 0
     assert "incomplète" in capsys.readouterr().out
 ```
@@ -187,27 +199,57 @@ Branche `feat/carte-attente`. Taille : une demi-journée.
 ```python
 def test_agent_immobile_deux_secondes():
     t = np.array([0.0, 1.0, 2.0])
-    x = np.full((3, 1, 2), [0.6, 0.6]); v = np.zeros((3, 1, 2))
+    x = np.full((3, 1, 2), [0.6, 0.6])
+    v = np.zeros((3, 1, 2))
     carte = temps_arret(t, x, v, np.ones((3, 1), bool), seuil=0.1, pas=0.25, emprise=(2.0, 2.0))
     assert carte[2, 2] == pytest.approx(2.0) and carte.sum() == pytest.approx(2.0)
 
+
 def test_agent_en_mouvement_ou_inactif_ne_compte_pas():
-    t = np.array([0.0, 1.0, 2.0]); x = np.full((3, 1, 2), [0.6, 0.6])
+    t = np.array([0.0, 1.0, 2.0])
+    x = np.full((3, 1, 2), [0.6, 0.6])
     rapide = np.full((3, 1, 2), [1.0, 0.0])
-    assert temps_arret(t, x, rapide, np.ones((3, 1), bool), seuil=0.1, pas=0.25, emprise=(2.0, 2.0)).sum() == 0.0
-    assert temps_arret(t, x, np.zeros((3, 1, 2)), np.zeros((3, 1), bool), seuil=0.1, pas=0.25, emprise=(2.0, 2.0)).sum() == 0.0
+    assert (
+        temps_arret(
+            t, x, rapide, np.ones((3, 1), bool), seuil=0.1, pas=0.25, emprise=(2.0, 2.0)
+        ).sum()
+        == 0.0
+    )
+    assert (
+        temps_arret(
+            t,
+            x,
+            np.zeros((3, 1, 2)),
+            np.zeros((3, 1), bool),
+            seuil=0.1,
+            pas=0.25,
+            emprise=(2.0, 2.0),
+        ).sum()
+        == 0.0
+    )
+
 
 def test_total_independant_de_la_case():
     t = np.linspace(0.0, 4.0, 5)
-    x = np.tile([[0.3, 0.3], [1.7, 2.9]], (5, 1, 1)); v = np.zeros((5, 2, 2)); actifs = np.ones((5, 2), bool)
+    x = np.tile([[0.3, 0.3], [1.7, 2.9]], (5, 1, 1))
+    v = np.zeros((5, 2, 2))
+    actifs = np.ones((5, 2), bool)
     a = temps_arret(t, x, v, actifs, seuil=0.1, pas=0.25, emprise=(4.0, 4.0))
     b = temps_arret(t, x, v, actifs, seuil=0.1, pas=0.125, emprise=(4.0, 4.0))
     assert a.sum() == pytest.approx(b.sum()) == pytest.approx(8.0)
 
+
 def test_archive_espacee_ponderee_par_l_ecart_reel():
     t = np.array([0.0, 0.5, 2.0])  # écarts 0,5 puis 1,5 s
-    carte = temps_arret(t, np.full((3, 1, 2), [0.6, 0.6]), np.zeros((3, 1, 2)), np.ones((3, 1), bool),
-                        seuil=0.1, pas=0.25, emprise=(2.0, 2.0))
+    carte = temps_arret(
+        t,
+        np.full((3, 1, 2), [0.6, 0.6]),
+        np.zeros((3, 1, 2)),
+        np.ones((3, 1), bool),
+        seuil=0.1,
+        pas=0.25,
+        emprise=(2.0, 2.0),
+    )
     assert carte.sum() == pytest.approx(2.0)
 ```
 
@@ -235,8 +277,11 @@ Branche `refac/commandes-viz`. **Après la vague 0** (#160, #164, #165 fusionné
 
 ```python
 def test_tous_les_modules_viz_a_commande_sont_declares():
-    trouves = {m.name for m in pkgutil.iter_modules(viz.__path__)
-               if hasattr(importlib.import_module(f"viscocrowd.viz.{m.name}"), "ajouter_commande")}
+    trouves = {
+        m.name
+        for m in pkgutil.iter_modules(viz.__path__)
+        if hasattr(importlib.import_module(f"viscocrowd.viz.{m.name}"), "ajouter_commande")
+    }
     assert set(viz.COMMANDES) == trouves
     assert list(viz.COMMANDES) == sorted(viz.COMMANDES)
 ```
@@ -266,8 +311,11 @@ Branche `feat/comparer-variantes`. Après #160, E1 et C5. Taille : une journée.
 
 ```python
 def test_instants_communs_n_suit_la_plus_longue():
-    np.testing.assert_allclose(instants_communs_n([2.0, 4.0, 3.0], fps=2, vitesse=2.0),
-                               instants_communs(2.0, 4.0, fps=2, vitesse=2.0))
+    np.testing.assert_allclose(
+        instants_communs_n([2.0, 4.0, 3.0], fps=2, vitesse=2.0),
+        instants_communs(2.0, 4.0, fps=2, vitesse=2.0),
+    )
+
 
 @pytest.mark.parametrize("n", [1, 5])
 def test_nombre_de_vues_refuse(n, tmp_path):
@@ -295,9 +343,23 @@ def test_nombre_de_vues_refuse(n, tmp_path):
 ```python
 def test_trois_variantes(tmp_path):
     cfg = piscine_reduite(tmp_path)
-    assert main(["comparer-variantes", str(cfg), "--gif", str(tmp_path / "v.gif"),
-                 "--variante", "adherence_mouille=3.3", "--variante", "adherence_mouille=2",
-                 "--variante", "adherence_mouille=1"]) == 0
+    assert (
+        main(
+            [
+                "comparer-variantes",
+                str(cfg),
+                "--gif",
+                str(tmp_path / "v.gif"),
+                "--variante",
+                "adherence_mouille=3.3",
+                "--variante",
+                "adherence_mouille=2",
+                "--variante",
+                "adherence_mouille=1",
+            ]
+        )
+        == 0
+    )
     with Image.open(tmp_path / "v.gif") as gif:
         assert gif.n_frames > 1
 ```

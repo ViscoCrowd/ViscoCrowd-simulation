@@ -62,14 +62,23 @@ l'original**). Aucune valeur n'existe pour une piscine : hypothèse à balayer.
 def test_dispersion_nulle():
     np.testing.assert_array_equal(instants_reaction(5, 3.0, 0.0, 1), np.full(5, 3.0))
 
+
 def test_mediane_retrouvee():
     assert np.median(instants_reaction(20_000, 5.0, 0.5, 1)) == pytest.approx(5.0, rel=0.02)
 
-def test_reproductible_et_flux_propre():
-    np.testing.assert_array_equal(instants_reaction(10, 5.0, 0.5, 7), instants_reaction(10, 5.0, 0.5, 7))
-    assert not np.array_equal(instants_reaction(10, 5.0, 0.5, 7), instants_reaction(10, 5.0, 0.5, 8))
 
-@pytest.mark.parametrize("mediane, dispersion", [(0.0, 0.5), (-1.0, 0.5), (5.0, -0.1), (np.nan, 0.5)])
+def test_reproductible_et_flux_propre():
+    np.testing.assert_array_equal(
+        instants_reaction(10, 5.0, 0.5, 7), instants_reaction(10, 5.0, 0.5, 7)
+    )
+    assert not np.array_equal(
+        instants_reaction(10, 5.0, 0.5, 7), instants_reaction(10, 5.0, 0.5, 8)
+    )
+
+
+@pytest.mark.parametrize(
+    "mediane, dispersion", [(0.0, 0.5), (-1.0, 0.5), (5.0, -0.1), (np.nan, 0.5)]
+)
 def test_refus(mediane, dispersion):
     with pytest.raises(ValueError):
         instants_reaction(3, mediane, dispersion, 1)
@@ -98,21 +107,27 @@ Règle : tant que `t < reactions[i]`, l'agent i a une direction nulle (il freine
 def test_sans_reaction_identique_au_bit_pres():
     a = simuler_piscine(parametres_reduits())
     b = simuler_piscine(parametres_reduits(reaction=None))
-    np.testing.assert_array_equal(a.x, b.x); np.testing.assert_array_equal(a.sorties, b.sorties)
+    np.testing.assert_array_equal(a.x, b.x)
+    np.testing.assert_array_equal(a.sorties, b.sorties)
+
 
 def test_personne_ne_bouge_ni_ne_franchit_avant_sa_reaction():
     r = simuler_piscine(parametres_reduits(reaction={"mediane": 3.0, "dispersion": 0.0}, duree=2.5))
     assert np.max(np.abs(r.x - r.x[0])) < 1e-12
     assert r.deblocages == 0 and np.all(r.etats == EAU)
 
+
 def test_les_agents_partent_apres_leur_reaction():
     r = simuler_piscine(parametres_reduits(reaction={"mediane": 1.0, "dispersion": 0.0}, duree=3.0))
     assert np.max(np.hypot(*(r.x[-1] - r.x[0]).T)) > 0.1
 
+
 def test_positions_initiales_inchangees_par_la_reaction():
     np.testing.assert_array_equal(
         positions_initiales(parametres_reduits()),
-        positions_initiales(parametres_reduits(reaction={"mediane": 5.0, "dispersion": 0.5})))
+        positions_initiales(parametres_reduits(reaction={"mediane": 5.0, "dispersion": 0.5})),
+    )
+
 
 def test_reaction_mal_formee_refusee():
     with pytest.raises(ValueError, match="reaction"):
@@ -169,8 +184,10 @@ triviale.
 def test_facteur_a_la_reference():
     assert facteur_profondeur(np.array([0.7]))[0] == 1.0
 
+
 def test_facteur_au_grand_bain():
     assert facteur_profondeur(np.array([1.2]))[0] == pytest.approx(0.8149, abs=1e-4)  # 0,56 / 0,69
+
 
 def test_profondeur_lineaire_et_bornee():
     b = ObstacleRectangle(3.0, 28.0, 4.0, 16.5)
@@ -203,13 +220,18 @@ def test_profondeur_constante_identique_a_sans_profondeur():
     b = simuler_piscine(parametres_reduits(profondeur={"gauche": 0.7, "droite": 0.7}))
     np.testing.assert_array_equal(a.x, b.x)
 
+
 def test_nageur_plus_lent_au_grand_bain():
     v_grand = vitesse_moyenne_nageur_seul(profondeur={"gauche": 1.2, "droite": 1.2})
     v_ref = vitesse_moyenne_nageur_seul(profondeur=None)
     assert v_grand / v_ref == pytest.approx(0.815, rel=0.03)
 
+
 def test_guidage_plus_long_au_grand_bain():
-    assert temps_eau_au_centre(profondeur={"gauche": 1.2, "droite": 1.2}) > temps_eau_au_centre(profondeur=None)
+    assert temps_eau_au_centre(profondeur={"gauche": 1.2, "droite": 1.2}) > temps_eau_au_centre(
+        profondeur=None
+    )
+
 
 def test_profondeur_hors_domaine_refusee():
     with pytest.raises(ValueError, match="profondeur"):
@@ -251,16 +273,25 @@ devant l'échelle et va au rebord libre d'à côté.
 
 ```python
 def test_la_file_detourne_vers_le_site_libre():
-    couts = couts_sites(np.array([[5.0, 1.0]]), np.array([[4.0, 0.2], [6.0, 0.2]]), 1.0,
-                        np.array([2.0, 2.0]), np.zeros(2), files=np.array([3, 0]))
+    couts = couts_sites(
+        np.array([[5.0, 1.0]]),
+        np.array([[4.0, 0.2], [6.0, 0.2]]),
+        1.0,
+        np.array([2.0, 2.0]),
+        np.zeros(2),
+        files=np.array([3, 0]),
+    )
     assert choisir(couts, np.array([-1]), 1.0, np.ones((1, 2), bool))[0] == 1
+
 
 def test_la_marge_evite_l_hesitation():
     couts = np.array([[10.0, 9.5]])
     assert choisir(couts, np.array([0]), 1.0, np.ones((1, 2), bool))[0] == 0
 
+
 def test_aucun_site_a_portee():
     assert choisir(np.array([[1.0, 2.0]]), np.array([-1]), 1.0, np.zeros((1, 2), bool))[0] == -1
+
 
 def test_files_par_site():
     np.testing.assert_array_equal(files_par_site(np.array([0, 0, 2, -1]), 3), [2, 0, 1])
@@ -279,12 +310,18 @@ def test_files_par_site():
 
 ```python
 def test_sans_choix_identique_au_bit_pres():
-    np.testing.assert_array_equal(simuler_piscine(parametres_reduits()).x,
-                                  simuler_piscine(parametres_reduits(choix_site=None)).x)
+    np.testing.assert_array_equal(
+        simuler_piscine(parametres_reduits()).x,
+        simuler_piscine(parametres_reduits(choix_site=None)).x,
+    )
+
 
 def test_evacuation_complete_avec_choix():
-    r = simuler_piscine(parametres_reduits(n_agents=30, duree=120.0,
-                                           choix_site={"portee": 3.0, "periode": 1.0, "marge": 1.0}))
+    r = simuler_piscine(
+        parametres_reduits(
+            n_agents=30, duree=120.0, choix_site={"portee": 3.0, "periode": 1.0, "marge": 1.0}
+        )
+    )
     assert np.all(np.isfinite(r.sorties)) and r.violation_paroi_max() <= 1e-14
 ```
 
