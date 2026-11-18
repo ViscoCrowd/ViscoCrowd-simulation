@@ -1,10 +1,22 @@
 % Le resume presente rapidement le probleme etudie et l'approche utilisee.
 % Une demi-page au grand maximum.
 
-\textbf{A rediger en fin de projet}, quand les resultats sont connus : un resume
-ecrit trop tot promet ce qu'on n'a pas encore mesure.
+Une piscine couverte s'évacue en urgence : les baigneurs sortent de l'eau par les échelles et
+le rebord, traversent une plage dont le carrelage est mouillé, puis se pressent devant une
+porte unique. Nous cherchons comment cet enchaînement altère le diagramme fondamental
+débit--densité de la foule, et lequel de deux mécanismes l'emporte : un effet tampon, où la
+traversée désynchronise les arrivées à la porte, ou un effet inertiel, où le sol glissant
+empêche les baigneurs de réguler leur approche.
 
-A couvrir : le phenomene (evacuation de piscine en panique), la question
-(deformation du diagramme fondamental par l'enchainement extraction repartie,
-zone mouillee, goulot), l'approche (modele particulaire a exclusion dure par
-projection), et le resultat principal en une phrase.
+Nous utilisons un modèle particulaire à exclusion dure : à chaque pas, un déplacement libre
+est projeté sur l'ensemble des positions admissibles, et la vitesse est relue sur le
+déplacement réalisé. Les trois milieux (eau, carrelage mouillé, sol sec) diffèrent par la
+vitesse souhaitée, le temps de relaxation et l'accélération maximale que permet l'adhérence.
+Un guidage par champ eikonal mène chacun vers la sortie, et une régulation vitesse--espacement,
+étalonnée sur les mesures de Seyfried et al.\ au goulot, fixe le débit.
+
+Dans la piscine de référence, le carrelage mouillé ne change pas l'évacuation de façon
+mesurable. Quand un sol très glissant touche la file d'une porte saturée, l'effet inertiel
+apparaît, sur vingt graines : la porte perd jusqu'à \SI{19}{\percent} de son débit, et la file
+devient plus dense et plus lente à densité égale. L'effet tampon, lui, n'a pas été mis en
+évidence.
