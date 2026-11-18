@@ -217,6 +217,10 @@ viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
 viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 ```
 
+Pour voir toute l'évacuation en une image, `viscocrowd pose-longue data/piscine.npz --image
+figures/pose.png` superpose les trajectoires de tous les agents, colorées par leur vitesse,
+comme une photo à longue exposition : couloirs empruntés, files, zones lentes.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
