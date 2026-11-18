@@ -35,6 +35,11 @@ def _parametres(
             "le goulot est un banc de mesure (E0) sans archive : "
             "utiliser la commande etalonner-goulot"
         )
+    if config["scenario"] == "anneau":
+        raise ValueError(
+            "l'anneau est un banc de mesure (M8) sans archive : "
+            "utiliser la commande diagramme-anneau"
+        )
     for nom, classe in (("couloir", ParametresCouloir), ("piscine", ParametresPiscine)):
         if config["scenario"] == nom:
             try:
