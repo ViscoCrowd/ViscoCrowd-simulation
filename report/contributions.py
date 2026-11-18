@@ -29,8 +29,8 @@ DOMAINES = (
     ("Documentation et planning", ("docs/", "README.md", "CONTRIBUTING.md")),
 )
 AUTRE = "Outillage (CI, Docker, CLI)"
-# ponytail: filtre par extension ; les bilans JSON des campagnes sont generes, les
-# compter donnerait tout au dernier qui a lance une mesure.
+# Filtre par extension : les bilans JSON des campagnes sont generes, les compter
+# donnerait tout au dernier qui a lance une mesure.
 EXTENSIONS = (".py", ".tex", ".md", ".yaml", ".yml", ".toml", ".bib", ".ps1", "Makefile")
 
 
@@ -56,11 +56,14 @@ def agreger(sortie_git: str) -> dict[str, dict[str, int]]:
         champs = ligne.split("\t")
         if len(champs) != 3 or "-" in champs[:2] or not champs[2].endswith(EXTENSIONS):
             continue
-        # Un renommage s'ecrit `a/{x => y}.py` : on garde le chemin d'arrivee.
+        # Un renommage s'ecrit `a/{x => y}.py`, ou `x.md => docs/y.md` quand les deux
+        # chemins n'ont pas de partie commune : on garde le chemin d'arrivee.
         chemin = champs[2]
-        if "=>" in chemin:
+        if "{" in chemin and "=>" in chemin:
             avant, _, apres = chemin.partition("{")
             chemin = avant + apres.split("=> ", 1)[1].replace("}", "", 1)
+        elif " => " in chemin:
+            chemin = chemin.split(" => ", 1)[1]
         lignes[domaine(chemin)][auteur] += int(champs[0]) + int(champs[1])
     return lignes
 

@@ -51,7 +51,7 @@ def exporter_duel(donnees, titres, chemin: Path, *, fps: int = 15, vitesse: floa
     try:
         for lecteur, titre in zip(lecteurs, titres, strict=True):
             lecteur.figure.set_dpi(dpi)
-            lecteur.figure.texts[1].set_text(titre.upper())
+            lecteur.sous_titre.set_text(titre.upper())
             # Le style global peut avoir ete change par un module de figures importe
             # entre-temps (grille) : la vue doit rester celle de la relecture.
             lecteur.ax.grid(False)
