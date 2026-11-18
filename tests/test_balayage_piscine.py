@@ -50,6 +50,7 @@ def appels(monkeypatch):
             "t100": p.facteur_vitesse,
             "debit": p.piscine.largeur_mouillee,
             "non_sortis": 0.0,
+            **{f"chutes_{cause}": 0.0 for cause in balayage.CAUSES_CHUTE},
         }
 
     monkeypatch.setattr(balayage, "mesurer", factice)
@@ -102,6 +103,46 @@ class TestAppariement:
             assert mouille.chutes is not None
             assert mouille.chutes == temoins[g].chutes
         assert not point.equivaut_au_sec
+
+    @pytest.mark.parametrize(
+        ("parametre", "valeurs"),
+        [
+            ("lambda_domino", [2.0, 8.0]),
+            ("lambda_bousculade", [0.0, 5.0]),
+            ("facteur_rayon_terre", [1.0, 2.0]),
+        ],
+    )
+    def test_hypotheses_des_chutes_balayees_avec_le_meme_temoin(
+        self, configuration, appels, parametre, valeurs
+    ):
+        """Les hypotheses sans source du module se balaient comme lambda_chute (#130).
+
+        Le module est active avec ses autres valeurs par defaut, et le temoin garde les
+        memes chutes : Delta ne mesure que le sol.
+        """
+        balayage.balayer(configuration, parametre, valeurs, [1])
+        assert len(appels) == 2 * len(valeurs)
+        assert all(p.chutes is not None for p in appels)
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        temoins = [p for p in appels if p.piscine.largeur_mouillee == 0]
+        assert {getattr(p.chutes, parametre) for p in mouilles} == set(valeurs)
+        assert {p.chutes for p in mouilles} == {p.chutes for p in temoins}
+        # Les autres valeurs du module restent celles par defaut.
+        assert {p.chutes.lambda_chute for p in appels} == {2.0}
+
+    @pytest.mark.parametrize(
+        ("parametre", "valeur", "message"),
+        [
+            ("facteur_rayon_terre", 0.9, "facteur_rayon_terre"),
+            ("lambda_bousculade", -1.0, "lambda_bousculade"),
+        ],
+    )
+    def test_hypotheses_des_chutes_hors_domaine_refusees(
+        self, configuration, appels, parametre, valeur, message
+    ):
+        with pytest.raises(ValueError, match=message):
+            balayage.balayer(configuration, parametre, [valeur], [1])
+        assert appels == []
 
     def test_section_scalaire_refusee(self, configuration, appels):
         configuration["parametres"]["chutes"] = 1.0
@@ -344,6 +385,7 @@ class TestSimulationReelle:
             temps_evacuation=lambda fraction: Sorties(
                 np.array([10.0, 12.0, np.nan])
             ).temps_evacuation(fraction),
+            chutes=(),
         )
         monkeypatch.setattr(balayage, "simuler_piscine", lambda p, **options: resultat)
         base = configuration["parametres"] | {"n_agents": 3}
@@ -352,6 +394,40 @@ class TestSimulationReelle:
         assert mesures["non_sortis"] == 1.0
         assert mesures["t50"] == 12.0 and mesures["t100"] == math.inf
         assert math.isnan(mesures["debit"])
+        assert all(mesures[f"chutes_{c}"] == 0.0 for c in balayage.CAUSES_CHUTE)
+
+    def test_chutes_comptees_par_cause(self, configuration, monkeypatch):
+        """Le balayage compte les chutes de chaque cause : c'est la mesure des chutes (#130)."""
+        causes = ("glissade", "domino", "glissade", "bousculade", "glissade")
+        resultat = SimpleNamespace(
+            sorties=np.array([10.0, 12.0, 14.0]),
+            projection=SimpleNamespace(verifier_convergence=lambda: None),
+            temps_evacuation=lambda fraction: Sorties(
+                np.array([10.0, 12.0, 14.0])
+            ).temps_evacuation(fraction),
+            chutes=tuple(SimpleNamespace(cause=c) for c in causes),
+        )
+        monkeypatch.setattr(balayage, "simuler_piscine", lambda p, **options: resultat)
+        base = configuration["parametres"] | {"n_agents": 3}
+        mesures = balayage.mesurer(ParametresPiscine(**base, graine=1))
+
+        assert mesures["chutes_glissade"] == 3.0
+        assert mesures["chutes_domino"] == 1.0
+        assert mesures["chutes_bousculade"] == 1.0
+
+    def test_vraies_chutes_comptees(self, configuration):
+        """Simulation reelle : le decompte rend exactement l'historique du module."""
+        base = configuration["parametres"] | {
+            "n_agents": 6,
+            "chutes": {"lambda_chute": 50.0},
+            "facteur_vitesse": 1.5,
+        }
+        p = ParametresPiscine(**base, graine=3)
+        mesures = balayage.mesurer(p)
+        r = simuler_piscine(p, archiver_tous=math.ceil(p.duree / p.dt))
+        total = sum(mesures[f"chutes_{c}"] for c in balayage.CAUSES_CHUTE)
+        assert len(r.chutes) > 0  # sinon le test ne verifierait rien
+        assert total == len(r.chutes)
 
 
 class TestCommande:
@@ -390,8 +466,16 @@ class TestCommande:
         assert bilan["contexte"]["code"]["source"] in ("git", "environnement", "indisponible")
         premier, second = bilan["points"]
         assert premier["valeur"] == 1.0 and not premier["equivaut_au_sec"]
-        assert premier["mouille"] == [[3.0, 1.0, 1.5, 3.0, 0.0], [4.0, 1.0, 1.5, 3.0, 0.0]]
-        assert premier["temoin"] == [[3.0, 5.9, 1.5, 0.0, 0.0], [4.0, 5.9, 1.5, 0.0, 0.0]]
+        assert bilan["mesures"] == list(balayage.MESURES)
+        sans_chutes = [0.0] * len(balayage.CAUSES_CHUTE)
+        assert premier["mouille"] == [
+            [3.0, 1.0, 1.5, 3.0, 0.0, *sans_chutes],
+            [4.0, 1.0, 1.5, 3.0, 0.0, *sans_chutes],
+        ]
+        assert premier["temoin"] == [
+            [3.0, 5.9, 1.5, 0.0, 0.0, *sans_chutes],
+            [4.0, 5.9, 1.5, 0.0, 0.0, *sans_chutes],
+        ]
         assert second["equivaut_au_sec"]
         assert "(= temoin)" in capsys.readouterr().out
 
@@ -408,6 +492,7 @@ class TestCommande:
                 "t100": math.inf if bouche else 30.0,
                 "debit": math.nan if bouche else 1.5,
                 "non_sortis": 4.0 if bouche else 0.0,
+                **{f"chutes_{cause}": 0.0 for cause in balayage.CAUSES_CHUTE},
             }
 
         monkeypatch.setattr(balayage, "mesurer", mesure)
@@ -421,7 +506,7 @@ class TestCommande:
         assert "4/4" in bouche  # non sortis : mouille/temoin, total sur les graines
         assert "incomplet" not in normal
         bilan = json.loads(sortie.read_text(encoding="utf-8"))
-        assert bilan["points"][0]["mouille"][1] == [10.0, 20.0, None, None, 4.0]
+        assert bilan["points"][0]["mouille"][1] == [10.0, 20.0, None, None, 4.0, 0.0, 0.0, 0.0]
         assert [p["valeur"] for p in bilan["points"]] == [2.0, 1.0]
 
     @pytest.mark.parametrize(

@@ -1,0 +1,14 @@
+E3 — balayage de lambda_chute (1/s)
+  taux de chute par perte d'adherence (active le module de chutes, avec ses autres valeurs par defaut non calibrees : inclusion validee (#19), aucun chiffre n'est un resultat avant calibration)
+Parametres fixes hors YAML : aucun ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+chutes : moyenne par evacuation, toutes causes, mouille/temoin
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis      chutes Delta t100 > 0
+     0.5     58.32 ± 7.95     0.525 ± 1.301     3.846 ± 5.987     6.966 ± 7.843    -0.321 ± 0.298         0/0    57.0/0.0       10/10
+       1     61.52 ± 6.32     0.943 ± 0.982     5.323 ± 3.199    10.161 ± 6.218    -0.470 ± 0.230         0/0    83.6/0.0       10/10
+       2     63.36 ± 6.09     1.639 ± 1.274     6.894 ± 3.412    12.007 ± 5.251    -0.543 ± 0.166         0/0   115.0/0.0       10/10
+       5     68.35 ± 6.56     3.928 ± 2.418    11.309 ± 3.200    16.998 ± 7.562    -0.704 ± 0.242         0/0   184.6/0.0       10/10
+      10     76.14 ± 7.11     8.478 ± 2.850    16.972 ± 4.756    24.789 ± 7.567    -0.904 ± 0.198         0/0   251.5/0.0       10/10
+Mesures graine par graine : docs\mesures\chutes-exploratoire-2026-11-16\lambda_chute.json
+Temps d'execution : 2080.5 s

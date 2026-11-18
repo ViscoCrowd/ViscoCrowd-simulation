@@ -167,6 +167,7 @@ def ajouter_commande(sous) -> None:
     commande.add_argument("--pas-mesure", type=int, default=10, help="un instant sur N")
     commande.add_argument("--pas-classe", type=float, default=0.25, help="pers/m^2")
     commande.add_argument("--sortie", type=Path, help="bilan JSON, series et classes")
+    commande.add_argument("--figure", type=Path, help="dossier ou ecrire la figure")
     commande.set_defaults(fonction=commande_diagramme)
 
 
@@ -255,5 +256,24 @@ def commande_diagramme(args) -> int:
             },
         )
         print(f"Bilan : {args.sortie}")
+    if args.figure is not None:
+        from viscocrowd.viz.figures import figure_diagramme_piscine
+
+        # Libelles lisibles des parametres fixes, avec leur unite ; nom brut sinon.
+        libelles = {
+            "largeur_porte": ("porte", "m"),
+            "largeur_mouillee": ("mouillé sur", "m"),
+            "adherence_mouille": ("$a_{max}$ mouillé", "m/s²"),
+        }
+        details = [
+            f"{libelles.get(k, (k, ''))[0]} {v:g} {libelles.get(k, (k, ''))[1]}".strip()
+            for k, v in fixes.items()
+        ]
+        titre = (
+            f"Devant la porte de la piscine, plage sèche et plage mouillée, {len(graines)} graines"
+        )
+        if details:
+            titre += "\n" + ", ".join(details)
+        print(f"Figure : {figure_diagramme_piscine(classes, titre, args.figure)}")
     print(f"Temps d'execution : {time.perf_counter() - debut_calcul:.1f} s")
     return 0

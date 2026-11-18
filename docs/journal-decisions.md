@@ -11,6 +11,75 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-16 — Chutes : référence sans chutes, campagne exploratoire à part (#130)
+
+**Statut.** Décision proposée par Shaleena, à valider en relecture de la PR. Elle reprend la
+proposition de Lenny du 14 novembre (entrée plus bas), complétée par la mesure.
+
+**Contexte.** L'enseignant a validé l'inclusion des chutes dans le rendu (C1, 3 novembre),
+pas leurs valeurs. Aucun des quatre paramètres libres du module n'a de source primaire :
+`lambda_chute`, `lambda_domino`, `lambda_bousculade` (seul compte son produit avec
+`duree_bousculade`, #135) et `facteur_rayon_terre`. Il n'existe pas non plus de taux de chute
+observé pendant une évacuation de piscine sur lequel les caler.
+
+**Décision.**
+1. **La référence reste sans chutes** (`chutes: null` dans `experiments/piscine.yaml`).
+   E1/E2, les balayages E3/E4 et les conclusions principales du rapport en restent là.
+2. **Les chutes sont présentées dans une campagne exploratoire à part.** Elle balaie les
+   quatre paramètres comme des hypothèses, un à la fois, avec le témoin sec habituel, qui
+   garde les mêmes chutes. `lambda_domino`, `lambda_bousculade` et `facteur_rayon_terre`
+   deviennent balayables comme `lambda_chute`, et chaque évacuation compte ses chutes par
+   cause.
+3. **Les valeurs par défaut ne changent pas** (λ_chute = 2 /s, λ_domino = 4 /s,
+   λ_bousculade = 0, r_terre = 1,5 r) : ce sont des points de départ, pas des valeurs
+   calibrées.
+4. **Relevage systématique**, sans piétinement : c'est le plus simple, et cela suffit pour
+   une question de débit.
+5. **Population homogène** de nageurs, médiane de relevage 3,7 s (Becker et al. 2016,
+   adultes de 20 à 50 ans). La fraction de 60 ans et plus n'est pas modélisée.
+
+**Mesure** (16 novembre, Windows, graines 1 à 10, référence régulée, mouillé et témoin sec ;
+`docs/balayages-piscine.md`, section « Chutes » ; bilans dans
+`docs/mesures/chutes-exploratoire-2026-11-16/`) :
+
+| Hypothèse (les autres par défaut) | Chutes par évacuation, mouillé | Δ t100 (s) | Graines plus lentes |
+|---|---|---|---|
+| λ_chute = 0,5 → 10 /s | 57 → 252 | +7,0 → +24,8 | 10/10 |
+| λ_domino = 1 → 16 /s | 63 → 175 | +6,1 → +17,8 | 9 à 10/10 |
+| λ_bousculade = 0 → 10 /s | 115 → 129 (témoin : 0 → 37) | +12,0 → +11,7 | 9 à 10/10 |
+| r_terre = 1 → 2 r | 124, 115, 125 | +21,0, +12,0, +11,5 | 10/10 |
+
+- **Le module donne le premier effet net du sol mouillé** : t100 recule de 6 à 25 s selon les
+  hypothèses, sur 9 ou 10 graines sur 10. Sans bousculade, le témoin sec ne tombe jamais :
+  5,9 m/s² n'est pas dépassé. Les glissades partent de la bande mouillée, et le domino les
+  propage.
+- **Le domino domine** : aux valeurs par défaut, 85 des 115 chutes, soit près de trois chutes
+  par glissade.
+- **Les nombres ne sont pas plausibles.** 115 chutes pour 100 baigneurs, c'est plus d'une
+  chute par personne ; même à λ_chute = 0,5 /s, il y en a 57. C'est pourquoi aucun de ces
+  chiffres n'est un résultat : la campagne montre un sens et une sensibilité, pas une
+  amplitude.
+- **r_terre n'est pas monotone.** À r_terre = r, il y a deux fois plus de glissades (68
+  contre 30) et le plus grand retard. Ce n'est pas expliqué, et ce n'est pas mesuré plus
+  avant.
+- **La bousculade ne dépend pas du sol.** Elle apparaît aussi sur le témoin sec, par
+  compression devant la porte, et Δ ne croît pas avec elle.
+- **Pas de dépendance décelable au pas de temps dans une évacuation**, glissade et domino
+  actifs (Δt = 0,01 et 0,005 s, mêmes graines) : 115,0 et 108,5 chutes par évacuation,
+  écart apparié −6,5 ± 22,0 (IC 95 % : −22 à +9 ; p = 0,37 par permutation exacte) ;
+  glissade +2 % (p = 0,88), domino −8 % (p = 0,15). Sur 10 graines, une dépendance de
+  l'ordre de 20 % ne peut pas être exclue.
+
+**Options écartées.**
+- *Activer les chutes dans la référence.* Tous les résultats dépendraient alors de taux sans
+  source, dont la mesure montre qu'ils fixent l'amplitude de l'effet.
+- *Caler λ_chute sur un taux « plausible ».* Sans observation de référence, ce serait
+  ajuster le module pour obtenir le résultat attendu (déjà écarté le 14 novembre).
+- *Population hétérogène.* La seule source donne 5,7 s pour les 60 ans et plus, mais rien
+  sur leur part dans une piscine ; ce serait une hypothèse de plus.
+
+---
+
 ## 2026-11-14 — Compter le risque de bousculade par choc, et non par pas (#130)
 
 **Contexte.** L'entrée suivante montre que la bousculade dépend de Δt dans une évacuation.
