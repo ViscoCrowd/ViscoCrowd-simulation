@@ -169,7 +169,7 @@ dans [#130] ; aucune tâche des jalons 3 à 6 n'en dépend.
 | Agent à terre et relevage | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §3–4 ; inclusion validée (C1) |
 | Contournement local d'une personne à terre | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §5 ; distinct de l'obstacle fixe G2 |
 | Propagation des chutes | Code livré dans #78 et #82, désactivé par défaut | Addendum chutes §3 ; inclusion validée (C1) |
-| Calibrer les taux de chute et décider de l'activation dans les campagnes | En cours ([#130]) : indépendance à Δt vérifiée à excès donné pour les trois mécanismes (#132) ; bousculade comptée par choc, sans tendance sur Δt, Δt/2 et Δt/4 (#135) ; module désactivé dans les campagnes de référence (proposition de #132) ; taux à calibrer | Addendum chutes §8 ; balayage de `lambda_chute` outillé dans #104 |
+| Calibrer les taux de chute et décider de l'activation dans les campagnes | Décidé le 16/11/2026, à valider en relecture ([#130]) : indépendance à Δt vérifiée à excès donné pour les trois mécanismes (#132), bousculade comptée par choc (#135), et glissade et domino sans dépendance décelable dans une évacuation ; référence sans chutes ; aucun taux calibrable faute de source, les quatre hypothèses balayées dans une campagne exploratoire (Δ t100 de +6 à +25 s) ; relevage systématique et population homogène | Addendum chutes §8 ; balayage de `lambda_chute` outillé dans #104 |
 | Anticipation du mouvement futur des voisins | Non programmé | Extension au-delà du contournement réactif |
 | Trébuchement distinct sur obstacle | Non programmé | Mécanisme absent de la spécification actuelle |
 

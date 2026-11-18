@@ -69,6 +69,27 @@ def test_documentation_modifiee_ne_marque_pas_l_archive(depot):
 
 
 @avec_git
+def test_chemin_accentue_garde_son_commit(tmp_path, monkeypatch):
+    """Un depot sous « Université Côte d'Azur » garde son commit, Windows compris.
+
+    git ecrit ses chemins en UTF-8 ; lus dans l'encodage local (cp1252 sous Windows),
+    ils ne correspondaient plus a la racine, et la provenance tombait a « indisponible ».
+    """
+    monkeypatch.delenv(VARIABLE_COMMIT, raising=False)
+    racine = tmp_path / "Université Côte d'Azur" / "dépôt"
+    (racine / "src").mkdir(parents=True)
+    (racine / "src/moteur.py").write_text("PAS = 1\n")
+    git(racine, "init", "-q")
+    git(racine, "add", ".")
+    identite = ("-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false")
+    git(racine, *identite, "commit", "-q", "-m", "init")
+
+    p = provenance_code(racine)
+    assert p["source"] == "git"
+    assert p["modifications_locales"] is False
+
+
+@avec_git
 def test_sous_dossier_d_un_depot_n_emprunte_pas_son_commit(depot):
     assert provenance_code(depot / "src")["source"] == "indisponible"
 

@@ -195,6 +195,7 @@ def construire_analyseur() -> argparse.ArgumentParser:
         anneau,
         balayage_piscine,
         campagne,
+        campagne_finale,
         diagramme_goulot,
         diagramme_piscine,
         performances,
@@ -211,6 +212,7 @@ def construire_analyseur() -> argparse.ArgumentParser:
     interface.set_defaults(fonction=commande_interface)
 
     campagne.ajouter_commande(sous)
+    campagne_finale.ajouter_commande(sous)
 
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(
