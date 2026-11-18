@@ -199,11 +199,12 @@ l'erreur : ce contrôle seul ne prouve pas la convergence du modèle.
 
 La relecture ouvre une fenêtre avec **Lire/Pause**, un curseur de temps et un compteur
 de passages vers l'aval. Les disques gardent leur rayon en mètres ; l'horloge utilise
-les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux.
+les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux
+(`make rejouer VITESSE=5` ou `make lancer VITESSE=5` ; sous Windows, `.\run.ps1 rejouer --vitesse 5`).
 Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
-les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
+les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `make maquette`.
 
 Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
 simule la piscine puis ouvre directement la relecture de l'archive produite
@@ -220,6 +221,11 @@ viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 Pour voir toute l'évacuation en une image, `viscocrowd pose-longue data/piscine.npz --image
 figures/pose.png` superpose les trajectoires de tous les agents, colorées par leur vitesse,
 comme une photo à longue exposition : couloirs empruntés, files, zones lentes.
+
+`viscocrowd diagramme-anime data/piscine.npz` rejoue la même archive avec, à droite, le
+diagramme fondamental devant la porte (mesure de Voronoï de M8, #124) qui se trace en
+direct : point courant, traînée des 2 dernières secondes, relation de Weidmann en repère.
+Mêmes exports que `rejouer` (`--image`, `--gif`, `--instant`), lecture ×4 par défaut.
 
 Pour comparer deux évacuations à l'écran, `viscocrowd duel experiments/piscine.yaml --gif
 figures/duel.gif` simule la piscine et son témoin tout sec (même graine, mêmes positions de
@@ -270,7 +276,7 @@ sections [implémentation](report/sections/04-implementation.tex) et
 ### Aperçu de la piscine
 
 ```bash
-make interface
+make maquette
 # Ou, avec l'environnement virtuel activé :
 viscocrowd interface
 ```
@@ -280,6 +286,8 @@ un bassin noir à contour blanc, une échelle à barreaux et une sortie unique �
 Le cadre extérieur reste continu derrière la sortie. Un petit repère indique les
 directions x et y. Les différents sols ne sont pas encore détaillés.
 La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une image.
+Cette maquette ne simule rien : pour voir une évacuation, utiliser `make lancer`.
+La cible s'appelait `make interface` jusqu'au 17 novembre 2026.
 
 **Une unité du plan représente un mètre**, avec la même échelle horizontale et verticale.
 Les dimensions de travail sont regroupées dans `DimensionsPlan` : bassin de **25 × 12,5 m**
