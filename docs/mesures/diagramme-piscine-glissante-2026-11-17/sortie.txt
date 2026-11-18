@@ -1,0 +1,21 @@
+M8, piscine devant la porte — graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], fixes {'largeur_porte': 0.8, 'largeur_mouillee': 20.0, 'adherence_mouille': 1.0}
+ecart-type = dispersion des etats, pas incertitude (points correles)
+   rho  pts sec          v sec  pts mouille      v mouille  v Weidmann
+  0.12     1066   1.678 ± 0.449         1002   1.532 ± 0.553       1.340
+  0.38      302   0.922 ± 0.437          295   0.928 ± 0.533       1.328
+  0.62      628   0.685 ± 0.186          300   0.683 ± 0.396       1.251
+  0.88     2973   0.577 ± 0.074          298   0.558 ± 0.276       1.125
+  1.12      757   0.544 ± 0.095          419   0.432 ± 0.172       0.991
+  1.38      264   0.498 ± 0.073         1004   0.384 ± 0.106       0.865
+  1.62       88   0.462 ± 0.085         1121   0.350 ± 0.092       0.752
+  1.88       14   0.388 ± 0.033          747   0.318 ± 0.076       0.652
+  2.12        0     nan ± nan            549   0.288 ± 0.082       0.564
+  2.38        0     nan ± nan            525   0.252 ± 0.061       0.487
+  2.62        0     nan ± nan            386   0.228 ± 0.062       0.419
+  2.88        0     nan ± nan            360   0.195 ± 0.059       0.358
+  3.12        0     nan ± nan            196   0.181 ± 0.045       0.305
+  3.38        0     nan ± nan            126   0.163 ± 0.045       0.257
+  3.62        0     nan ± nan             71   0.132 ± 0.032       0.213
+  3.88        0     nan ± nan             11   0.113 ± 0.024       0.174
+Bilan : docs/mesures/diagramme-piscine-glissante-2026-11-17/bilan.json
+Temps d'execution : 244.1 s

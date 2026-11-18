@@ -45,7 +45,7 @@ def _enregistrer(fig: plt.Figure, destination: Path, nom: str) -> Path:
 
 
 def figure_respect_contrainte(destination: Path) -> Path:
-    """Fig. 1 — le depassement de contrainte reste nul a la precision machine.
+    """Le depassement de contrainte reste nul a la precision machine.
 
     Trace pour plusieurs pas de temps, y compris un dt volontairement grossier :
     le confinement ne depend pas de dt, parce que la position est projetee a
@@ -71,8 +71,7 @@ def figure_respect_contrainte(destination: Path) -> Path:
     # l'arrondi pres : ce sont les plateaux a 1e-16 m.
     ax.set_ylabel(r"$\left|\max_i \left( x \cdot n_i - (R-r) \right)\right|$  (m)")
     ax.set_title(
-        "Fig. 1 — Respect de la contrainte de confinement\n"
-        "$R$ = 1 m, $r$ = 0,05 m, $\\omega$ = 1 rad/s",
+        "Respect de la contrainte de confinement\n$R$ = 1 m, $r$ = 0,05 m, $\\omega$ = 1 rad/s",
         fontsize=10,
     )
     ax.legend()
@@ -80,7 +79,7 @@ def figure_respect_contrainte(destination: Path) -> Path:
 
 
 def figure_energie(destination: Path) -> Path:
-    """Fig. 2 — l'energie mecanique decroit par sauts, en boite fixe.
+    """L'energie mecanique decroit par sauts, en boite fixe.
 
     On se place a omega = 0 : aucune paroi ne travaille, donc l'energie ne peut
     que decroitre. En vol libre elle baisse de (1/2) dt^2 |g|^2 par pas, et
@@ -95,7 +94,7 @@ def figure_energie(destination: Path) -> Path:
     ax.set_xlabel("temps $t$ (s)")
     ax.set_ylabel("energie mecanique $E$ (J)")
     ax.set_title(
-        "Fig. 2 — Dissipation de l'energie par les chocs mous\n"
+        "Dissipation de l'energie par les chocs mous\n"
         "boite fixe ($\\omega$ = 0), $m$ = 1 kg, $\\Delta t$ = $10^{-3}$ s",
         fontsize=10,
     )
@@ -103,7 +102,7 @@ def figure_energie(destination: Path) -> Path:
 
 
 def figure_entrainement(destination: Path) -> Path:
-    """Fig. 3 — l'entrainement solide n'a lieu qu'en regime centrifuge.
+    """L'entrainement solide n'a lieu qu'en regime centrifuge.
 
     Resultat non trivial : le critere de validation du sujet (« la bille se
     stabilise dans un coin et tourne solidairement avec la boite ») n'est
@@ -131,7 +130,7 @@ def figure_entrainement(destination: Path) -> Path:
     ax.set_xlabel("temps $t$ (s)")
     ax.set_ylabel(r"$\left| v - \omega x^{\perp} \right|$  (m/s)")
     ax.set_title(
-        "Fig. 3 — Convergence vers la vitesse d'entrainement du solide\n"
+        "Convergence vers la vitesse d'entrainement du solide\n"
         "$R$ = 1 m, $r$ = 0,05 m, $\\Delta t$ = $10^{-3}$ s",
         fontsize=10,
     )
@@ -140,7 +139,7 @@ def figure_entrainement(destination: Path) -> Path:
 
 
 def figure_trajectoire(destination: Path) -> Path:
-    """Fig. 4 — instantanes de la configuration a des instants choisis."""
+    """Instantanes de la configuration a des instants choisis."""
     resultat = simuler_bille(ParametresBille(omega=5.0, dt=1e-3, duree=20.0))
     instants = [0.0, 1.0, 5.0, 20.0]
 
@@ -179,7 +178,7 @@ def figure_trajectoire(destination: Path) -> Path:
 
     axes[0].set_ylabel("$x_2$ (m)", fontsize=8)
     fig.suptitle(
-        "Fig. 4 — Bille dans une boite en rotation, $\\omega$ = 5 rad/s, $\\Delta t$ = $10^{-3}$ s",
+        "Bille dans une boite en rotation, $\\omega$ = 5 rad/s, $\\Delta t$ = $10^{-3}$ s",
         fontsize=10,
     )
     return _enregistrer(fig, destination, "fig04_trajectoire")
@@ -194,7 +193,7 @@ CONVERGENCE_DT = (4e-3, 2e-3, 1e-3, 5e-4, 2.5e-4)
 
 
 def figure_tassement(destination: Path) -> Path:
-    """Fig. 5 — instantanes de l'empilement de 36 disques.
+    """Instantanes de l'empilement de 36 disques.
 
     Le jalon 2 n'avait aucune figure : il se validait par des tableaux de
     nombres. Or le reproche fait a une simulation de foule est d'abord visuel —
@@ -246,7 +245,7 @@ def figure_tassement(destination: Path) -> Path:
     axes[0].set_ylabel("$x_2$ (m)", fontsize=8)
     recouvrement = resultat.recouvrement_max()
     fig.suptitle(
-        f"Fig. 5 — Empilement de {parametres.n_agents} disques de "
+        f"Empilement de {parametres.n_agents} disques de "
         f"{parametres.rayon * 100:.0f} cm, $\\Delta t$ = "
         f"{TASSEMENT_DT:.0e} s, graine {parametres.graine}\n"
         f"recouvrement residuel maximal sur toute la simulation : "
@@ -313,7 +312,7 @@ def _hauteur_finale_tassement(dt: float) -> float:
 
 
 def figure_convergence_dt(destination: Path) -> Path:
-    """Fig. 6 — ordre de convergence en pas de temps, avec et sans contacts.
+    """Ordre de convergence en pas de temps, avec et sans contacts.
 
     Une simulation qui ne converge pas en dt ne mesure rien : ses resultats
     dependent d'un parametre numerique et non de la physique. Cette figure
@@ -398,7 +397,7 @@ def figure_convergence_dt(destination: Path) -> Path:
         axe.set_xlabel(r"$\Delta t$ (ms)")
 
     fig.suptitle(
-        "Fig. 6 — Convergence en pas de temps : ordre 1 sans contact, "
+        "Convergence en pas de temps : ordre 1 sans contact, "
         "limite par les rearrangements de contacts avec",
         fontsize=10,
     )
@@ -409,7 +408,7 @@ def figure_convergence_dt(destination: Path) -> Path:
 def figure_comparaison_mouille(
     resultats: dict[str, np.ndarray], n_agents: int, destination: Path
 ) -> Path:
-    """Fig. 7 — effet separe des parametres du sol mouille, sur le banc de couloir.
+    """Effet separe des parametres du sol mouille, sur le banc de couloir.
 
     Hors de `TOUTES_LES_FIGURES` : ce n'est pas une validation du moteur, et elle
     demande une trentaine de simulations (`viscocrowd comparer-mouille`).
@@ -437,7 +436,7 @@ def figure_comparaison_mouille(
     axes[0].set_yticks(range(len(noms)), [LIBELLES.get(nom, nom) for nom in noms])
     axes[0].invert_yaxis()
     fig.suptitle(
-        f"Fig. 7 — Sol mouillé, un paramètre à la fois : couloir, {n_agents} agents, "
+        f"Sol mouillé, un paramètre à la fois : couloir, {n_agents} agents, "
         f"{n_graines} graines (moyenne ± écart-type)",
         fontsize=10,
     )
@@ -553,7 +552,7 @@ def produire_toutes(destination: Path) -> list[Path]:
 
 
 def figure_diagramme_fondamental(series: dict, classes, destination: Path) -> Path:
-    """Fig. 8 — diagramme fondamental devant le goulot E0, face a Weidmann (M8, #124).
+    """Diagramme fondamental devant le goulot E0, face a Weidmann (M8, #124).
 
     Hors de `TOUTES_LES_FIGURES` : elle demande une campagne E0
     (`viscocrowd diagramme-goulot`). Les points gris sont les instants mesures ; les
@@ -605,9 +604,64 @@ def figure_diagramme_fondamental(series: dict, classes, destination: Path) -> Pa
         axe.set_xlim(0.0, max(weidmann.RHO_MAX, float(np.max(densites, initial=0.0))) * 1.02)
     gauche.legend(fontsize=8)
     fig.suptitle(
-        f"Fig. 8 — Diagramme fondamental devant le goulot E0 : b = "
+        f"Diagramme fondamental devant le goulot E0 : b = "
         f"{', '.join(f'{b:g}' for b in largeurs)} m, {len(graines)} graines",
         fontsize=10,
     )
     fig.tight_layout()
     return _enregistrer(fig, destination, "fig08_diagramme_fondamental")
+
+
+def figure_diagramme_piscine(classes: dict, titre: str, destination: Path) -> Path:
+    """Diagramme fondamental devant la porte de la piscine, sec contre mouille (M8, #124).
+
+    Hors de `TOUTES_LES_FIGURES` : elle demande vingt evacuations
+    (`viscocrowd diagramme-piscine --figure`). `classes` associe a "sec" et "mouille"
+    leurs classes de densite, calculees sur les memes bornes (`diagramme_piscine.agreger`).
+    Pas de nuage de points : les deux series se recouvrent. Les barres sont
+    l'ecart-type de chaque classe, soit la dispersion des etats, et non l'incertitude
+    sur la moyenne (points correles).
+    """
+    from viscocrowd.observables import weidmann
+
+    styles = {
+        "sec": ("#3b6ea8", "o", "plage sèche (témoin)"),
+        "mouille": ("#b4432f", "s", "plage mouillée"),
+    }
+    # Un sol sans aucune classe remplie ne compte pas (nanmax d'un tableau vide de
+    # valeurs avertirait et rendrait NaN ; revue de #142).
+    remplies = [c.densite[c.effectifs > 0] for c in classes.values() if np.any(c.effectifs > 0)]
+    haut = max((float(np.max(d)) for d in remplies), default=1.0)
+    rho = np.linspace(0.0, max(haut, 1.0) * 1.05, 200)
+    fig, (gauche, droite) = plt.subplots(1, 2, figsize=(10, 4))
+    for axe, moyenne, ecart, reference, nom in (
+        (gauche, "vitesse", "ecart_vitesse", weidmann.vitesse(rho), "vitesse $v$ (m/s)"),
+        (
+            droite,
+            "debit",
+            "ecart_debit",
+            weidmann.debit_specifique(rho),
+            r"débit spécifique $J = \rho v$ (pers/(m·s))",
+        ),
+    ):
+        for sol, (couleur, marque, libelle) in styles.items():
+            c = classes[sol]
+            pleines = c.effectifs > 0
+            axe.errorbar(
+                c.densite[pleines],
+                getattr(c, moyenne)[pleines],
+                yerr=np.nan_to_num(getattr(c, ecart)[pleines]),
+                fmt=marque,
+                color=couleur,
+                ms=4,
+                capsize=2,
+                label=libelle,
+            )
+        axe.plot(rho, reference, color="0.2", ls="--", lw=1.2, label="Weidmann (1993)")
+        axe.set_xlabel(r"densité de Voronoï $\rho$ (pers/m²)")
+        axe.set_ylabel(nom)
+        axe.set_xlim(0.0, rho[-1])
+    gauche.legend(fontsize=8)
+    fig.suptitle(titre, fontsize=10)
+    fig.tight_layout()
+    return _enregistrer(fig, destination, "fig09_diagramme_piscine")
