@@ -620,6 +620,55 @@ Ce qu'on en retient :
    comme pour le domino. Sur 10 graines, une dépendance de l'ordre de 20 % ne peut pas être
    exclue.
 
+## Départs échelonnés : l'effet tampon (18 novembre 2026)
+
+**Question, posée avant le calcul.** Si l'hypothèse tampon tient, étaler les départs
+désynchronise les arrivées à la porte, la file se forme moins, et l'effet inertiel du sol
+glissant (#137) doit diminuer : Δt100 (mouillé − sec) baisse quand la médiane du temps de
+réaction augmente. **Exploratoire** : l'option `reaction` (#181) est une proposition, ses
+valeurs n'ont pas de source pour une piscine.
+
+Configuration `experiments/variantes/reaction.yaml` : celle de #137 (porte de 0,8 m, plage
+mouillée jusqu'à la porte, a_max du mouillé à 1 m/s²), plus un temps de réaction log-normal
+de dispersion 0,5, dont on balaie la médiane. Graines 1 à 10, commit `0552c1c`, sans
+modification locale ; 80 évacuations, 17 min.
+
+```bash
+viscocrowd balayer-piscine experiments/variantes/reaction.yaml --parametre reaction_mediane \
+  --valeurs 1 5 10 20 --graines 1 2 3 4 5 6 7 8 9 10 \
+  --sortie docs/mesures/tampon-reaction-2026-11-18/reaction.json
+```
+
+| Médiane (s) | t100 mouillé (s) | t100 sec (s) | Δ t50 (s) | Δ t100 (s) | Δ J_s | Δ t100 > 0 |
+|---|---|---|---|---|---|---|
+| 1 | 84,67 ± 1,46 | 71,10 | 5,91 ± 1,37 | **13,57 ± 1,67** | −0,43 ± 0,05 | 10/10 |
+| 5 | 86,23 ± 2,68 | 74,05 | 4,91 ± 1,97 | **12,18 ± 2,08** | −0,38 ± 0,05 | 10/10 |
+| 10 | 85,27 ± 6,54 | 77,54 | 1,00 ± 4,44 | **7,73 ± 5,74** | −0,23 ± 0,18 | 9/10 |
+| 20 | 101,38 ± 13,73 | 98,60 | 0,47 ± 4,56 | **2,78 ± 3,95** | −0,06 ± 0,11 | 10/10 |
+
+Écarts appariés entre médianes, graine par graine :
+
+| Comparaison | Baisse de Δ t100 | Graines en baisse |
+|---|---|---|
+| 1 s → 5 s | 1,39 ± 1,83 s | 8/10 |
+| 1 s → 10 s | 5,83 ± 6,15 s | 9/10 |
+| **1 s → 20 s** | **10,79 ± 4,52 s** | **10/10** |
+
+De 1 à 20 s de médiane, le débit perdu sur le mouillé se rattrape sur les dix graines
+(Δ J_s passe de −0,43 à −0,06 pers/(m·s)).
+
+**Lecture.** Quand les départs s'étalent, les baigneurs arrivent à la porte en flux plus
+clairsemé. La file se forme moins, et il y a moins de relances écrêtées par le sol glissant :
+la pénalité du mouillé fond de 13,6 à 2,8 s. C'est le **mécanisme tampon** de la
+problématique, qui apparaît ici pour la première fois dans le modèle, non pas comme un gain
+absolu (t100 s'allonge avec les réactions tardives), mais comme une **atténuation de l'effet
+inertiel**. À 20 s de médiane, les dernières réactions (jusqu'à 65 s environ) dominent t100 :
+la porte n'est plus le facteur limitant.
+
+**Limites.** Valeurs de réaction sans source ; une seule dispersion (0,5) ; la décroissance
+est nette de 1 à 20 s, mais entre 10 et 20 s elle ne l'est pas (7/10). Pour en faire une
+conclusion du rapport : valider l'option en groupe, puis confirmer sur les graines 11 à 20.
+
 ## Portée et limites
 
 Ce que ces balayages permettent d'écrire : **dans notre modèle, et dans la piscine de
