@@ -28,6 +28,10 @@ VISCO_PY ?= $(BIN)/python
 # (*.diagnostic.npz, #69) ne sont pas des trajectoires : ils sont ecartes.
 CONFIG  ?= experiments/piscine.yaml
 SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import datetime as d; print(d.datetime.now().isoformat(timespec='seconds').replace(':', '').replace('-', '').replace('T', '-'))").npz
+# Facteur de vitesse de la relecture : a 1, l'evacuation de la piscine (environ 54 s
+# simulees) dure autant a l'ecran. Transmis aussi par `make lancer VITESSE=5`, car
+# une variable de la ligne de commande passe aux sous-make.
+VITESSE ?= 1
 ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
 .PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer campagne-finale interface figures report docker clean
@@ -66,9 +70,9 @@ valider:  ## Rejoue les criteres de validation du moteur, chiffres
 simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
 	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
 
-rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut)
+rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut ; VITESSE=1)
 	$(if $(strip $(ARCHIVE)),,$(error Aucune archive dans data/ : lancer d'abord make simu))
-	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE)
+	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE) --vitesse $(VITESSE)
 
 # Le nom de l'archive est fige une seule fois dans une variable du shell, puis passe
 # aux deux sous-make : SORTIE contient l'heure, et la developper deux fois pourrait
