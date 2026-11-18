@@ -213,6 +213,11 @@ viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
 viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 ```
 
+Avec `egouttage` dans les paramètres (désactivé par défaut, voir le journal du 17 novembre),
+les baigneurs mouillent la plage en s'égouttant : `viscocrowd trainee config.yaml --image
+figures/trainee.png --instant 45` montre le film d'eau et, en contour blanc, le carrelage
+devenu glissant là où les trajets se superposent.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans

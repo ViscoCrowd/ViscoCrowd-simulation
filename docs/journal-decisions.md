@@ -11,6 +11,54 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-17 — Traînée d'eau des baigneurs sur la plage, facultative
+
+**Statut.** Proposition de Lenny, à valider par le groupe. Désactivée par défaut
+(`egouttage` absent ou `null`) : la référence, E1/E2 et les balayages ne changent pas.
+
+**Idée.** Un baigneur qui sort de l'eau ruisselle et mouille la plage derrière lui. Une
+trace seule ne rend pas le carrelage glissant ; là où beaucoup de trajets se superposent,
+si. La bande mouillée fixe de 3 m autour du bassin ne représente pas ce mécanisme, alors
+qu'il porte l'eau exactement là où la foule converge : vers la porte.
+
+**Modèle (`model/egouttage.py`).** Chaque baigneur de la plage dépose sur la case sous lui
+`volume / duree · exp(−(t − t_sortie) / duree) · dt` litres ; l'intégrale vaut `volume`.
+Une case sèche devient MOUILLE quand son film dépasse `seuil` (L/m², soit mm). La carte des
+milieux étant relue à chaque pas, l'adhérence, la vitesse et les glissades du module de
+chutes s'appliquent sur la traînée sans autre changement. L'eau ne sèche pas (l'évacuation
+dure une minute). Le guidage reste statique : les agents ne contournent pas la traînée.
+
+```yaml
+  egouttage:
+    volume: 0.4    # L emportés par un baigneur (hypothèse)
+    duree: 30.0    # s, constante d'égouttage (hypothèse)
+    seuil: 0.05    # L/m², film à partir duquel le carrelage est mouillé (hypothèse)
+    pas: 0.25      # m, côté d'une case
+```
+
+**Mesures (17 novembre, 100 agents, référence par ailleurs inchangée).**
+
+| Graine | Chutes | t50 sans → avec traînée | t100 sans → avec | Chutes sans → avec | Plage mouillée |
+|---|---|---|---|---|---|
+| 20262027 | non | 31,55 → 31,55 s | 53,66 → 53,66 s | – | 4,2 % |
+| 20262028 | non | 31,14 → 31,14 s | 54,31 → 54,31 s | – | 3,6 % |
+| 20262029 | non | 31,62 → 31,62 s | 49,26 → 49,25 s | – | 5,1 % |
+| 20262027 | oui (`{}`) | 32,62 → 33,76 s | 69,64 → 75,41 s | 174 → 191 | 6,1 % |
+| 20262028 | oui | 31,09 → 33,36 s | 57,78 → 61,82 s | 89 → 125 | 5,9 % |
+| 20262029 | oui | 31,54 → 32,85 s | 55,69 → 53,04 s | 81 → 86 | 6,3 % |
+
+**Lecture.** Sans chutes, la traînée mouille 4 à 5 % de la plage, sur les deux files qui
+mènent à la porte, et ne change rien à l'évacuation : comme pour la bande fixe, le mouillé
+n'agit que là où l'on freine ou tourne. Avec les chutes, elle ajoute des glissades et
+retarde t50 sur les trois graines (+1,1 à +2,3 s) ; t100 bouge dans les deux sens. Un
+baigneur seul ne mouille aucune case de plage sèche (test).
+
+**Limites.** Les trois valeurs physiques sont des hypothèses sans source ; il faut les
+balayer avant toute conclusion. Les chutes elles-mêmes ne sont pas calibrées (#130). Le
+dépôt se fait sur une seule case de 0,25 m sous le centre de l'agent.
+
+---
+
 ## 2026-11-16 — Chutes : référence sans chutes, campagne exploratoire à part (#130)
 
 **Statut.** Décision proposée par Shaleena, à valider en relecture de la PR. Elle reprend la
