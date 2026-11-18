@@ -56,6 +56,7 @@ from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.model.profondeur import facteur_profondeur, profondeur
 from viscocrowd.observables.sortie import Sorties
 
 EAU, FRANCHISSEMENT, PLAGE, SORTI = 0, 1, 2, 3
@@ -84,6 +85,9 @@ class ParametresPiscine:
     chutes: ParametresChutes | dict | None = None
     temps_espacement: float | None = None
     deblocage: dict | None = None
+    # Profondeur variable du bassin (facultatif) : {gauche: m, droite: m}, lineaire en x ;
+    # la vitesse dans l'eau suit (d / 0,7)^-0,38 (`model.profondeur`).
+    profondeur: dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -113,6 +117,18 @@ class ParametresPiscine:
             ):
                 raise ValueError("deblocage : delai, portee et vitesse strictement positifs finis")
             object.__setattr__(self, "deblocage", {k: float(v) for k, v in self.deblocage.items()})
+        if self.profondeur is not None:
+            if not isinstance(self.profondeur, dict) or set(self.profondeur) != {
+                "gauche",
+                "droite",
+            }:
+                raise ValueError("profondeur doit donner gauche et droite, en m")
+            if not all(type(v) in (int, float) for v in self.profondeur.values()):
+                raise ValueError("profondeur : nombres reels attendus")
+            facteur_profondeur(np.array(list(self.profondeur.values()), dtype=float))
+            object.__setattr__(
+                self, "profondeur", {k: float(v) for k, v in self.profondeur.items()}
+            )
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -162,6 +178,11 @@ class ParametresPiscine:
         if self.dt > min(p.relaxation for p in milieux.values()):
             raise ValueError("dt doit etre inferieur ou egal aux temps de relaxation")
         vitesse_max = self.facteur_vitesse * max(p.vitesse for p in milieux.values())
+        if self.profondeur is not None:  # le nageur le plus rapide est au moins profond
+            moins_profond = min(self.profondeur.values())
+            facteur_eau = float(facteur_profondeur(np.array([moins_profond]))[0])
+            vitesse_eau = self.facteur_vitesse * milieux[Milieu.EAU].vitesse * facteur_eau
+            vitesse_max = max(vitesse_max, vitesse_eau)
         if self.dt * vitesse_max > self.rayon / 5:
             raise ValueError("dt trop grand : deplacement souhaite par pas > rayon/5")
         if self.pas_guidage > self.rayon:
@@ -344,8 +365,22 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     if type(archiver_tous) is not int or archiver_tous < 1:
         raise ValueError("archiver_tous doit etre un entier strictement positif")
     piscine = p.piscine
+    facteur_eau = None
+    if p.profondeur is not None:
+        gauche, droite = p.profondeur["gauche"], p.profondeur["droite"]
+
+        def facteur_eau(points: np.ndarray) -> np.ndarray:
+            """Facteur de vitesse dans l'eau a ces positions, selon la profondeur (D2)."""
+            return facteur_profondeur(profondeur(points, piscine.bassin, gauche, droite))
+
     guidage = GuidagePiscine(
-        piscine, p.parametres_milieux, p.rayon, p.pas_guidage, p.durees, p.facteur_vitesse
+        piscine,
+        p.parametres_milieux,
+        p.rayon,
+        p.pas_guidage,
+        p.durees,
+        p.facteur_vitesse,
+        facteur_eau=facteur_eau,
     )
     gestionnaire = (
         GestionnaireChutes(p.n_agents, p.chutes, p.graine) if p.chutes is not None else None
@@ -371,6 +406,15 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         return direction
 
     carte = CartePiscine(piscine)
+
+    def facteur_individuel(etat_courant: State) -> np.ndarray:
+        """1 sur la plage ; dans le bassin, le facteur de la profondeur locale."""
+        facteurs = np.ones(etat_courant.n)
+        dans = piscine.dans_bassin(etat_courant.x)
+        if np.any(dans):
+            facteurs[dans] = facteur_eau(etat_courant.x[dans])
+        return facteurs
+
     libre = pas_libre_milieux(
         guidage if gestionnaire is None else direction_avec_chutes,
         carte,
@@ -379,6 +423,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         temps_espacement=p.temps_espacement,
         avancement=guidage.temps if p.temps_espacement is not None else None,
         groupe_meneur=piscine.dans_bassin if p.temps_espacement is not None else None,
+        facteur_individuel=facteur_individuel if facteur_eau is not None else None,
     )
     # La bousculade lit la correction de projection du pas : on garde la vitesse libre
     # calculee par le pas lui-meme, au lieu de rappeler le guidage (revue de #102).
