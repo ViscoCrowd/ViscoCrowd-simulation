@@ -320,7 +320,7 @@ aux suivantes, puisque la suppression automatique des branches est active.
 | 0.3 #164, résidu, démonstration, contrôle à Δt/2 | #164 | dev | poussé, fusionnable |
 | 0.4 #165, dépôt sur l'empreinte | revue de #165 | – | à Lenny |
 | 0.5 avis sur la navigation | #158 | – | posté |
-| 0.6 attribuer S8 à S15 | #170, puis PR de planning | dev | PR de proposition ouverte |
+| 0.6 attribuer S8 à S15 | #170, #190 | dev | proposition, à confirmer |
 | A2 ménage des branches | #170 (liste) | – | 54 supprimées, suppression automatique active |
 | B1 confirmation, graines 11 à 20 | #172 | dev | **effet inertiel confirmé** |
 | B2 écoulement libre | anneau (#149, fusionné) ; suite #167 | – | couvert |
@@ -330,9 +330,9 @@ aux suivantes, puisque la suppression automatique des branches est active.
 | C2 référence figée | #175 | dev | ouverte, CI Linux verte |
 | C3 intervalles entre sorties | #177 | #171 | ouverte |
 | C4 carte des temps d'arrêt | #178 | dev | ouverte |
-| C5 commandes de visualisation | PR `refac(cli)` | dev | ouverte, **à fusionner en dernier** |
+| C5 commandes de visualisation | #196 | dev | ouverte, **à fusionner en dernier** |
 | C6 comparer n variantes | #182 | #173 | ouverte |
-| C7 `make demo` | PR `chore(make)` | #182 | ouverte |
+| C7 `make demo` | #197 | #182 | ouverte (3 min 27) |
 | D1 temps de réaction | #181 | #171 | ouverte |
 | D1, campagne tampon | #187 | #181 | **effet tampon : 10/10** |
 | D2 profondeur variable | #186 | #171 | ouverte, sans effet à la référence |
@@ -340,14 +340,19 @@ aux suivantes, puisque la suppression automatique des branches est active.
 | E1 `--fixer` sur `simuler` | #173 | #171 | ouverte |
 | E2 nombre d'échelles | #174 | #173 | ouverte |
 | E3 menu de paramétrage | #183 | #174 | ouverte (`make menu`) |
-| F1 règlement des ERP | PR `docs(reglementation)` | dev | ouverte |
-| F2 porte de secours | issue | – | après le rendu |
+| F1 règlement des ERP | #199 ; question ouverte #198 | dev | ouverte |
+| F2 porte de secours | #193 | – | après le rendu |
 | G1 figures du rapport | #184 (figure 8 en double) | dev | ouverte |
 | G2 conclusion et résumé | #180 | #172 | ouverte, constat 3 à trancher |
 | G3 questions de soutenance | #179 | dev | ouverte |
-| A3 release `jalon-4` | PR de notes de version | dev | prête ; publication après P6 |
+| A3 release `jalon-4` | #189 | dev | brouillon ; publication après P6 |
 
 **Ordre de fusion conseillé** : #166, #164, #169, #184 ; #171, puis #173, #174, #183, #182 et
-la PR `make demo` ; #172, puis #180 ; #175, #176, #178, #179, #185 ; les options du modèle
+#197 ; #172, puis #180 ; #175, #176, #178, #179, #185 ; les options du modèle
 (#181, #187, #186, #188) après décision du groupe, en résolvant les conflits de
-`simuler_piscine` avec #164 et #165 ; la PR `refac(cli)` **en dernier**.
+`simuler_piscine` avec #164 et #165 ; #196 **en dernier**.
+
+**Issues ouvertes le 18 novembre** : #191 (relancer #166 sur dix graines), #192 (confirmer
+le tampon et le choix du site sur les graines 11 à 20), #193 (porte de secours), #194
+(population hétérogène), #195 (deux corrections mineures), #198 (débit de la porte entre 0,8
+et 0,9 m). Revue de #163 refaite le 18 au soir : les trois points sont traités.
