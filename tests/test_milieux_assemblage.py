@@ -235,3 +235,25 @@ class TestEntreesInvalides:
         libre = pas_libre_milieux(lambda etat: direction, partout(Milieu.SEC), TOUS)
         with pytest.raises(ValueError, match="direction"):
             libre(etat([[0.0, 0.0]], [[0.0, 0.0]]), 1e-3)
+
+
+class TestFacteurIndividuel:
+    """Crochet `facteur_individuel` (meme signature que #163) : vitesse souhaitee par agent."""
+
+    def test_facteur_par_agent_multiplie_u(self):
+        e = etat([[0.0, 0.0], [1.0, 0.0]], [[0.0, 0.0]] * 2)
+        facteurs = np.array([2.0, 0.5])
+        libre = pas_libre_milieux(
+            vers(1, 0), partout(Milieu.SEC), TOUS, facteur_individuel=lambda _e: facteurs
+        )
+        u = SEC.vitesse * facteurs[:, None] * np.array([[1.0, 0.0]])
+        attendu = vitesse_libre(e.v, u, SEC.relaxation, SEC.acceleration_max, 1e-3)
+        np.testing.assert_array_equal(libre(e, 1e-3), attendu)
+
+    def test_facteur_un_identique_au_bit_pres(self):
+        e = etat([[0.0, 0.0], [1.0, 2.0]], [[0.3, 0.0], [-1.0, 0.4]])
+        sans = pas_libre_milieux(vers(3, 4), partout(Milieu.SEC), TOUS)
+        avec = pas_libre_milieux(
+            vers(3, 4), partout(Milieu.SEC), TOUS, facteur_individuel=lambda _e: np.ones(2)
+        )
+        np.testing.assert_array_equal(sans(e, 1e-3), avec(e, 1e-3))
