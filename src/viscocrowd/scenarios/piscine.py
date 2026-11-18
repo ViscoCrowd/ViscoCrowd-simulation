@@ -94,6 +94,11 @@ class ParametresPiscine:
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        # navigation et temps_espacement se cumulent ici, contrairement au goulot E0 et
+        # a l'anneau, qui refusent la combinaison : c'est voulu (#158). Dans l'eau, ou
+        # personne ne navigue, la relation vitesse-espacement reste active. Sur la plage,
+        # la seconde heuristique la remplace : elle repart de la vitesse nominale, avant
+        # regulation, et T y est sans effet (test_navigation, TestCumulAvecEspacement).
         if self.navigation is not None:
             if isinstance(self.navigation, dict):
                 object.__setattr__(self, "navigation", ParametresNavigation(**self.navigation))

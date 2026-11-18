@@ -5,8 +5,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from viscocrowd.core.state import State
 from viscocrowd.geometry.obstacle import ObstacleRectangle
 from viscocrowd.io.configuration import lire_configuration
+from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
 from viscocrowd.model.navigation import (
     ParametresNavigation,
     ScenePlage,
@@ -288,3 +290,61 @@ class TestScenario:
         parametres_piscine(n_agents=5, dt=0.0185)
         with pytest.raises(ValueError, match="dt trop grand"):
             parametres_piscine(n_agents=5, dt=0.0185, navigation={})
+
+
+SOL_SEC = ParametresMilieu(relaxation=0.5, acceleration_max=5.9, vitesse=1.34)
+
+
+class TestCumulAvecEspacement:
+    """Piscine : navigation et temps_espacement se cumulent, a dessein (revue de #163).
+
+    Le goulot E0 et l'anneau refusent la combinaison. Dans la piscine, T reste actif dans
+    l'eau, ou personne ne navigue ; sur la plage, la seconde heuristique repart de la
+    vitesse NOMINALE et T y est sans effet. Ne pas aligner la piscine sur le goulot.
+    """
+
+    # Deux agents sur l'axe, 0,6 m d'ecart : jeu 0,2 m, T = 0,35 s freinerait le suiveur
+    # a 0,57 m/s.
+    ETAT = State(x=np.array([[0.0, 0.0], [0.6, 0.0]]), v=np.zeros((2, 2)), r=np.full(2, R))
+
+    @staticmethod
+    def vers_x(etat):
+        return np.tile([1.0, 0.0], (etat.n, 1))
+
+    @staticmethod
+    def partout(points):
+        return np.full(points.shape[0], Milieu.SEC, dtype=np.int64)
+
+    def libre(self, temps_espacement, navigation):
+        def naviguer(etat, e, nominale, tau, u):
+            return vitesses_souhaitees(
+                etat.x,
+                etat.v,
+                etat.r,
+                nominale,
+                e,
+                tau,
+                SALLE,
+                ParametresNavigation(),
+                -etat.x[:, 0],
+            )
+
+        return pas_libre_milieux(
+            self.vers_x,
+            self.partout,
+            {Milieu.SEC: SOL_SEC},
+            temps_espacement=temps_espacement,
+            avancement=lambda x: -x[:, 0],
+            vitesse_souhaitee=naviguer if navigation else None,
+        )(self.ETAT, 0.01)
+
+    def test_sur_la_plage_t_est_sans_effet(self):
+        np.testing.assert_array_equal(self.libre(0.35, True), self.libre(None, True))
+
+    def test_sans_navigation_t_freine_bien_le_suiveur(self):
+        """Temoin : la situation est bien de celles ou T agit."""
+        assert self.libre(0.35, False)[0, 0] < self.libre(None, False)[0, 0]
+
+    def test_la_piscine_accepte_la_combinaison(self):
+        p = parametres_piscine(n_agents=5, navigation={})
+        assert p.temps_espacement == 0.35 and p.navigation is not None

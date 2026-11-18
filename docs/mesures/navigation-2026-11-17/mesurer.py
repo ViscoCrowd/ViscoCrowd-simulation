@@ -1,23 +1,30 @@
 """Navigation locale (#158) : la file indienne disparait-elle, et que change-t-elle ?
 
-Pour chaque graine (1 a 10), quatre evacuations de la piscine de reference :
+Pour chaque graine (1 a 10), six evacuations de la piscine de reference :
 
   - reference : guidage seul (navigation: null) ;
   - navigation : heuristiques de Moussaid et al. (2011), valeurs de l'article ;
   - navigation_dt2 : la meme au pas de temps divise par deux ;
   - navigation_sec : la meme, sol entierement sec (temoin du mouille) ;
   - navigation_fig3 : champ de vision et horizon de la fig. 3 de l'article (45 deg,
-    8 m, foules denses) au lieu de ceux de la fig. 2 (75 deg, 10 m).
+    8 m, foules denses) au lieu de ceux de la fig. 2 (75 deg, 10 m) ;
+  - navigation_sans_dispersion : la meme sans dispersion des vitesses souhaitees
+    (dispersion_vitesse: 0). Le facteur individuel s'applique aussi aux nageurs : cette
+    variante separe l'effet des heuristiques de celui de la dispersion (revue de #163).
 
 Mesures : t50, t90, t100 (s), debit a la porte (pers/(m.s), estimateur de E0), part
 des positions de plage le long du bassin a moins de 1 cm du plus pres possible,
 epaisseur du flux (ecart interquartile lateral par tranche de 1 m, mediane des
-tranches, en m), violation des murs et temps de calcul.
+tranches, en m), violation des murs et temps de calcul. Puis les ecarts apparies graine
+par graine, avec deux valeurs p : permutation exacte des signes sur la moyenne, et test de
+signe exact de docs/criteres-acceptation.md (§ 3), qui seul decide d'une detection.
 
 Usage : python docs/mesures/navigation-2026-11-17/mesurer.py experiments/piscine.yaml
 """
 
+import itertools
 import json
+import math
 import sys
 import time
 from multiprocessing import Pool
@@ -38,7 +45,17 @@ CAS = {
     "navigation_dt2": BASE | {"navigation": {}, "dt": BASE["dt"] / 2},
     "navigation_sec": temoin(BASE) | {"navigation": {}},
     "navigation_fig3": BASE | {"navigation": {"champ_vision": 45.0, "horizon": 8.0}},
+    "navigation_sans_dispersion": BASE | {"navigation": {"dispersion_vitesse": 0.0}},
 }
+# Ecarts apparies a publier : (cas, moins ce cas).
+ECARTS = (
+    ("navigation", "reference"),
+    ("navigation_sans_dispersion", "reference"),
+    ("navigation", "navigation_sans_dispersion"),
+    ("navigation_dt2", "navigation"),
+    ("navigation", "navigation_sec"),
+    ("navigation_fig3", "navigation"),
+)
 
 
 def mesurer(tache):
@@ -83,6 +100,24 @@ def mesurer(tache):
     }
 
 
+def p_permutation(ecarts: np.ndarray) -> float:
+    """Valeur p bilaterale exacte de la moyenne, par permutation des signes (2^n tirages)."""
+    observe = abs(ecarts.mean())
+    signes = np.array(list(itertools.product((1.0, -1.0), repeat=ecarts.size)))
+    return float(np.mean(np.abs(signes @ ecarts / ecarts.size) >= observe - 1e-12))
+
+
+def p_signe(ecarts: np.ndarray) -> tuple[float, int, int]:
+    """Test de signe exact bilateral, egalites (|d| < 1e-9 s) ecartees (criteres, § 3)."""
+    utiles = ecarts[np.abs(ecarts) >= 1e-9]
+    n, positifs = utiles.size, int(np.sum(utiles > 0))
+    if n == 0:
+        return 1.0, 0, 0
+    k = min(positifs, n - positifs)
+    queue = sum(math.comb(n, i) for i in range(k + 1)) / 2**n
+    return min(1.0, 2 * queue), positifs, n
+
+
 if __name__ == "__main__":
     taches = [(nom, g) for nom in CAS for g in range(1, 11)]
     with Pool(12) as pool:
@@ -98,3 +133,13 @@ if __name__ == "__main__":
             for k in ("t50", "t100", "contre_le_bord", "epaisseur_flux", "calcul_s")
         }
         print(nom, {k: round(float(v), 3) for k, v in moy.items()})
+    print("Ecarts apparies : moyenne ± ecart-type, p permutation, p signe (positifs/n)")
+    for a, b in ECARTS:
+        for k in ("t50", "t90", "t100", "debit"):
+            par_graine = {m["graine"]: m[k] for m in resultats if m["cas"] == a}
+            ecarts = np.array([par_graine[m["graine"]] - m[k] for m in resultats if m["cas"] == b])
+            ps, positifs, n = p_signe(ecarts)
+            print(
+                f"  {a} - {b} {k}: {ecarts.mean():+.3f} ± {ecarts.std(ddof=1):.3f}"
+                f" p_perm={p_permutation(ecarts):.3f} p_signe={ps:.3f} ({positifs}/{n})"
+            )
