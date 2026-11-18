@@ -1,7 +1,9 @@
 # Manifeste des figures
 #
 # Table de correspondance entre chaque figure du rapport, la configuration qui
-# l'a produite et la graine utilisee.
+# l'a produite et la graine utilisee. Les figures de validation du moteur
+# produites par `valider-moteur --figures` y sont toutes, meme celles que le
+# rapport ne reprend pas : leur `section_rapport` le dit.
 #
 # Les consignes exigent « les parametres utilises pour produire chacune des
 # figures du rapport ». Ce fichier y repond : il doit etre mis a jour dans la
@@ -32,7 +34,7 @@ figures:
 
   - identifiant: fig02_energie
     titre: "Dissipation de l'energie par les chocs mous"
-    section_rapport: "Validation"
+    section_rapport: "Hors rapport : validation du moteur ; chiffres repris dans le texte du § 5.1"
     produite_par: "viscocrowd valider-moteur --figures"
     scenario: bille_boite
     parametres:
@@ -78,7 +80,7 @@ figures:
 
   - identifiant: fig05_tassement
     titre: "Instantanes de l'empilement de 36 disques"
-    section_rapport: "Validation"
+    section_rapport: "Hors rapport : validation du moteur"
     produite_par: "viscocrowd valider-moteur --figures"
     scenario: tassement
     parametres:
@@ -97,7 +99,7 @@ figures:
 
   - identifiant: fig06_convergence_dt
     titre: "Ordre de convergence en pas de temps, avec et sans contacts"
-    section_rapport: "Validation"
+    section_rapport: "Hors rapport : validation du moteur"
     produite_par: "viscocrowd valider-moteur --figures"
     scenario: [chute_libre, tassement]
     parametres:
@@ -119,7 +121,7 @@ figures:
 
   - identifiant: fig07_mouille_un_parametre
     titre: "Effet separe des parametres du sol mouille sur le banc de couloir"
-    section_rapport: "Interpretation et analyse des resultats"
+    section_rapport: "Annexe A3, banc de couloir"
     produite_par: "viscocrowd comparer-mouille experiments/couloir.yaml --figure report/figures"
     scenario: couloir
     configuration: experiments/couloir.yaml   # population, bandes et pas de temps
