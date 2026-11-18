@@ -1,0 +1,55 @@
+{
+  "configuration": "experiments/anneau.yaml",
+  "graines": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "points": [
+    {
+      "n_agents": 75,
+      "densite": 0.9947183943243458,
+      "vitesses": [
+        1.3400008417374023,
+        1.3400008414135702,
+        1.340000841628864,
+        1.3400008411864828,
+        1.3400008415105171,
+        1.3400008412171511,
+        1.340000841609392,
+        1.340000841850136,
+        1.340000841176208,
+        1.3400008414870768
+      ],
+      "vitesse_weidmann": 1.060912097930034,
+      "debit_weidmann": 1.0553087785722366,
+      "vitesse_interieure": 1.340000974703078,
+      "vitesse_exterieure": 1.3400007249129566,
+      "derive_max": 4.474030273893442e-15,
+      "violation_max": 0.0
+    }
+  ],
+  "duree_calcul_s": 532.4340578909996,
+  "code": {
+    "commit": "e955c1d8f272cb0797589b64ca203b847b7c6e5b",
+    "modifications_locales": true,
+    "source": "git"
+  },
+  "sources_sha256": "5ebe7e013d9864d4848b4cc0ed07fc47e122f8e8f515c3256bb25bbe42a66a55",
+  "python": "3.12.3",
+  "plateforme": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "versions": {
+    "numpy": "2.5.5",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2",
+    "pyyaml": "6.0.3"
+  }
+}

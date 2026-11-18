@@ -49,7 +49,7 @@ class LecteurDiagramme(LecteurPiscine):
         salle, zone = salle_porte(g, recul), zone_porte(g)
         self.serie = serie_voronoi(donnees.t, donnees.x, salle, zone, pas_mesure=pas_mesure)
         self.ax.grid(False)
-        self.figure.texts[1].set_text("ÉVACUATION PISCINE  /  DIAGRAMME FONDAMENTAL")
+        self.sous_titre.set_text("ÉVACUATION PISCINE  /  DIAGRAMME FONDAMENTAL")
         self.ax.set_position((0.05, 0.29, 0.56, 0.46))
         self.ax.add_patch(
             Cadre(

@@ -148,11 +148,12 @@ interruption, utiliser `viscocrowd campagne ... --sortie data/campagne`, puis la
 commande avec `--reprendre`. Le [guide des campagnes](docs/campagnes.md) décrit le plan,
 les graines, le contrôle de provenance et le suivi explicite des échecs.
 
-**Temps d'exécution mesuré le 21 octobre 2026** — après intégration de la géométrie
-piscine (#54), la suite complète passe : **598 tests en 105 s, tests lents compris**
-(`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). La CI rapide
-exclut le marqueur `slow` ; les conclusions portées par ces tests demandent donc une
-exécution explicite. La validation du moteur affiche son propre temps ; les durées
+**Temps d'exécution mesuré le 17 novembre 2026** — au commit `eb25a7d` de `dev`, la suite
+complète passe : **1028 tests en 455 s (7 min 35), tests lents compris**
+(`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). Sans les 7 tests
+`slow`, `make test` en exécute 1021 en 3 min 20 environ ; le 21 octobre, la suite complète
+comptait 598 tests en 105 s. La CI rapide exclut le marqueur `slow` ; les conclusions
+portées par ces tests demandent donc une exécution explicite. La validation du moteur affiche son propre temps ; les durées
 varient selon la machine et les dépendances.
 
 ### Premier banc de foule guidée
@@ -204,7 +205,10 @@ toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relan
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
 les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
 
-Pour relire une évacuation réelle, avec les états et les occupations des sites :
+Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
+simule la piscine puis ouvre directement la relecture de l'archive produite
+(`make lancer CONFIG=experiments/couloir.yaml` pour le couloir ; `.\run.ps1 lancer` sous Windows).
+Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
 viscocrowd simuler experiments/piscine.yaml --sortie data/piscine.npz
@@ -212,6 +216,10 @@ viscocrowd rejouer data/piscine.npz
 viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
 viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 ```
+
+Pour voir toute l'évacuation en une image, `viscocrowd pose-longue data/piscine.npz --image
+figures/pose.png` superpose les trajectoires de tous les agents, colorées par leur vitesse,
+comme une photo à longue exposition : couloirs empruntés, files, zones lentes.
 
 `viscocrowd diagramme-anime data/piscine.npz` rejoue la même archive avec, à droite, le
 diagramme fondamental devant la porte (mesure de Voronoï de M8, #124) qui se trace en
@@ -471,7 +479,9 @@ make install     # environnement de développement
 make test        # suite de tests
 make simu        # lance une simulation de la piscine, archivée dans data/
 make rejouer     # relit la dernière archive à l'écran
+make lancer      # enchaîne les deux : simule la piscine puis ouvre sa relecture
 make comparer    # compare la piscine sèche et mouillée sur dix graines (E1/E2)
+make campagne-finale  # rejoue toute la campagne finale, avec reprise (data/finale)
 make test-invariants  # seulement les invariants physiques
 make test-lents  # seulement les scénarios lents
 make lint        # ruff
