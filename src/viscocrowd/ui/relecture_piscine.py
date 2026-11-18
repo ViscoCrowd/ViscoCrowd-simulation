@@ -143,7 +143,11 @@ class LecteurPiscine(LecteurTrajectoire):
         self.occupations = occupations_sites(donnees.x, etats, self.positions_sites, donnees.t)
         self.figure = plt.figure(figsize=(12, 7), dpi=100, facecolor="#101923")
         self.figure.text(0.07, 0.93, "ViscoCrowd", color="white", fontsize=25, weight="bold")
-        self.figure.text(0.07, 0.875, "ÉVACUATION PISCINE  /  RELECTURE", color="#7dd3d8")
+        # Nomme, pour que les vues derivees (pose longue, duel...) le remplacent sans
+        # dependre de l'ordre des textes de la figure.
+        self.sous_titre = self.figure.text(
+            0.07, 0.875, "ÉVACUATION PISCINE  /  RELECTURE", color="#7dd3d8"
+        )
         self.temps = self.figure.text(0.93, 0.94, "", ha="right", color="white", fontsize=17)
         self.compteur = self.figure.text(0.93, 0.88, "", ha="right", color="#7dd3d8")
         self.effectifs = self.figure.text(0.07, 0.80, "", color="#b7c5d0", fontsize=10)
@@ -231,7 +235,12 @@ class LecteurPiscine(LecteurTrajectoire):
             labelcolor="#b7c5d0",
             fontsize=9,
         )
-        legende = f"{self.p.n_agents} agents · graine {self.p.graine}"
+        # Les valeurs de reference sont figees depuis le 6 novembre 2026 (C6) : le pied
+        # d'image rappelle le niveau de panique de l'archive, et non plus « a valider ».
+        legende = (
+            f"{self.p.n_agents} agents · graine {self.p.graine}"
+            f" · facteur de panique {self.p.facteur_vitesse:g}"
+        )
         # Une archive espacee saute des etats intermediaires : le dire a l'ecran.
         tous_les_pas = donnees.metadonnees.get("archivage", {}).get("tous_les_pas", 1)
         if tous_les_pas != 1:
@@ -242,7 +251,7 @@ class LecteurPiscine(LecteurTrajectoire):
         self.legende = self.figure.text(
             0.07,
             0.15,
-            f"{legende} · paramètres physiques à valider",
+            legende,
             color="#b7c5d0",
             fontsize=9,
         )
