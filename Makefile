@@ -30,7 +30,7 @@ CONFIG  ?= experiments/piscine.yaml
 SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import datetime as d; print(d.datetime.now().isoformat(timespec='seconds').replace(':', '').replace('-', '').replace('T', '-'))").npz
 ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
-.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer maquette figures report docker clean
+.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer campagne-finale maquette figures report docker clean
 
 help:  ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -80,6 +80,9 @@ lancer:  ## Simule puis ouvre la relecture (CONFIG=..., piscine ou couloir)
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
 	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
+
+campagne-finale:  ## Rejoue la campagne finale, avec reprise (experiments/campagne-finale.yaml)
+	$(VISCO_PY) -m viscocrowd.cli rejouer-campagne experiments/campagne-finale.yaml --sortie data/finale
 
 # Ancien nom : `interface`. Renommee pour qu'on ne la prenne pas pour la simulation,
 # que `make lancer` simule puis relit ; la commande Python garde son nom.

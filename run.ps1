@@ -29,6 +29,7 @@ function Show-Help {
     Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut)"
     Write-Host "  lancer      Simule puis ouvre la relecture (config en argument, piscine ou couloir)"
     Write-Host "  comparer    Compare la piscine seche et mouillee sur dix graines (E1/E2)"
+    Write-Host "  campagne-finale  Rejoue la campagne finale, avec reprise, dans data/finale"
     Write-Host "  lint        Verifie le style et le formatage avec ruff"
     Write-Host "  format      Reformate le code avec ruff"
     Write-Host "  valider     Rejoue les criteres de validation du moteur, chiffres"
@@ -64,7 +65,7 @@ function Invoke-Py {
 # `test -p no:cacheprovider` echouait. On lit donc $args a la main.
 $Commandes = @(
     "help", "install", "test", "test-all", "test-invariants", "test-lents",
-    "lint", "format", "valider", "simu", "rejouer", "lancer", "comparer",
+    "lint", "format", "valider", "simu", "rejouer", "lancer", "comparer", "campagne-finale",
     "maquette", "figures", "report", "docker", "clean"
 )
 $Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
@@ -145,6 +146,10 @@ switch ($Command) {
 
     "comparer" {
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "comparer-piscine", "experiments/piscine.yaml", "--graines", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10") -MoreArgs @()
+    }
+
+    "campagne-finale" {
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer-campagne", "experiments/campagne-finale.yaml", "--sortie", "data/finale") -MoreArgs $ExtraArgs
     }
 
     "lint" {
