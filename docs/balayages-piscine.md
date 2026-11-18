@@ -663,25 +663,40 @@ t100 en s, moyenne ± écart-type sur les évacuations terminées :
    plafonne entre 2,5 et 3 (−1,7 s). Aucune graine ne bouche. La régulation garde un écart
    devant chaque baigneur : la foule ne se comprime jamais assez pour coincer la porte.
 2. **Sans régulation, la courbe remonte.** Le minimum est entre 2 et 2,5 (≈ 50 s) ; à 3, t100
-   repasse à 59,5 s mouillé et 57,1 s sec, soit +8 s et +6 s, avec des écarts-types de 7 à 9 s :
-   certaines graines se coincent devant la porte, d'autres non. C'est la signature de
-   l'effet *faster-is-slower*, absente de la référence.
-3. **Sans régulation, à faible panique, le témoin sec bouche et pas le mouillé.** À 1, deux
-   graines sur cinq du témoin sec se figent définitivement devant la porte (92 baigneurs
-   jamais sortis au total) ; les cinq évacuations mouillées se terminent, plus lentement
-   (78,3 s). C'est l'effet *tampon* de la problématique : le mouillé ralentit les arrivées,
-   la porte ne reçoit pas d'arche. Cinq graines ne suffisent pas à le chiffrer.
+   repasse à 59,5 s mouillé et 57,1 s sec, soit +8 s et +6 s en moyenne, avec des
+   écarts-types de 7 à 9 s. Graine par graine, t100 augmente entre 2,5 et 3 sur 9 paires sur
+   10 : mouillé +0,9 / +13,4 / +24,4 / +2,8 / +0,3 s, sec +19,1 / −1,4 / +5,8 / +5,2 / +0,7 s.
+   Les moyennes sont tirées par une ou deux graines qui se coincent : les médianes valent
+   +2,8 s (mouillé) et +5,2 s (sec). C'est la signature attendue de l'effet
+   *faster-is-slower*, absente de la référence, mais sur cinq graines elle ne peut pas être
+   dite détectée (voir les limites).
+3. **Sans régulation, à faible panique, deux graines sur cinq du témoin sec se figent, aucune
+   du mouillé** (92 baigneurs jamais sortis au total). C'est compatible avec l'hypothèse
+   tampon, mais cinq graines ne permettent pas de la distinguer du hasard (p ≈ 0,22) : à
+   refaire sur au moins dix graines. Sur les trois graines où les deux évacuations se
+   terminent, le mouillé est au contraire **plus lent** : +18,3, +0,7 et +8,5 s. La même ligne
+   montre donc les deux mécanismes de la problématique : le sec bouche là où le mouillé
+   passe, mais quand les deux passent, le mouillé est plus lent.
 4. **L'écart mouillé − sec reste petit quand tout s'écoule** (≤ 1,2 s avec régulation,
    dans le bruit des graines sans régulation).
 
 ### Limites
 
 - **Cinq graines** : les points 1 et 3 sans régulation ont des écarts-types de 7 à 9 s ; il
-  faut au moins dix graines pour chiffrer la remontée et la fréquence des bouchages.
+  faut au moins dix graines pour chiffrer la remontée et la fréquence des bouchages. Avec un
+  test de signe exact bilatéral, cinq graines sur cinq donnent au mieux p = 2/32 ≈ 0,06 :
+  aucun effet ne peut y être dit détecté (`criteres-acceptation.md`, § 3). La relance prendra
+  les graines 1 à 10, comme les autres campagnes, et gardera 11 à 20 pour confirmer.
+- **Un bouchon ne se défait jamais dans ce modèle** : il n'y a pas de bruit dynamique, et la
+  règle de déblocage (#131) ne concerne que les nageurs. Les deux graines bouchées font sortir
+  la moitié de la foule normalement (t50 = 42,5 et 44,4 s), puis gardent 42 et 50 baigneurs
+  jusqu'à 180 s. Chez Helbing et al. (2000), les bouchons du *faster-is-slower* sont
+  intermittents ; ici, ils sont soit transitoires, soit définitifs.
 - **La régulation est étalonnée sur Seyfried (E0)** : la série « sans régulation » est un
   modèle volontairement moins réaliste, qui sert à montrer le mécanisme, pas la référence.
 - Une graine bouchée tourne jusqu'à `duree` (180 s) et n'entre pas dans la moyenne de t100 :
-  les moyennes « sec » à 1 sans régulation portent sur 3 graines.
+  les moyennes « sec » à 1 sans régulation portent sur 3 graines, celles du mouillé sur 5.
+  Les deux colonnes ne comparent donc pas les mêmes graines.
 - La carte des forces de contact (#164) montre où se forment ces arches.
 
 ## Portée et limites
