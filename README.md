@@ -214,7 +214,7 @@ de `balayer-piscine` : `make lancer FIXER="n_agents=150 largeur_porte=0.8"`, ou
 `viscocrowd simuler experiments/piscine.yaml --fixer n_agents=150 --sortie data/essai.npz`
 (`.\run.ps1 simu --fixer n_agents=150` sous Windows). L'archive garde la configuration
 effective et la liste des surcharges ; une variante n'est pas une configuration de référence.
-Plus simple encore, `make menu` (`.un.ps1 menu` sous Windows) pose cinq questions
+Plus simple encore, `make menu` (`.\run.ps1 menu` sous Windows) pose cinq questions
 (baigneurs, échelles, porte, panique, sol mouillé), avec la référence en défaut, puis simule
 et ouvre la relecture ; `viscocrowd menu --prereglage olympique` part d'un bassin de 50 × 25 m.
 Chaque lancement est rangé dans `data/menu/` avec sa configuration effective.
