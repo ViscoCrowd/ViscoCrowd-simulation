@@ -91,3 +91,28 @@ def test_sortie_redirigee_en_cp1252_ecrite_en_utf8(monkeypatch):
     assert cli.main([]) == 0
     sys.stdout.flush()
     assert tampon.getvalue().decode("utf-8") == "écart apparié Δ vs E1\n"
+
+
+def test_tous_les_modules_viz_a_commande_sont_declares():
+    """Une commande de visualisation s'ajoute dans viz.COMMANDES, pas dans cli.py."""
+    import importlib
+    import pkgutil
+
+    from viscocrowd import viz
+
+    trouves = {
+        m.name
+        for m in pkgutil.iter_modules(viz.__path__)
+        if hasattr(importlib.import_module(f"viscocrowd.viz.{m.name}"), "ajouter_commande")
+    }
+    assert set(viz.COMMANDES) == trouves
+    assert list(viz.COMMANDES) == sorted(viz.COMMANDES)
+
+
+def test_les_commandes_de_visualisation_restent_disponibles():
+    from viscocrowd.cli import construire_analyseur
+
+    sous = next(
+        a for a in construire_analyseur()._actions if a.__class__.__name__ == "_SubParsersAction"
+    )
+    assert {"pose-longue", "diagramme-anime", "duel"} <= set(sous.choices)
