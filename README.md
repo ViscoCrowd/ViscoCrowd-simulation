@@ -222,6 +222,11 @@ Pour voir toute l'évacuation en une image, `viscocrowd pose-longue data/piscine
 figures/pose.png` superpose les trajectoires de tous les agents, colorées par leur vitesse,
 comme une photo à longue exposition : couloirs empruntés, files, zones lentes.
 
+`viscocrowd diagramme-anime data/piscine.npz` rejoue la même archive avec, à droite, le
+diagramme fondamental devant la porte (mesure de Voronoï de M8, #124) qui se trace en
+direct : point courant, traînée des 2 dernières secondes, relation de Weidmann en repère.
+Mêmes exports que `rejouer` (`--image`, `--gif`, `--instant`), lecture ×4 par défaut.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
