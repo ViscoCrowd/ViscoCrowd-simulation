@@ -56,6 +56,7 @@ from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.model.reaction import instants_reaction
 from viscocrowd.observables.sortie import Sorties
 
 EAU, FRANCHISSEMENT, PLAGE, SORTI = 0, 1, 2, 3
@@ -84,6 +85,9 @@ class ParametresPiscine:
     chutes: ParametresChutes | dict | None = None
     temps_espacement: float | None = None
     deblocage: dict | None = None
+    # Temps de reaction a l'alarme (facultatif) : {mediane: s, dispersion: -}, loi
+    # log-normale de `model.reaction`. Hypotheses sans source pour une piscine.
+    reaction: dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -113,6 +117,23 @@ class ParametresPiscine:
             ):
                 raise ValueError("deblocage : delai, portee et vitesse strictement positifs finis")
             object.__setattr__(self, "deblocage", {k: float(v) for k, v in self.deblocage.items()})
+        if self.reaction is not None:
+            if not isinstance(self.reaction, dict) or set(self.reaction) != {
+                "mediane",
+                "dispersion",
+            }:
+                raise ValueError("reaction doit donner mediane (s) et dispersion (sans unite)")
+            mediane, dispersion = self.reaction["mediane"], self.reaction["dispersion"]
+            if not (
+                type(mediane) in (int, float)
+                and type(dispersion) in (int, float)
+                and np.isfinite(mediane)
+                and np.isfinite(dispersion)
+                and mediane > 0
+                and dispersion >= 0
+            ):
+                raise ValueError("reaction : mediane > 0 et dispersion >= 0, finies")
+            object.__setattr__(self, "reaction", {k: float(v) for k, v in self.reaction.items()})
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -269,6 +290,7 @@ class ResultatPiscine:
     violation_tous_pas: float | None = None
     chutes: tuple[EvenementChute, ...] = ()
     deblocages: int = 0
+    reactions: np.ndarray | None = None  # (N,) instant de reaction de chaque agent, en s
 
     def violation_paroi_max(self) -> float:
         """Plus grand depassement des murs, sur tous les agents actifs et tous les instants."""
@@ -371,8 +393,23 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         return direction
 
     carte = CartePiscine(piscine)
+    direction_base = guidage if gestionnaire is None else direction_avec_chutes
+    reactions = (
+        None
+        if p.reaction is None
+        else instants_reaction(
+            p.n_agents, p.reaction["mediane"], p.reaction["dispersion"], p.graine
+        )
+    )
+
+    def direction_avec_reaction(etat_courant: State) -> np.ndarray:
+        """Direction nulle tant que l'agent n'a pas reagi : il reste sur place, ou freine."""
+        direction = np.array(direction_base(etat_courant), dtype=float)
+        direction[t < reactions[actifs]] = 0.0
+        return direction
+
     libre = pas_libre_milieux(
-        guidage if gestionnaire is None else direction_avec_chutes,
+        direction_base if reactions is None else direction_avec_reaction,
         carte,
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
@@ -473,6 +510,8 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                 )
             if p.deblocage is not None:
                 lent = np.hypot(*(nouveau.x - x[actifs]).T) < p.deblocage["vitesse"] * p.dt
+                if reactions is not None:
+                    lent &= t >= reactions[actifs]  # attendre l'alarme n'est pas etre bloque
                 immobile[actifs] = np.where(lent, immobile[actifs] + p.dt, 0.0)
             x[actifs], v[actifs] = nouveau.x, nouveau.v
         t = pas * p.dt  # sans accumulation d'arrondis : les durees restent exactes
@@ -511,6 +550,8 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         portees = [p.portee] + ([p.deblocage["portee"]] if p.deblocage is not None else [])
         for rang, portee in enumerate(portees):
             nageurs = etat == EAU
+            if reactions is not None:
+                nageurs &= t >= reactions  # pas de franchissement avant la reaction
             if rang:
                 nageurs &= immobile >= p.deblocage["delai"] - 1e-9
             nageurs = np.flatnonzero(nageurs)
@@ -555,4 +596,5 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         violation_tous_pas=violation,
         chutes=gestionnaire.historique if gestionnaire is not None else (),
         deblocages=n_deblocages,
+        reactions=reactions,
     )

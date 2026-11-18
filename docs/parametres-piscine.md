@@ -81,6 +81,13 @@ section « Chutes »), qui mesure leur influence :
 | `facteur_rayon_terre` | 1,5 | – | Hypothèse sans source | 1 à 2 | +11,5 à +21,0 s, non monotone |
 | `mediane_relevage` | 3,7 | s | Sourcé (Becker et al. 2016, 20 à 50 ans) | non balayé | – |
 
+## Temps de réaction (option, désactivée par défaut)
+
+| Paramètre | Valeur | Unité | Statut | Source ou justification | Plage explorée et effet |
+|---|---|---|---|---|---|
+| `reaction.mediane` | absent | s | Hypothèse sans source pour une piscine | loi log-normale des temps de pré-mouvement (ISO/TR 16738, Purser et Bensilum 2001, à vérifier) | 1 à 10 s sur une graine : t100 +0,9 à +6,2 s (journal du 18/11) |
+| `reaction.dispersion` | absent | – | Hypothèse sans source | écart-type de log(t) | 0,5 seulement |
+
 ## Ce que le tableau montre
 
 - **Les paramètres sans source qui comptent le plus ont un effet mesuré** : l'adhérence du
