@@ -23,6 +23,12 @@ arc de traits devant la porte est une arche.
 Limites : une foule rigide est hyperstatique, plusieurs jeux de lambda expliquent
 les memes a_i ; nnls en rend un, pas « le » vrai. La reaction d'un mur n'est pas
 contrainte a sa normale. Aucune valeur n'est etalonnee.
+
+Sensibilite au pas : un choc (agent qui arrive a v_n sur un voisin arrete) donne
+a ~ v_n / dt et double quand dt est divise par deux ; une poussee soutenue n'en depend pas.
+Sur `experiments/demo/pression-porte-saturee.yaml`, le 98e centile passe de 61,3 a
+74,1 m/s^2 de dt = 0,005 a 0,0025 s (+21 %) : ni chocs purs, ni chaines independantes du
+pas. Les intensites sont donc des ordres de grandeur, pas des forces a convertir en newtons.
 """
 
 from __future__ import annotations
