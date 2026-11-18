@@ -49,11 +49,8 @@ def test_pas_invalide(pas):
         segments_actifs(x, x, np.zeros((3, 1), dtype=int), pas)
 
 
-def test_commande_png_et_refus_d_ecrasement(tmp_path, monkeypatch):
-    def interdit(*args, **kwargs):
-        raise AssertionError("aucune simulation pour une pose longue")
-
-    monkeypatch.setattr("viscocrowd.scenarios.piscine.simuler_piscine", interdit)
+def _archive_deux_agents(tmp_path):
+    """Archive piscine de deux agents sur la plage, ecrite sans simulation."""
     config = lire_configuration(Path(__file__).parents[1] / "experiments/piscine.yaml")
     config["parametres"]["n_agents"] = 2
     p = ParametresPiscine(**config["parametres"], graine=config["graine"])
@@ -75,6 +72,33 @@ def test_commande_png_et_refus_d_ecrasement(tmp_path, monkeypatch):
             etats=np.full((5, 2), PLAGE),
         ),
     )
+    return archive
+
+
+def test_titre_et_pied_d_image(tmp_path):
+    """Le sous-titre est remplace par son nom, et le pied d'image n'est plus « a valider »."""
+    import matplotlib.pyplot as plt
+
+    from viscocrowd.io.trajectoires import lire_trajectoire
+    from viscocrowd.viz.pose_longue import figure_pose_longue
+
+    figure = figure_pose_longue(lire_trajectoire(_archive_deux_agents(tmp_path)))
+    try:
+        textes = [texte.get_text() for texte in figure.texts]
+        assert "ÉVACUATION PISCINE  /  POSE LONGUE" in textes
+        assert "ÉVACUATION PISCINE  /  RELECTURE" not in textes
+        assert not any("à valider" in texte for texte in textes)
+        assert any("facteur de panique 1.5" in texte for texte in textes)
+    finally:
+        plt.close(figure)
+
+
+def test_commande_png_et_refus_d_ecrasement(tmp_path, monkeypatch):
+    def interdit(*args, **kwargs):
+        raise AssertionError("aucune simulation pour une pose longue")
+
+    monkeypatch.setattr("viscocrowd.scenarios.piscine.simuler_piscine", interdit)
+    archive = _archive_deux_agents(tmp_path)
     png = tmp_path / "pose.png"
     args = ["pose-longue", str(archive), "--image", str(png)]
     assert main(args) == 0

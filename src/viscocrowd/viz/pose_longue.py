@@ -67,7 +67,7 @@ def figure_pose_longue(donnees, pas: int = 2):
         texte.set_text("")
     for legende in list(figure.legends):
         legende.remove()
-    figure.texts[1].set_text("ÉVACUATION PISCINE  /  POSE LONGUE")
+    lecteur.sous_titre.set_text("ÉVACUATION PISCINE  /  POSE LONGUE")
 
     segments, vitesses = segments_actifs(donnees.x, donnees.v, donnees.etats, pas)
     traits = LineCollection(
