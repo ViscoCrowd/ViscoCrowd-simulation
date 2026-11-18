@@ -106,7 +106,7 @@ class LecteurPression(LecteurPiscine):
         self.cmap = LinearSegmentedColormap.from_list("pression", COULEURS_PRESSION)
         self.norme = Normalize(0.0, self.echelle)
         self.ax.grid(False)
-        self.figure.texts[1].set_text("ÉVACUATION PISCINE  /  FORCES DE CONTACT")
+        self.sous_titre.set_text("ÉVACUATION PISCINE  /  FORCES DE CONTACT")
         for legende in list(self.figure.legends):
             legende.remove()
         self.ax.set_position((0.05, 0.29, 0.56, 0.46))
