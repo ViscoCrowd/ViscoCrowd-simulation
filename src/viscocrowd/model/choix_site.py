@@ -73,8 +73,10 @@ def choisir(
     if np.any(garde):
         cout_actuel = np.full(couts.shape[0], np.inf)
         cout_actuel[garde] = couts[rang[garde], actuels[garde]]
-        reste = garde & np.isfinite(cout_actuel) & (cout_actuel - couts[rang, meilleur] <= marge)
-        choix = np.where(reste, actuels, choix)
+        a_portee = np.isfinite(cout_actuel)  # site actuel encore a portee : meilleur fini aussi
+        gain = np.full(couts.shape[0], np.inf)
+        gain[a_portee] = cout_actuel[a_portee] - couts[rang[a_portee], meilleur[a_portee]]
+        choix = np.where(a_portee & (gain <= marge), actuels, choix)
     return choix
 
 
