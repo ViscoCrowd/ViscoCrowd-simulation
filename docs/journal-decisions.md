@@ -26,20 +26,24 @@ tous le même plus court chemin, qui longe le bassin, et rien n'en écartait un 
 vérifiée sur l'original : chaque baigneur de la plage choisit, dans son champ de vision,
 la direction qui le rapproche le plus de la porte compte tenu de la place libre, puis
 règle sa vitesse sur la distance au premier obstacle. Chacun a sa propre vitesse souhaitée
-(coefficient de variation de 0,15, celui de l'article). Le champ eikonal reste la
-destination, et la projection l'exclusion. Les nageurs ne sont pas concernés.
+(coefficient de variation de 0,15, celui de l'article), nageurs compris. Le champ
+eikonal reste la destination, et la projection l'exclusion. Les nageurs ne naviguent pas.
 
-**Mesure** (graines 1 à 10, commit `907ec49`, `docs/navigation.md`) : 9 % des positions
+**Mesure** (graines 1 à 10, commit `0cb0490`, `docs/navigation.md`) : 9 % des positions
 contre le bord au lieu de 93 %, un flux de 0,77 m d'épaisseur au lieu de 6 cm, et t100
-avancé de 4,1 ± 1,7 s (10 graines sur 10). Ni le pas de temps ni les paramètres de la
-fig. 3 de l'article (45°, 8 m) ne changent rien de décelable.
+avancé de 4,1 ± 1,7 s (10 graines sur 10). Le gain vient des heuristiques : sans
+dispersion des vitesses, t100 avance de 6,3 s, et la dispersion en reprend 2,2 (10/10
+chacun, revue de #163). Ni le pas de temps ni les paramètres de la fig. 3 de l'article
+(45°, 8 m) ne changent rien de décelable. L'écart mouillé − sec sur t100 (+0,84 s,
+8 graines sur 10) n'est pas une détection au sens des critères (p = 0,11).
 
 **Validation, sans réglage.** Sur E0, la navigation figeait d'abord la foule devant les
 goulots étroits : deux voisins s'attendaient l'un l'autre. Seuls les agents plus avancés
 vers la sortie comptent désormais dans la seconde heuristique, comme pour la régulation T ;
 288 simulations sur 300 s'écoulent. Mais le débit reste de 16 à 38 % sous Seyfried avec
 τ = 0,5 s (1 à 25 % avec τ = 0,35 s). Sur l'anneau, la vitesse baisse progressivement
-avec la densité, comme chez Weidmann, mais 23 à 68 % trop vite au-dessus de 1,5 pers/m².
+avec la densité, comme chez Weidmann, mais 23 à 67 % trop vite au-dessus de 1,5 pers/m²
+(10 graines, code versé dans `scenarios/anneau.py` après la fusion de #149).
 
 **Options écartées.**
 - *Un bruit sur la direction.* Il casse les lignes, mais c'est un artifice statistique,

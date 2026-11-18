@@ -1,13 +1,13 @@
 {
  "contexte": {
   "code": {
-   "commit": "907ec49b12e05b2fc39cdf59668fce0681d8fb62",
+   "commit": "0cb049078d63bbad329645710932801998186825",
    "modifications_locales": false,
    "source": "git"
   },
-  "sources_sha256": "43952239d0def62712f98ae8d51e433a12c188ed45501d938ad880ecfed66a25",
-  "python": "3.12.10",
-  "plateforme": "Windows-11-10.0.26300-SP0",
+  "sources_sha256": "36de437f50af022b20f5a7d5a42a126cb79d7754cc36cb47205e8926a82ecf0a",
+  "python": "3.14.2",
+  "plateforme": "Windows-11-10.0.26200-SP0",
   "machine": "AMD64",
   "versions": {
    "numpy": "2.5.3",
@@ -27,7 +27,7 @@
    "contre_le_bord": 0.9021920861972877,
    "epaisseur_flux": 0.11742314775044704,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.43551909999951
+   "calcul_s": 27.842984099988826
   },
   {
    "cas": "reference",
@@ -39,7 +39,7 @@
    "contre_le_bord": 0.9801545654040645,
    "epaisseur_flux": 0.0,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 14.074974200000725
+   "calcul_s": 36.431501700019
   },
   {
    "cas": "reference",
@@ -51,7 +51,7 @@
    "contre_le_bord": 0.8932926829268293,
    "epaisseur_flux": 0.10917335538346573,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.30775949999952
+   "calcul_s": 26.569836899987422
   },
   {
    "cas": "reference",
@@ -63,7 +63,7 @@
    "contre_le_bord": 0.9561748750132965,
    "epaisseur_flux": 0.0,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.411383900001965
+   "calcul_s": 32.60758289997466
   },
   {
    "cas": "reference",
@@ -75,7 +75,7 @@
    "contre_le_bord": 0.9462008914688504,
    "epaisseur_flux": 0.0,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.423506299997825
+   "calcul_s": 26.8803590000025
   },
   {
    "cas": "reference",
@@ -87,7 +87,7 @@
    "contre_le_bord": 0.9397200167154199,
    "epaisseur_flux": 0.03722960525799612,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 13.88813890000165
+   "calcul_s": 34.92205140000442
   },
   {
    "cas": "reference",
@@ -99,7 +99,7 @@
    "contre_le_bord": 0.8841373018588209,
    "epaisseur_flux": 0.1574992521386065,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.95310199999949
+   "calcul_s": 28.260194800037425
   },
   {
    "cas": "reference",
@@ -111,7 +111,7 @@
    "contre_le_bord": 0.8959558490907445,
    "epaisseur_flux": 0.10970688804021878,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.203160400000343
+   "calcul_s": 32.02963219996309
   },
   {
    "cas": "reference",
@@ -123,7 +123,7 @@
    "contre_le_bord": 0.9278282772971197,
    "epaisseur_flux": 0.032854414275427235,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 12.017224300001544
+   "calcul_s": 27.51281210000161
   },
   {
    "cas": "reference",
@@ -135,7 +135,7 @@
    "contre_le_bord": 0.9601285527769409,
    "epaisseur_flux": 0.0,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 11.93798279999828
+   "calcul_s": 30.672033999988344
   },
   {
    "cas": "navigation",
@@ -147,7 +147,7 @@
    "contre_le_bord": 0.070613629355535,
    "epaisseur_flux": 0.7848449789363181,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 28.589115899998433
+   "calcul_s": 71.20270710001932
   },
   {
    "cas": "navigation",
@@ -159,7 +159,7 @@
    "contre_le_bord": 0.09015840916750927,
    "epaisseur_flux": 0.7024935836380202,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 34.14158369999859
+   "calcul_s": 84.94863699999405
   },
   {
    "cas": "navigation",
@@ -171,7 +171,7 @@
    "contre_le_bord": 0.10096232262273691,
    "epaisseur_flux": 0.6933744671033668,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 27.809351800002332
+   "calcul_s": 66.38942099997075
   },
   {
    "cas": "navigation",
@@ -183,7 +183,7 @@
    "contre_le_bord": 0.09205020920502092,
    "epaisseur_flux": 0.7605313671709297,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 32.01146470000094
+   "calcul_s": 73.8859863000107
   },
   {
    "cas": "navigation",
@@ -195,7 +195,7 @@
    "contre_le_bord": 0.09868725868725868,
    "epaisseur_flux": 0.8141318048025687,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 27.280571399998735
+   "calcul_s": 67.0955083000008
   },
   {
    "cas": "navigation",
@@ -207,7 +207,7 @@
    "contre_le_bord": 0.08221369161868203,
    "epaisseur_flux": 0.7147588500719095,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 32.02397639999981
+   "calcul_s": 80.611978299974
   },
   {
    "cas": "navigation",
@@ -219,7 +219,7 @@
    "contre_le_bord": 0.1194107452339688,
    "epaisseur_flux": 0.7316517268989924,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 28.796271100000013
+   "calcul_s": 70.96002659999067
   },
   {
    "cas": "navigation",
@@ -231,7 +231,7 @@
    "contre_le_bord": 0.0751911639762107,
    "epaisseur_flux": 0.9216092112814582,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 37.02013310000257
+   "calcul_s": 88.0442104000249
   },
   {
    "cas": "navigation",
@@ -243,7 +243,7 @@
    "contre_le_bord": 0.09677974857930084,
    "epaisseur_flux": 0.7788043632063146,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 28.914814700001443
+   "calcul_s": 71.12864489998901
   },
   {
    "cas": "navigation",
@@ -255,7 +255,7 @@
    "contre_le_bord": 0.07544581618655692,
    "epaisseur_flux": 0.7583366028262617,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 31.810567799999262
+   "calcul_s": 76.25209219998214
   },
   {
    "cas": "navigation_dt2",
@@ -267,7 +267,7 @@
    "contre_le_bord": 0.06911877394636015,
    "epaisseur_flux": 0.7482360616965762,
    "violation": 7.105427357601002e-15,
-   "calcul_s": 56.835521699998935
+   "calcul_s": 143.03221370000392
   },
   {
    "cas": "navigation_dt2",
@@ -279,7 +279,7 @@
    "contre_le_bord": 0.08620689655172414,
    "epaisseur_flux": 0.6908533747692438,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 62.36616250000225
+   "calcul_s": 164.47370830003638
   },
   {
    "cas": "navigation_dt2",
@@ -291,7 +291,7 @@
    "contre_le_bord": 0.1004402413174629,
    "epaisseur_flux": 0.7303686382790453,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 57.93081849999726
+   "calcul_s": 136.59904179995647
   },
   {
    "cas": "navigation_dt2",
@@ -303,7 +303,7 @@
    "contre_le_bord": 0.08707256046705587,
    "epaisseur_flux": 0.7357113695811925,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 64.18930829999954
+   "calcul_s": 163.48920519999228
   },
   {
    "cas": "navigation_dt2",
@@ -315,7 +315,7 @@
    "contre_le_bord": 0.08403100775193799,
    "epaisseur_flux": 0.8324341246795859,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 59.54844510000112
+   "calcul_s": 146.4670115999761
   },
   {
    "cas": "navigation_dt2",
@@ -327,7 +327,7 @@
    "contre_le_bord": 0.0907036797934151,
    "epaisseur_flux": 0.6908131612402117,
    "violation": 7.105427357601002e-15,
-   "calcul_s": 54.216872000000876
+   "calcul_s": 164.80082199996104
   },
   {
    "cas": "navigation_dt2",
@@ -339,7 +339,7 @@
    "contre_le_bord": 0.10491575473336807,
    "epaisseur_flux": 0.7214133673582781,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 61.511494200000016
+   "calcul_s": 153.69692389998818
   },
   {
    "cas": "navigation_dt2",
@@ -351,7 +351,7 @@
    "contre_le_bord": 0.06725187597338242,
    "epaisseur_flux": 0.9334239069559374,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 57.12969339999836
+   "calcul_s": 178.00908769998932
   },
   {
    "cas": "navigation_dt2",
@@ -363,7 +363,7 @@
    "contre_le_bord": 0.09940425531914894,
    "epaisseur_flux": 0.7905161768838254,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 61.049929099997826
+   "calcul_s": 151.3864670000039
   },
   {
    "cas": "navigation_dt2",
@@ -375,7 +375,7 @@
    "contre_le_bord": 0.08208390125700439,
    "epaisseur_flux": 0.7808844989204431,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 53.36353120000058
+   "calcul_s": 163.0682247999939
   },
   {
    "cas": "navigation_sec",
@@ -387,7 +387,7 @@
    "contre_le_bord": 0.07033780657103193,
    "epaisseur_flux": 0.773149749188228,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 31.737905100002536
+   "calcul_s": 75.02094550000038
   },
   {
    "cas": "navigation_sec",
@@ -399,7 +399,7 @@
    "contre_le_bord": 0.09871172829178518,
    "epaisseur_flux": 0.660339746177377,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 32.09192249999978
+   "calcul_s": 81.52939480001805
   },
   {
    "cas": "navigation_sec",
@@ -411,7 +411,7 @@
    "contre_le_bord": 0.10136897001303781,
    "epaisseur_flux": 0.7320446351963263,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 33.75192379999862
+   "calcul_s": 83.46178780001355
   },
   {
    "cas": "navigation_sec",
@@ -423,7 +423,7 @@
    "contre_le_bord": 0.09188741721854304,
    "epaisseur_flux": 0.7150766299857398,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 32.20527140000195
+   "calcul_s": 83.69956149999052
   },
   {
    "cas": "navigation_sec",
@@ -435,7 +435,7 @@
    "contre_le_bord": 0.08791208791208792,
    "epaisseur_flux": 0.760742216437488,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 30.624077899999975
+   "calcul_s": 76.46565039997222
   },
   {
    "cas": "navigation_sec",
@@ -447,7 +447,7 @@
    "contre_le_bord": 0.0871868978805395,
    "epaisseur_flux": 0.7219147511282982,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 31.923009999998612
+   "calcul_s": 83.42788249999285
   },
   {
    "cas": "navigation_sec",
@@ -459,7 +459,7 @@
    "contre_le_bord": 0.12219495091164095,
    "epaisseur_flux": 0.7516820433238154,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 29.68277180000223
+   "calcul_s": 75.40703590004705
   },
   {
    "cas": "navigation_sec",
@@ -471,7 +471,7 @@
    "contre_le_bord": 0.07590992777227022,
    "epaisseur_flux": 0.8973229833024314,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 33.142968300002394
+   "calcul_s": 89.49931529996684
   },
   {
    "cas": "navigation_sec",
@@ -483,7 +483,7 @@
    "contre_le_bord": 0.09664728019158399,
    "epaisseur_flux": 0.7885554455071915,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 29.638824800000293
+   "calcul_s": 76.30562640004791
   },
   {
    "cas": "navigation_sec",
@@ -495,7 +495,7 @@
    "contre_le_bord": 0.07721423164269493,
    "epaisseur_flux": 0.7638739081282204,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 30.314100999999937
+   "calcul_s": 79.52251239999896
   },
   {
    "cas": "navigation_fig3",
@@ -507,7 +507,7 @@
    "contre_le_bord": 0.06301328953262655,
    "epaisseur_flux": 0.6996625170238921,
    "violation": 7.216449660063518e-16,
-   "calcul_s": 30.1243547999984
+   "calcul_s": 75.0539258000208
   },
   {
    "cas": "navigation_fig3",
@@ -519,7 +519,7 @@
    "contre_le_bord": 0.09351940968880333,
    "epaisseur_flux": 0.6232624384665328,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 31.298584800002573
+   "calcul_s": 83.22690459998557
   },
   {
    "cas": "navigation_fig3",
@@ -531,7 +531,7 @@
    "contre_le_bord": 0.10072055137844611,
    "epaisseur_flux": 0.623302254317363,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 28.859157399998367
+   "calcul_s": 70.32194629998412
   },
   {
    "cas": "navigation_fig3",
@@ -543,7 +543,7 @@
    "contre_le_bord": 0.09240607513988809,
    "epaisseur_flux": 0.6512041108142874,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 29.994149400001334
+   "calcul_s": 79.40537870000117
   },
   {
    "cas": "navigation_fig3",
@@ -555,7 +555,7 @@
    "contre_le_bord": 0.06988526300104306,
    "epaisseur_flux": 0.6287856461023598,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 28.19280770000114
+   "calcul_s": 69.15034400002332
   },
   {
    "cas": "navigation_fig3",
@@ -567,7 +567,7 @@
    "contre_le_bord": 0.092534504391468,
    "epaisseur_flux": 0.617790245330677,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 21.92603980000058
+   "calcul_s": 75.1689751999802
   },
   {
    "cas": "navigation_fig3",
@@ -579,7 +579,7 @@
    "contre_le_bord": 0.11441953830712613,
    "epaisseur_flux": 0.5882007227599271,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 31.09510670000236
+   "calcul_s": 80.21261530002812
   },
   {
    "cas": "navigation_fig3",
@@ -591,7 +591,7 @@
    "contre_le_bord": 0.0703733548213806,
    "epaisseur_flux": 0.7799647941202359,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 20.005129100001795
+   "calcul_s": 74.02074670000002
   },
   {
    "cas": "navigation_fig3",
@@ -603,7 +603,7 @@
    "contre_le_bord": 0.11537200917731891,
    "epaisseur_flux": 0.6907212244240644,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 20.82766139999876
+   "calcul_s": 72.23192349995952
   },
   {
    "cas": "navigation_fig3",
@@ -615,7 +615,127 @@
    "contre_le_bord": 0.0831281679942071,
    "epaisseur_flux": 0.6620236571035747,
    "violation": 1.7763568394002505e-15,
-   "calcul_s": 18.474972799998795
+   "calcul_s": 53.40656739997212
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 1,
+   "t50": 29.31995790266057,
+   "t90": 42.02708806831821,
+   "t100": 45.10160979104878,
+   "debit": 2.7731381437858267,
+   "contre_le_bord": 0.07164179104477612,
+   "epaisseur_flux": 0.7387206469862644,
+   "violation": 7.216449660063518e-16,
+   "calcul_s": 84.78397889999906
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 2,
+   "t50": 29.688819420939495,
+   "t90": 41.36566552161625,
+   "t100": 43.84811067915733,
+   "debit": 2.9234508899397498,
+   "contre_le_bord": 0.09923039135418373,
+   "epaisseur_flux": 0.6488568103006744,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 52.39339739998104
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 3,
+   "t50": 31.259254951905888,
+   "t90": 42.58146199482804,
+   "t100": 45.863978951619686,
+   "debit": 2.633044663088351,
+   "contre_le_bord": 0.11863841148006007,
+   "epaisseur_flux": 0.7409697137723756,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 80.6218116999953
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 4,
+   "t50": 29.007081020958708,
+   "t90": 41.5632692089211,
+   "t100": 44.37849747729556,
+   "debit": 2.834285925589423,
+   "contre_le_bord": 0.09065934065934066,
+   "epaisseur_flux": 0.7115509327014076,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 56.03007699997397
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 5,
+   "t50": 27.92012629624473,
+   "t90": 39.85860666141032,
+   "t100": 43.3595055857376,
+   "debit": 2.8574021287695075,
+   "contre_le_bord": 0.07742639040348964,
+   "epaisseur_flux": 0.6884894429990593,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 75.83572489995277
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 6,
+   "t50": 29.051286180400943,
+   "t90": 41.33673806362866,
+   "t100": 44.79942167120263,
+   "debit": 2.7979937257436527,
+   "contre_le_bord": 0.08128037539802245,
+   "epaisseur_flux": 0.6991529497450499,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 56.26616200001445
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 7,
+   "t50": 30.25964621798741,
+   "t90": 42.74333979187369,
+   "t100": 45.9529365705648,
+   "debit": 2.6774522931565032,
+   "contre_le_bord": 0.11686086360520904,
+   "epaisseur_flux": 0.6562960564434128,
+   "violation": 7.216449660063518e-16,
+   "calcul_s": 77.64897949999431
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 8,
+   "t50": 30.78777493197877,
+   "t90": 42.193819525318126,
+   "t100": 45.619642966805195,
+   "debit": 2.749638706212678,
+   "contre_le_bord": 0.07809050772626931,
+   "epaisseur_flux": 0.8254302062343353,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 56.44748829997843
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 9,
+   "t50": 30.89205451543537,
+   "t90": 42.811533845218904,
+   "t100": 45.8826442368095,
+   "debit": 2.6314927182725523,
+   "contre_le_bord": 0.11482998041659248,
+   "epaisseur_flux": 0.58697394768801,
+   "violation": 1.7763568394002505e-15,
+   "calcul_s": 79.28821640001843
+  },
+  {
+   "cas": "navigation_sans_dispersion",
+   "graine": 10,
+   "t50": 29.320144371249036,
+   "t90": 41.31906447597795,
+   "t100": 44.53731482818254,
+   "debit": 2.748245596381409,
+   "contre_le_bord": 0.09513742071881606,
+   "epaisseur_flux": 0.6398917497446455,
+   "violation": 7.216449660063518e-16,
+   "calcul_s": 51.73886429995764
   }
  ]
 }

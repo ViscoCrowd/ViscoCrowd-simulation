@@ -40,7 +40,8 @@ sol). Valeurs de l'article, reprises par défaut : τ = 0,5 s, φ = 75°, d_max 
 |---|---|---|
 | Destination : un point | Direction du champ eikonal | La porte est derrière le coin du bassin : le champ donne la direction du plus court chemin, que l'heuristique corrige localement |
 | Forces de contact k g(r_i + r_j − d_ij) | Projection du moteur | L'exclusion dure du cours reste inchangée |
-| Tous les piétons | Agents sur la plage seulement | Nager n'est pas marcher ; les nageurs gardent le champ de l'eau |
+| Heuristiques : tous les piétons | Agents sur la plage seulement | Nager n'est pas marcher ; les nageurs gardent le champ de l'eau |
+| Vitesse individuelle : tous les piétons | Tous les agents actifs, **nageurs compris** | Un seul tirage par agent, gardé de l'eau à la plage. Il change aussi l'ordre d'arrivée aux échelles et aux rebords : la mesure sépare donc les deux effets (variante sans dispersion) |
 | v0 ~ N(1,3 ; 0,2) m/s | Vitesse du sol × facteur individuel ~ N(1 ; 0,15), tronqué à ±3σ | Les sols et le facteur de panique gardent leur sens ; la troncature garde le déplacement par pas sous r/5 |
 | — | Régulation T de Tordeux remplacée sur la plage | La seconde heuristique en est la version 2D, avec τ = 0,5 s au lieu de T = 0,35 s |
 | Seconde heuristique : tous les piétons | Seuls les agents **plus avancés vers la sortie** (temps eikonal restant) | Sans cela, devant un goulot étroit, deux voisins côte à côte s'attendaient l'un l'autre, à l'arrêt, et E0 se figeait (voir la validation). L'article en sort par ses forces de contact, que la projection n'a pas : elle ne pousse pas un agent arrêté. C'est la règle d'ordre de la régulation T (`model.espacement`). Le choix de direction, lui, évite tout le monde |
@@ -51,10 +52,10 @@ la projection depuis #125), les obstacles fixes et les autres agents de la plage
 première version à coins vifs figeait les baigneurs qui glissaient le long du coin d'un
 montant, et la porte se bouchait.
 
-## Mesure sur la piscine (17 novembre 2026)
+## Mesure sur la piscine (17 novembre 2026, complétée le 18)
 
 Référence `experiments/piscine.yaml` (régulée, T = 0,35 s), graines 1 à 10, commit
-`907ec49` sans modification locale, Windows. Script et bilan :
+`0cb0490` sans modification locale, Windows, 12 évacuations en parallèle. Script et bilan :
 [`mesures/navigation-2026-11-17/`](mesures/navigation-2026-11-17/) (`mesurer.py`,
 `resultats.json`, `sortie.txt`).
 
@@ -62,24 +63,36 @@ Référence `experiments/piscine.yaml` (régulée, T = 0,35 s), graines 1 à 10,
 python docs/mesures/navigation-2026-11-17/mesurer.py experiments/piscine.yaml
 ```
 
-| | Référence | Navigation | Navigation, Δt/2 | Navigation, sol sec | Navigation, fig. 3 (45°, 8 m) |
-|---|---|---|---|---|---|
-| Positions de plage contre le bord du bassin | 92,9 ± 3,3 % | **9,0 ± 1,5 %** | 8,7 % | 9,1 % | 9,0 % |
-| Épaisseur du flux (écart interquartile latéral) | 0,06 m | **0,77 m** | 0,77 m | 0,76 m | 0,66 m |
-| t50 (s) | 31,43 ± 0,52 | 30,68 ± 0,73 | 30,66 ± 0,79 | 30,40 ± 0,61 | 30,64 ± 0,85 |
-| t90 (s) | 45,40 ± 0,76 | 43,24 ± 0,71 | 43,27 ± 1,08 | 42,59 ± 0,95 | 43,03 ± 1,08 |
-| t100 (s) | 51,28 ± 1,87 | 47,17 ± 0,77 | 47,09 ± 1,13 | 46,33 ± 0,95 | 47,24 ± 1,30 |
-| Débit à la porte (pers/(m·s)) | 2,28 ± 0,10 | 2,46 ± 0,07 | 2,47 ± 0,07 | 2,52 ± 0,09 | 2,46 ± 0,11 |
-| Calcul par évacuation | 13 s | 31 s | 59 s | 32 s | 26 s |
+| | Référence | Navigation | Navigation sans dispersion | Navigation, Δt/2 | Navigation, sol sec | Navigation, fig. 3 (45°, 8 m) |
+|---|---|---|---|---|---|---|
+| Positions de plage contre le bord du bassin | 92,9 ± 3,3 % | **9,0 ± 1,5 %** | 9,4 ± 1,8 % | 8,7 % | 9,1 % | 9,0 % |
+| Épaisseur du flux (écart interquartile latéral) | 0,06 m | **0,77 m** | 0,69 m | 0,77 m | 0,76 m | 0,66 m |
+| t50 (s) | 31,43 ± 0,52 | 30,68 ± 0,73 | 29,75 ± 1,04 | 30,66 ± 0,79 | 30,40 ± 0,61 | 30,64 ± 0,85 |
+| t90 (s) | 45,40 ± 0,76 | 43,24 ± 0,71 | 41,78 ± 0,89 | 43,27 ± 1,08 | 42,59 ± 0,95 | 43,03 ± 1,08 |
+| t100 (s) | 51,28 ± 1,87 | 47,17 ± 0,77 | 44,93 ± 0,91 | 47,09 ± 1,13 | 46,33 ± 0,95 | 47,24 ± 1,30 |
+| Débit à la porte (pers/(m·s)) | 2,28 ± 0,10 | 2,46 ± 0,07 | 2,76 ± 0,10 | 2,47 ± 0,07 | 2,52 ± 0,09 | 2,46 ± 0,11 |
+| Calcul par évacuation | 30 s | 75 s | 67 s | 157 s | 80 s | 73 s |
 
-Écarts appariés, graine par graine (valeur p par permutation exacte des signes) :
+Les cinq variantes de la première mesure (commit `907ec49`, avant la fusion de `dev`)
+redonnent ses valeurs au bit près ; seuls les temps de calcul changent. « Sans
+dispersion » : `navigation: {dispersion_vitesse: 0}`, tous les agents à la
+vitesse du sol. Elle sépare les deux changements qu'apporte la navigation (revue de
+#163) : les heuristiques, sur la plage seulement, et la vitesse individuelle, qui vaut
+aussi dans l'eau.
 
-| | Δ t50 (s) | Δ t100 (s) | Δ débit |
+Écarts appariés, graine par graine. Entre parenthèses : nombre de graines du signe de la
+moyenne, puis deux valeurs p, la permutation exacte des signes sur la moyenne et le test
+de signe exact de [`criteres-acceptation.md`](criteres-acceptation.md) (§ 3), qui seul
+décide d'une détection. Calculés par `mesurer.py` (`sortie.txt`).
+
+| | Δ t50 (s) | Δ t100 (s) | Δ débit (pers/(m·s)) |
 |---|---|---|---|
-| Navigation − référence | −0,74 ± 0,74 (p = 0,002, 10/10) | **−4,11 ± 1,67** (p = 0,002, 10/10) | +0,18 ± 0,11 (p = 0,002, 10/10) |
-| Δt/2 − Δt (navigation) | −0,02 ± 0,65 (p = 0,90) | −0,07 ± 1,03 (p = 0,82) | +0,01 ± 0,08 (p = 0,83) |
-| Mouillé − sec (navigation) | +0,28 ± 0,80 (p = 0,28) | +0,84 ± 1,10 (p = 0,04, 8/10) | −0,06 ± 0,08 (p = 0,04) |
-| Fig. 3 − fig. 2 | −0,04 ± 0,87 (p = 0,87) | +0,08 ± 1,09 (p = 0,84) | −0,00 ± 0,08 (p = 0,88) |
+| Navigation − référence | −0,74 ± 0,74 (10/10 ; 0,002 / 0,002) | **−4,11 ± 1,67** (10/10 ; 0,002 / 0,002) | +0,18 ± 0,11 (10/10 ; 0,002 / 0,002) |
+| Sans dispersion − référence (heuristiques seules) | −1,68 ± 0,88 (10/10 ; 0,002 / 0,002) | **−6,34 ± 1,76** (10/10 ; 0,002 / 0,002) | +0,48 ± 0,13 (10/10 ; 0,002 / 0,002) |
+| Navigation − sans dispersion (effet de la dispersion) | +0,93 ± 0,93 (9/10 ; 0,014 / 0,021) | **+2,23 ± 0,96** (10/10 ; 0,002 / 0,002) | −0,30 ± 0,09 (10/10 ; 0,002 / 0,002) |
+| Δt/2 − Δt (navigation) | −0,02 ± 0,65 (6/10 ; 0,90 / 0,75) | −0,07 ± 1,03 (5/10 ; 0,82 / 1,00) | +0,01 ± 0,08 (5/10 ; 0,83 / 1,00) |
+| Mouillé − sec (navigation) | +0,28 ± 0,80 (7/10 ; 0,28 / 0,34) | +0,84 ± 1,10 (8/10 ; 0,04 / 0,11) | −0,06 ± 0,08 (7/10 ; 0,04 / 0,34) |
+| Fig. 3 − fig. 2 | −0,04 ± 0,87 (6/10 ; 0,87 / 0,75) | +0,08 ± 1,09 (6/10 ; 0,84 / 0,75) | −0,00 ± 0,08 (7/10 ; 0,88 / 0,34) |
 
 ![Graine 1, à 20, 28 et 36 s : en haut la référence, en bas la navigation](mesures/navigation-2026-11-17/avant-apres.png)
 
@@ -142,29 +155,40 @@ Aucun recouvrement des murs au-delà de 10⁻¹⁵ m.
 ### Anneau, comparé à Weidmann (1993)
 
 Banc de #149 (couloir circulaire de 5 à 7 m, densité imposée), sans régulation T, avec la
-navigation : destination le long de la tangente, murs circulaires vus par l'heuristique.
-Graines 1 à 3, 40 s, vitesse mesurée de 20 à 40 s. **Code sur une branche locale**
-(`exp/navigation-anneau`, commit `f186b33`, #149 + cette PR), à reverser quand #149 sera
-fusionnée ; bilan : `mesures/navigation-2026-11-17/anneau.json`, `anneau.txt`.
+navigation (`scenarios/anneau.py`) : destination le long de la tangente, murs circulaires
+vus par l'heuristique. Graines 1 à 10, 40 s, vitesse mesurée de 20 à 40 s ; commit
+`b91ff1f` sans modification locale, 20 simulations en parallèle, 2 h 30. Script et bilan :
+`mesures/navigation-2026-11-17/anneau.py`, `anneau.json`, `anneau.txt`.
+
+```bash
+python docs/mesures/navigation-2026-11-17/anneau.py experiments/anneau.yaml
+```
+
+Le premier bilan (graines 1 à 3) avait été calculé sur une branche locale (`f186b33`),
+avant la fusion de #149. Le code versé dans le dépôt redonne ses 27 points au bit près, et
+`tests/test_anneau.py` vérifie le premier (test lent).
 
 | ρ (pers/m²) | 0,25 | 0,50 | 0,99 | 1,50 | 2,00 | 2,49 | 3,00 | 3,50 | 4,01 |
 |---|---|---|---|---|---|---|---|---|---|
-| v navigation (m/s) | 1,21 | 1,16 | 1,11 | 0,99 | 0,83 | 0,65 | 0,49 | 0,36 | 0,26 |
+| v navigation (m/s) | 1,20 | 1,17 | 1,11 | 1,00 | 0,83 | 0,65 | 0,49 | 0,36 | 0,26 |
 | v Weidmann | 1,34 | 1,30 | 1,06 | 0,81 | 0,61 | 0,45 | 0,33 | 0,23 | 0,16 |
 | v référence T (#149, 10 graines) | 1,34 | 1,34 | 1,34 | 1,34 | 1,34 | 0,58 | 0,43 | 0,31 | 0,20 |
-| J navigation (pers/(m·s)) | 0,30 | 0,59 | 1,10 | 1,49 | 1,66 | 1,61 | 1,46 | 1,26 | 1,05 |
+| J navigation (pers/(m·s)) | 0,30 | 0,59 | 1,10 | 1,49 | 1,66 | 1,61 | 1,46 | 1,26 | 1,04 |
 | J Weidmann | 0,34 | 0,65 | 1,06 | 1,21 | 1,21 | 1,13 | 0,99 | 0,82 | 0,62 |
 
-Écart-type entre graines : 0,017 m/s au plus. Dérive entre les deux moitiés de la
-fenêtre : 4,3 % au plus.
+Écart-type entre graines : de 0,048 m/s (0,25 pers/m²) à 0,004 m/s (4 pers/m²). À faible
+densité, il vient surtout du tirage des vitesses individuelles : avec 19 agents, la
+moyenne des facteurs varie d'une graine à l'autre (corrélation 0,92 avec la vitesse
+mesurée). Rapportée à la vitesse souhaitée moyenne tirée, la vitesse vaut 0,90 ± 0,014.
+Dérive entre les deux moitiés de la fenêtre : 4,3 % au plus.
 
 - **La foule ralentit progressivement dès les faibles densités**, comme chez Weidmann. La
   référence, elle, garde v0 jusqu'à 2 pers/m², puis chute d'un coup. Le débit maximal
   passe de 2,68 (référence) à 1,66 pers/(m·s), pour 1,21 chez Weidmann.
 - **Au-dessus de 1,5 pers/m², la navigation va trop vite** : de 23 % (1,5 pers/m²) à
-  68 % (4 pers/m²) au-dessus de Weidmann, plus que la référence sur la branche
+  67 % (4 pers/m²) au-dessus de Weidmann, plus que la référence sur la branche
   congestionnée (28 à 33 %).
-- **À faible densité, 10 % sous v0** (1,21 contre 1,34 m/s). Les agents longent le mur
+- **À faible densité, 10 % sous v0** (1,20 contre 1,34 m/s). Les agents longent le mur
   intérieur (63 % des positions à moins de 8 cm, graine 1), et l'heuristique leur demande
   0,92 v0 en moyenne. Cause probable, non vérifiée : sur l'anneau, la destination est la
   tangente, une droite que le mur courbe coupe. Sur une plage droite, un agent seul
@@ -176,14 +200,23 @@ fenêtre : 4,3 % au plus.
    93 %) et le flux s'élargit d'un facteur treize. Visuellement, les deux lignes parfaites
    deviennent des flux diffus, puis une foule qui se resserre devant la porte.
 2. **L'évacuation est plus rapide**, de 4 s sur t100 (10 graines sur 10), et la porte
-   écoule plus : 2,46 contre 2,28 pers/(m·s). Explication possible, non mesurée : en
-   utilisant la largeur de la plage, les baigneurs arrivent à la porte de front plutôt
-   qu'en deux files.
+   écoule plus : 2,46 contre 2,28 pers/(m·s). **Le gain vient des heuristiques, pas de la
+   dispersion des vitesses** : sans dispersion, t100 avance de 6,3 s (10/10) ; la
+   dispersion en reprend 2,2 s (10/10) et abaisse le débit de 0,30 pers/(m·s). La
+   file indienne disparaît aussi sans dispersion (9,4 % contre le bord). Explication
+   possible du gain, non mesurée : en utilisant la largeur de la plage, les baigneurs
+   arrivent à la porte de front plutôt qu'en deux files. Celle du ralentissement dû à la
+   dispersion, non mesurée non plus : les plus lents imposent leur cadence aux échelles
+   et à la porte, comme le suggère E0 ci-dessus.
 3. **Ni le pas de temps ni le choix fig. 2 / fig. 3 de l'article ne changent rien de
    décelable** : moins que l'écart-type entre graines sur t50, t100 et le débit.
-4. **Le sol mouillé ralentirait la fin de l'évacuation** : Δt100 = +0,84 ± 1,10 s
-   (p = 0,04, 8 graines sur 10), débit −0,06 (p = 0,04), mais rien sur t50 (p = 0,28).
-   Trois tests sur dix graines : une indication, à confirmer sur davantage de graines.
+4. **Le sol mouillé ralentirait peut-être la fin de l'évacuation**, mais ce n'est pas une
+   détection : Δt100 = +0,84 ± 1,10 s sur 8 graines sur 10, p = 0,04 par permutation
+   mais p = 0,11 au test de signe du § 3 des critères, qui demande au plus une graine
+   contraire sur dix. Rien sur t50 (7/10, p = 0,34) ni sur le débit (7/10, p = 0,34).
+   C'est de plus une comparaison exploratoire, hors de la comparaison principale (E1/E2
+   sur la référence) : une indication, à confirmer sur dix nouvelles graines (11 à 20)
+   avant d'en parler dans le rapport.
 5. **La validation est mitigée.** La forme du ralentissement avec la densité se rapproche
    de Weidmann, ce que la référence ne fait pas. Mais au goulot, les valeurs de l'article
    donnent un débit de 16 à 38 % sous Seyfried, que la référence atteint par étalonnage.
@@ -198,7 +231,16 @@ fenêtre : 4,3 % au plus.
   et la foule n'y arrive pas de la même façon ; les deux ne se comparent pas directement.
 - **Coût de calcul** : environ 2,5 fois plus long par évacuation, à cause des distances
   libres calculées dans 31 directions pour chaque baigneur de la plage.
-- **Les nageurs** ne naviguent pas : dans l'eau, le guidage reste celui du champ.
+- **Les nageurs** ne naviguent pas : dans l'eau, le guidage reste celui du champ, et la
+  régulation T y reste active quand `temps_espacement` est fixé. Leur vitesse souhaitée
+  est pourtant dispersée (facteur individuel).
+- **Les agents en franchissement sont invisibles** pour les heuristiques : seuls les
+  agents de la plage sont passés à `vitesses_souhaitees`. Un baigneur qui monte une
+  échelle ou passe un rebord n'est vu par personne sur la plage ; seule la projection
+  empêche qu'on le traverse, sans qu'un voisin l'anticipe.
 - **La distance gardée au bord du bassin** n'est pas imposée. Elle vient de l'évitement des
   autres et de la dispersion des vitesses ; aucune source ne la fixe ici.
-- **L'anneau** n'est mesuré que sur trois graines, et son code attend la fusion de #149.
+- **L'anneau** part des voies concentriques de #149 : #167 doit vérifier, pour la
+  référence, l'effet de ce départ ordonné. Avec la navigation, les agents quittent leur
+  voie de départ pour longer le mur intérieur (ci-dessus), mais l'effet du départ n'est
+  pas mesuré non plus.
