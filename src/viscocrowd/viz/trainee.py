@@ -33,7 +33,7 @@ class LecteurTrainee(LecteurPiscine):
 
         nx, ny = eau_sol.shape[1:]
         self.ax.grid(False)
-        self.figure.texts[1].set_text("ÉVACUATION PISCINE  /  TRAÎNÉE D'EAU")
+        self.sous_titre.set_text("ÉVACUATION PISCINE  /  TRAÎNÉE D'EAU")
         cmap = LinearSegmentedColormap.from_list(
             "eau", [(0.38, 0.78, 0.93, 0.0), (0.38, 0.78, 0.93, 0.95)]
         )

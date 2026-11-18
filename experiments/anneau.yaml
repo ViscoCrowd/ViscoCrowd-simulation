@@ -1,0 +1,22 @@
+# M8 : diagramme fondamental en ecoulement libre, sur un couloir circulaire (#124).
+# Densite imposee rho = N / A ; N se choisit a la commande (--effectifs).
+# Memes parametres de marche que E0 (goulot.yaml) : sol sec, T = 0,35 s.
+version: 1
+scenario: anneau
+graine: 1
+parametres:
+  rayon_interieur: 5.0      # m
+  rayon_exterieur: 7.0      # m ; couloir de 2 m, A = 75,4 m^2
+  n_agents: 75              # N ; ~1 pers/m^2 par defaut
+  rayon: 0.2                # m, comme E0
+  bruit: 0.02               # m, perturbation bornee du depart
+  facteur_vitesse: 1.0
+  temps_espacement: 0.35    # s, relation vitesse-espacement etalonnee sur E0 ; null la desactive
+  dt: 0.01                  # s
+  duree: 60.0               # s
+  debut_mesure: 30.0        # s, apres le regime transitoire
+  tolerance: 1.0e-6         # m
+  sec:
+    relaxation: 0.5         # s
+    acceleration_max: 5.9   # m/s^2
+    vitesse: 1.34           # m/s, Weidmann (1993)
