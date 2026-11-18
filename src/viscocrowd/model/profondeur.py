@@ -45,7 +45,6 @@ def facteur_profondeur(d: np.ndarray) -> np.ndarray:
     """Facteur (sans unite) de la vitesse dans l'eau a la profondeur d (m) : (d / 0,7)^-0,38."""
     d = np.asarray(d, dtype=float)
     if not np.all(np.isfinite(d)) or np.any(d < PROFONDEUR_MIN) or np.any(d > PROFONDEUR_MAX):
-        raise ValueError(
-            f"profondeur hors du domaine [{PROFONDEUR_MIN} ; {PROFONDEUR_MAX}] m de la loi de vitesse"
-        )
+        domaine = f"[{PROFONDEUR_MIN} ; {PROFONDEUR_MAX}] m"
+        raise ValueError(f"profondeur hors du domaine {domaine} de la loi de vitesse")
     return (d / PROFONDEUR_REFERENCE) ** EXPOSANT
