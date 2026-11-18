@@ -396,9 +396,10 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     carte = CartePiscine(piscine)
     navigation = p.navigation
     if navigation is not None:
-        # Navigation locale sur la plage (#158) : chaque agent a sa vitesse souhaitee, et
-        # les agents de la plage choisissent leur direction par les heuristiques de
-        # Moussaid et al. (2011). Les nageurs gardent le guidage du champ de l'eau.
+        # Navigation locale sur la plage (#158) : chaque agent a sa vitesse souhaitee,
+        # nageurs compris, et les agents de la plage choisissent leur direction par les
+        # heuristiques de Moussaid et al. (2011). Les nageurs gardent le guidage du champ
+        # de l'eau ; les agents en franchissement ne sont vus par personne.
         facteurs = facteurs_individuels(p.n_agents, navigation, p.graine)
         largeur, longueur = piscine.largeur_emprise, piscine.longueur_emprise
         scene = ScenePlage(

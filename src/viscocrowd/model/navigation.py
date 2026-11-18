@@ -3,8 +3,9 @@
 Le guidage eikonal donne a tous le meme plus court chemin : sur la plage, il longe le
 bord du bassin a un rayon pres, et comme rien n'ecarte un agent de cette ligne, les
 baigneurs marchaient en file indienne contre le bord, puis en deux lignes vers la porte
-(90 % des positions a moins de 21 cm du bord, mesure du 17 novembre, #158). Un pieton
-reel regarde devant lui et choisit un chemin libre.
+(93 % des positions de plage le long du bassin a moins de 1 cm du plus pres possible,
+mesure du 17 novembre, #158). Un pieton reel regarde devant lui et choisit un chemin
+libre.
 
 Ce module reprend les deux heuristiques de Moussaid et al. (2011, PNAS 108(17),
 p. 6884-6888), verifiees sur l'original :
@@ -45,7 +46,9 @@ Adaptations, et pourquoi
   s'attendaient l'un l'autre et la foule se figeait (voir `vitesses_souhaitees`).
 - La vitesse souhaitee de chaque agent est la vitesse du sol multipliee par un facteur
   individuel tire une fois (`facteurs_individuels`) : les sols et le facteur de panique
-  gardent leur sens, et la dispersion relative est celle de l'article.
+  gardent leur sens, et la dispersion relative est celle de l'article. Sur la piscine,
+  ce facteur vaut aussi pour les nageurs, de l'eau a la plage : il change l'ordre
+  d'arrivee aux echelles et aux rebords (docs/navigation.md separe les deux effets).
 """
 
 from __future__ import annotations
