@@ -37,7 +37,7 @@ VITESSE ?= 1
 FIXER ?=
 ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
-.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer campagne-finale maquette figures report docker clean
+.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer menu comparer campagne-finale maquette figures report docker clean
 
 help:  ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -84,6 +84,9 @@ rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defau
 # finissait entre-temps. Si la simulation echoue, la relecture n'est pas lancee.
 lancer:  ## Simule puis ouvre la relecture (CONFIG=..., piscine ou couloir)
 	@sortie="$(SORTIE)" && $(MAKE) --no-print-directory simu SORTIE="$$sortie" && $(MAKE) --no-print-directory rejouer ARCHIVE="$$sortie"
+
+menu:  ## Parametre la piscine par questions, simule puis relit (CONFIG=...)
+	$(VISCO_PY) -m viscocrowd.cli menu $(CONFIG)
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
 	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
