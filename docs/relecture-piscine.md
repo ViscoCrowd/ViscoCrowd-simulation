@@ -17,6 +17,14 @@ sur tous les instants : elle ne peut pas interrompre une lecture ou un GIF en co
 Les marqueurs carrés identifient les échelles ; les petits points identifient le rebord.
 Le fond sec/mouillé/eau emploie la même carte géométrique que le scénario, sans guidage.
 
+Si le module de chutes était actif (`chutes` dans la configuration), les agents au sol
+sont rouges et dessinés au rayon au sol (`facteur_rayon_terre`). Un agent tombé à `instant`
+reste au sol tant que t < instant + `duree_relevage`, la règle du module ; ces intervalles
+viennent des événements `chutes` de l'archive, sans interpolation. La ligne des effectifs
+ajoute « À terre » et le nombre cumulé de chutes, et le pied d'image rappelle que les taux
+ne sont pas calibrés (décision du 16 novembre, #130). Un événement incomplet, d'un agent
+inconnu ou hors de l'archive est refusé dès l'ouverture.
+
 Le lecteur refuse les états absents, une légende différente, les transitions en arrière,
 une population incompatible ou des sorties contradictoires. Il ne revalide pas toute
 la physique d'une archive : les invariants restent du ressort de la simulation/tests.
