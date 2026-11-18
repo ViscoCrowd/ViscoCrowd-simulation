@@ -198,7 +198,8 @@ l'erreur : ce contrôle seul ne prouve pas la convergence du modèle.
 
 La relecture ouvre une fenêtre avec **Lire/Pause**, un curseur de temps et un compteur
 de passages vers l'aval. Les disques gardent leur rayon en mètres ; l'horloge utilise
-les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux.
+les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux
+(`make rejouer VITESSE=5` ou `make lancer VITESSE=5` ; sous Windows, `.\run.ps1 rejouer --vitesse 5`).
 Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
