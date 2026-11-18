@@ -662,8 +662,8 @@ clairsemé. La file se forme moins, et il y a moins de relances écrêtées par 
 la pénalité du mouillé fond de 13,6 à 2,8 s. C'est le **mécanisme tampon** de la
 problématique, qui apparaît ici pour la première fois dans le modèle, non pas comme un gain
 absolu (t100 s'allonge avec les réactions tardives), mais comme une **atténuation de l'effet
-inertiel**. À 20 s de médiane, les dernières réactions (jusqu'à 65 s environ) dominent t100 :
-la porte n'est plus le facteur limitant.
+inertiel**. À 20 s de médiane, les dernières réactions (de 55 à plus de 100 s selon la graine,
+graines 1 à 3) dominent t100 : la porte n'est plus le facteur limitant.
 
 **Limites.** Valeurs de réaction sans source ; une seule dispersion (0,5) ; la décroissance
 est nette de 1 à 20 s, mais entre 10 et 20 s elle ne l'est pas (7/10). Pour en faire une
