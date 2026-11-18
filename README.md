@@ -227,6 +227,11 @@ diagramme fondamental devant la porte (mesure de Voronoï de M8, #124) qui se tr
 direct : point courant, traînée des 2 dernières secondes, relation de Weidmann en repère.
 Mêmes exports que `rejouer` (`--image`, `--gif`, `--instant`), lecture ×4 par défaut.
 
+Pour comparer deux évacuations à l'écran, `viscocrowd duel experiments/piscine.yaml --gif
+figures/duel.gif` simule la piscine et son témoin tout sec (même graine, mêmes positions de
+départ) et les rejoue l'une au-dessus de l'autre, horloges synchronisées (`--vitesse 4` par
+défaut). `--contre autre.yaml` remplace le témoin, `--garder dossier/` conserve les archives.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
