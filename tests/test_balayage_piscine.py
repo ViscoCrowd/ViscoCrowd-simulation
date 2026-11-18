@@ -531,3 +531,12 @@ class TestCommande:
         assert main([*args, "--valeurs", "1", "--graines", "1", "--sortie", str(sortie)]) == 1
         assert sortie.read_text(encoding="utf-8") == "{}"
         assert appels == []
+
+
+def test_reaction_mediane_garde_la_dispersion():
+    base = lire_configuration(EXEMPLE)["parametres"] | {
+        "reaction": {"mediane": 1.0, "dispersion": 0.5}
+    }
+    nouveau = balayage._appliquer(base, "reaction_mediane", 10.0)
+    assert nouveau["reaction"] == {"mediane": 10.0, "dispersion": 0.5}
+    assert base["reaction"]["mediane"] == 1.0
