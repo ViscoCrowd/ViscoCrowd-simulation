@@ -50,8 +50,13 @@ def contacts(x: np.ndarray, r: np.ndarray, actifs: np.ndarray) -> np.ndarray:
 
 
 def forces_de_contact(
-    x: np.ndarray, a: np.ndarray, paires: np.ndarray, contre_mur: np.ndarray
-) -> np.ndarray:
+    x: np.ndarray,
+    a: np.ndarray,
+    paires: np.ndarray,
+    contre_mur: np.ndarray,
+    *,
+    avec_residu: bool = False,
+) -> np.ndarray | tuple[np.ndarray, float]:
     """Intensites lambda (K,) >= 0 des contacts `paires`, en m/s^2. Voir le module.
 
     Args:
@@ -60,9 +65,12 @@ def forces_de_contact(
         paires: (K, 2) agents en contact.
         contre_mur: (N,) vrai pour un agent qui touche une paroi : il recoit une
             reaction libre, sans laquelle son equilibre serait impossible.
+        avec_residu: rend aussi le residu relatif |A lambda - a| / |a| (sans unite). Pres
+            de 0, les intensites expliquent les corrections ; un residu eleve signale un
+            contact manque (jeu > `JEU_CONTACT`) ou une reaction de mur mal posee.
     """
     if paires.shape[0] == 0:
-        return np.zeros(0)
+        return (np.zeros(0), 0.0) if avec_residu else np.zeros(0)
     agents = np.unique(paires)
     ligne = {int(k): n for n, k in enumerate(agents)}
     murs = [k for k in agents if contre_mur[k]]
@@ -76,7 +84,10 @@ def forces_de_contact(
         base, n = len(paires) + 4 * m, ligne[int(k)]
         for d, (axe, signe) in enumerate(((0, 1), (0, -1), (1, 1), (1, -1))):
             A[2 * n + axe, base + d] = signe
-    solution, _ = nnls(A, a[agents].ravel(), maxiter=50 * A.shape[1])
+    b = a[agents].ravel()
+    solution, residu = nnls(A, b, maxiter=50 * A.shape[1])
+    if avec_residu:
+        return solution[: len(paires)], float(residu / max(np.linalg.norm(b), 1e-12))
     return solution[: len(paires)]
 
 
@@ -94,6 +105,7 @@ class LecteurPression(LecteurPiscine):
         self.contraintes = contraintes
         self._contre_mur = piscine_contact
         self._cache: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+        self._residus: dict[int, float] = {}
         super().__init__(donnees, interactif=interactif, vitesse=vitesse)
         from matplotlib.collections import LineCollection
         from matplotlib.colors import LinearSegmentedColormap, Normalize
@@ -149,11 +161,17 @@ class LecteurPression(LecteurPiscine):
             actifs = (etats == EAU) | (etats == PLAGE)
             paires = contacts(x, self.donnees.rayons, actifs)
             mur = self._contre_mur(x, self.donnees.rayons, self.donnees.t[index]) & actifs
-            self._cache[index] = (
-                paires,
-                forces_de_contact(x, self.contraintes[index], paires, mur),
+            lam, residu = forces_de_contact(
+                x, self.contraintes[index], paires, mur, avec_residu=True
             )
+            self._cache[index] = (paires, lam)
+            self._residus[index] = residu
         return self._cache[index]
+
+    def residu_a(self, index: int) -> float:
+        """Residu relatif de `forces_de_contact` a l'instant archive `index` (sans unite)."""
+        self.reseau_a(index)
+        return self._residus[index]
 
     def afficher(self, index: int) -> None:
         super().afficher(index)
@@ -261,6 +279,12 @@ def commande_pression(args) -> int:
         )
         print(f"Échelle de couleur (98e centile) : {lecteur.echelle:.2f} m/s²")
         lecteur.aller_au_temps(args.instant)
+        paires, lam = lecteur.reseau_a(lecteur.index)
+        maximum = f"{lam.max():.1f} m/s²" if lam.size else "—"
+        print(
+            f"t = {donnees.t[lecteur.index]:.2f} s : {len(paires)} contacts, max {maximum}, "
+            f"résidu relatif {lecteur.residu_a(lecteur.index):.2e}"
+        )
         if args.image:
             args.image.parent.mkdir(parents=True, exist_ok=True)
             lecteur.figure.savefig(args.image, dpi=140)

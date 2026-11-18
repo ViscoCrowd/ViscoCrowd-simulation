@@ -47,6 +47,34 @@ def test_aucun_contact():
     )
 
 
+def test_residu_nul_pour_une_colonne_equilibree():
+    """Les intensites retrouvees expliquent exactement les corrections : residu nul."""
+    x = np.array([[0.0, 0.0], [0.4, 0.0], [0.8, 0.0]])
+    a = np.array([[-1.0, 0.0]] * 3)
+    lam, residu = forces_de_contact(
+        x, a, np.array([[0, 1], [1, 2]]), np.array([False, False, True]), avec_residu=True
+    )
+    np.testing.assert_allclose(lam, [1.0, 2.0], atol=1e-9)
+    assert residu == pytest.approx(0.0, abs=1e-9)
+
+
+def test_residu_signale_une_poussee_inexpliquee():
+    """Deux disques sans mur pousses dans le meme sens : aucun lambda >= 0 ne l'explique."""
+    x = np.array([[0.0, 0.0], [0.4, 0.0]])
+    a = np.array([[1.0, 0.0], [1.0, 0.0]])
+    _, residu = forces_de_contact(
+        x, a, np.array([[0, 1]]), np.zeros(2, dtype=bool), avec_residu=True
+    )
+    assert residu > 0.5
+
+
+def test_residu_sans_contact():
+    lam, residu = forces_de_contact(
+        np.zeros((1, 2)), np.zeros((1, 2)), np.empty((0, 2), int), [False], avec_residu=True
+    )
+    assert lam.size == 0 and residu == 0.0
+
+
 def test_contacts_ignorent_les_agents_inactifs_et_les_jeux_larges():
     x = np.array([[0.0, 0.0], [0.4, 0.0], [0.8, 0.0], [5.0, 5.0]])
     r = np.full(4, 0.2)
@@ -70,7 +98,7 @@ def test_mesurer_les_contraintes_ne_change_pas_la_trajectoire():
     assert np.all(np.isfinite(avec.contraintes))
 
 
-def test_commande_png_et_refus(tmp_path):
+def test_commande_png_et_refus(tmp_path, capsys):
     config = lire_configuration(EXEMPLE)
     config["parametres"] |= {"n_agents": 4, "duree": 60.0}
     chemin = tmp_path / "petit.yaml"
@@ -78,6 +106,7 @@ def test_commande_png_et_refus(tmp_path):
     png = tmp_path / "pression.png"
     args = ["pression", str(chemin), "--image", str(png), "--instant", "5"]
     assert main(args) == 0
+    assert "résidu relatif" in capsys.readouterr().out
     with Image.open(png) as image:
         assert image.format == "PNG" and image.width > 1000
     original = png.read_bytes()
