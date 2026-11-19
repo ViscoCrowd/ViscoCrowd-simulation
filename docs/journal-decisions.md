@@ -59,7 +59,7 @@ dure une minute). Le guidage reste statique : les agents ne contournent pas la t
     volume: 0.4    # L emportés par un baigneur (hypothèse)
     duree: 30.0    # s, constante d'égouttage (hypothèse)
     seuil: 0.05    # L/m², film à partir duquel le carrelage est mouillé (hypothèse)
-    pas: 0.25      # m, côté d'une case
+    pas: 0.1       # m, côté d'une case (au plus rayon / 2)
 ```
 
 **Mesures (17 novembre, 100 agents, référence par ailleurs inchangée).**

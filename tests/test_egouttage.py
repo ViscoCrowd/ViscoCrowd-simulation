@@ -18,7 +18,7 @@ from viscocrowd.model.milieu import Milieu
 from viscocrowd.scenarios.piscine import ParametresPiscine, simuler_piscine
 
 EXEMPLE = Path(__file__).parents[1] / "experiments/piscine.yaml"
-EGOUTTAGE = {"volume": 0.4, "duree": 30.0, "seuil": 0.05, "pas": 0.25}
+EGOUTTAGE = {"volume": 0.4, "duree": 30.0, "seuil": 0.05, "pas": 0.1}
 
 
 def parametres(**changements):
@@ -114,3 +114,40 @@ def test_commande_png_et_configuration_sans_egouttage_refusee(tmp_path):
     assert main(["trainee", str(avec), "--image", str(png), "--instant", "20"]) == 0
     with Image.open(png) as image:
         assert image.format == "PNG" and image.width > 1000
+
+
+def _film_d_un_passage(pas: float) -> np.ndarray:
+    """Un baigneur seul traverse 3 m de plage seche a 2 m/s, juste apres sa sortie de l'eau."""
+    q, v, dt, rayon = 0.4 / 30.0, 2.0, 0.01, 0.2
+    champ = ChampEgouttage(tout_sec, 4.0, 2.0, pas, 0.05)
+    for k in range(150):
+        x = np.array([[0.5 + v * dt * k, 1.0]])
+        champ.deposer(x, np.array([q * dt]), rayons=np.array([rayon]))
+    return champ.eau
+
+
+def test_film_independant_de_la_taille_des_cases():
+    """Revue de #165 : le film ne doit pas dependre de `pas`, un parametre numerique.
+
+    Deposer tout le volume d'un pas sur la seule case sous le centre donnait un film en
+    q / (v pas) : 0,027 L/m^2 a 0,25 m, mais 0,053 a 0,125 m. Reparti sur l'empreinte du
+    baigneur (disque de rayon r), le film vaut environ 2 q / (pi r v) = 0,021 L/m^2, des
+    que la case est assez petite (au plus r / 2, controle par ParametresPiscine).
+    """
+    grossier, fin = _film_d_un_passage(0.1).max(), _film_d_un_passage(0.05).max()
+    assert fin == pytest.approx(grossier, rel=0.1)
+    assert grossier == pytest.approx(2 * (0.4 / 30.0) / (np.pi * 0.2 * 2.0), rel=0.3)
+    assert grossier < 0.05  # un seul baigneur ne mouille rien, quelle que soit la grille
+
+
+def test_depot_sur_l_empreinte_conserve_le_volume():
+    for pas in (0.25, 0.125, 0.5):
+        eau = _film_d_un_passage(pas)
+        assert eau.sum() * pas**2 == pytest.approx(150 * 0.01 * 0.4 / 30.0, rel=1e-12)
+
+
+def test_case_trop_grande_refusee():
+    config = lire_configuration(EXEMPLE)
+    parametres = config["parametres"] | {"egouttage": EGOUTTAGE | {"pas": 0.25}}
+    with pytest.raises(ValueError, match="rayon / 2"):
+        ParametresPiscine(**parametres, graine=config["graine"])

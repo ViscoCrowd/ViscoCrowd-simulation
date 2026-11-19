@@ -202,6 +202,10 @@ class ParametresPiscine:
             vitesse_max = max(vitesse_max, vitesse_eau)
         if self.dt * vitesse_max > self.rayon / 5:
             raise ValueError("dt trop grand : deplacement souhaite par pas > rayon/5")
+        if self.egouttage is not None and self.egouttage["pas"] > self.rayon / 2:
+            # Le depot est reparti sur l'empreinte du baigneur : il faut plusieurs
+            # cases sous un baigneur pour que le film ne depende pas de la grille.
+            raise ValueError("egouttage : pas (case) au plus egal a rayon / 2")
         if self.pas_guidage > self.rayon:
             raise ValueError("pas_guidage doit etre inferieur ou egal au rayon")
         # Le long d'un cote, un agent n'est ainsi a portee que d'un site. Aux coins du
@@ -595,6 +599,7 @@ def simuler_piscine(
                 egout.deposer(
                     x[ruisselants],
                     debit_egouttage(p.egouttage["volume"], p.egouttage["duree"], depuis) * p.dt,
+                    rayons=r[ruisselants],  # sur l'empreinte : film independant de la grille
                 )
 
         # Sorties : passage de la ligne de la porte, instant interpole.

@@ -76,14 +76,47 @@ class ChampEgouttage:
         j = np.clip(np.floor(x[:, 1] / self.pas), 0, ny - 1).astype(np.int64)
         return i, j
 
-    def deposer(self, x: np.ndarray, volumes: np.ndarray) -> None:
-        """Ajoute `volumes` (M,) litres sur les cases sous les positions `x` (M, 2)."""
+    def deposer(self, x: np.ndarray, volumes: np.ndarray, rayons: np.ndarray | None = None) -> None:
+        """Ajoute `volumes` (M,) litres sous les positions `x` (M, 2).
+
+        Avec `rayons` (M,), en m, le volume est reparti a parts egales sur les cases dont le
+        centre est a moins du rayon : l'empreinte du baigneur. Sans cela, le film laisse par
+        un passage valait q / (v pas) et dependait de la taille des cases, un parametre
+        numerique (revue de #165) ; reparti, il vaut environ 2 q / (pi r v), quelle que soit
+        la grille des que `pas` < r. Une empreinte qui ne contient aucun centre de case
+        (cases plus grandes que le baigneur) retombe sur la case sous le centre. Sans
+        `rayons`, tout va sur la case sous le centre.
+        """
         x, volumes = np.asarray(x, dtype=float).reshape(-1, 2), np.asarray(volumes, dtype=float)
         exiger_fini(x=x, volumes=volumes)
         if volumes.shape != (x.shape[0],) or np.any(volumes < 0):
             raise ValueError("volumes doit donner un volume positif ou nul par position")
         i, j = self._cases(x)
-        np.add.at(self.eau, (i, j), volumes / self.pas**2)
+        if rayons is None:
+            np.add.at(self.eau, (i, j), volumes / self.pas**2)
+            return
+        rayons = np.asarray(rayons, dtype=float).reshape(-1)
+        exiger_fini(rayons=rayons)
+        if rayons.shape != volumes.shape or np.any(rayons <= 0):
+            raise ValueError("rayons doit donner un rayon strictement positif par position")
+        nx, ny = self.eau.shape
+        portee = int(np.ceil(rayons.max() / self.pas)) + 1
+        decalages = np.arange(-portee, portee + 1)
+        di, dj = (a.ravel() for a in np.meshgrid(decalages, decalages, indexing="ij"))
+        ci, cj = i[:, None] + di[None, :], j[:, None] + dj[None, :]  # (M, K) cases voisines
+        dx = (ci + 0.5) * self.pas - x[:, 0:1]
+        dy = (cj + 0.5) * self.pas - x[:, 1:2]
+        dedans = (dx**2 + dy**2 <= rayons[:, None] ** 2) & (ci >= 0) & (ci < nx)
+        dedans &= (cj >= 0) & (cj < ny)
+        vides = ~dedans.any(axis=1)
+        dedans[vides] = (di == 0) & (dj == 0)  # repli : la case sous le centre
+        poids = dedans / dedans.sum(axis=1, keepdims=True)
+        lignes, colonnes = np.nonzero(dedans)
+        np.add.at(
+            self.eau,
+            (ci[lignes, colonnes], cj[lignes, colonnes]),
+            volumes[lignes] * poids[lignes, colonnes] / self.pas**2,
+        )
 
     def mouille(self, x: np.ndarray) -> np.ndarray:
         """(N,) vrai la ou le film depasse le seuil."""
