@@ -11,6 +11,42 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-18 — Choisir son site de sortie selon la file, et maître-nageur (D3, D5)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`choix_site` absent ou `null`) : la référence ne change pas.
+
+**Contexte.** Le champ eikonal de l'eau est statique : il ignore la file devant un site
+occupé. Un vrai nageur près du bord voit la file devant l'échelle et va au rebord libre
+d'à côté. C'est le cœur de l'« extraction répartie » de la problématique.
+
+**Décision proposée.** `choix_site: {portee: 3, periode: 1, marge: 1, mode: local}`. Toutes
+les `periode` secondes, chaque nageur estime, pour les sites à moins de `portee` mètres, le
+temps jusqu'à la porte : trajet à la vitesse de l'eau, attente (fin du franchissement en
+cours, plus la durée de franchissement de chaque nageur qui vise déjà ce site), puis le
+franchissement et la plage. Il nage droit vers le meilleur, et n'en change que si le gain
+dépasse `marge` secondes, sinon il oscillerait entre deux sites voisins. En mode
+`coordonne` (D5), un maître-nageur voit tout le bassin et répartit les nageurs du plus
+avancé au moins avancé, chacun vers le site le moins coûteux compte tenu des envois
+précédents. **Aucune source ne décrit ce comportement** : `portee`, `periode` et `marge`
+sont des hypothèses, et le mode coordonné un scénario illustratif.
+
+**Mesure** (graines 1 à 10, référence mouillée, 100 baigneurs) :
+
+| Variante | t100 (s) | Sorties par les échelles | Δt100 apparié (s) | Graines en baisse |
+|---|---|---|---|---|
+| Sans choix (référence) | 51,28 ± 1,87 | 23,7 % | — | — |
+| Choix local | 50,88 ± 1,60 | 6,0 % | −0,40 ± 1,01 | 7/10 |
+| Maître-nageur | 49,44 ± 1,15 | 4,7 % | −1,84 ± 1,78 | 8/10 |
+
+Quand ils voient la file, les nageurs délaissent les échelles (4 fois moins de sorties par
+elles) pour le rebord, plus lent mais libre, et l'évacuation tend à raccourcir. Selon
+`criteres-acceptation.md` (§ 3), ni l'un ni l'autre n'est un effet détecté (2 et 3 graines
+contraires) : une indication, à confirmer sur les graines 11 à 20 si le groupe retient
+l'option.
+
+---
+
 ## 2026-11-18 — Profondeur variable du bassin, facultative (feuille de route, D2)
 
 **Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
