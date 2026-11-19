@@ -268,6 +268,13 @@ paramètre à la fois. À chaque valeur et pour chaque graine, l'évacuation est
 même piscine toute sèche, partie des mêmes positions. Voir les
 [balayages de la piscine](docs/balayages-piscine.md).
 
+Sur la plage, les baigneurs suivent tous le même plus court chemin et marchent en file
+indienne contre le bord du bassin. `navigation: {}` dans le YAML de la piscine (ou du
+goulot E0 et de l'anneau de M8, avec `temps_espacement: null`) active la navigation locale
+de Moussaïd et al. (2011) : chacun choisit une direction libre dans son champ de vision
+et règle sa vitesse sur l'obstacle le plus proche. Elle est désactivée dans la référence ;
+mesures, validation et limites dans la [note sur la navigation](docs/navigation.md).
+
 Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
 experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
 b = 0,8 à 1,2 m sur trois graines, et affiche le débit spécifique simulé à côté du débit
@@ -454,7 +461,7 @@ src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
 ├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
-├── model/         guidage, carte des milieux, accélération bornée et chutes facultatives
+├── model/         guidage, carte des milieux, accélération bornée ; chutes et navigation facultatives
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures

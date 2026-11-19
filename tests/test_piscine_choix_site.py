@@ -37,3 +37,12 @@ def test_le_choix_change_l_evacuation():
 def test_choix_mal_forme_refuse(valeur):
     with pytest.raises(ValueError, match="choix_site"):
         parametres_reduits(choix_site=valeur)
+
+
+def test_choix_et_navigation_ensemble():
+    """Le choix du site guide les nageurs, la navigation (#163) les agents de la plage."""
+    r = simuler_piscine(
+        parametres_reduits(n_agents=30, duree=120.0, choix_site=LOCAL, navigation={})
+    )
+    assert np.all(np.isfinite(r.sorties))
+    assert r.violation_paroi_max() <= 1e-14
