@@ -275,6 +275,10 @@ class ResultatPiscine:
         natures: nature de chaque site, par indice.
         sorties: (N,) instant de passage de la porte, en s ; NaN si jamais sorti.
         deblocages: nombre de franchissements commences par la regle de deblocage.
+        contraintes: (P, N, 2) acceleration imposee par les contacts et les murs a
+            chaque instant archive, (v - v_libre) / dt en m/s^2 ; 0 pour un agent
+            inactif.
+            None sauf si `simuler_piscine(..., contraintes=True)`.
     """
 
     t: np.ndarray
@@ -290,6 +294,8 @@ class ResultatPiscine:
     violation_tous_pas: float | None = None
     chutes: tuple[EvenementChute, ...] = ()
     deblocages: int = 0
+    contraintes: np.ndarray | None = None
+
     reactions: np.ndarray | None = None  # (N,) instant de reaction de chaque agent, en s
 
     def violation_paroi_max(self) -> float:
@@ -361,8 +367,17 @@ def verifier_coherence(
         raise RuntimeError("un agent est du mauvais cote du bord du bassin pour son etat")
 
 
-def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> ResultatPiscine:
-    """Simule l'evacuation jusqu'a la sortie du dernier agent ou jusqu'a `duree`."""
+def simuler_piscine(
+    p: ParametresPiscine, *, archiver_tous: int = 1, contraintes: bool = False
+) -> ResultatPiscine:
+    """Simule l'evacuation jusqu'a la sortie du dernier agent ou jusqu'a `duree`.
+
+    Args:
+        contraintes: enregistrer aussi, a chaque instant archive, l'acceleration que
+            la projection impose a chaque agent, (v - v_libre) / dt : contacts et murs
+            confondus, c'est la grandeur que la bousculade lit deja. La trajectoire ne
+            change pas, au bit pres.
+    """
     if type(archiver_tous) is not int or archiver_tous < 1:
         raise ValueError("archiver_tous doit etre un entier strictement positif")
     piscine = p.piscine
@@ -420,6 +435,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     # La bousculade lit la correction de projection du pas : on garde la vitesse libre
     # calculee par le pas lui-meme, au lieu de rappeler le guidage (revue de #102).
     bousculade = gestionnaire is not None and gestionnaire.parametres.lambda_bousculade > 0.0
+    memoriser = bousculade or contraintes
     derniere_v_libre: list[np.ndarray] = []
 
     def libre_memorisee(etat_courant: State, dt: float) -> np.ndarray:
@@ -448,6 +464,8 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
     sorties = np.full(n, np.nan)
     evenements: list[list[float]] = []
     correction_derniere = np.zeros((n, 2))
+    contrainte = np.zeros((n, 2))  # m/s^2, du dernier pas ; 0 pour un agent inactif
+    historique_c = [contrainte.copy()]
     immobile = np.zeros(n)  # s : duree depuis laquelle chaque agent ne bouge plus (#127)
     n_deblocages = 0
 
@@ -490,7 +508,7 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             nouveau = pas_semi_implicite(
                 State(x=x[actifs], v=v[actifs], r=r_pas[actifs], t=t),
                 p.dt,
-                libre_memorisee if bousculade else libre,
+                libre_memorisee if memoriser else libre,
                 projection,
             )
             if bousculade:
@@ -499,6 +517,10 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
                 # reintroduit sur la plage relisait celle de son dernier pas dans l'eau.
                 correction_derniere.fill(0.0)
                 correction_derniere[actifs] = (nouveau.v - derniere_v_libre[0]) * p.dt
+
+            if contraintes:
+                contrainte.fill(0.0)
+                contrainte[actifs] = (nouveau.v - derniere_v_libre[0]) / p.dt
 
             # Deplacement MESURE, corrections de contact comprises : le controle de dt
             # ne porte que sur la vitesse souhaitee, et la projection peut aller plus vite.
@@ -579,6 +601,8 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
             historique_x.append(x.copy())
             historique_v.append(v.copy())
             historique_e.append(etat.copy())
+            # Un agent devenu inactif pendant ce pas (bord, sortie) n'a plus de contrainte.
+            historique_c.append(np.where(actifs[:, None], contrainte, 0.0))
         if fini:
             break
 
@@ -596,5 +620,6 @@ def simuler_piscine(p: ParametresPiscine, *, archiver_tous: int = 1) -> Resultat
         violation_tous_pas=violation,
         chutes=gestionnaire.historique if gestionnaire is not None else (),
         deblocages=n_deblocages,
+        contraintes=np.stack(historique_c) if contraintes else None,
         reactions=reactions,
     )
