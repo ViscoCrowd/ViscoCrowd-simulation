@@ -81,6 +81,11 @@ section « Chutes »), qui mesure leur influence :
 | `facteur_rayon_terre` | 1,5 | – | Hypothèse sans source | 1 à 2 | +11,5 à +21,0 s, non monotone |
 | `mediane_relevage` | 3,7 | s | Sourcé (Becker et al. 2016, 20 à 50 ans) | non balayé | – |
 
+## Profondeur (option, désactivée par défaut)
+
+| Paramètre | Valeur | Unité | Statut | Source ou justification | Plage explorée et effet |
+|---|---|---|---|---|---|
+| `profondeur.gauche`, `profondeur.droite` | absent (0,7 partout) | m | Transposé ; extrapolé au-delà de 0,7 m | V ∝ d^(−0,38) (shirvani2020), mesures de 0,2 à 0,7 m | 1,0 → 0,7 m : Δt100 = +0,15 ± 0,67 s, sans effet décelable (journal du 18/11) |
 ## Navigation
 
 `navigation: null` : la navigation locale de Moussaïd et al. (2011) est **désactivée** dans

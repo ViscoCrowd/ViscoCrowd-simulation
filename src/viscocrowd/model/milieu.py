@@ -214,7 +214,9 @@ def pas_libre_milieux(
             de sous-population pour restreindre les meneurs au meme groupe (par ex.
             eau vs plage).
         facteur_individuel: fonction facultative (etat) -> (N,) qui multiplie la
-            vitesse souhaitee de chaque agent (dispersion entre individus, #158).
+            vitesse souhaitee de chaque agent (profondeur du bassin, dispersion entre
+            individus). Meme signature que la navigation de #163. Sans elle, U est
+            inchange au bit pres.
         vitesse_souhaitee: fonction facultative (etat, e, vitesse, tau, u) -> (N, 2)
             qui remplace la vitesse desiree U, a partir de la direction de guidage e,
             de la vitesse souhaitee nominale (avant la relation vitesse-espacement),
