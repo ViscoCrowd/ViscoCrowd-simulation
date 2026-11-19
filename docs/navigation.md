@@ -194,6 +194,44 @@ Dérive entre les deux moitiés de la fenêtre : 4,3 % au plus.
   tangente, une droite que le mur courbe coupe. Sur une plage droite, un agent seul
   marche à v0 (`tests/test_navigation.py`).
 
+#### Pourquoi trop vite au-delà de 1,5 pers/m² ?
+
+Deux pistes, testées chacune seule sur les graines 1 à 3 (19 novembre, commit `5aa0ed1`
+sans modification locale ; `diagnostic-weidmann.py`, `.json`, `.txt`) :
+
+- **la densité d'arrêt.** Des disques de 0,2 m ne s'arrêtent qu'empilés au plus serré,
+  vers 7,2 pers/m² ; Weidmann s'arrête à 5,4 pers/m². Variante : disques de 0,23 m, le
+  rayon dont l'empilement compact donne 5,4 pers/m² ;
+- **le temps d'anticipation** de la seconde heuristique, v = d_h / τ. Variante :
+  τ = 0,7 s au lieu de 0,5 s.
+
+| ρ (pers/m²) | Weidmann (m/s) | r = 0,2 m, τ = 0,5 s | r = 0,23 m | τ = 0,7 s |
+|---|---|---|---|---|
+| 1,50 | 0,81 | 0,99 (+23 %) | 0,89 (+11 %) | 0,84 (+4 %) |
+| 2,00 | 0,61 | 0,83 (+37 %) | 0,65 (+8 %) | 0,66 (+9 %) |
+| 2,49 | 0,45 | 0,65 (+42 %) | 0,45 (−1 %) | 0,51 (+13 %) |
+| 3,00 | 0,33 | 0,49 (+47 %) | 0,29 (−12 %) | 0,39 (+18 %) |
+| 3,50 | 0,23 | 0,36 (+54 %) | 0,18 (−25 %) | 0,28 (+21 %) |
+
+Écart-type entre graines : 0,017 m/s au plus ; dérive : 4,4 % au plus ; aucun
+recouvrement au-delà de la tolérance (10⁻⁶ m).
+
+- **La densité d'arrêt fait la forme de l'écart.** Avec des disques à peine plus gros
+  (+15 % de rayon), l'écart ne croît plus avec la densité : la courbe croise Weidmann vers
+  2,5 pers/m², puis passe dessous. Elle corrige trop, parce qu'une foule désordonnée se
+  bloque avant l'empilement compact. La vitesse aux fortes densités est très sensible au
+  rayon : −10 % à 1,5 pers/m², −51 % à 3,5 pers/m².
+- **τ en fixe le niveau, pas la forme** : environ −20 % à toutes les densités, et l'écart
+  croît toujours (+4 % puis +21 %).
+- **Aucune des deux ne cale toute la courbe**, et ce n'est pas un réglage à retenir. Le
+  rayon de 0,2 m vaut pour tout le projet (T étalonné sur E0, campagnes), et caler r ou τ
+  sur l'anneau ajusterait le modèle sur la courbe qui sert à le valider. Surtout, le
+  5,4 pers/m² de Weidmann est la densité où l'on cesse de marcher en conditions normales,
+  pas celle où les corps se touchent : il rapporte des débits bien plus élevés quand on
+  presse les sujets (p. 64). Ce qui manque au modèle est un espace personnel, que des
+  disques plus gros ne représentent pas. À écrire comme limite : **aux fortes densités, le
+  modèle va trop vite parce que ses agents ne s'arrêtent qu'au contact.**
+
 ## Ce qu'on en retient
 
 1. **La file indienne disparaît.** Les baigneurs s'écartent du bord du bassin (9 % contre
@@ -221,10 +259,15 @@ Dérive entre les deux moitiés de la fenêtre : 4,3 % au plus.
    de Weidmann, ce que la référence ne fait pas. Mais au goulot, les valeurs de l'article
    donnent un débit de 16 à 38 % sous Seyfried, que la référence atteint par étalonnage.
    Activer la navigation, c'est choisir des trajectoires réalistes au prix de cet écart,
-   ou régler τ sur E0 comme on a réglé T.
+   ou régler τ sur E0 comme on a réglé T. Sur l'anneau, l'excès de vitesse au-delà de
+   1,5 pers/m² vient surtout de la densité d'arrêt des disques (7,2 contre 5,4 pers/m²) :
+   les agents ne s'arrêtent qu'au contact.
 
 ## Limites
 
+- **Pas d'espace personnel** : un agent ne s'arrête qu'au contact. Aux fortes densités,
+  la foule va donc trop vite (anneau : +23 à +67 % au-delà de 1,5 pers/m²), et des
+  disques plus gros ne corrigent pas le bon mécanisme (diagnostic ci-dessus).
 - **E0 avec la navigation est sous Seyfried**, et N = 60 à b = 0,8 m bouche encore 4 à
   6 fois sur 10. Le même modèle donne 2,46 pers/(m·s) à la porte de la piscine et 1,48
   dans E0 à b = 1,2 m : la porte est une ouverture dans un mur, E0 un couloir de 2,8 m,

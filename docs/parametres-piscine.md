@@ -42,7 +42,7 @@ mesures publiées ; « non balayé » veut dire qu'aucune mesure n'existe encore
 | Échelles | 2, aux 9/10 des grands côtés | — | Scénario | Côté porte | Non balayé |
 | Largeur d'une échelle, `largeur_echelle` | 0,5 | m | Scénario | Une personne à la fois | Non balayé |
 | Population N | 100 | pers | Scénario | ≈ 0,32 pers/m² dans le bassin | 50 à 200 : t100 augmente de 16,5 à 17,2 s par 50 baigneurs (#128) |
-| Rayon r | 0,2 | m | Hypothèse | Demi-largeur d'épaules ; rayons identiques | Non balayé |
+| Rayon r | 0,2 | m | Hypothèse | Demi-largeur d'épaules ; rayons identiques | Non balayé sur la piscine. Anneau avec navigation, 0,23 m : vitesse −10 % à 1,5 pers/m², −51 % à 3,5 pers/m² (`docs/navigation.md`) |
 | Espacement et bruit initiaux | 1,0 ; 0,1 | m | Scénario | Placement dans le bassin ; la graine fait varier le reste | Couvert par les 10 graines |
 | Graine, `graine` | 20262027 | — | Numérique | Graine par défaut des commandes ; les campagnes passent explicitement les graines 1 à 10 (`--graines`) | Sans objet |
 
