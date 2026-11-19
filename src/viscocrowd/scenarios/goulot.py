@@ -26,6 +26,12 @@ from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.geometry.salle import SalleGoulot
 from viscocrowd.model.eikonal import ChampEikonal, GrilleReguliere
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.model.navigation import (
+    ParametresNavigation,
+    ScenePlage,
+    facteurs_individuels,
+    vitesses_souhaitees,
+)
 from viscocrowd.observables.debit import franchissements
 
 
@@ -57,8 +63,21 @@ class ParametresGoulot:
     # s, T de model.espacement. Facultatif : une configuration sans cette cle garde le
     # modele sans reglage, comme avant la proposition E0.
     temps_espacement: float | None = None
+    # Navigation locale de Moussaid et al. (2011), comme sur la plage de la piscine (#158).
+    # Sa seconde heuristique est une regle vitesse-espacement : avec elle, temps_espacement
+    # doit etre null, sinon les deux regles se cumuleraient.
+    navigation: ParametresNavigation | dict | None = None
 
     def __post_init__(self) -> None:
+        if self.navigation is not None:
+            if isinstance(self.navigation, dict):
+                object.__setattr__(self, "navigation", ParametresNavigation(**self.navigation))
+            elif not isinstance(self.navigation, ParametresNavigation):
+                raise ValueError(
+                    "navigation doit etre un dictionnaire ou une instance de ParametresNavigation"
+                )
+            if self.temps_espacement is not None:
+                raise ValueError("navigation et temps_espacement ne se cumulent pas : choisir")
         if type(self.n_agents) is not int or self.n_agents < 2:
             raise ValueError("n_agents doit etre un entier >= 2")
         if type(self.graine) is not int or self.graine < 0:
@@ -106,7 +125,10 @@ class ParametresGoulot:
         if self.position_mesure >= self.longueur_goulot:
             raise ValueError("la ligne de mesure doit etre dans le goulot")
         rayon_min = self.rayon * (1 - self.dispersion_rayon)
-        if self.dt > sec.relaxation or self.dt * self.facteur_vitesse * sec.vitesse > rayon_min / 5:
+        vitesse_max = self.facteur_vitesse * sec.vitesse
+        if self.navigation is not None:
+            vitesse_max *= self.navigation.facteur_maximal  # le plus rapide des individus
+        if self.dt > sec.relaxation or self.dt * vitesse_max > rayon_min / 5:
             raise ValueError("dt trop grand : dt <= tau et deplacement par pas <= rayon/5")
         if self.pas_guidage > rayon_min:
             raise ValueError("pas_guidage doit etre inferieur ou egal au plus petit rayon")
@@ -281,6 +303,23 @@ def simuler_goulot(p: ParametresGoulot, champ: ChampEikonal | None = None) -> Re
     def partout(points: np.ndarray) -> np.ndarray:
         return np.full(points.shape[0], Milieu.SEC, dtype=np.int64)
 
+    a = np.arange(p.n_agents)  # agents actifs du pas en cours, relus par la navigation
+    navigation = p.navigation
+    if navigation is not None:
+        facteurs = facteurs_individuels(p.n_agents, navigation, p.graine)
+        scene = ScenePlage(
+            boite=(0.0, sortie_x + navigation.horizon + 1.0, 0.0, g.largeur),
+            rectangles=g.murs_goulot,
+        )
+
+        def facteur_individuel(etat: State) -> np.ndarray:
+            return facteurs[a]
+
+        def vitesse_navigation(etat: State, e, nominale, tau, u) -> np.ndarray:
+            return vitesses_souhaitees(
+                etat.x, etat.v, etat.r, nominale, e, tau, scene, navigation, champ.temps(etat.x)
+            )
+
     libre_pas = pas_libre_milieux(
         direction,
         partout,
@@ -288,6 +327,8 @@ def simuler_goulot(p: ParametresGoulot, champ: ChampEikonal | None = None) -> Re
         facteur_vitesse=p.facteur_vitesse,
         temps_espacement=p.temps_espacement,
         avancement=champ.temps,
+        facteur_individuel=facteur_individuel if navigation is not None else None,
+        vitesse_souhaitee=vitesse_navigation if navigation is not None else None,
     )
     # Mode permissif : une non-convergence ne doit pas faire perdre toute une campagne.
     # Elle est comptee, et la simulation classee "non_convergence", inexploitable.

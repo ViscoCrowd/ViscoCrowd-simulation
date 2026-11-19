@@ -230,6 +230,10 @@ def construire_analyseur() -> argparse.ArgumentParser:
 
     pression.ajouter_commande(sous)
 
+    from viscocrowd.viz import panique
+
+    panique.ajouter_commande(sous)
+
     from viscocrowd.viz import attente
 
     attente.ajouter_commande(sous)
