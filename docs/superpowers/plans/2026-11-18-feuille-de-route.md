@@ -307,7 +307,7 @@ qui décrit ces quatre changements.
 
 ---
 
-## Avancement au 18 novembre 2026 (soir)
+## Avancement au 18 novembre 2026 (soir, état figé à cette date)
 
 Toutes les PR attendent une relecture : **aucune n'a été fusionnée sans revue**. Les PR
 empilées sont à fusionner dans l'ordre de leur base : GitHub remet d'office la bonne base
@@ -334,7 +334,7 @@ aux suivantes, puisque la suppression automatique des branches est active.
 | C6 comparer n variantes | #182 | #173 | ouverte |
 | C7 `make demo` | #197 | #182 | ouverte (3 min 27) |
 | D1 temps de réaction | #181 | #171 | ouverte |
-| D1, campagne tampon | #187 | #181 | **effet tampon : 10/10** |
+| D1, campagne départs échelonnés | #187 | #181 | pénalité inertielle atténuée de 1 à 10 s de médiane (Δt90, 10/10) ; pas le tampon de la problématique |
 | D2 profondeur variable | #186 | #171 | ouverte, sans effet à la référence |
 | D3 + D5 choix du site, maître-nageur | #188 | #171 | ouverte, indication |
 | E1 `--fixer` sur `simuler` | #173 | #171 | ouverte |
