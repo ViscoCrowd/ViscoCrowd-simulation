@@ -56,6 +56,12 @@ from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.model.navigation import (
+    ParametresNavigation,
+    ScenePlage,
+    facteurs_individuels,
+    vitesses_souhaitees,
+)
 from viscocrowd.model.profondeur import facteur_profondeur, profondeur
 from viscocrowd.observables.sortie import Sorties
 
@@ -88,9 +94,22 @@ class ParametresPiscine:
     # Profondeur variable du bassin (facultatif) : {gauche: m, droite: m}, lineaire en x ;
     # la vitesse dans l'eau suit (d / 0,7)^-0,38 (`model.profondeur`).
     profondeur: dict | None = None
+    navigation: ParametresNavigation | dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        # navigation et temps_espacement se cumulent ici, contrairement au goulot E0 et
+        # a l'anneau, qui refusent la combinaison : c'est voulu (#158). Dans l'eau, ou
+        # personne ne navigue, la relation vitesse-espacement reste active. Sur la plage,
+        # la seconde heuristique la remplace : elle repart de la vitesse nominale, avant
+        # regulation, et T y est sans effet (test_navigation, TestCumulAvecEspacement).
+        if self.navigation is not None:
+            if isinstance(self.navigation, dict):
+                object.__setattr__(self, "navigation", ParametresNavigation(**self.navigation))
+            elif not isinstance(self.navigation, ParametresNavigation):
+                raise ValueError(
+                    "navigation doit etre un dictionnaire ou une instance de ParametresNavigation"
+                )
         if self.chutes is not None:
             if isinstance(self.chutes, dict):
                 object.__setattr__(self, "chutes", ParametresChutes(**self.chutes))
@@ -178,9 +197,13 @@ class ParametresPiscine:
         if self.dt > min(p.relaxation for p in milieux.values()):
             raise ValueError("dt doit etre inferieur ou egal aux temps de relaxation")
         vitesse_max = self.facteur_vitesse * max(p.vitesse for p in milieux.values())
+        if self.navigation is not None:
+            vitesse_max *= self.navigation.facteur_maximal  # le plus rapide des individus
         if self.profondeur is not None:  # le nageur le plus rapide est au moins profond
             moins_profond = min(self.profondeur.values())
             facteur_eau = float(facteur_profondeur(np.array([moins_profond]))[0])
+            if self.navigation is not None:
+                facteur_eau *= self.navigation.facteur_maximal
             vitesse_eau = self.facteur_vitesse * milieux[Milieu.EAU].vitesse * facteur_eau
             vitesse_max = max(vitesse_max, vitesse_eau)
         if self.dt * vitesse_max > self.rayon / 5:
@@ -221,6 +244,8 @@ class ParametresPiscine:
         resultat = {f.name: getattr(self, f.name) for f in fields(self) if f.init}
         if self.chutes is not None:
             resultat["chutes"] = asdict(self.chutes)
+        if self.navigation is not None:
+            resultat["navigation"] = asdict(self.navigation)
         geometrie = {
             **self.geometrie,
             "echelles": [list(e) for e in self.piscine.echelles],
@@ -420,13 +445,49 @@ def simuler_piscine(
         return direction
 
     carte = CartePiscine(piscine)
+    navigation = p.navigation
+    if navigation is not None:
+        # Navigation locale sur la plage (#158) : chaque agent a sa vitesse souhaitee,
+        # nageurs compris, et les agents de la plage choisissent leur direction par les
+        # heuristiques de Moussaid et al. (2011). Les nageurs gardent le guidage du champ
+        # de l'eau ; les agents en franchissement ne sont vus par personne.
+        facteurs_navigation = facteurs_individuels(p.n_agents, navigation, p.graine)
+        largeur, longueur = piscine.largeur_emprise, piscine.longueur_emprise
+        scene = ScenePlage(
+            boite=(0.0, longueur + piscine.profondeur_porte + navigation.horizon, 0.0, largeur),
+            rectangles=(piscine.bassin, *piscine.montants, *piscine.obstacles),
+        )
+
+        def vitesse_navigation(etat_courant, e, nominale, tau, u):
+            sur_plage = etat[actifs] == PLAGE
+            if not np.any(sur_plage):
+                return u
+            u = u.copy()
+            x_plage = etat_courant.x[sur_plage]
+            u[sur_plage] = vitesses_souhaitees(
+                x_plage,
+                etat_courant.v[sur_plage],
+                etat_courant.r[sur_plage],
+                nominale[sur_plage],
+                e[sur_plage],
+                tau[sur_plage],
+                scene,
+                navigation,
+                guidage.temps(x_plage),
+            )
+            return u
 
     def facteur_individuel(etat_courant: State) -> np.ndarray:
-        """1 sur la plage ; dans le bassin, le facteur de la profondeur locale."""
-        facteurs = np.ones(etat_courant.n)
-        dans = piscine.dans_bassin(etat_courant.x)
-        if np.any(dans):
-            facteurs[dans] = facteur_eau(etat_courant.x[dans])
+        """Facteur de vitesse de chaque agent actif : dispersion de la navigation (tous les
+        agents, #163) multipliee par le facteur de profondeur (nageurs du bassin, #186)."""
+        if navigation is not None:
+            facteurs = np.array(facteurs_navigation[actifs], dtype=float)
+        else:
+            facteurs = np.ones(etat_courant.n)
+        if facteur_eau is not None:
+            dans = piscine.dans_bassin(etat_courant.x)
+            if np.any(dans):
+                facteurs[dans] *= facteur_eau(etat_courant.x[dans])
         return facteurs
 
     libre = pas_libre_milieux(
@@ -437,7 +498,10 @@ def simuler_piscine(
         temps_espacement=p.temps_espacement,
         avancement=guidage.temps if p.temps_espacement is not None else None,
         groupe_meneur=piscine.dans_bassin if p.temps_espacement is not None else None,
-        facteur_individuel=facteur_individuel if facteur_eau is not None else None,
+        facteur_individuel=(
+            facteur_individuel if navigation is not None or facteur_eau is not None else None
+        ),
+        vitesse_souhaitee=vitesse_navigation if navigation is not None else None,
     )
     # La bousculade lit la correction de projection du pas : on garde la vitesse libre
     # calculee par le pas lui-meme, au lieu de rappeler le guidage (revue de #102).
