@@ -34,3 +34,9 @@ def test_agreger_par_domaine_et_auteur():
     assert "Documentation et planning" not in lignes  # JSON genere ignore
     parts = contributions.pourcentages(lignes, ["Ada", "Bob"])
     assert parts["Rapport"] == [33, 67]
+
+
+def test_renommage_sans_partie_commune():
+    """`git log --numstat` ecrit `x.md => docs/y.md` sans accolades : chemin d'arrivee."""
+    lignes = contributions.agreger("@Ada\n3\t1\tplanning.md => docs/planning/README.md")
+    assert lignes["Documentation et planning"] == {"Ada": 4}

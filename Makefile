@@ -28,9 +28,13 @@ VISCO_PY ?= $(BIN)/python
 # (*.diagnostic.npz, #69) ne sont pas des trajectoires : ils sont ecartes.
 CONFIG  ?= experiments/piscine.yaml
 SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import datetime as d; print(d.datetime.now().isoformat(timespec='seconds').replace(':', '').replace('-', '').replace('T', '-'))").npz
+# Facteur de vitesse de la relecture : a 1, l'evacuation de la piscine (environ 54 s
+# simulees) dure autant a l'ecran. Transmis aussi par `make lancer VITESSE=5`, car
+# une variable de la ligne de commande passe aux sous-make.
+VITESSE ?= 1
 ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
-.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer comparer interface figures report docker clean
+.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer campagne-finale maquette figures report docker clean
 
 help:  ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -66,14 +70,27 @@ valider:  ## Rejoue les criteres de validation du moteur, chiffres
 simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
 	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
 
-rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut)
+rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut ; VITESSE=1)
 	$(if $(strip $(ARCHIVE)),,$(error Aucune archive dans data/ : lancer d'abord make simu))
-	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE)
+	$(VISCO_PY) -m viscocrowd.cli rejouer $(ARCHIVE) --vitesse $(VITESSE)
+
+# Le nom de l'archive est fige une seule fois dans une variable du shell, puis passe
+# aux deux sous-make : SORTIE contient l'heure, et la developper deux fois pourrait
+# donner deux noms differents a une seconde pres. On ne compte pas non plus sur
+# « la plus recente de data/ », qui relirait une ancienne archive si un autre calcul
+# finissait entre-temps. Si la simulation echoue, la relecture n'est pas lancee.
+lancer:  ## Simule puis ouvre la relecture (CONFIG=..., piscine ou couloir)
+	@sortie="$(SORTIE)" && $(MAKE) --no-print-directory simu SORTIE="$$sortie" && $(MAKE) --no-print-directory rejouer ARCHIVE="$$sortie"
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
 	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
 
-interface:  ## Ouvre l'apercu de la piscine (affichage local)
+campagne-finale:  ## Rejoue la campagne finale, avec reprise (experiments/campagne-finale.yaml)
+	$(VISCO_PY) -m viscocrowd.cli rejouer-campagne experiments/campagne-finale.yaml --sortie data/finale
+
+# Ancien nom : `interface`. Renommee pour qu'on ne la prenne pas pour la simulation,
+# que `make lancer` simule puis relit ; la commande Python garde son nom.
+maquette:  ## Ouvre la maquette de la piscine, sans simulation
 	$(VISCO_PY) -m viscocrowd.cli interface
 
 figures:  ## Regenere toutes les figures

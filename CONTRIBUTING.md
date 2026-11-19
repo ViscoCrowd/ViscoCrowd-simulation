@@ -226,6 +226,13 @@ tous les trois interrogés.
 **Côté auteur** — une PR qui dépasse ~400 lignes de diff est difficile à relire sérieusement.
 Découpez. Si vous ne pouvez pas, dites dans la description par où commencer.
 
+**Référence figée** — `tests/test_reference_piscine.py` compare les instants de sortie de la
+référence (20 baigneurs) à ceux de `tests/donnees/reference_piscine.json`, à 10⁻⁶ s près. S'il
+échoue, votre PR change la simulation de référence. Si c'est involontaire, c'est un défaut à
+corriger. Si c'est voulu, régénérez le fichier dans la même PR
+(`python tests/donnees/regenerer_reference.py`) et dites dans la description ce qui change, et
+pourquoi.
+
 **Côté relecteur** — vous engagez votre capacité à défendre ce code en soutenance. Vérifiez :
 
 - [ ] Je saurais réexpliquer ce que fait ce code, et pourquoi il le fait ainsi.

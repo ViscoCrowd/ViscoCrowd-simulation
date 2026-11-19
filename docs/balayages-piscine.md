@@ -492,6 +492,37 @@ sols très glissants (savon, produit d'entretien), pas un carrelage mouillé ord
 conclusion est donc : **dans ce modèle, le sol mouillé ne dégrade l'évacuation que s'il est très
 glissant et qu'il touche la file d'une porte saturée.**
 
+### Confirmation sur les graines 11 à 20 (18 novembre 2026)
+
+Selon `criteres-acceptation.md` (§ 3), un effet trouvé dans un balayage reste exploratoire
+tant qu'il n'est pas confirmé sur dix nouvelles graines, fixées avant la relance. Critère
+écrit avant le calcul : Δt100 > 0 sur au moins 9 graines sur 10 à 1 et à 2 m/s², et moyenne
+supérieure à l'effet du pas de temps (#138, #140 : moins d'une erreur standard de Δ).
+
+Commit `0499a12`, sans modification locale, Windows ; bilan graine par graine et sortie :
+[`mesures/confirmation-inertie-2026-11-18/`](mesures/confirmation-inertie-2026-11-18/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 3.3 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 --graines 11 12 13 14 15 16 17 18 19 20 \
+  --sortie docs/mesures/confirmation-inertie-2026-11-18/adherence.json
+```
+
+| a_max mouillé (m/s²) | t100 mouillé (s) | J_s mouillé | Δ t50 (s) | Δ t100 (s) | Δ t100 > 0 | Graines 1 à 10 (#137) |
+|---|---|---|---|---|---|---|
+| 3,3 (référence) | 70,50 ± 0,82 | 2,24 ± 0,03 | −0,06 ± 0,24 | −0,33 ± 0,80 | 2/10 | 0,09 ± 0,41, 6/10 |
+| 2 | 73,21 ± 0,72 | 2,14 ± 0,02 | **1,00 ± 0,66** | **2,38 ± 1,12** | **10/10** | 2,47 ± 0,51, 10/10 |
+| 1 | 84,31 ± 1,27 | 1,81 ± 0,03 | **6,14 ± 0,91** | **13,48 ± 1,65** | **10/10** | 13,95 ± 1,53, 10/10 |
+
+Le témoin sec écoule 2,23 ± 0,05 pers/(m·s) ; t100 = 70,83 s en moyenne. Aucune évacuation
+incomplète, aucun bouchage. Calcul : 9 min pour les 60 évacuations.
+
+**L'effet inertiel est confirmé.** À 2 et à 1 m/s², Δt100 est positif sur les dix nouvelles
+graines (de +0,45 à +3,8 s, puis de +11,5 à +15,8 s), et les moyennes retrouvent celles des
+graines 1 à 10 à moins d'une demi-seconde. À l'adhérence de référence, il n'y a toujours rien
+(2 graines positives sur 10). La conclusion ci-dessus passe d'« exploratoire » à « confirmée
+sur vingt graines », avec la même limite : 0,2 et 0,1 g sont des sols très glissants.
+
 ## Témoin : la même adhérence loin de la file (14 novembre 2026)
 
 La section précédente change deux choses à la fois : l'adhérence et l'étendue du mouillé. Pour
