@@ -232,6 +232,54 @@ recouvrement au-delà de la tolérance (10⁻⁶ m).
   disques plus gros ne représentent pas. À écrire comme limite : **aux fortes densités, le
   modèle va trop vite parce que ses agents ne s'arrêtent qu'au contact.**
 
+## Pour une activation : τ étalonné sur E0 (19 novembre)
+
+Mesures pour la décision de #158, commit `275fc3d` sans modification locale. Scripts et
+bilans : [`mesures/navigation-2026-11-19/`](mesures/navigation-2026-11-19/).
+
+**E0.** Même protocole que pour T : τ, le temps d'anticipation de la seconde heuristique,
+est choisi sur N = 60, puis le critère du § 4 des
+[critères d'acceptation](criteres-acceptation.md) (écart moyen absolu de J_s à Seyfried
+≤ 10 %, 10 graines) se juge sur N = 40 et N = 20. 600 simulations (`e0-tau.py`).
+
+| τ (s) | N = 60 (étalonnage) | N = 40 | N = 20 | Non-écoulements |
+|---|---|---|---|---|
+| 0,15 | 6,3 % | 8,7 % | 8,5 % | 1/150 |
+| **0,20** | **2,9 %** | **7,5 %** | **9,9 %** | 1/150 |
+| 0,25 | 7,1 % | 8,4 % | 12,9 % | 0/150 |
+| 0,30 | 11,3 % | 11,9 % | 15,8 % | 2/150 |
+| *T = 0,35 s, référence (#141)* | | *5,7 %* | *7,3 %* | |
+
+À τ = 0,20 s, la navigation valide E0, un peu moins bien que T : à N = 20, elle est juste
+sous le seuil.
+
+**Piscine à τ = 0,20 s**, graines 1 à 10 (`piscine-tau.py`) : 12 % des positions de plage
+contre le bord du bassin (93 % dans la référence) ; t50 = 28,1 s et t100 = 44,3 s, soit
+−3,3 et −7,0 s (10/10) ; débit à la porte 2,69 pers/(m·s) au lieu de 2,28. Mouillé − sec :
+Δt50 = +0,04 ± 0,59 s, Δt100 = −0,02 ± 0,40 s, rien de détecté. Comme dans la référence
+(Δt50 = −0,01 ± 0,07 s), le mouillé ne change presque rien. Les temps absolus changent
+d'environ 10 %, pas la conclusion.
+
+**Le plafond d'adhérence du mouillé sert-il ?** Le mouillé ne diffère du sec que par a_max
+(3,3 contre 5,9 m/s²). On a relevé à chaque pas l'accélération voulue |u − v|/τ des
+agents sur la bande mouillée, graines 1 à 10 (`adherence.py`, qui ne change pas les
+trajectoires : mêmes t50).
+
+| | Référence | Navigation (τ = 0,5 s) |
+|---|---|---|
+| Temps passé sur la bande mouillée, par baigneur | 11,5 s | 8,1 s |
+| Pas freinés par l'adhérence (accélération voulue > 3,3 m/s²) | 0,54 % (≈ 6 pas) | 1,05 % (≈ 9 pas) |
+| Pas où même le sec freinerait (> 5,9 m/s²) | 0 % | 0 % |
+
+Dans les deux modèles, l'adhérence ne freine qu'environ un dixième de seconde par
+baigneur, surtout au redémarrage au pied de l'échelle (passer de 0 à 2 m/s en 0,5 s
+demande 4 m/s²). La file indienne ne masque donc pas l'effet du mouillé : c'est le modèle
+du mouillé, par la seule adhérence, qui agit peu.
+
+**Limite connue** : un τ plus court fait aller la foule plus vite. Sur l'anneau, où la
+navigation dépasse déjà Weidmann aux fortes densités, τ = 0,20 s creusera l'écart (non
+mesuré) : E0 et Weidmann tirent τ en sens opposé.
+
 ## Ce qu'on en retient
 
 1. **La file indienne disparaît.** Les baigneurs s'écartent du bord du bassin (9 % contre
