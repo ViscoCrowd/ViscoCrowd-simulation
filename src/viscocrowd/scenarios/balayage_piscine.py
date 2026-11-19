@@ -123,7 +123,10 @@ PARAMETRES = {
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
     "echelles": ParametreBalaye(
-        "E4", "-", "nombre d'echelles, reparties sur les grands cotes", ("geometrie", "echelles")
+        "E4",
+        "-",
+        "nombre d'echelles au milieu des grands cotes (2 n'est pas la reference)",
+        ("geometrie", "echelles"),
     ),
     "vitesse_mouille": ParametreBalaye(
         "E3",
