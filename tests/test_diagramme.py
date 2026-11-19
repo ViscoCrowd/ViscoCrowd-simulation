@@ -169,3 +169,14 @@ class TestGoulotReel:
         piscine = Path(__file__).parents[1] / "experiments/piscine.yaml"
         assert main(["diagramme-goulot", str(piscine), "--graines", "1"]) == 1
         assert "goulot" in capsys.readouterr().err
+
+
+def test_serie_en_json_arrondie():
+    from types import SimpleNamespace
+
+    from viscocrowd.scenarios.diagramme_goulot import serie_en_json
+
+    s = SimpleNamespace(
+        t=np.array([0.123456]), densite=np.array([1.234567]), vitesse=np.array([np.nan])
+    )
+    assert serie_en_json(s) == {"t": [0.12], "densite": [1.2346], "vitesse": [None]}
