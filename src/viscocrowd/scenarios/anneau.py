@@ -54,6 +54,17 @@ Deux agents proches ne peuvent pas etre chacun devant l'autre.
 Limite : a vitesse lineaire egale, un agent du bord interieur fait le tour plus vite.
 La commande donne la vitesse des moities interieure et exterieure de l'anneau pour que
 l'effet de la courbure se mesure.
+
+Navigation (#158)
+-----------------
+
+Avec `navigation`, la consigne vient des heuristiques de Moussaid et al. (2011)
+(`model.navigation`), comme sur la plage de la piscine : la destination est la tangente
+directe e_t, sans le terme centripete, que l'heuristique de direction remplace (elle
+evite elle-meme les deux murs, vus comme un disque et une enceinte circulaires). Chaque
+agent a sa vitesse souhaitee, v0 fois un facteur individuel. La seconde heuristique est
+une relation vitesse-espacement : `temps_espacement` doit alors etre null. Sans sortie,
+il n'y a pas d'ordre d'avance : tous les voisins comptent.
 """
 
 from __future__ import annotations
@@ -75,11 +86,21 @@ from viscocrowd.geometry.anneau import Anneau
 from viscocrowd.geometry.grille import paires_candidates
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.milieu import ParametresMilieu, vitesse_libre
+from viscocrowd.model.navigation import (
+    ParametresNavigation,
+    ScenePlage,
+    facteurs_individuels,
+    vitesses_souhaitees,
+)
 
 
 @dataclass(frozen=True)
 class ParametresAnneau:
-    """Tous les choix du banc, en unites SI, lus dans le YAML."""
+    """Tous les choix du banc, en unites SI, lus dans le YAML.
+
+    `navigation` : heuristiques de Moussaid et al. (2011), voir l'en-tete ; None (defaut)
+    garde la consigne tangentielle et la relation vitesse-espacement.
+    """
 
     rayon_interieur: float
     rayon_exterieur: float
@@ -94,8 +115,18 @@ class ParametresAnneau:
     tolerance: float
     sec: ParametresMilieu
     graine: int
+    navigation: ParametresNavigation | dict | None = None
 
     def __post_init__(self) -> None:
+        if self.navigation is not None:
+            if isinstance(self.navigation, dict):
+                object.__setattr__(self, "navigation", ParametresNavigation(**self.navigation))
+            elif not isinstance(self.navigation, ParametresNavigation):
+                raise ValueError(
+                    "navigation doit etre un dictionnaire ou une instance de ParametresNavigation"
+                )
+            if self.temps_espacement is not None:
+                raise ValueError("navigation et temps_espacement ne se cumulent pas : choisir")
         for nom in ("n_agents", "graine"):
             valeur = getattr(self, nom)
             if type(valeur) is not int or valeur < (0 if nom == "graine" else 1):
@@ -116,7 +147,10 @@ class ParametresAnneau:
             raise ValueError("debut_mesure doit preceder la fin de la simulation")
         if self.dt > self.sec.relaxation:
             raise ValueError("dt doit etre inferieur ou egal au temps de relaxation")
-        if self.dt * self.facteur_vitesse * self.sec.vitesse > self.rayon / 5:
+        vitesse_max = self.facteur_vitesse * self.sec.vitesse
+        if self.navigation is not None:
+            vitesse_max *= self.navigation.facteur_maximal  # le plus rapide des individus
+        if self.dt * vitesse_max > self.rayon / 5:
             raise ValueError("dt trop grand : deplacement souhaite par pas > rayon/5")
         Anneau(self.rayon_interieur, self.rayon_exterieur)  # controle des rayons
         positions_de_depart(self, bruit=False)  # refuse une population qui ne tient pas
@@ -242,9 +276,23 @@ def simuler_anneau(p: ParametresAnneau) -> ResultatAnneau:
     r = np.full(p.n_agents, p.rayon)
     tau, a_max = p.sec.relaxation, p.sec.acceleration_max
     v0 = np.full(p.n_agents, p.facteur_vitesse * p.sec.vitesse)
+    navigation = p.navigation
+    if navigation is not None:
+        v0 = v0 * facteurs_individuels(p.n_agents, navigation, p.graine)
+        bord = p.rayon_exterieur + 1.0  # boite englobante : seuls les cercles bornent
+        scene = ScenePlage(
+            boite=(-bord, bord, -bord, bord),
+            rectangles=(),
+            disques=((0.0, 0.0, p.rayon_interieur),),
+            enceinte=(0.0, 0.0, p.rayon_exterieur),
+        )
+        taus = np.full(p.n_agents, tau)
 
     def libre(etat: State, dt: float) -> np.ndarray:
         d, et, er = _reperes(etat.x)
+        if navigation is not None:
+            u = vitesses_souhaitees(etat.x, etat.v, etat.r, v0, et, taus, scene, navigation)
+            return vitesse_libre(etat.v, u, tau, a_max, dt)
         vitesse = v0
         if p.temps_espacement is not None:
             T = p.temps_espacement
