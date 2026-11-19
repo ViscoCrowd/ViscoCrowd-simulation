@@ -1,0 +1,15 @@
+E4 — balayage de facteur_vitesse (-)
+  niveau de panique, multiplie toutes les vitesses souhaitees
+Parametres fixes hors YAML : largeur_porte = 0.8, n_agents = 150, dt = 0.005 ; graines [20262027, 20262028, 20262029, 20262030, 20262031]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+chutes : moyenne par evacuation, toutes causes, mouille/temoin
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis      chutes Delta t100 > 0
+       1    123.56 ± 0.78     0.003 ± 0.012    -0.001 ± 0.029    -0.032 ± 0.111     0.001 ± 0.002         0/0     0.0/0.0        3/5
+     1.5     97.89 ± 0.65    -0.310 ± 0.334    -0.271 ± 0.764    -0.200 ± 0.826     0.006 ± 0.022         0/0     0.0/0.0        2/5
+       2     81.62 ± 1.00    -0.319 ± 0.780     0.141 ± 0.542     0.178 ± 0.720    -0.004 ± 0.028         0/0     0.0/0.0        2/5
+     2.5     69.44 ± 1.34     0.148 ± 1.126     0.522 ± 0.876     0.822 ± 1.189    -0.038 ± 0.064         0/0     0.0/0.0        4/5
+       3     67.77 ± 1.75     1.047 ± 2.710     1.017 ± 1.949     1.188 ± 1.193    -0.058 ± 0.069         0/0     0.0/0.0        4/5
+Mesures graine par graine : docs/mesures/faster-is-slower-2026-11-17/panique-porte-0.8.json
+Temps d'execution : 1274.7 s
+PYTHONPATH=src MPLBACKEND=Agg  -m viscocrowd.cli balayer-piscine  --parametre  1268,71s user 2,73s system 98% cpu 21:27,08 total
