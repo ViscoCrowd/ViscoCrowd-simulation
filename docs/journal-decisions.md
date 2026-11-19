@@ -17,10 +17,11 @@ Format : une entrée par décision, la plus récente en haut.
 (`reaction` absent ou `null`) : la référence, E1/E2 et les balayages ne changent pas.
 
 **Contexte.** Tous les baigneurs partent à t = 0. Dans une vraie évacuation, chacun met un
-temps à entendre l'alarme, comprendre et décider (temps de « pre-mouvement »), et un nageur
-au bout du bassin ou sous l'eau réagit plus tard qu'un baigneur au bord. Étaler les départs
-désynchronise les arrivées à la porte : c'est le mécanisme de l'hypothèse « tampon » de la
-problématique, qu'on peut ainsi tester directement.
+temps à entendre l'alarme, comprendre et décider (temps de « pre-mouvement »). Étaler les
+départs désynchronise les arrivées à la porte : on peut ainsi tester si l'effet inertiel
+dépend de la synchronisation des arrivées. Ce n'est pas l'hypothèse « tampon » de la
+problématique, où ce sont l'extraction répartie et la traversée du mouillé qui étalent les
+arrivées. Limite : le tirage ne dépend pas de la position du baigneur.
 
 **Décision proposée.** `reaction: {mediane: s, dispersion: -}` dans `piscine.yaml`. Chaque
 agent tire un instant t_i = exp(log(mediane) + dispersion · Z), Z ~ N(0, 1), sur son propre
@@ -45,7 +46,7 @@ sont à balayer, sans conclusion avant.
 
 Une médiane de 10 s ne retarde t100 que de 6,2 s : la porte absorbe une partie de
 l'étalement. À la référence, l'écart mouillé − sec reste nul, comme sans réaction. Une graine,
-un contrôle de fonctionnement : la question tampon se pose à porte saturée, dans une
+un contrôle de fonctionnement : l'effet de la synchronisation se mesure à porte saturée, dans une
 campagne à part (graines 1 à 10, médianes 1 à 20 s).
 
 ---
