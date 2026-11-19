@@ -218,6 +218,22 @@ def construire_analyseur() -> argparse.ArgumentParser:
 
     pose_longue.ajouter_commande(sous)
 
+    from viscocrowd.viz import diagramme_anime
+
+    diagramme_anime.ajouter_commande(sous)
+
+    from viscocrowd.viz import duel
+
+    duel.ajouter_commande(sous)
+
+    from viscocrowd.viz import pression
+
+    pression.ajouter_commande(sous)
+
+    from viscocrowd.viz import panique
+
+    panique.ajouter_commande(sous)
+
     from viscocrowd.viz import trainee
 
     trainee.ajouter_commande(sous)

@@ -11,6 +11,32 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-18 — Profondeur variable du bassin, facultative (feuille de route, D2)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`profondeur` absent ou `null`) : la référence ne change pas.
+
+**Contexte.** Le bassin a une profondeur unique, 0,7 m, d'où la vitesse dans l'eau de
+0,69 m/s (V = 0,53 M^(−0,19), M = d²/2, d'après `shirvani2020`, entrée du 25 octobre). Un
+vrai bassin a un petit et un grand bain : on marche plus vite là où l'eau est basse.
+
+**Décision proposée.** `profondeur: {gauche: m, droite: m}`, linéaire en x d'un bord du
+bassin à l'autre. Dans l'eau, la vitesse souhaitée est multipliée par (d / 0,7)^(−0,38), la
+loi de la référence ramenée à sa valeur de 0,7 m. Le champ de guidage de l'eau utilise la
+même vitesse locale : un nageur préfère traverser là où l'eau est basse. Le crochet
+`facteur_individuel` de `pas_libre_milieux` porte la même signature que dans #163.
+
+**Domaine.** Bernardini et al. (2020), d'après `shirvani2021these`, ont mesuré en eau calme
+de 0,2 à 0,7 m. Le code accepte 0,2 à 1,0 m pour représenter un petit bain ; **au-delà de
+0,7 m, c'est une extrapolation**. Plus profond, on nage, et la loi ne s'applique plus.
+
+**Mesure** (graines 1 à 10, référence mouillée, bassin de 1,0 m à gauche à 0,7 m côté
+porte) : t50 = 31,37 ± 0,48 s contre 31,43 ± 0,52 s ; écart apparié Δt50 = −0,05 ± 0,28 s
+(6 graines sur 10 positives), Δt100 = +0,15 ± 0,67 s (5 sur 10). **Aucun effet décelable** :
+la porte limite l'évacuation, et les nageurs du côté profond, loin de la porte, sortent de
+toute façon parmi les derniers. Une profondeur uniforme de 0,7 m redonne la référence au bit
+près.
+
 ## 2026-11-17 — Traînée d'eau des baigneurs sur la plage, facultative
 
 **Statut.** Proposition de Lenny, à valider par le groupe. Désactivée par défaut
