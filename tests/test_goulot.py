@@ -364,6 +364,31 @@ def test_e0_avec_espacement_proche_de_seyfried():
         assert moyenne == pytest.approx(reference_seyfried(60, b), rel=0.15)
 
 
+class TestNavigation:
+    """Navigation de Moussaid et al. (2011) sur le banc E0, comme sur la plage (#158)."""
+
+    def test_ne_se_cumule_pas_avec_temps_espacement(self):
+        with pytest.raises(ValueError, match="ne se cumulent pas"):
+            parametres(navigation={})  # l'exemple fixe temps_espacement
+        p = parametres(navigation={"champ_vision": 45.0}, temps_espacement=None)
+        assert p.navigation.champ_vision == 45.0
+
+    def test_le_plus_rapide_borne_le_pas_de_temps(self):
+        # v0 = 1,34 m/s, r = 0,2 m : dt = 0,025 s fait 0,0335 m par pas, sous r/5 ; avec le
+        # facteur maximal 1,45, 0,0486 m : refuse.
+        parametres(temps_espacement=None, dt=0.025)
+        with pytest.raises(ValueError, match="dt trop grand"):
+            parametres(temps_espacement=None, dt=0.025, navigation={})
+
+    def test_goulot_etroit_ne_se_fige_plus(self):
+        """N = 40, b = 0,8 m, graine 1 : bouche sans la regle d'ordre, s'ecoule avec."""
+        r = simuler_goulot(
+            parametres(n_agents=40, largeur_goulot=0.8, temps_espacement=None, navigation={})
+        )
+        assert r.statut == "ecoulement"
+        assert r.violation_paroi_max() <= r.parametres.tolerance
+
+
 def test_configuration_sans_temps_espacement_acceptee():
     """Cle facultative : une configuration ecrite avant la proposition reste valable."""
     config = lire_configuration(EXEMPLE)

@@ -70,6 +70,17 @@ class SerieVoronoi:
         return self.densite * self.vitesse
 
 
+def serie_en_json(s) -> dict[str, list]:
+    """t (0,01 s), densite et vitesse (1e-4) d'une serie, pour les bilans JSON."""
+    from viscocrowd.scenarios.campagne import arrondir
+
+    return {
+        "t": arrondir(s.t, 2),
+        "densite": arrondir(s.densite, 4),
+        "vitesse": arrondir(s.vitesse, 4),
+    }
+
+
 def serie_voronoi(
     t: np.ndarray,
     x: np.ndarray,
@@ -211,7 +222,7 @@ def ajouter_commande(sous) -> None:
 def commande_diagramme(args) -> int:
     from viscocrowd.io.configuration import lire_configuration
     from viscocrowd.observables import weidmann
-    from viscocrowd.scenarios.campagne import contexte, ecrire_json, verifier_sortie
+    from viscocrowd.scenarios.campagne import arrondir, contexte, ecrire_json, verifier_sortie
 
     debut_calcul = time.perf_counter()
     try:
@@ -279,17 +290,12 @@ def commande_diagramme(args) -> int:
                     {
                         "largeur": b,
                         "graine": g,
-                        "t": s.t.tolist(),
-                        "densite": s.densite.tolist(),
-                        "vitesse": s.vitesse.tolist(),
+                        **serie_en_json(s),
                     }
                     for (b, g), s in series.items()
                 ],
                 # JSON n'a pas de NaN : une classe vide s'ecrit null.
-                "classes": {
-                    nom: [None if v != v else v for v in valeurs.tolist()]
-                    for nom, valeurs in vars(classes).items()
-                },
+                "classes": {nom: arrondir(valeurs, 4) for nom, valeurs in vars(classes).items()},
             },
         )
         print(f"Bilan : {args.sortie}")
