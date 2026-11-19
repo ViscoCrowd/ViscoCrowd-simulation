@@ -230,6 +230,10 @@ def construire_analyseur() -> argparse.ArgumentParser:
 
     pression.ajouter_commande(sous)
 
+    from viscocrowd.viz import panique
+
+    panique.ajouter_commande(sous)
+
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(
         "--archiver-tous", type=int, default=1, help="piscine : un instant sur K pas"
