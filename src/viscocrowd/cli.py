@@ -226,6 +226,14 @@ def construire_analyseur() -> argparse.ArgumentParser:
 
     duel.ajouter_commande(sous)
 
+    from viscocrowd.viz import pression
+
+    pression.ajouter_commande(sous)
+
+    from viscocrowd.viz import panique
+
+    panique.ajouter_commande(sous)
+
     from viscocrowd.viz import variantes
 
     variantes.ajouter_commande(sous)
