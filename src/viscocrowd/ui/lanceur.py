@@ -37,7 +37,7 @@ QUESTIONS = (
     Question("echelles", "Échelles", "-"),
     Question("largeur_porte", "Largeur de la porte", "m"),
     Question("facteur_vitesse", "Panique (1 à 3)", "-"),
-    Question("largeur_mouillee", "Bande mouillée (20 = jusqu'à la porte)", "m"),
+    Question("largeur_mouillee", "Bande mouillée", "m"),
 )
 
 # Dimensions reelles : bassin municipal de 25 m (la reference) et bassin olympique.
@@ -82,13 +82,21 @@ def demander(
     for question in QUESTIONS:
         defaut = valeur_actuelle(parametres, question.nom)
         unite = "" if question.unite == "-" else f" ({question.unite})"
-        ecrire(f"{question.libelle}{unite} [référence : {defaut}]")
+        libelle = question.libelle
+        if question.nom == "largeur_mouillee":  # la plage n'a pas toujours 20 m
+            plage = parametres["geometrie"]["plage_sortie"]
+            libelle += f", {plage:g} = jusqu'à la porte"
+        ecrire(f"{libelle}{unite} [référence : {defaut}]")
         for _ in range(essais):
             texte = lire("> ").strip()
             if not texte:
                 break
             try:
-                fixes[question.nom] = _lire_nombre(texte, question.nom)
+                nombre = _lire_nombre(texte, question.nom)
+                # Retaper la reference ne cree pas de surcharge : « 2 » echelles
+                # garde la liste de la reference au lieu de les repartir (#174).
+                if nombre != defaut:
+                    fixes[question.nom] = nombre
                 break
             except ValueError:
                 ecrire(f"  « {texte} » n'est pas un nombre valable, recommencer")
@@ -155,6 +163,9 @@ def commande_menu(args) -> int:
         from viscocrowd.cli import main
 
         return main(["rejouer", str(archive)])
+    except (EOFError, KeyboardInterrupt):
+        print("\nMenu abandonné", file=sys.stderr)
+        return 1
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Menu refuse : {erreur}", file=sys.stderr)
         return 1

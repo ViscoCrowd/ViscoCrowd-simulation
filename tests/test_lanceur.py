@@ -75,3 +75,27 @@ def test_menu_refuse_une_population_trop_grande(tmp_path, monkeypatch, capsys):
     commande = ["menu", str(EXEMPLE), "--dossier", str(tmp_path), "--sans-relecture"]
     assert main(commande) == 1
     assert "loge" in capsys.readouterr().err
+
+
+def test_retaper_la_reference_ne_surcharge_pas():
+    fixes = demander(reference(), lire=repondre("100", "2", "1.2", "", ""), ecrire=lambda _: None)
+    assert fixes == {}
+
+
+def test_la_bande_mouillee_affiche_la_longueur_de_la_plage():
+    vus = []
+    demander(reference(), lire=repondre("", "", "", "", ""), ecrire=vus.append)
+    plage = reference()["geometrie"]["plage_sortie"]
+    assert any(
+        "Bande mouillée" in ligne and f"{plage:g} = jusqu'à la porte" in ligne for ligne in vus
+    )
+
+
+@pytest.mark.parametrize("erreur", [EOFError, KeyboardInterrupt])
+def test_menu_abandonne_proprement(erreur, tmp_path, monkeypatch, capsys):
+    def interrompre(_invite):
+        raise erreur
+
+    monkeypatch.setattr("builtins.input", interrompre)
+    assert main(["menu", str(EXEMPLE), "--dossier", str(tmp_path), "--sans-relecture"]) == 1
+    assert "Menu abandonné" in capsys.readouterr().err
