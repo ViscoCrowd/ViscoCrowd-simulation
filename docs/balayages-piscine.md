@@ -620,7 +620,7 @@ Ce qu'on en retient :
    comme pour le domino. Sur 10 graines, une dépendance de l'ordre de 20 % ne peut pas être
    exclue.
 
-## Départs échelonnés : l'effet tampon (18 novembre 2026)
+## Départs échelonnés : l'effet inertiel a besoin d'une file (18 novembre 2026)
 
 **Question, posée avant le calcul.** Si l'hypothèse tampon tient, étaler les départs
 désynchronise les arrivées à la porte, la file se forme moins, et l'effet inertiel du sol
@@ -652,22 +652,37 @@ viscocrowd balayer-piscine experiments/variantes/reaction.yaml --parametre react
 |---|---|---|
 | 1 s → 5 s | 1,39 ± 1,83 s | 8/10 |
 | 1 s → 10 s | 5,83 ± 6,15 s | 9/10 |
-| **1 s → 20 s** | **10,79 ± 4,52 s** | **10/10** |
+| 1 s → 20 s | 10,79 ± 4,52 s | 10/10, artefact : voir ci-dessous |
 
-De 1 à 20 s de médiane, le débit perdu sur le mouillé se rattrape sur les dix graines
-(Δ J_s passe de −0,43 à −0,06 pers/(m·s)).
+Sur Δt100, la ligne 20 s ne mesure plus la foule : sur 7 graines sur 10, Δt100 y vaut
+exactement +0,57 s, la pénalité de relance du dernier baigneur à réagir, qui sort seul.
+Sur Δt90, moins sensible à ce dernier baigneur :
+
+| Médiane (s) | Δ t90 (s) | Δ t90 > 0 |
+|---|---|---|
+| 1 | 12,42 ± 1,76 | 10/10 |
+| 5 | 11,07 ± 2,05 | 10/10 |
+| 10 | 6,84 ± 5,50 | 8/10 |
+| 20 | 3,42 ± 8,11 | 6/10 |
+
+Δt90 baisse de 5,59 ± 5,95 s entre 1 et 10 s de médiane, sur 10 graines sur 10. Entre 1
+et 20 s, la baisse est de 9,00 ± 7,28 s (10/10), mais Δt90 à 20 s est trop dispersé pour
+être lu seul. En moyenne, Δ J_s reste négatif à toutes les médianes : le mouillé ne
+dépasse jamais le sec.
 
 **Lecture.** Quand les départs s'étalent, les baigneurs arrivent à la porte en flux plus
 clairsemé. La file se forme moins, et il y a moins de relances écrêtées par le sol glissant :
-la pénalité du mouillé fond de 13,6 à 2,8 s. C'est le **mécanisme tampon** de la
-problématique, qui apparaît ici pour la première fois dans le modèle, non pas comme un gain
-absolu (t100 s'allonge avec les réactions tardives), mais comme une **atténuation de l'effet
-inertiel**. À 20 s de médiane, les dernières réactions (de 55 à plus de 100 s selon la graine,
-graines 1 à 3) dominent t100 : la porte n'est plus le facteur limitant.
+la pénalité du mouillé diminue nettement de 1 à 10 s de médiane. **L'effet inertiel a besoin
+d'une file**, ce qui rejoint le témoin de #140 (même adhérence loin de la file : aucun
+effet). Ce n'est pas l'hypothèse tampon de la problématique, où l'extraction répartie et la
+traversée du mouillé *augmenteraient* le débit : ici, le mouillé ne dépasse jamais le sec,
+et l'étalement vient d'un temps de réaction extérieur au phénomène. À 20 s de médiane, les
+dernières réactions (de 55 à plus de 100 s selon la graine) dominent t100.
 
-**Limites.** Valeurs de réaction sans source ; une seule dispersion (0,5) ; la décroissance
-est nette de 1 à 20 s, mais entre 10 et 20 s elle ne l'est pas (7/10). Pour en faire une
-conclusion du rapport : valider l'option en groupe, puis confirmer sur les graines 11 à 20.
+**Limites.** Valeurs de réaction sans source ; une seule dispersion (0,5) ; la ligne 20 s ne
+se lit ni sur t100 (dernier baigneur seul) ni vraiment sur t90 (trop dispersée). Pour en
+faire une conclusion du rapport : valider l'option en groupe, puis confirmer sur les
+graines 11 à 20.
 
 ## Portée et limites
 
