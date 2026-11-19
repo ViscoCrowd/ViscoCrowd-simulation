@@ -140,6 +140,8 @@ switch ($Command) {
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Demo, "--sortie", "data/demo/plage-glissante.npz") -MoreArgs @()
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "pose-longue", "data/demo/plage-glissante.npz",
             "--image", "data/demo/pose-longue.png") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "pression", "experiments/demo/pression-porte-saturee.yaml",
+            "--image", "data/demo/pression.png", "--instant", "35") -MoreArgs @()
     }
 
     "rejouer" {

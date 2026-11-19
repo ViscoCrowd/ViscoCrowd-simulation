@@ -94,6 +94,7 @@ demo:  ## Regenere les films de la soutenance dans data/demo/ (experiments/demo)
 	$(VISCO_PY) -m viscocrowd.cli simuler experiments/demo/duel-plage-glissante.yaml --sortie data/demo/plage-glissante.npz
 	$(VISCO_PY) -m viscocrowd.cli pose-longue data/demo/plage-glissante.npz \
 		--image data/demo/pose-longue.png
+	$(VISCO_PY) -m viscocrowd.cli pression experiments/demo/pression-porte-saturee.yaml \n		--image data/demo/pression.png --instant 35
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
 	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
