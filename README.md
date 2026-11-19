@@ -237,6 +237,16 @@ figures/duel.gif` simule la piscine et son témoin tout sec (même graine, même
 départ) et les rejoue l'une au-dessus de l'autre, horloges synchronisées (`--vitesse 4` par
 défaut). `--contre autre.yaml` remplace le témoin, `--garder dossier/` conserve les archives.
 
+`viscocrowd pression experiments/demo/pression-porte-saturee.yaml --image figures/forces.png
+--instant 35` simule la piscine en mesurant ce que la projection retire à chaque agent, puis
+retrouve l'intensité de chaque contact (moindres carrés positifs) : les chaînes de force et les
+arches devant la porte apparaissent en rouge, avec un zoom sur la porte. La console donne le
+nombre de contacts, le maximum et le résidu relatif de l'ajustement (proche de 0 : les
+intensités expliquent les corrections). Cette configuration de démonstration (porte de 0,8 m,
+150 baigneurs, panique 2, sans régulation) comprime la foule ; sur la référence régulée,
+presque aucun contact n'apparaît (98ᵉ centile à 1,4 m/s²). Intensités non étalonnées ; voir
+`viz/pression.py` pour la méthode et ses limites.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
