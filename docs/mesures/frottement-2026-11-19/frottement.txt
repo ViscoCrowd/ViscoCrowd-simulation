@@ -1,0 +1,17 @@
+reference RCOF=0.2
+  mouille - sec t50: +0.469 ± 0.362 s (9/10 positifs, p_signe=0.021)  [t50 mouille 31.91]
+  mouille - sec t100: +0.717 ± 0.806 s (9/10 positifs, p_signe=0.021)  [t100 mouille 52.03]
+  glissades attendues par evacuation : bande mouillee 164.225 (min 157.268, max 180.104), plage seche 7.17e-03, temoin tout sec 1.09e+00 ; marge negative sur le mouille 12.64%
+reference RCOF=0.25
+  mouille - sec t50: +1.220 ± 0.378 s (10/10 positifs, p_signe=0.002)  [t50 mouille 32.64]
+  mouille - sec t100: +4.301 ± 2.361 s (9/10 positifs, p_signe=0.021)  [t100 mouille 55.58]
+  glissades attendues par evacuation : bande mouillee 427.790 (min 395.778, max 454.534), plage seche 8.89e-02, temoin tout sec 3.75e+00 ; marge negative sur le mouille 31.88%
+navigation RCOF=0.2
+  mouille - sec t50: +0.751 ± 0.643 s (9/10 positifs, p_signe=0.021)  [t50 mouille 28.55]
+  mouille - sec t100: +0.642 ± 0.859 s (10/10 positifs, p_signe=0.002)  [t100 mouille 44.64]
+  glissades attendues par evacuation : bande mouillee 181.738 (min 166.342, max 198.171), plage seche 1.77e+00, temoin tout sec 4.49e+00 ; marge negative sur le mouille 15.59%
+navigation RCOF=0.25
+  mouille - sec t50: +1.060 ± 0.924 s (9/10 positifs, p_signe=0.021)  [t50 mouille 28.95]
+  mouille - sec t100: +0.389 ± 0.537 s (8/10 positifs, p_signe=0.109)  [t100 mouille 44.62]
+  glissades attendues par evacuation : bande mouillee 379.401 (min 347.461, max 416.704), plage seche 6.20e+00, temoin tout sec 1.41e+01 ; marge negative sur le mouille 30.35%
+duree 7 min
