@@ -11,6 +11,7 @@ import tempfile
 from importlib.metadata import version
 from pathlib import Path
 
+import numpy as np
 import yaml
 
 import viscocrowd
@@ -42,6 +43,17 @@ def contexte() -> dict:
         "machine": platform.machine(),
         "versions": {nom: version(nom) for nom in ("numpy", "scipy", "matplotlib", "pyyaml")},
     }
+
+
+def arrondir(valeurs: np.ndarray, decimales: int) -> list[float | None]:
+    """Liste JSON des valeurs arrondies a `decimales` ; NaN devient null.
+
+    Les series du diagramme fondamental s'ecrivaient a 17 chiffres : 0,01 s sur t et
+    1e-4 sur la densite et la vitesse suffisent, et divisent la taille des bilans.
+    """
+    return [
+        None if v != v else round(v, decimales) for v in np.asarray(valeurs, dtype=float).tolist()
+    ]
 
 
 def ecrire_json(chemin: Path, contenu: dict) -> None:
