@@ -70,6 +70,7 @@ from viscocrowd.model.navigation import (
     vitesses_souhaitees,
 )
 from viscocrowd.model.profondeur import facteur_profondeur, profondeur
+from viscocrowd.model.reaction import instants_reaction
 from viscocrowd.observables.sortie import Sorties
 
 EAU, FRANCHISSEMENT, PLAGE, SORTI = 0, 1, 2, 3
@@ -107,6 +108,10 @@ class ParametresPiscine:
     profondeur: dict | None = None
     navigation: ParametresNavigation | dict | None = None
     egouttage: dict | None = None
+
+    # Temps de reaction a l'alarme (facultatif) : {mediane: s, dispersion: -}, loi
+    # log-normale de `model.reaction`. Hypotheses sans source pour une piscine.
+    reaction: dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -188,6 +193,24 @@ class ParametresPiscine:
             ):
                 raise ValueError("egouttage : valeurs strictement positives finies")
             object.__setattr__(self, "egouttage", {k: float(v) for k, v in self.egouttage.items()})
+
+        if self.reaction is not None:
+            if not isinstance(self.reaction, dict) or set(self.reaction) != {
+                "mediane",
+                "dispersion",
+            }:
+                raise ValueError("reaction doit donner mediane (s) et dispersion (sans unite)")
+            mediane, dispersion = self.reaction["mediane"], self.reaction["dispersion"]
+            if not (
+                type(mediane) in (int, float)
+                and type(dispersion) in (int, float)
+                and np.isfinite(mediane)
+                and np.isfinite(dispersion)
+                and mediane > 0
+                and dispersion >= 0
+            ):
+                raise ValueError("reaction : mediane > 0 et dispersion >= 0, finies")
+            object.__setattr__(self, "reaction", {k: float(v) for k, v in self.reaction.items()})
         if type(self.n_agents) is not int or self.n_agents < 1:
             raise ValueError("n_agents doit etre un entier strictement positif")
         if type(self.graine) is not int or self.graine < 0:
@@ -373,6 +396,8 @@ class ResultatPiscine:
     eau_sol: np.ndarray | None = None
     t_eau: np.ndarray | None = None
     fraction_mouillee: np.ndarray | None = None
+
+    reactions: np.ndarray | None = None  # (N,) instant de reaction de chaque agent, en s
 
     def violation_paroi_max(self) -> float:
         """Plus grand depassement des murs, sur tous les agents actifs et tous les instants."""
@@ -573,8 +598,28 @@ def simuler_piscine(
         sec_initial = CartePiscine(piscine)(egout.centres().reshape(-1, 2)).reshape(
             egout.eau.shape
         ) == int(Milieu.SEC)
+
+    # Chaine des directions : guidage (et chutes), choix du site (#188), puis la reaction,
+    # appliquee en dernier : qui n'a pas reagi reste sur place, quel que soit le site choisi.
+    # La navigation (#163) ne touche que la plage, ou personne n'arrive avant d'avoir reagi
+    # (pas de franchissement avant la reaction).
+    direction_choisie = direction_base if p.choix_site is None else direction_avec_choix
+    reactions = (
+        None
+        if p.reaction is None
+        else instants_reaction(
+            p.n_agents, p.reaction["mediane"], p.reaction["dispersion"], p.graine
+        )
+    )
+
+    def direction_avec_reaction(etat_courant: State) -> np.ndarray:
+        """Direction nulle tant que l'agent n'a pas reagi : il reste sur place, ou freine."""
+        direction = np.array(direction_choisie(etat_courant), dtype=float)
+        direction[t < reactions[actifs]] = 0.0
+        return direction
+
     libre = pas_libre_milieux(
-        direction_base if p.choix_site is None else direction_avec_choix,
+        direction_choisie if reactions is None else direction_avec_reaction,
         carte,
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
@@ -646,6 +691,8 @@ def simuler_piscine(
         if p.choix_site is not None:
             site_vise[etat != EAU] = -1
             nageurs = np.flatnonzero(etat == EAU)
+            if reactions is not None:  # qui n'a pas reagi ne vise aucun site
+                nageurs = nageurs[t >= reactions[nageurs]]
             if nageurs.size and (pas - 1) % periode_choix == 0:
                 restes = np.where(occupant >= 0, np.maximum(fin - t, 0.0), 0.0)
                 if p.choix_site["mode"] == "coordonne":
@@ -722,6 +769,8 @@ def simuler_piscine(
                 )
             if p.deblocage is not None:
                 lent = np.hypot(*(nouveau.x - x[actifs]).T) < p.deblocage["vitesse"] * p.dt
+                if reactions is not None:
+                    lent &= t >= reactions[actifs]  # attendre l'alarme n'est pas etre bloque
                 immobile[actifs] = np.where(lent, immobile[actifs] + p.dt, 0.0)
             x[actifs], v[actifs] = nouveau.x, nouveau.v
         t = pas * p.dt  # sans accumulation d'arrondis : les durees restent exactes
@@ -772,6 +821,8 @@ def simuler_piscine(
         portees = [p.portee] + ([p.deblocage["portee"]] if p.deblocage is not None else [])
         for rang, portee in enumerate(portees):
             nageurs = etat == EAU
+            if reactions is not None:
+                nageurs &= t >= reactions  # pas de franchissement avant la reaction
             if rang:
                 nageurs &= immobile >= p.deblocage["delai"] - 1e-9
             nageurs = np.flatnonzero(nageurs)
@@ -828,4 +879,5 @@ def simuler_piscine(
         eau_sol=np.stack(historique_eau) if egout is not None else None,
         t_eau=np.array(historique_t_eau) if egout is not None else None,
         fraction_mouillee=np.array(historique_mouille) if egout is not None else None,
+        reactions=reactions,
     )

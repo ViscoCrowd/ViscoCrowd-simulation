@@ -552,3 +552,12 @@ def test_appliquer_fixes_laisse_l_original_intact():
     sols = ("EAU", "MOUILLE", "SEC")
     assert {nouveau["parametres_milieux"][m]["relaxation"] for m in sols} == {0.4}
     assert {config["parametres_milieux"][m]["relaxation"] for m in sols} == {0.5}
+
+
+def test_reaction_mediane_garde_la_dispersion():
+    base = lire_configuration(EXEMPLE)["parametres"] | {
+        "reaction": {"mediane": 1.0, "dispersion": 0.5}
+    }
+    nouveau = balayage._appliquer(base, "reaction_mediane", 10.0)
+    assert nouveau["reaction"] == {"mediane": 10.0, "dispersion": 0.5}
+    assert base["reaction"]["mediane"] == 1.0
