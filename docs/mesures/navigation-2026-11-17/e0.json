@@ -1,0 +1,3021 @@
+{
+ "contexte": {
+  "code": {
+   "commit": "907ec49b12e05b2fc39cdf59668fce0681d8fb62",
+   "modifications_locales": false,
+   "source": "git"
+  },
+  "sources_sha256": "43952239d0def62712f98ae8d51e433a12c188ed45501d938ad880ecfed66a25",
+  "python": "3.12.10",
+  "plateforme": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "versions": {
+   "numpy": "2.5.3",
+   "scipy": "1.18.1",
+   "matplotlib": "3.11.2",
+   "pyyaml": "6.0.3"
+  }
+ },
+ "resultats": [
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 1,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 52.16545400000177
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.2964428186964083,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 38.57236159999957
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.3085892347229189,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 38.025339700001496
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 4,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 41.58322419999968
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 5,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 45.560069200000726
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.3082067534959814,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 36.01577379999799
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 7,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 58.4358336999976
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 8,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 41.064354099999036
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.2798761879684923,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 40.28533500000049
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.8,
+   "graine": 10,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 43.18087939999896
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.1776971996507877,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 36.87459829999716
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.2816458983381849,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 34.83839500000249
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.3557412296294484,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.01455619999979
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.312565262870301,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.74118979999912
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.254166814235767,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 33.75960949999717
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.1626736295323,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 37.77787439999884
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.274134346913027,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 36.502844200000254
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.3179835791531558,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.95782690000124
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.3656522303377903,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 32.582712899999024
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 0.9,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.2684000582211992,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.43702970000231
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.4445053356821842,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 26.88114879999921
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.3947467523600652,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 28.067425499997626
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.4310788806265122,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 26.236286600000312
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.4345987235478115,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 28.425478699999076
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.3308185457653023,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 32.462002200001734
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.398236292347897,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 28.930887800001074
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.4233719620210732,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 26.049939399999857
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.4879332745731362,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 25.03670179999972
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.4735187464425485,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 27.39233229999809
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.0,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.399583226515356,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 28.213659500001086
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.3934743409370198,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 27.873128500003077
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.4763313938470137,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 25.996650500001124
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.5026766711015602,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 24.013102699998853
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.3867161733193536,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 25.89439709999715
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.4314865349067736,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 25.12517790000129
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.383663528661573,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 26.47486079999726
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.5178316900097697,
+   "violation": 1.6653345369377348e-16,
+   "calcul_s": 24.50375200000053
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.4891260749374071,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 24.82883999999831
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.5039093121043372,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 24.87790049999967
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.1,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4616627677805492,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 25.00918549999915
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.4431341058530536,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 23.95450470000287
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.4814421131152276,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 24.882080999999744
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.5583260775343684,
+   "violation": 2.220446049250313e-16,
+   "calcul_s": 22.225084300000162
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.4752281270097032,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 23.224545699999
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.371048549874911,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 24.256427000000258
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.4360094253848792,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 24.37435330000153
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.6077749619464112,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 20.501909000002343
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.4588852623554647,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 21.53602949999913
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.427564740438364,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 22.768568399998912
+  },
+  {
+   "variante": "article",
+   "n": 60,
+   "b": 1.2,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4917708836508443,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 22.98330310000165
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.4214913769955717,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 39.42809540000235
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 2,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 40.93421610000223
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.3707181087388172,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 38.39005000000179
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 4,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 43.553436399997736
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 5,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 45.09944870000254
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.3752758135296577,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 38.545360100000835
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.4577864220061298,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 34.68232429999989
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 8,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 40.5148678000005
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.4533484356015984,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 38.89927019999959
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.8,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4261737178866751,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 36.85245230000146
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.42635986553325,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 36.53259219999745
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.6043148890224237,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 29.07157979999829
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.4018474191074561,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 31.42396209999788
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.423116507772378,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.357121000000916
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.3803804518857101,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 37.890441499999724
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.5695726608600722,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.97474620000139
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.4574185823347332,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 32.04088399999819
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.5775008402015336,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 29.848721299997123
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.4846286966846054,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 31.200649099999282
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 0.9,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.57518567934085,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 29.735348199999862
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5887188837639656,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 29.844262599999638
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.5034074502495918,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 29.969465400001354
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.6055477140242735,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 26.129299100000935
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.547787432297301,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 28.138806300001306
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.5524828457331945,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 27.080518399998255
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.5772271310830301,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 26.25406070000099
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.6866519279395493,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 25.29240199999913
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.674530599384674,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 26.01525930000207
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.742288390473673,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 25.063748799999303
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.0,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.5881971575063452,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 28.365273600000364
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.6257122966001891,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 23.722126699998626
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.7506715203519012,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 22.0185902000012
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.7193071317948636,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 21.52600589999929
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.664406733750047,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 22.865026699997543
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.7092228698879908,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 23.491557499997725
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.6471890298865355,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 22.629194299999654
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.7350645071117858,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 21.930977500000154
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.6147002023900223,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 24.01456319999852
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.6807221059858406,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 22.54392899999948
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.1,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.64962171809598,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 23.540818900000886
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.768962258274816,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 18.974622000001546
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.6036822959757555,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 21.824326199999632
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.8254361890226822,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 19.170063999998092
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.6117896748943952,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 20.612496900001133
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.7070297900491358,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 20.293280499998218
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.732922348711981,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 20.008586699997977
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.752548924492956,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 20.023767899998347
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.5788310198142557,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 20.63620129999981
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.7362888349927517,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 20.47310340000331
+  },
+  {
+   "variante": "tau_035",
+   "n": 60,
+   "b": 1.2,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.6798770674002492,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 19.887178900000436
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.2986727065791384,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 16.03431819999969
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.0683912419465935,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 23.862530200000037
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.3027138646757133,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 15.638006799999857
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 4,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 22.274731299999985
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.3257133035747728,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 15.84223589999965
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.2582871851594057,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 17.495837699996628
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.2112926347698014,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 19.385489600001165
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.2984758036096595,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 17.74387840000054
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.2032488819336984,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 16.939344400001573
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.8,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.172845257559682,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 20.295085699999618
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.044268234236756,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 18.36586510000052
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.317554973541924,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 13.591712900000857
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.289057716115491,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 14.787387700002
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.2390400249366933,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 15.517485899999883
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.374363113225154,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 13.963618099998712
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.236532724414521,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 15.21763859999919
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 0.7915554587086939,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 27.304815899999085
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.248671602487674,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 15.35036989999935
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.4066528933642164,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 13.378340000002936
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 0.9,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.3386432057599196,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 14.351142000003165
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5612425915434156,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 11.152126500001032
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.510729960549176,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 11.069525999999314
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.4346728044246033,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 12.967173600001843
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.432745182297353,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 11.796307700002217
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.4820823518071815,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 11.554454799999803
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.4352412014389087,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 12.406297699999413
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.530776513359323,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 12.426657600000908
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.42406925977282,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 11.911189599999489
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.3963257080058047,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 11.179009400002542
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.0,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.3491914895704717,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 12.722689599999285
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5168453091535037,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 10.558066799996595
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.5432797359236274,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.710589999998774
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.5426710295727655,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 10.317082699999446
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.4547972271480438,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 10.61882539999715
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.52303340809708,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 10.699633500000346
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.3977803868476733,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 11.57099179999932
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.5792878595007338,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 10.518813599999703
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.4920981553543118,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 10.79152729999987
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.5794157632891932,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.914722500001517
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.1,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4578626918828628,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 10.152048799998738
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.296926995485662,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 12.577573700000357
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.441746695862408,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.473143700000946
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.5583769890207708,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 8.950023000001238
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.3817952419819273,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 10.337148299997352
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.5308328934113218,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 9.209334499999386
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.4088689759218254,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 9.960394500001712
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.5511468928324148,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 8.7207430999988
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.5782753729658332,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 9.020158999999694
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.5001540742029482,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.156010900002002
+  },
+  {
+   "variante": "article",
+   "n": 40,
+   "b": 1.2,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.533711052754257,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.250803200000519
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.4248314293970168,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 15.633059899999353
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.2025553776397977,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 17.294802100001107
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.265933325811567,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 19.49799989999883
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.3842955645601123,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 15.362720499997522
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.325114583926621,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 15.642771099999663
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.474494123331829,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 15.367074599998887
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.203863745110915,
+   "violation": 5.273559366969494e-16,
+   "calcul_s": 20.188492099998257
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 8,
+   "statut": "bouchage",
+   "debit": null,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 39.18865300000107
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.4033182768240366,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 15.600330599998415
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.8,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4156544183259607,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 13.855419299998175
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5284629102606762,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.089406600000075
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.5891083145699,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 12.312863399998605
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.5053260731711158,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 13.645012999997562
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.5498076950284008,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 11.854244399997697
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.5874059830241782,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 12.783242800000153
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.6837246692117214,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 12.35157640000034
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.375103414623818,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 12.726801500000875
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.4043911774848536,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 13.667990800000553
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.6242371349235343,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 12.747557299997425
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 0.9,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.456208954009387,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 13.340668600001663
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.6270890795320492,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 10.879398799999763
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.6595036907158442,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 10.374993500001437
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.7025170410829369,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 10.658111500000814
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.5546107809295877,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 10.111518099998648
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.591267244973782,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 10.113905900001555
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.6790146753980992,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 10.600662000000739
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.7147123582295383,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 10.568140100000164
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.5696453655623532,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 10.780285000000731
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.5902472264152379,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 10.90817369999786
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.0,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.5857451732118073,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 10.68266329999824
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.732415200807228,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 8.843962500002817
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.8466661762353298,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 8.348824300002889
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.7745882763964367,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 8.902607500000158
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.6884496537070732,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.617555900000298
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.7417052945001001,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.378001199998835
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.7629379351968568,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.227958999999828
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.822848641863595,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 8.910615799999505
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.7754252566676216,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.582202600002347
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.6010435150801825,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 9.835566599998856
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.1,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.659157128977411,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.684190600000875
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.6229685616285199,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 8.609517600001709
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.918702246817499,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 7.809025099999417
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.667142834568276,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 8.807228699999541
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.567969127274663,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 10.17048170000271
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.8269714695302475,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 7.610391099999106
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.6249984428347146,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.61909320000268
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.874354464766174,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 8.51954289999776
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.7312943087003816,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 9.1335282
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.711951307226769,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 8.527763300000515
+  },
+  {
+   "variante": "tau_035",
+   "n": 40,
+   "b": 1.2,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.760543062126048,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 8.685350100000505
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.2922652370356482,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 6.140564000001177
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.3172803247214109,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.859576800001378
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.4064216155072284,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.200718300002336
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.3287379752987896,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 5.361488300000929
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.2226291530158924,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 6.112715900002513
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.3790990784735406,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 5.148865300001489
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.289759169081332,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 6.080736199997773
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.2753723784011002,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 5.736847100000887
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.0679704745106038,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 7.219718100001046
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.8,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.3644812110399556,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 5.596244999996998
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 0.5948873016871428,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 11.728852899999765
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.2266625510686124,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 5.53070889999799
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.3311417982607934,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.3093243000002985
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.355946316359352,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.920235900000989
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.308914868527465,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.961679500000173
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.447267060128849,
+   "violation": 0.0,
+   "calcul_s": 4.496105700000044
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.421988487919935,
+   "violation": 2.7755575615628914e-16,
+   "calcul_s": 4.809229200000118
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.3243174300791536,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.925484299998061
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.482526985153467,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.447908000001917
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 0.9,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.3528141830773477,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.626515899999504
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.510750296985181,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 4.471385699998791
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.6372263928111155,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.257811999999831
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.4703197600003328,
+   "violation": 3.0531133177191805e-16,
+   "calcul_s": 4.263701100000617
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.3982706519028343,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 4.413580200001888
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.4176254589171444,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 4.486544300001697
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.5009359376871414,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.2332199000011315
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.6034435627065595,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 4.099793400000635
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.6085753761321495,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 3.8518927000004624
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.5427105012791136,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.987152800000331
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.0,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4157800784470476,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 4.467148600000655
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.4683870277969824,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 4.177432199998293
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.5429125423380576,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 3.728844900000695
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.6944250613758545,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.541763400000491
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.5263721105086185,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 3.8258951000025263
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.441293064324083,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.236508700003469
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.4477881867862463,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 3.798377499999333
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.4229006011572933,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.137711200000922
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.4986925873141275,
+   "violation": 1.6653345369377348e-16,
+   "calcul_s": 3.7133228999991843
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.3829499474835025,
+   "violation": 3.0531133177191805e-16,
+   "calcul_s": 4.10968480000156
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.1,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4560275626755983,
+   "violation": 3.0531133177191805e-16,
+   "calcul_s": 3.964409299998806
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5755275531011057,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.723492900000565
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.5180542102322678,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.659374700000626
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.5838237702551714,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.4558114999999816
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.4927315115912714,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 3.6420867999986513
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.6445342013311053,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.484111900001153
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.5978428929679196,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 3.439593799997965
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.4879207677456492,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.929762899999332
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.737172570897396,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 3.4137545000012324
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.4399682364341202,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 3.606394700000237
+  },
+  {
+   "variante": "article",
+   "n": 20,
+   "b": 1.2,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.5473119106629638,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.8558837000018684
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5480574048110987,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.962638000000879
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.5135187338542755,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.343760499999917
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.4414603314234664,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 5.68650009999692
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.3644579607026612,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 5.2819022000003315
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.6152959137474987,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 4.899939700000687
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.5562302022119645,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.735043900000164
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.4640773816064248,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.60736199999883
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.3306732541950457,
+   "violation": 4.996003610813204e-16,
+   "calcul_s": 5.573865599999408
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 0.6077802431124885,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 9.976911399997334
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.8,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.4169176308599478,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.7336730000024545
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.431300842700834,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 4.891256200000498
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.4962400282632267,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 5.185958499998378
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.6464840994155718,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.363406100001157
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.6618327634796453,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.170961499999976
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.2439773909390703,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 5.1008583000002545
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.6807695963943807,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 3.7687134000007063
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.822590479556877,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.008656000001793
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.6220893661743159,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 4.6933124999995925
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.752127732731864,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 4.117592099999456
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 0.9,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.511451097862517,
+   "violation": 3.885780586188048e-16,
+   "calcul_s": 4.45976150000206
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.6246718540302596,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.7385919999978796
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.7764408512007015,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 3.4573958000000857
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.8113512903171896,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 3.484440699998231
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.6153162197477364,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.9570312999967427
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.6354872542093384,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 3.64806260000114
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.8175260883177125,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.3125722000004316
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.7168293566651074,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.647910100000445
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.8707836888588938,
+   "violation": 2.7755575615628914e-16,
+   "calcul_s": 3.154351500001212
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.601326436150456,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 3.407644300001266
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.0,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.7638219292798576,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 2.7885373999997682
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.7256294039443112,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.629709200002253
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.6487517274890597,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 3.574001600001793
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.8870923311156127,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 3.2881901000000653
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.6438455662533413,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.2518683999987843
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.7203313226057662,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.190489599997818
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.8575570397840147,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 2.863375500000984
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.8792836606789929,
+   "violation": 2.7755575615628914e-16,
+   "calcul_s": 2.737251299997297
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.764250982299954,
+   "violation": 3.3306690738754696e-16,
+   "calcul_s": 3.348021699999663
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.664454099660266,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.5125383000013244
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.1,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.8317103696422208,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 3.161847499999567
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 1,
+   "statut": "ecoulement",
+   "debit": 1.5525954046402817,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 3.1096717000000353
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 2,
+   "statut": "ecoulement",
+   "debit": 1.7779855582555475,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 2.9681678999986616
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 3,
+   "statut": "ecoulement",
+   "debit": 1.652913704560126,
+   "violation": 4.718447854656915e-16,
+   "calcul_s": 2.711941699999443
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 4,
+   "statut": "ecoulement",
+   "debit": 1.6095069915157239,
+   "violation": 2.220446049250313e-16,
+   "calcul_s": 2.4914874999994936
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 5,
+   "statut": "ecoulement",
+   "debit": 1.860469710596128,
+   "violation": 0.0,
+   "calcul_s": 2.930776600001991
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 6,
+   "statut": "ecoulement",
+   "debit": 1.7304652319280305,
+   "violation": 3.608224830031759e-16,
+   "calcul_s": 3.203961499999423
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 7,
+   "statut": "ecoulement",
+   "debit": 1.9476257338717349,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 2.984101699999883
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 8,
+   "statut": "ecoulement",
+   "debit": 1.8618705560344606,
+   "violation": 0.0,
+   "calcul_s": 2.7429780999991635
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 9,
+   "statut": "ecoulement",
+   "debit": 1.6552545126967297,
+   "violation": 4.440892098500626e-16,
+   "calcul_s": 3.037452900000062
+  },
+  {
+   "variante": "tau_035",
+   "n": 20,
+   "b": 1.2,
+   "graine": 10,
+   "statut": "ecoulement",
+   "debit": 1.769408840446272,
+   "violation": 4.163336342344337e-16,
+   "calcul_s": 2.6929053000021668
+  }
+ ]
+}

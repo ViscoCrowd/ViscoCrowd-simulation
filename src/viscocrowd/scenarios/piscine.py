@@ -53,9 +53,21 @@ from viscocrowd.geometry.obstacle import ObstacleRectangle
 from viscocrowd.geometry.piscine import NATURES, Piscine
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
+from viscocrowd.model.choix_site import (
+    attribuer_coordonne,
+    choisir,
+    couts_sites,
+    files_par_site,
+)
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
+from viscocrowd.model.navigation import (
+    ParametresNavigation,
+    ScenePlage,
+    facteurs_individuels,
+    vitesses_souhaitees,
+)
 from viscocrowd.model.profondeur import facteur_profondeur, profondeur
 from viscocrowd.observables.sortie import Sorties
 
@@ -85,12 +97,28 @@ class ParametresPiscine:
     chutes: ParametresChutes | dict | None = None
     temps_espacement: float | None = None
     deblocage: dict | None = None
+    # Choix du site selon la file (facultatif, `model.choix_site`) : {portee: m, periode: s,
+    # marge: s, mode: "local" | "coordonne"}. Hypotheses sans source.
+    choix_site: dict | None = None
     # Profondeur variable du bassin (facultatif) : {gauche: m, droite: m}, lineaire en x ;
     # la vitesse dans l'eau suit (d / 0,7)^-0,38 (`model.profondeur`).
     profondeur: dict | None = None
+    navigation: ParametresNavigation | dict | None = None
     piscine: Piscine = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        # navigation et temps_espacement se cumulent ici, contrairement au goulot E0 et
+        # a l'anneau, qui refusent la combinaison : c'est voulu (#158). Dans l'eau, ou
+        # personne ne navigue, la relation vitesse-espacement reste active. Sur la plage,
+        # la seconde heuristique la remplace : elle repart de la vitesse nominale, avant
+        # regulation, et T y est sans effet (test_navigation, TestCumulAvecEspacement).
+        if self.navigation is not None:
+            if isinstance(self.navigation, dict):
+                object.__setattr__(self, "navigation", ParametresNavigation(**self.navigation))
+            elif not isinstance(self.navigation, ParametresNavigation):
+                raise ValueError(
+                    "navigation doit etre un dictionnaire ou une instance de ParametresNavigation"
+                )
         if self.chutes is not None:
             if isinstance(self.chutes, dict):
                 object.__setattr__(self, "chutes", ParametresChutes(**self.chutes))
@@ -117,6 +145,21 @@ class ParametresPiscine:
             ):
                 raise ValueError("deblocage : delai, portee et vitesse strictement positifs finis")
             object.__setattr__(self, "deblocage", {k: float(v) for k, v in self.deblocage.items()})
+        if self.choix_site is not None:
+            choix = dict(self.choix_site)
+            mode = choix.pop("mode", "local")
+            if set(choix) != {"portee", "periode", "marge"} or mode not in ("local", "coordonne"):
+                raise ValueError(
+                    "choix_site doit donner portee (m), periode (s), marge (s) et un mode "
+                    "local ou coordonne"
+                )
+            if not all(
+                type(v) in (int, float) and np.isfinite(v) and v >= 0 for v in choix.values()
+            ) or not (choix["portee"] > 0 and choix["periode"] > 0):
+                raise ValueError("choix_site : portee et periode > 0, marge >= 0, finies")
+            object.__setattr__(
+                self, "choix_site", {k: float(v) for k, v in choix.items()} | {"mode": mode}
+            )
         if self.profondeur is not None:
             if not isinstance(self.profondeur, dict) or set(self.profondeur) != {
                 "gauche",
@@ -178,9 +221,13 @@ class ParametresPiscine:
         if self.dt > min(p.relaxation for p in milieux.values()):
             raise ValueError("dt doit etre inferieur ou egal aux temps de relaxation")
         vitesse_max = self.facteur_vitesse * max(p.vitesse for p in milieux.values())
+        if self.navigation is not None:
+            vitesse_max *= self.navigation.facteur_maximal  # le plus rapide des individus
         if self.profondeur is not None:  # le nageur le plus rapide est au moins profond
             moins_profond = min(self.profondeur.values())
             facteur_eau = float(facteur_profondeur(np.array([moins_profond]))[0])
+            if self.navigation is not None:
+                facteur_eau *= self.navigation.facteur_maximal
             vitesse_eau = self.facteur_vitesse * milieux[Milieu.EAU].vitesse * facteur_eau
             vitesse_max = max(vitesse_max, vitesse_eau)
         if self.dt * vitesse_max > self.rayon / 5:
@@ -221,6 +268,8 @@ class ParametresPiscine:
         resultat = {f.name: getattr(self, f.name) for f in fields(self) if f.init}
         if self.chutes is not None:
             resultat["chutes"] = asdict(self.chutes)
+        if self.navigation is not None:
+            resultat["navigation"] = asdict(self.navigation)
         geometrie = {
             **self.geometrie,
             "echelles": [list(e) for e in self.piscine.echelles],
@@ -420,24 +469,80 @@ def simuler_piscine(
         return direction
 
     carte = CartePiscine(piscine)
+    direction_base = guidage if gestionnaire is None else direction_avec_chutes
+    site_vise = np.full(p.n_agents, -1, dtype=np.int64)  # choix du site (D3), -1 : aucun
+
+    def direction_avec_choix(etat_courant: State) -> np.ndarray:
+        """Un nageur qui a choisi son site nage droit vers son point d'attente."""
+        direction = np.array(direction_base(etat_courant), dtype=float)
+        k = site_vise[actifs]
+        vise = (k >= 0) & (etat[actifs] == EAU)
+        if np.any(vise):
+            ecart = attentes[k[vise]] - etat_courant.x[vise]
+            norme = np.hypot(ecart[:, 0], ecart[:, 1])
+            loin = norme > 1e-9
+            unitaire = np.zeros_like(ecart)
+            unitaire[loin] = ecart[loin] / norme[loin, None]
+            direction[vise] = unitaire
+        return direction
+
+    navigation = p.navigation
+    if navigation is not None:
+        # Navigation locale sur la plage (#158) : chaque agent a sa vitesse souhaitee,
+        # nageurs compris, et les agents de la plage choisissent leur direction par les
+        # heuristiques de Moussaid et al. (2011). Les nageurs gardent le guidage du champ
+        # de l'eau ; les agents en franchissement ne sont vus par personne.
+        facteurs_navigation = facteurs_individuels(p.n_agents, navigation, p.graine)
+        largeur, longueur = piscine.largeur_emprise, piscine.longueur_emprise
+        scene = ScenePlage(
+            boite=(0.0, longueur + piscine.profondeur_porte + navigation.horizon, 0.0, largeur),
+            rectangles=(piscine.bassin, *piscine.montants, *piscine.obstacles),
+        )
+
+        def vitesse_navigation(etat_courant, e, nominale, tau, u):
+            sur_plage = etat[actifs] == PLAGE
+            if not np.any(sur_plage):
+                return u
+            u = u.copy()
+            x_plage = etat_courant.x[sur_plage]
+            u[sur_plage] = vitesses_souhaitees(
+                x_plage,
+                etat_courant.v[sur_plage],
+                etat_courant.r[sur_plage],
+                nominale[sur_plage],
+                e[sur_plage],
+                tau[sur_plage],
+                scene,
+                navigation,
+                guidage.temps(x_plage),
+            )
+            return u
 
     def facteur_individuel(etat_courant: State) -> np.ndarray:
-        """1 sur la plage ; dans le bassin, le facteur de la profondeur locale."""
-        facteurs = np.ones(etat_courant.n)
-        dans = piscine.dans_bassin(etat_courant.x)
-        if np.any(dans):
-            facteurs[dans] = facteur_eau(etat_courant.x[dans])
+        """Facteur de vitesse de chaque agent actif : dispersion de la navigation (tous les
+        agents, #163) multipliee par le facteur de profondeur (nageurs du bassin, #186)."""
+        if navigation is not None:
+            facteurs = np.array(facteurs_navigation[actifs], dtype=float)
+        else:
+            facteurs = np.ones(etat_courant.n)
+        if facteur_eau is not None:
+            dans = piscine.dans_bassin(etat_courant.x)
+            if np.any(dans):
+                facteurs[dans] *= facteur_eau(etat_courant.x[dans])
         return facteurs
 
     libre = pas_libre_milieux(
-        guidage if gestionnaire is None else direction_avec_chutes,
+        direction_base if p.choix_site is None else direction_avec_choix,
         carte,
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
         temps_espacement=p.temps_espacement,
         avancement=guidage.temps if p.temps_espacement is not None else None,
         groupe_meneur=piscine.dans_bassin if p.temps_espacement is not None else None,
-        facteur_individuel=facteur_individuel if facteur_eau is not None else None,
+        facteur_individuel=(
+            facteur_individuel if navigation is not None or facteur_eau is not None else None
+        ),
+        vitesse_souhaitee=vitesse_navigation if navigation is not None else None,
     )
     # La bousculade lit la correction de projection du pas : on garde la vitesse libre
     # calculee par le pas lui-meme, au lieu de rappeler le guidage (revue de #102).
@@ -466,6 +571,10 @@ def simuler_piscine(
     etat = np.full(n, EAU, dtype=np.int64)
     occupant = np.full(len(sites), -1, dtype=np.int64)
     fin = np.zeros(len(sites))
+    if p.choix_site is not None:
+        periode_choix = max(1, round(p.choix_site["periode"] / p.dt))
+        temps_apres = guidage.temps(arrivees)  # plage : de l'arrivee du site a la porte
+        v_eau = p.facteur_vitesse * p.parametres_milieux[Milieu.EAU].vitesse
     debut_agent = np.full(n, np.nan)
     site_agent = np.full(n, -1, dtype=np.int64)
     sorties = np.full(n, np.nan)
@@ -487,6 +596,33 @@ def simuler_piscine(
     violation = max(0.0, piscine.violation(x, r, t))
     for pas in range(1, n_pas + 1):
         actifs = np.flatnonzero((etat == EAU) | (etat == PLAGE))
+        if p.choix_site is not None:
+            site_vise[etat != EAU] = -1
+            nageurs = np.flatnonzero(etat == EAU)
+            if nageurs.size and (pas - 1) % periode_choix == 0:
+                restes = np.where(occupant >= 0, np.maximum(fin - t, 0.0), 0.0)
+                if p.choix_site["mode"] == "coordonne":
+                    sans_file = couts_sites(
+                        x[nageurs], attentes, v_eau, durees, temps_apres, 0 * durees, restes
+                    )
+                    ordre = np.argsort(guidage.temps(x[nageurs]), kind="stable")
+                    site_vise[nageurs] = attribuer_coordonne(sans_file, durees, ordre)
+                else:
+                    files = files_par_site(site_vise, len(sites))
+                    couts = couts_sites(
+                        x[nageurs], attentes, v_eau, durees, temps_apres, files, restes
+                    )
+                    actuels = site_vise[nageurs]
+                    soi = actuels >= 0  # un nageur ne fait pas la queue derriere lui-meme
+                    couts[np.flatnonzero(soi), actuels[soi]] -= durees[actuels[soi]]
+                    portee = (
+                        np.hypot(
+                            x[nageurs, None, 0] - attentes[None, :, 0],
+                            x[nageurs, None, 1] - attentes[None, :, 1],
+                        )
+                        < p.choix_site["portee"]
+                    )
+                    site_vise[nageurs] = choisir(couts, actuels, p.choix_site["marge"], portee)
         avant = x.copy()
         # Rayons imposes pendant ce pas : les corps au sol occupent plus de place.
         r_pas = r if gestionnaire is None else gestionnaire.rayons_effectifs(r, instant=t)
