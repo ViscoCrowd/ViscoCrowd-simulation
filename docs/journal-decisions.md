@@ -162,6 +162,64 @@ avec la densité, comme chez Weidmann, mais 23 à 67 % trop vite au-dessus de 1,
 ou si l'on règle τ sur E0, comme on a réglé T. Puis refaire E1/E2, les balayages, les
 diagrammes et la campagne des chutes, et reprendre les § 2, 5 et 6 du rapport.
 
+## 2026-11-17 — Traînée d'eau des baigneurs sur la plage, facultative
+
+**Statut.** Proposition de Lenny, à valider par le groupe. Désactivée par défaut
+(`egouttage` absent ou `null`) : la référence, E1/E2 et les balayages ne changent pas.
+
+**Idée.** Un baigneur qui sort de l'eau ruisselle et mouille la plage derrière lui. Une
+trace seule ne rend pas le carrelage glissant ; là où beaucoup de trajets se superposent,
+si. La bande mouillée fixe de 3 m autour du bassin ne représente pas ce mécanisme, alors
+qu'il porte l'eau exactement là où la foule converge : vers la porte.
+
+**Modèle (`model/egouttage.py`).** Chaque baigneur de la plage dépose sur la case sous lui
+`volume / duree · exp(−(t − t_sortie) / duree) · dt` litres ; l'intégrale vaut `volume`.
+Une case sèche devient MOUILLE quand son film dépasse `seuil` (L/m², soit mm). La carte des
+milieux étant relue à chaque pas, l'adhérence, la vitesse et les glissades du module de
+chutes s'appliquent sur la traînée sans autre changement. L'eau ne sèche pas (l'évacuation
+dure une minute). Le guidage reste statique : les agents ne contournent pas la traînée.
+
+```yaml
+  egouttage:
+    volume: 0.4    # L emportés par un baigneur (hypothèse)
+    duree: 30.0    # s, constante d'égouttage (hypothèse)
+    seuil: 0.05    # L/m², film à partir duquel le carrelage est mouillé (hypothèse)
+    pas: 0.1       # m, côté d'une case (au plus rayon / 2)
+```
+
+**Mesures (remesurées le 19 novembre, après le dépôt sur l'empreinte du baigneur, cases de
+0,1 m ; 100 agents, référence par ailleurs inchangée).**
+
+| Graine | Chutes | t50 sans → avec traînée | t100 sans → avec | Chutes sans → avec | Plage mouillée |
+|---|---|---|---|---|---|
+| 20262027 | non | 31,55 → 31,55 s | 53,66 → 53,66 s | – | 4,5 % |
+| 20262028 | non | 31,14 → 31,14 s | 54,31 → 54,31 s | – | 4,0 % |
+| 20262029 | non | 31,62 → 31,62 s | 49,26 → 49,26 s | – | 5,8 % |
+| 20262027 | oui (`{}`) | 32,62 → 58,82 s | 69,64 → 99,60 s | 174 → 525 | 9,6 % |
+| 20262028 | oui | 31,09 → 34,22 s | 57,78 → 62,58 s | 89 → 134 | 6,5 % |
+| 20262029 | oui | 31,54 → 45,75 s | 55,69 → 77,43 s | 81 → 299 | 8,8 % |
+
+Aucune sortie des murs (au plus 7·10⁻¹⁵ m).
+
+**Lecture.** Sans chutes, la traînée mouille 4 à 6 % de la plage, sur les deux files qui
+mènent à la porte, et ne change rien à l'évacuation : comme pour la bande fixe, le mouillé
+n'agit que là où l'on freine ou tourne. Avec les chutes par défaut, elle multiplie les
+glissades et retarde fortement l'évacuation. **Ces chiffres ne mesurent que les taux par
+défaut, non calibrés (#130) : à ne citer nulle part avant la calibration.** Un baigneur seul
+ne mouille aucune case de plage sèche (test), quelle que soit la grille.
+
+**Correctif du 19 novembre (revue de #165).** Le premier dépôt mettait tout le volume d'un
+pas sur la case sous le centre : le film laissé par un passage valait q / (v · pas) et
+dépendait donc de la taille des cases (0,027 L/m² à 0,25 m, 0,053 à 0,125 m), si bien que la
+propriété « un seul baigneur ne mouille rien » tenait au choix de la grille. Le dépôt est
+maintenant réparti sur l'empreinte du baigneur (les cases dont le centre est à moins de r) :
+le film vaut environ 2 q / (π r v) ≈ 0,021 L/m², à 10 % près entre 0,1 et 0,05 m. La
+configuration refuse des cases de plus de r / 2, pour lesquelles l'empreinte ne contient que
+une ou deux cases.
+
+**Limites.** Les trois valeurs physiques sont des hypothèses sans source ; il faut les
+balayer avant toute conclusion. Les chutes elles-mêmes ne sont pas calibrées (#130).
+
 ---
 
 ## 2026-11-16 — Chutes : référence sans chutes, campagne exploratoire à part (#130)

@@ -9,7 +9,9 @@ parcours complet est exerce par le job « Reproductibilite des figures ».
 import numpy as np
 import pytest
 
-from viscocrowd.cli import conclure, hors_seuil
+from utilitaires import EXEMPLE, piscine_reduite
+from viscocrowd.cli import conclure, hors_seuil, main
+from viscocrowd.io.trajectoires import lire_trajectoire
 
 
 class TestHorsSeuil:
@@ -91,3 +93,55 @@ def test_sortie_redirigee_en_cp1252_ecrite_en_utf8(monkeypatch):
     assert cli.main([]) == 0
     sys.stdout.flush()
     assert tampon.getvalue().decode("utf-8") == "écart apparié Δ vs E1\n"
+
+
+def test_simuler_accepte_fixer(tmp_path):
+    sortie = tmp_path / "a.npz"
+    commande = ["simuler", str(piscine_reduite(tmp_path)), "--sortie", str(sortie)]
+    assert main([*commande, "--fixer", "n_agents=4", "largeur_porte=0.9"]) == 0
+    donnees = lire_trajectoire(sortie)
+    assert donnees.x.shape[1] == 4
+    assert donnees.metadonnees["surcharges"] == {"n_agents": 4, "largeur_porte": 0.9}
+
+
+def test_simuler_refuse_un_nom_inconnu(tmp_path, capsys):
+    sortie = tmp_path / "a.npz"
+    assert main(["simuler", str(EXEMPLE), "--sortie", str(sortie), "--fixer", "porte=0.9"]) == 1
+    assert "--fixer attend" in capsys.readouterr().err
+    assert not sortie.exists()
+
+
+def test_tous_les_modules_viz_a_commande_sont_declares():
+    """Une commande de visualisation s'ajoute dans viz.COMMANDES, pas dans cli.py."""
+    import importlib
+    import pkgutil
+
+    from viscocrowd import viz
+
+    trouves = {
+        m.name
+        for m in pkgutil.iter_modules(viz.__path__)
+        if hasattr(importlib.import_module(f"viscocrowd.viz.{m.name}"), "ajouter_commande")
+    }
+    assert set(viz.COMMANDES) == trouves
+    assert list(viz.COMMANDES) == sorted(viz.COMMANDES)
+
+
+def test_les_commandes_de_visualisation_restent_disponibles():
+    from viscocrowd.cli import construire_analyseur
+
+    sous = next(
+        a for a in construire_analyseur()._actions if a.__class__.__name__ == "_SubParsersAction"
+    )
+    attendues = {
+        "attente",
+        "bouchons",
+        "comparer-variantes",
+        "diagramme-anime",
+        "duel",
+        "figure-panique",
+        "pose-longue",
+        "pression",
+        "trainee",
+    }
+    assert attendues <= set(sous.choices)

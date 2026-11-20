@@ -32,9 +32,12 @@ SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import d
 # simulees) dure autant a l'ecran. Transmis aussi par `make lancer VITESSE=5`, car
 # une variable de la ligne de commande passe aux sous-make.
 VITESSE ?= 1
+# Surcharges de la piscine pour simu et lancer (noms de balayer-piscine) :
+# make simu FIXER="n_agents=150 largeur_porte=0.8"
+FIXER ?=
 ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
-.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer campagne-finale maquette figures report docker clean
+.PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer demo comparer campagne-finale maquette figures report docker clean
 
 help:  ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -67,8 +70,8 @@ format:  ## Reformate le code
 valider:  ## Rejoue les criteres de validation du moteur, chiffres
 	$(VISCO_PY) -m viscocrowd.cli valider-moteur
 
-simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
-	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
+simu:  ## Lance une simulation (CONFIG=... SORTIE=... FIXER="n_agents=150", piscine par defaut)
+	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)$(if $(strip $(FIXER)), --fixer $(FIXER))
 
 rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut ; VITESSE=1)
 	$(if $(strip $(ARCHIVE)),,$(error Aucune archive dans data/ : lancer d'abord make simu))
@@ -81,6 +84,17 @@ rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defau
 # finissait entre-temps. Si la simulation echoue, la relecture n'est pas lancee.
 lancer:  ## Simule puis ouvre la relecture (CONFIG=..., piscine ou couloir)
 	@sortie="$(SORTIE)" && $(MAKE) --no-print-directory simu SORTIE="$$sortie" && $(MAKE) --no-print-directory rejouer ARCHIVE="$$sortie"
+
+demo:  ## Regenere les films de la soutenance dans data/demo/ (experiments/demo)
+	$(VISCO_PY) -c "import shutil; shutil.rmtree('data/demo', ignore_errors=True)"
+	$(VISCO_PY) -m viscocrowd.cli duel experiments/demo/duel-plage-glissante.yaml --gif data/demo/duel.gif
+	$(VISCO_PY) -m viscocrowd.cli comparer-variantes experiments/demo/duel-plage-glissante.yaml --gif data/demo/variantes.gif \
+		--variante adherence_mouille=3.3 --variante adherence_mouille=2 \
+		--variante adherence_mouille=1
+	$(VISCO_PY) -m viscocrowd.cli simuler experiments/demo/duel-plage-glissante.yaml --sortie data/demo/plage-glissante.npz
+	$(VISCO_PY) -m viscocrowd.cli pose-longue data/demo/plage-glissante.npz \
+		--image data/demo/pose-longue.png
+	$(VISCO_PY) -m viscocrowd.cli pression experiments/demo/pression-porte-saturee.yaml \n		--image data/demo/pression.png --instant 35
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
 	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10

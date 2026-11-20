@@ -60,6 +60,7 @@ from viscocrowd.model.choix_site import (
     files_par_site,
 )
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
+from viscocrowd.model.egouttage import ChampEgouttage, debit_egouttage
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
 from viscocrowd.model.navigation import (
@@ -73,6 +74,7 @@ from viscocrowd.model.reaction import instants_reaction
 from viscocrowd.observables.sortie import Sorties
 
 EAU, FRANCHISSEMENT, PLAGE, SORTI = 0, 1, 2, 3
+PERIODE_EAU = 0.5  # s entre deux images du film d'eau gardees pour la relecture
 # Legende des codes d'etat, archivee avec les etats pour la relecture hors ligne.
 NOMS_ETATS = ("eau", "franchissement", "plage", "sorti")
 
@@ -105,6 +107,8 @@ class ParametresPiscine:
     # la vitesse dans l'eau suit (d / 0,7)^-0,38 (`model.profondeur`).
     profondeur: dict | None = None
     navigation: ParametresNavigation | dict | None = None
+    egouttage: dict | None = None
+
     # Temps de reaction a l'alarme (facultatif) : {mediane: s, dispersion: -}, loi
     # log-normale de `model.reaction`. Hypotheses sans source pour une piscine.
     reaction: dict | None = None
@@ -176,6 +180,20 @@ class ParametresPiscine:
             object.__setattr__(
                 self, "profondeur", {k: float(v) for k, v in self.profondeur.items()}
             )
+
+        if self.egouttage is not None:
+            cles = {"volume", "duree", "seuil", "pas"}
+            if not isinstance(self.egouttage, dict) or set(self.egouttage) != cles:
+                raise ValueError(
+                    "egouttage doit donner volume (L), duree (s), seuil (L/m^2) et pas (m)"
+                )
+            if not all(
+                type(v) in (int, float) and np.isfinite(v) and v > 0
+                for v in self.egouttage.values()
+            ):
+                raise ValueError("egouttage : valeurs strictement positives finies")
+            object.__setattr__(self, "egouttage", {k: float(v) for k, v in self.egouttage.items()})
+
         if self.reaction is not None:
             if not isinstance(self.reaction, dict) or set(self.reaction) != {
                 "mediane",
@@ -253,6 +271,10 @@ class ParametresPiscine:
             vitesse_max = max(vitesse_max, vitesse_eau)
         if self.dt * vitesse_max > self.rayon / 5:
             raise ValueError("dt trop grand : deplacement souhaite par pas > rayon/5")
+        if self.egouttage is not None and self.egouttage["pas"] > self.rayon / 2:
+            # Le depot est reparti sur l'empreinte du baigneur : il faut plusieurs
+            # cases sous un baigneur pour que le film ne depende pas de la grille.
+            raise ValueError("egouttage : pas (case) au plus egal a rayon / 2")
         if self.pas_guidage > self.rayon:
             raise ValueError("pas_guidage doit etre inferieur ou egal au rayon")
         # Le long d'un cote, un agent n'est ainsi a portee que d'un site. Aux coins du
@@ -349,6 +371,11 @@ class ResultatPiscine:
             chaque instant archive, (v - v_libre) / dt en m/s^2 ; 0 pour un agent
             inactif.
             None sauf si `simuler_piscine(..., contraintes=True)`.
+
+        eau_sol: si l'egouttage est actif, film d'eau (K, nx, ny) en L/m^2 sur la grille
+            de `ChampEgouttage`, toutes les `PERIODE_EAU` s, aux instants `t_eau` (K,).
+        fraction_mouillee: (P,) part de la plage seche devenue mouillee, a chaque
+            instant archive ; None sans egouttage.
     """
 
     t: np.ndarray
@@ -365,6 +392,10 @@ class ResultatPiscine:
     chutes: tuple[EvenementChute, ...] = ()
     deblocages: int = 0
     contraintes: np.ndarray | None = None
+
+    eau_sol: np.ndarray | None = None
+    t_eau: np.ndarray | None = None
+    fraction_mouillee: np.ndarray | None = None
 
     reactions: np.ndarray | None = None  # (N,) instant de reaction de chaque agent, en s
 
@@ -554,6 +585,20 @@ def simuler_piscine(
                 facteurs[dans] *= facteur_eau(etat_courant.x[dans])
         return facteurs
 
+    egout = None
+    if p.egouttage is not None:
+        egout = ChampEgouttage(
+            CartePiscine(piscine),
+            piscine.longueur_emprise + piscine.profondeur_porte,
+            piscine.largeur_emprise,
+            p.egouttage["pas"],
+            p.egouttage["seuil"],
+        )
+        carte = egout  # adherence, vitesse et chutes lisent la trainee a chaque pas
+        sec_initial = CartePiscine(piscine)(egout.centres().reshape(-1, 2)).reshape(
+            egout.eau.shape
+        ) == int(Milieu.SEC)
+
     # Chaine des directions : guidage (et chutes), choix du site (#188), puis la reaction,
     # appliquee en dernier : qui n'a pas reagi reste sur place, quel que soit le site choisi.
     # La navigation (#163) ne touche que la plage, ou personne n'arrive avant d'avoir reagi
@@ -625,6 +670,11 @@ def simuler_piscine(
     contrainte = np.zeros((n, 2))  # m/s^2, du dernier pas ; 0 pour un agent inactif
     historique_c = [contrainte.copy()]
     immobile = np.zeros(n)  # s : duree depuis laquelle chaque agent ne bouge plus (#127)
+    sur_plage_depuis = np.full(n, np.nan)  # s : instant de pose sur la plage (egouttage)
+    periode_eau = max(1, round(PERIODE_EAU / p.dt))
+    historique_eau = [egout.eau.copy()] if egout is not None else []
+    historique_t_eau = [0.0]
+    historique_mouille = [0.0]
     n_deblocages = 0
 
     t = 0.0
@@ -725,6 +775,17 @@ def simuler_piscine(
             x[actifs], v[actifs] = nouveau.x, nouveau.v
         t = pas * p.dt  # sans accumulation d'arrondis : les durees restent exactes
 
+        # Egouttage : chaque baigneur de la plage depose l'eau perdue pendant ce pas.
+        if egout is not None:
+            ruisselants = np.flatnonzero(etat == PLAGE)
+            if ruisselants.size:
+                depuis = t - p.dt - sur_plage_depuis[ruisselants]
+                egout.deposer(
+                    x[ruisselants],
+                    debit_egouttage(p.egouttage["volume"], p.egouttage["duree"], depuis) * p.dt,
+                    rayons=r[ruisselants],  # sur l'empreinte : film independant de la grille
+                )
+
         # Sorties : passage de la ligne de la porte, instant interpole.
         sortants = np.flatnonzero((etat == PLAGE) & (x[:, 0] >= x_porte))
         for i in sortants:
@@ -749,6 +810,7 @@ def simuler_piscine(
                 if np.min(ecart) < -p.tolerance:
                     continue  # place occupee : l'agent attend sur le bord, le site reste pris
             etat[i], x[i], v[i] = PLAGE, arrivees[k], 0.0
+            sur_plage_depuis[i] = t
             occupant[k] = -1
             evenements.append([i, k, debut_agent[i], t])
 
@@ -790,6 +852,12 @@ def simuler_piscine(
             historique_e.append(etat.copy())
             # Un agent devenu inactif pendant ce pas (bord, sortie) n'a plus de contrainte.
             historique_c.append(np.where(actifs[:, None], contrainte, 0.0))
+
+            if egout is not None:
+                historique_mouille.append(egout.fraction_mouillee(sec_initial))
+        if egout is not None and (pas % periode_eau == 0 or fini or pas == n_pas):
+            historique_eau.append(egout.eau.copy())
+            historique_t_eau.append(t)
         if fini:
             break
 
@@ -808,5 +876,8 @@ def simuler_piscine(
         chutes=gestionnaire.historique if gestionnaire is not None else (),
         deblocages=n_deblocages,
         contraintes=np.stack(historique_c) if contraintes else None,
+        eau_sol=np.stack(historique_eau) if egout is not None else None,
+        t_eau=np.array(historique_t_eau) if egout is not None else None,
+        fraction_mouillee=np.array(historique_mouille) if egout is not None else None,
         reactions=reactions,
     )
