@@ -1,0 +1,31 @@
+variante | N | rho | v (m/s) | v0 moyen | v < 1,30 | derive max | violation
+  voies                |  38 | 0.50 | 1.340 ± 0.000 | 1.340 | 0/10 | 0.0% | 0.0e+00
+  voies                |  75 | 0.99 | 1.340 ± 0.000 | 1.340 | 0/10 | 0.0% | 0.0e+00
+  voies                | 113 | 1.50 | 1.340 ± 0.000 | 1.340 | 0/10 | 0.0% | 0.0e+00
+  voies                | 151 | 2.00 | 1.339 ± 0.000 | 1.340 | 0/10 | 0.0% | 0.0e+00
+  voies                | 188 | 2.49 | 0.580 ± 0.017 | 1.340 | 10/10 | 4.7% | 1.0e-06
+  desordonne           |  38 | 0.50 | 1.289 ± 0.014 | 1.340 | 8/10 | 3.9% | 0.0e+00
+  desordonne           |  75 | 0.99 | 1.223 ± 0.008 | 1.340 | 10/10 | 2.6% | 9.1e-07
+  desordonne           | 113 | 1.50 | 1.100 ± 0.031 | 1.340 | 10/10 | 6.9% | 1.0e-06
+  desordonne           | 151 | 2.00 | 0.830 ± 0.030 | 1.340 | 10/10 | 7.5% | 1.0e-06
+  desordonne           | 188 | 2.49 | 0.595 ± 0.015 | 1.340 | 10/10 | 6.4% | 1.0e-06
+  dispersee            |  38 | 0.50 | 1.056 ± 0.059 | 1.332 | 10/10 | 5.8% | 0.0e+00
+  dispersee            |  75 | 0.99 | 0.986 ± 0.045 | 1.334 | 10/10 | 3.5% | 0.0e+00
+  dispersee            | 113 | 1.50 | 0.918 ± 0.029 | 1.334 | 10/10 | 3.9% | 7.2e-16
+  dispersee            | 151 | 2.00 | 0.864 ± 0.035 | 1.334 | 10/10 | 6.3% | 9.9e-07
+  dispersee            | 188 | 2.49 | 0.630 ± 0.092 | 1.335 | 10/10 | 20.4% | 1.0e-06
+  desordonne_dispersee |  38 | 0.50 | 0.947 ± 0.077 | 1.332 | 10/10 | 7.2% | 0.0e+00
+  desordonne_dispersee |  75 | 0.99 | 0.852 ± 0.047 | 1.334 | 10/10 | 8.3% | 9.4e-07
+  desordonne_dispersee | 113 | 1.50 | 0.806 ± 0.038 | 1.334 | 10/10 | 7.6% | 1.0e-06
+  desordonne_dispersee | 151 | 2.00 | 0.713 ± 0.038 | 1.334 | 10/10 | 8.3% | 1.0e-06
+  desordonne_dispersee | 188 | 2.49 | 0.557 ± 0.016 | 1.335 | 10/10 | 8.0% | 1.0e-06
+Criteres a 1,0 et 1,5 pers/m^2 (N = 75 et 113) :
+  voies                N = 75 : reste a v0
+  voies                N = 113 : reste a v0
+  desordonne           N = 75 : baisse
+  desordonne           N = 113 : baisse
+  dispersee            N = 75 : baisse
+  dispersee            N = 113 : baisse
+  desordonne_dispersee N = 75 : baisse
+  desordonne_dispersee N = 113 : baisse
+Bilan : docs\mesures\anneau-desordre-2026-11-20\anneau-desordre.json ; figures : diagramme.png, voies.png
