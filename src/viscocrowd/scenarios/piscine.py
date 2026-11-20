@@ -53,6 +53,12 @@ from viscocrowd.geometry.obstacle import ObstacleRectangle
 from viscocrowd.geometry.piscine import NATURES, Piscine
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
+from viscocrowd.model.choix_site import (
+    attribuer_coordonne,
+    choisir,
+    couts_sites,
+    files_par_site,
+)
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
 from viscocrowd.model.milieu import Milieu, ParametresMilieu, pas_libre_milieux
@@ -91,6 +97,9 @@ class ParametresPiscine:
     chutes: ParametresChutes | dict | None = None
     temps_espacement: float | None = None
     deblocage: dict | None = None
+    # Choix du site selon la file (facultatif, `model.choix_site`) : {portee: m, periode: s,
+    # marge: s, mode: "local" | "coordonne"}. Hypotheses sans source.
+    choix_site: dict | None = None
     # Profondeur variable du bassin (facultatif) : {gauche: m, droite: m}, lineaire en x ;
     # la vitesse dans l'eau suit (d / 0,7)^-0,38 (`model.profondeur`).
     profondeur: dict | None = None
@@ -136,6 +145,21 @@ class ParametresPiscine:
             ):
                 raise ValueError("deblocage : delai, portee et vitesse strictement positifs finis")
             object.__setattr__(self, "deblocage", {k: float(v) for k, v in self.deblocage.items()})
+        if self.choix_site is not None:
+            choix = dict(self.choix_site)
+            mode = choix.pop("mode", "local")
+            if set(choix) != {"portee", "periode", "marge"} or mode not in ("local", "coordonne"):
+                raise ValueError(
+                    "choix_site doit donner portee (m), periode (s), marge (s) et un mode "
+                    "local ou coordonne"
+                )
+            if not all(
+                type(v) in (int, float) and np.isfinite(v) and v >= 0 for v in choix.values()
+            ) or not (choix["portee"] > 0 and choix["periode"] > 0):
+                raise ValueError("choix_site : portee et periode > 0, marge >= 0, finies")
+            object.__setattr__(
+                self, "choix_site", {k: float(v) for k, v in choix.items()} | {"mode": mode}
+            )
         if self.profondeur is not None:
             if not isinstance(self.profondeur, dict) or set(self.profondeur) != {
                 "gauche",
@@ -445,6 +469,23 @@ def simuler_piscine(
         return direction
 
     carte = CartePiscine(piscine)
+    direction_base = guidage if gestionnaire is None else direction_avec_chutes
+    site_vise = np.full(p.n_agents, -1, dtype=np.int64)  # choix du site (D3), -1 : aucun
+
+    def direction_avec_choix(etat_courant: State) -> np.ndarray:
+        """Un nageur qui a choisi son site nage droit vers son point d'attente."""
+        direction = np.array(direction_base(etat_courant), dtype=float)
+        k = site_vise[actifs]
+        vise = (k >= 0) & (etat[actifs] == EAU)
+        if np.any(vise):
+            ecart = attentes[k[vise]] - etat_courant.x[vise]
+            norme = np.hypot(ecart[:, 0], ecart[:, 1])
+            loin = norme > 1e-9
+            unitaire = np.zeros_like(ecart)
+            unitaire[loin] = ecart[loin] / norme[loin, None]
+            direction[vise] = unitaire
+        return direction
+
     navigation = p.navigation
     if navigation is not None:
         # Navigation locale sur la plage (#158) : chaque agent a sa vitesse souhaitee,
@@ -491,7 +532,7 @@ def simuler_piscine(
         return facteurs
 
     libre = pas_libre_milieux(
-        guidage if gestionnaire is None else direction_avec_chutes,
+        direction_base if p.choix_site is None else direction_avec_choix,
         carte,
         p.parametres_milieux,
         facteur_vitesse=p.facteur_vitesse,
@@ -530,6 +571,10 @@ def simuler_piscine(
     etat = np.full(n, EAU, dtype=np.int64)
     occupant = np.full(len(sites), -1, dtype=np.int64)
     fin = np.zeros(len(sites))
+    if p.choix_site is not None:
+        periode_choix = max(1, round(p.choix_site["periode"] / p.dt))
+        temps_apres = guidage.temps(arrivees)  # plage : de l'arrivee du site a la porte
+        v_eau = p.facteur_vitesse * p.parametres_milieux[Milieu.EAU].vitesse
     debut_agent = np.full(n, np.nan)
     site_agent = np.full(n, -1, dtype=np.int64)
     sorties = np.full(n, np.nan)
@@ -551,6 +596,33 @@ def simuler_piscine(
     violation = max(0.0, piscine.violation(x, r, t))
     for pas in range(1, n_pas + 1):
         actifs = np.flatnonzero((etat == EAU) | (etat == PLAGE))
+        if p.choix_site is not None:
+            site_vise[etat != EAU] = -1
+            nageurs = np.flatnonzero(etat == EAU)
+            if nageurs.size and (pas - 1) % periode_choix == 0:
+                restes = np.where(occupant >= 0, np.maximum(fin - t, 0.0), 0.0)
+                if p.choix_site["mode"] == "coordonne":
+                    sans_file = couts_sites(
+                        x[nageurs], attentes, v_eau, durees, temps_apres, 0 * durees, restes
+                    )
+                    ordre = np.argsort(guidage.temps(x[nageurs]), kind="stable")
+                    site_vise[nageurs] = attribuer_coordonne(sans_file, durees, ordre)
+                else:
+                    files = files_par_site(site_vise, len(sites))
+                    couts = couts_sites(
+                        x[nageurs], attentes, v_eau, durees, temps_apres, files, restes
+                    )
+                    actuels = site_vise[nageurs]
+                    soi = actuels >= 0  # un nageur ne fait pas la queue derriere lui-meme
+                    couts[np.flatnonzero(soi), actuels[soi]] -= durees[actuels[soi]]
+                    portee = (
+                        np.hypot(
+                            x[nageurs, None, 0] - attentes[None, :, 0],
+                            x[nageurs, None, 1] - attentes[None, :, 1],
+                        )
+                        < p.choix_site["portee"]
+                    )
+                    site_vise[nageurs] = choisir(couts, actuels, p.choix_site["marge"], portee)
         avant = x.copy()
         # Rayons imposes pendant ce pas : les corps au sol occupent plus de place.
         r_pas = r if gestionnaire is None else gestionnaire.rayons_effectifs(r, instant=t)
