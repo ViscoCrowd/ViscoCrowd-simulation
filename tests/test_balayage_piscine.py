@@ -531,3 +531,24 @@ class TestCommande:
         assert main([*args, "--valeurs", "1", "--graines", "1", "--sortie", str(sortie)]) == 1
         assert sortie.read_text(encoding="utf-8") == "{}"
         assert appels == []
+
+
+def test_lire_fixes_convertit_n_agents_en_entier():
+    fixes = balayage.lire_fixes(["n_agents=150", "largeur_porte=0.8"])
+    assert fixes == {"n_agents": 150, "largeur_porte": 0.8}
+    assert type(fixes["n_agents"]) is int
+
+
+def test_lire_fixes_refuse_un_entier_non_entier():
+    with pytest.raises(ValueError, match="entier"):
+        balayage.lire_fixes(["n_agents=150.5"])
+
+
+def test_appliquer_fixes_laisse_l_original_intact():
+    config = lire_configuration(EXEMPLE)["parametres"]
+    nouveau = balayage.appliquer_fixes(config, {"largeur_porte": 0.8, "relaxation": 0.4})
+    assert config["geometrie"]["largeur_porte"] == 1.2
+    assert nouveau["geometrie"]["largeur_porte"] == 0.8
+    sols = ("EAU", "MOUILLE", "SEC")
+    assert {nouveau["parametres_milieux"][m]["relaxation"] for m in sols} == {0.4}
+    assert {config["parametres_milieux"][m]["relaxation"] for m in sols} == {0.5}
