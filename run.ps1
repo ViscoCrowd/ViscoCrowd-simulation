@@ -27,6 +27,7 @@ function Show-Help {
     Write-Host "  test-lents  Lance uniquement les scenarios lents"
     Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut ; --fixer NOM=VALEUR ...)"
     Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut ; options transmises, ex. --vitesse 5)"
+    Write-Host "  menu        Parametre la piscine par questions, simule puis relit (config en argument)"
     Write-Host "  demo        Regenere les films de la soutenance dans data/demo/"
     Write-Host "  lancer      Simule puis ouvre la relecture (config en argument, piscine ou couloir ; options transmises a la relecture)"
     Write-Host "  comparer    Compare la piscine seche et mouillee sur dix graines (E1/E2)"
@@ -66,7 +67,7 @@ function Invoke-Py {
 # `test -p no:cacheprovider` echouait. On lit donc $args a la main.
 $Commandes = @(
     "help", "install", "test", "test-all", "test-invariants", "test-lents",
-    "lint", "format", "valider", "simu", "rejouer", "lancer", "demo", "comparer", "campagne-finale",
+    "lint", "format", "valider", "simu", "rejouer", "lancer", "menu", "demo", "comparer", "campagne-finale",
     "maquette", "figures", "report", "docker", "clean"
 )
 $Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
@@ -128,6 +129,10 @@ switch ($Command) {
         $Nom = [IO.Path]::GetFileNameWithoutExtension($Config)
         $Sortie = "data/$Nom-$(Get-Date -Format 'yyyyMMdd-HHmmss').npz"
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs $Options
+    }
+
+    "menu" {
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "menu") -MoreArgs $ExtraArgs
     }
 
     "demo" {

@@ -552,3 +552,10 @@ def test_appliquer_fixes_laisse_l_original_intact():
     sols = ("EAU", "MOUILLE", "SEC")
     assert {nouveau["parametres_milieux"][m]["relaxation"] for m in sols} == {0.4}
     assert {config["parametres_milieux"][m]["relaxation"] for m in sols} == {0.5}
+
+
+def test_echelles_lues_et_balayees_en_entiers():
+    assert balayage.lire_fixes(["echelles=4"]) == {"echelles": 4}
+    assert balayage._valeurs_valides("echelles", [0.0, 2.0, 4.0]) == [0, 2, 4]
+    with pytest.raises(ValueError):
+        balayage._valeurs_valides("echelles", [1.5])

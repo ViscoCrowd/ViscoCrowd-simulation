@@ -95,6 +95,31 @@ def _ecart_rectangles(a: ObstacleRectangle, b: ObstacleRectangle) -> float:
     return float(np.hypot(dx, dy))
 
 
+def repartir_echelles(
+    n: int, longueur_bassin: float, largeur_echelle: float
+) -> tuple[tuple[str, float], ...]:
+    """`n` echelles reparties sur les deux grands cotes, au format de `Piscine.echelles`.
+
+    ceil(n/2) en haut, floor(n/2) en bas, chaque cote decoupe en k intervalles egaux avec une
+    echelle au milieu de chacun (fractions (i + 1/2) / k) : aucune ne tombe dans un coin.
+    Refuse un espacement inferieur a deux largeurs d'echelle (longueur_bassin / k), qui ne
+    laisserait presque plus de rebord entre deux echelles.
+    """
+    if type(n) is not int or n < 0:
+        raise ValueError(f"nombre d'echelles : entier positif ou nul attendu, recu {n!r}")
+    exiger_scalaire_fini("longueur_bassin", longueur_bassin, strictement_positif=True)
+    exiger_scalaire_fini("largeur_echelle", largeur_echelle, strictement_positif=True)
+    haut, bas = (n + 1) // 2, n // 2
+    if haut and longueur_bassin / haut < 2 * largeur_echelle:
+        raise ValueError(
+            f"{n} echelles : trop serrees pour un bassin de {longueur_bassin} m "
+            f"(au plus {2 * int(longueur_bassin / (2 * largeur_echelle))})"
+        )
+    return tuple(
+        (cote, (i + 0.5) / k) for cote, k in (("haut", haut), ("bas", bas)) for i in range(k)
+    )
+
+
 @dataclass(frozen=True)
 class Piscine:
     """Dimensions en metres, toutes explicites (configuration YAML du scenario).

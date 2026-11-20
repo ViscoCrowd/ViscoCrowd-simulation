@@ -50,7 +50,7 @@ from viscocrowd.core.integrator import pas_semi_implicite
 from viscocrowd.core.rng import generateur
 from viscocrowd.core.state import State
 from viscocrowd.geometry.obstacle import ObstacleRectangle
-from viscocrowd.geometry.piscine import NATURES, Piscine
+from viscocrowd.geometry.piscine import NATURES, Piscine, repartir_echelles
 from viscocrowd.geometry.projection import ProjectionExclusion
 from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.choix_site import (
@@ -213,7 +213,12 @@ class ParametresPiscine:
                 raise ValueError(f"{nom} doit etre une table YAML (cle: valeur)")
         try:
             geometrie = dict(self.geometrie)
-            geometrie["echelles"] = tuple(tuple(e) for e in geometrie["echelles"])
+            echelles = geometrie["echelles"]
+            if type(echelles) is int:  # un nombre : reparties sur les grands cotes (E2)
+                echelles = repartir_echelles(
+                    echelles, geometrie["longueur_bassin"], geometrie["largeur_echelle"]
+                )
+            geometrie["echelles"] = tuple(tuple(e) for e in echelles)
             if "obstacles" in geometrie:
                 geometrie["obstacles"] = tuple(
                     o if isinstance(o, ObstacleRectangle) else ObstacleRectangle(**o)
