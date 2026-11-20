@@ -3,9 +3,9 @@
 Dans une evacuation reelle, personne ne part au meme instant : il faut entendre l'alarme,
 comprendre, decider (le temps de « pre-mouvement » de la litterature sur l'evacuation, que
 ISO/TR 16738 et Purser et Bensilum (2001) decrivent par une loi a queue a droite, souvent
-log-normale ; A VERIFIER sur les originaux avant de citer). Dans une piscine, un nageur
-sous l'eau ou au bout du bassin reagit plus tard qu'un baigneur au bord. Ce module tire un
-instant de reaction par agent :
+log-normale ; A VERIFIER sur les originaux avant de citer). Ce module tire un instant de
+reaction par agent, independamment de sa position (limite : un nageur au bout du bassin
+ne reagit pas plus tard qu'un baigneur au bord) :
 
     t_i = exp(log(mediane) + dispersion * Z_i),   Z_i ~ N(0, 1)
 
@@ -13,8 +13,11 @@ instant de reaction par agent :
 n'existe pour une piscine : ce sont des HYPOTHESES a balayer. Le scenario arrete la
 direction de l'agent tant que t < t_i (voir `scenarios.piscine`).
 
-Pourquoi c'est utile au sujet : etaler les departs desynchronise les arrivees au goulot,
-ce qui est precisement le mecanisme de l'hypothese « tampon » de la problematique.
+Pourquoi c'est utile au sujet : etaler les departs desynchronise les arrivees au goulot.
+On peut ainsi tester si l'effet inertiel depend de la synchronisation des arrivees. Ce
+n'est pas l'hypothese « tampon » de la problematique, ou ce sont l'extraction repartie et
+la traversee du mouille qui etalent les arrivees : un temps de reaction est un etalement
+exterieur au phenomene etudie.
 
 Les tirages ont leur propre flux : activer l'option ne change ni les positions initiales
 (flux par defaut), ni les chutes (flux 1), ni la navigation (flux 2, #163).

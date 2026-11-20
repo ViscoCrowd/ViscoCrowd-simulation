@@ -56,3 +56,16 @@ def test_reaction_mal_formee_refusee(reaction):
 def test_reaction_ecrite_dans_le_dictionnaire():
     p = parametres_reduits(reaction={"mediane": 5.0, "dispersion": 0.5})
     assert p.en_dictionnaire()["reaction"] == {"mediane": 5.0, "dispersion": 0.5}
+
+
+@pytest.mark.parametrize(
+    "option",
+    [{"choix_site": {"portee": 3.0, "periode": 1.0, "marge": 1.0}}, {"navigation": {}}],
+    ids=["choix_site", "navigation"],
+)
+def test_la_reaction_s_applique_en_dernier(option):
+    """Revues de #163 et #188 : quel que soit le site choisi, qui n'a pas reagi reste sur place."""
+    r = simuler_piscine(
+        parametres_reduits(reaction={"mediane": 3.0, "dispersion": 0.0}, duree=2.5, **option)
+    )
+    assert np.max(np.abs(r.x - r.x[0])) < 1e-12
