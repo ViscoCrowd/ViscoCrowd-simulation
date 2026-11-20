@@ -63,7 +63,8 @@ selon le critère fixé (9 sur 10). La part des échelles ne bouge pas (de 4 à 
 selon la graine, au lieu de 4 à 9). La prédiction des relectures, qui attendaient un retour vers
 les échelles, ne se vérifie donc pas : les nageurs ne délaissent pas les échelles parce qu'ils
 comptent les autres en trop. Par rapport à l'évacuation sans choix du site, Δt100 vaut
-désormais −0,62 ± 0,96 s (écart-type), 7 graines sur 10 en baisse : toujours une indication, pas un effet.
+désormais −0,62 ± 0,96 s (écart-type), 7 graines sur 10 en baisse : toujours une
+indication, pas un effet.
 
 ---
 
