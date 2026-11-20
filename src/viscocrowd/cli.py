@@ -240,6 +240,13 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
+    simuler.add_argument(
+        "--fixer",
+        nargs="+",
+        default=[],
+        metavar="NOM=VALEUR",
+        help="piscine : surcharges du YAML, noms de balayer-piscine (ex. n_agents=150)",
+    )
     simuler.set_defaults(fonction=commande_simuler)
 
     rejouer = sous.add_parser(
@@ -469,11 +476,15 @@ def commande_comparer_piscine(args: argparse.Namespace) -> int:
 def commande_simuler(args: argparse.Namespace) -> int:
     """Produit une trajectoire relisible, ou un diagnostic sans archive exploitable."""
     from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.scenarios.balayage_piscine import lire_fixes
     from viscocrowd.scenarios.experience import executer_configuration
 
     try:
         donnees = executer_configuration(
-            args.configuration, args.sortie, archiver_tous=args.archiver_tous
+            args.configuration,
+            args.sortie,
+            archiver_tous=args.archiver_tous,
+            fixes=lire_fixes(args.fixer),
         )
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Simulation refusee : {erreur}", file=sys.stderr)

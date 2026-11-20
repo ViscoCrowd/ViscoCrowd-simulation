@@ -91,3 +91,15 @@ def test_figure_sec_contre_mouille(configuration, tmp_path):
     chemin = figure_diagramme_piscine(dp.agreger(series, 0.25), "essai", tmp_path)
     assert chemin == tmp_path / "fig09_diagramme_piscine.png"
     assert chemin.stat().st_size > 0
+
+
+def test_commande_lit_les_surcharges(tmp_path, capsys):
+    """--fixer passe par la lecture commune des surcharges (balayage_piscine.lire_fixes)."""
+    from viscocrowd.cli import main
+
+    sortie = tmp_path / "d.json"
+    assert (
+        main(["diagramme-piscine", str(EXEMPLE), "--fixer", "porte=1", "--sortie", str(sortie)])
+        == 1
+    )
+    assert "--fixer attend" in capsys.readouterr().err
