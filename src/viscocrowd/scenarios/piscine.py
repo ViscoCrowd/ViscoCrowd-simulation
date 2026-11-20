@@ -57,7 +57,7 @@ from viscocrowd.model.choix_site import (
     attribuer_coordonne,
     choisir,
     couts_sites,
-    files_par_site,
+    files_devant,
 )
 from viscocrowd.model.chutes import EvenementChute, GestionnaireChutes, ParametresChutes
 from viscocrowd.model.guidage_piscine import GuidagePiscine
@@ -608,13 +608,12 @@ def simuler_piscine(
                     ordre = np.argsort(guidage.temps(x[nageurs]), kind="stable")
                     site_vise[nageurs] = attribuer_coordonne(sans_file, durees, ordre)
                 else:
-                    files = files_par_site(site_vise, len(sites))
+                    actuels = site_vise[nageurs]
+                    # La file devant soi seulement (#202) : ni soi-meme, ni ceux de derriere.
+                    files = files_devant(x[nageurs], attentes, actuels)
                     couts = couts_sites(
                         x[nageurs], attentes, v_eau, durees, temps_apres, files, restes
                     )
-                    actuels = site_vise[nageurs]
-                    soi = actuels >= 0  # un nageur ne fait pas la queue derriere lui-meme
-                    couts[np.flatnonzero(soi), actuels[soi]] -= durees[actuels[soi]]
                     portee = (
                         np.hypot(
                             x[nageurs, None, 0] - attentes[None, :, 0],
