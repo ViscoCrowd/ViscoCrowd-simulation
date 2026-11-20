@@ -493,6 +493,37 @@ sols très glissants (savon, produit d'entretien), pas un carrelage mouillé ord
 conclusion est donc : **dans ce modèle, le sol mouillé ne dégrade l'évacuation que s'il est très
 glissant et qu'il touche la file d'une porte saturée.**
 
+### Confirmation sur les graines 11 à 20 (18 novembre 2026)
+
+Selon `criteres-acceptation.md` (§ 3), un effet trouvé dans un balayage reste exploratoire
+tant qu'il n'est pas confirmé sur dix nouvelles graines, fixées avant la relance. Critère
+écrit avant le calcul : Δt100 > 0 sur au moins 9 graines sur 10 à 1 et à 2 m/s², et moyenne
+supérieure à l'effet du pas de temps (#138, #140 : moins d'une erreur standard de Δ).
+
+Commit `0499a12`, sans modification locale, Windows ; bilan graine par graine et sortie :
+[`mesures/confirmation-inertie-2026-11-18/`](mesures/confirmation-inertie-2026-11-18/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 3.3 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 --graines 11 12 13 14 15 16 17 18 19 20 \
+  --sortie docs/mesures/confirmation-inertie-2026-11-18/adherence.json
+```
+
+| a_max mouillé (m/s²) | t100 mouillé (s) | J_s mouillé | Δ t50 (s) | Δ t100 (s) | Δ t100 > 0 | Graines 1 à 10 (#137) |
+|---|---|---|---|---|---|---|
+| 3,3 (référence) | 70,50 ± 0,82 | 2,24 ± 0,03 | −0,06 ± 0,24 | −0,33 ± 0,80 | 2/10 | 0,09 ± 0,41, 6/10 |
+| 2 | 73,21 ± 0,72 | 2,14 ± 0,02 | **1,00 ± 0,66** | **2,38 ± 1,12** | **10/10** | 2,47 ± 0,51, 10/10 |
+| 1 | 84,31 ± 1,27 | 1,81 ± 0,03 | **6,14 ± 0,91** | **13,48 ± 1,65** | **10/10** | 13,95 ± 1,53, 10/10 |
+
+Le témoin sec écoule 2,23 ± 0,05 pers/(m·s) ; t100 = 70,83 s en moyenne. Aucune évacuation
+incomplète, aucun bouchage. Calcul : 9 min pour les 60 évacuations.
+
+**L'effet inertiel est confirmé.** À 2 et à 1 m/s², Δt100 est positif sur les dix nouvelles
+graines (de +0,45 à +3,8 s, puis de +11,5 à +15,8 s), et les moyennes retrouvent celles des
+graines 1 à 10 à moins d'une demi-seconde. À l'adhérence de référence, il n'y a toujours rien
+(2 graines positives sur 10). La conclusion ci-dessus passe d'« exploratoire » à « confirmée
+sur vingt graines », avec la même limite : 0,2 et 0,1 g sont des sols très glissants.
+
 ## Témoin : la même adhérence loin de la file (14 novembre 2026)
 
 La section précédente change deux choses à la fois : l'adhérence et l'étendue du mouillé. Pour
@@ -620,6 +651,85 @@ Ce qu'on en retient :
 6. **Aucune dépendance décelable au pas de temps** dans une évacuation, pour la glissade
    comme pour le domino. Sur 10 graines, une dépendance de l'ordre de 20 % ne peut pas être
    exclue.
+
+## *Faster-is-slower* : la panique devant une porte saturée (17 novembre 2026)
+
+Question : au-delà d'un certain niveau de panique, aller plus vite fait-il sortir plus tard ?
+Le balayage du 14 novembre répondait non, mais avec une porte de 1,2 m jamais saturée. On
+reprend avec une porte de **0,8 m** (saturée, E4) et **150 baigneurs**, panique de 1 à 3,
+5 graines (20262027 à 20262031), dt = 0,005 s, mouillé et témoin sec appariés. Deux séries :
+
+- **avec régulation** : la référence (`temps_espacement: 0.35`) ;
+- **sans régulation** : la même, `temps_espacement: null`
+  ([configuration](mesures/faster-is-slower-2026-11-17/piscine-sans-regulation.yaml)). Les
+  baigneurs marchent alors jusqu'au contact, et seule la projection les arrête.
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre facteur_vitesse \
+  --valeurs 1 1.5 2 2.5 3 --graines 20262027 20262028 20262029 20262030 20262031 \
+  --fixer largeur_porte=0.8 n_agents=150 dt=0.005 \
+  --sortie docs/mesures/faster-is-slower-2026-11-17/panique-porte-0.8.json
+# Sans régulation : même commande sur piscine-sans-regulation.yaml, une valeur par
+# processus (sans-regulation-panique-<valeur>.json), au même commit eb25a7d.
+viscocrowd figure-panique docs/mesures/faster-is-slower-2026-11-17/panique-porte-0.8.json \
+  docs/mesures/faster-is-slower-2026-11-17/sans-regulation-panique-*.json \
+  --etiquettes "avec régulation" "sans régulation" "sans régulation" "sans régulation" \
+  "sans régulation" "sans régulation" --image figure.png
+```
+
+t100 en s, moyenne ± écart-type sur les évacuations terminées :
+
+| Panique | Avec régulation, mouillé | Avec, sec | Sans régulation, mouillé | Sans, sec |
+|---|---|---|---|---|
+| 1 | 123,56 ± 0,69 | 123,59 ± 0,66 | 78,31 ± 6,94 | 71,27 ± 1,45, **2 graines bouchées** |
+| 1,5 | 97,89 ± 0,58 | 98,09 ± 0,63 | 58,75 ± 6,74 | 59,13 ± 9,46 |
+| 2 | 81,62 ± 0,89 | 81,44 ± 0,31 | 50,89 ± 1,67 | 49,85 ± 0,86 |
+| 2,5 | 69,44 ± 1,20 | 68,62 ± 1,15 | 51,11 ± 1,59 | 51,23 ± 1,37 |
+| 3 | 67,77 ± 1,57 | 66,58 ± 2,05 | **59,46 ± 9,22** | 57,11 ± 6,83 |
+
+![t100 selon la panique](mesures/faster-is-slower-2026-11-17/faster-is-slower.png)
+
+### Lecture
+
+1. **Avec la régulation, pas de *faster-is-slower*.** t100 décroît de 123,6 à 67,8 s et
+   plafonne entre 2,5 et 3 (−1,7 s). Aucune graine ne bouche. La régulation garde un écart
+   devant chaque baigneur : la foule ne se comprime jamais assez pour coincer la porte.
+2. **Sans régulation, la courbe remonte.** Le minimum est entre 2 et 2,5 (≈ 50 s) ; à 3, t100
+   repasse à 59,5 s mouillé et 57,1 s sec, soit +8 s et +6 s en moyenne, avec des
+   écarts-types de 7 à 9 s. Graine par graine, t100 augmente entre 2,5 et 3 sur 9 paires sur
+   10 : mouillé +0,9 / +13,4 / +24,4 / +2,8 / +0,3 s, sec +19,1 / −1,4 / +5,8 / +5,2 / +0,7 s.
+   Les moyennes sont tirées par une ou deux graines qui se coincent : les médianes valent
+   +2,8 s (mouillé) et +5,2 s (sec). C'est la signature attendue de l'effet
+   *faster-is-slower*, absente de la référence, mais sur cinq graines elle ne peut pas être
+   dite détectée (voir les limites).
+3. **Sans régulation, à faible panique, deux graines sur cinq du témoin sec se figent, aucune
+   du mouillé** (92 baigneurs jamais sortis au total). C'est compatible avec l'hypothèse
+   tampon, mais cinq graines ne permettent pas de la distinguer du hasard (p ≈ 0,22) : à
+   refaire sur au moins dix graines. Sur les trois graines où les deux évacuations se
+   terminent, le mouillé est au contraire **plus lent** : +18,3, +0,7 et +8,5 s. La même ligne
+   montre donc les deux mécanismes de la problématique : le sec bouche là où le mouillé
+   passe, mais quand les deux passent, le mouillé est plus lent.
+4. **L'écart mouillé − sec reste petit quand tout s'écoule** (≤ 1,2 s avec régulation,
+   dans le bruit des graines sans régulation).
+
+### Limites
+
+- **Cinq graines** : les points 1 et 3 sans régulation ont des écarts-types de 7 à 9 s ; il
+  faut au moins dix graines pour chiffrer la remontée et la fréquence des bouchages. Avec un
+  test de signe exact bilatéral, cinq graines sur cinq donnent au mieux p = 2/32 ≈ 0,06 :
+  aucun effet ne peut y être dit détecté (`criteres-acceptation.md`, § 3). La relance prendra
+  les graines 1 à 10, comme les autres campagnes, et gardera 11 à 20 pour confirmer.
+- **Un bouchon ne se défait jamais dans ce modèle** : il n'y a pas de bruit dynamique, et la
+  règle de déblocage (#131) ne concerne que les nageurs. Les deux graines bouchées font sortir
+  la moitié de la foule normalement (t50 = 42,5 et 44,4 s), puis gardent 42 et 50 baigneurs
+  jusqu'à 180 s. Chez Helbing et al. (2000), les bouchons du *faster-is-slower* sont
+  intermittents ; ici, ils sont soit transitoires, soit définitifs.
+- **La régulation est étalonnée sur Seyfried (E0)** : la série « sans régulation » est un
+  modèle volontairement moins réaliste, qui sert à montrer le mécanisme, pas la référence.
+- Une graine bouchée tourne jusqu'à `duree` (180 s) et n'entre pas dans la moyenne de t100 :
+  les moyennes « sec » à 1 sans régulation portent sur 3 graines, celles du mouillé sur 5.
+  Les deux colonnes ne comparent donc pas les mêmes graines.
+- La carte des forces de contact (#164) montre où se forment ces arches.
 
 ## Portée et limites
 

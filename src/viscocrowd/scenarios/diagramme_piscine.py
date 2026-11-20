@@ -44,7 +44,7 @@ import numpy as np
 
 from viscocrowd.observables.densite import Rectangle
 from viscocrowd.observables.diagramme import ClassesDensite, classer
-from viscocrowd.scenarios.diagramme_goulot import SerieVoronoi, serie_voronoi
+from viscocrowd.scenarios.diagramme_goulot import SerieVoronoi, serie_en_json, serie_voronoi
 
 SOLS = ("mouille", "sec")
 
@@ -175,7 +175,7 @@ def commande_diagramme(args) -> int:
     from viscocrowd.io.configuration import lire_configuration
     from viscocrowd.observables import weidmann
     from viscocrowd.scenarios.balayage_piscine import lire_fixes
-    from viscocrowd.scenarios.campagne import contexte, ecrire_json, verifier_sortie
+    from viscocrowd.scenarios.campagne import arrondir, contexte, ecrire_json, verifier_sortie
 
     debut_calcul = time.perf_counter()
     try:
@@ -240,17 +240,12 @@ def commande_diagramme(args) -> int:
                     {
                         "sol": sol,
                         "graine": g,
-                        "t": s.t.tolist(),
-                        "densite": s.densite.tolist(),
-                        "vitesse": s.vitesse.tolist(),
+                        **serie_en_json(s),
                     }
                     for (sol, g), s in series.items()
                 ],
                 "classes": {
-                    sol: {
-                        nom: [None if v != v else v for v in valeurs.tolist()]
-                        for nom, valeurs in vars(c).items()
-                    }
+                    sol: {nom: arrondir(valeurs, 4) for nom, valeurs in vars(c).items()}
                     for sol, c in classes.items()
                 },
             },
