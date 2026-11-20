@@ -23,7 +23,8 @@ d'à côté. C'est le cœur de l'« extraction répartie » de la problématique
 **Décision proposée.** `choix_site: {portee: 3, periode: 1, marge: 1, mode: local}`. Toutes
 les `periode` secondes, chaque nageur estime, pour les sites à moins de `portee` mètres, le
 temps jusqu'à la porte : trajet à la vitesse de l'eau, attente (fin du franchissement en
-cours, plus la durée de franchissement de chaque nageur qui vise déjà ce site), puis le
+cours, plus la durée de franchissement de chaque nageur qui vise déjà ce site et en est plus
+près que lui, voir le correctif du 20 novembre), puis le
 franchissement et la plage. Il nage droit vers le meilleur, et n'en change que si le gain
 dépasse `marge` secondes, sinon il oscillerait entre deux sites voisins. En mode
 `coordonne` (D5), un maître-nageur voit tout le bassin et répartit les nageurs du plus
@@ -44,6 +45,25 @@ elles) pour le rebord, plus lent mais libre, et l'évacuation tend à raccourcir
 `criteres-acceptation.md` (§ 3), ni l'un ni l'autre n'est un effet détecté (2 et 3 graines
 contraires) : une indication, à confirmer sur les graines 11 à 20 si le groupe retient
 l'option.
+
+**Correctif du 20 novembre (#202, revues de #188).** La première version comptait dans la
+file d'un site **tous** les nageurs qui le visaient, y compris ceux plus loin que le nageur qui
+choisit : le plus proche d'une échelle surestimait son attente. Il ne compte plus que la file
+devant lui (`files_devant`). Remesuré sur les mêmes graines, aux commits `1cb8457` (avant) et
+`d25ad1f` (après), question et critère écrits avant le calcul
+([`mesures/choix-site-file-devant-2026-11-20/`](mesures/choix-site-file-devant-2026-11-20/)) :
+
+| Choix local | t100 (s) | Sorties par les échelles |
+|---|---|---|
+| Ancienne règle (toute la file) | 50,88 ± 1,60 | 6,0 % |
+| File devant soi | 50,66 ± 1,56 | 6,0 % |
+
+Écart apparié −0,22 ± 0,26 s (erreur standard), 7 graines sur 10 en baisse : **pas d'effet**
+selon le critère fixé (9 sur 10). La part des échelles ne bouge pas (de 4 à 8 sorties sur 100
+selon la graine, au lieu de 4 à 9). La prédiction des relectures, qui attendaient un retour vers
+les échelles, ne se vérifie donc pas : les nageurs ne délaissent pas les échelles parce qu'ils
+comptent les autres en trop. Par rapport à l'évacuation sans choix du site, Δt100 vaut
+désormais −0,62 ± 0,96 s (écart-type), 7 graines sur 10 en baisse : toujours une indication, pas un effet.
 
 ---
 
