@@ -25,7 +25,7 @@ nulle : c'est le scenario qui declenche alors le franchissement.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
 import numpy as np
 
@@ -55,6 +55,7 @@ class GuidagePiscine:
         pas: float,
         durees: Mapping[str, float],
         facteur_vitesse: float = 1.0,
+        facteur_eau: Callable[[np.ndarray], np.ndarray] | None = None,
     ) -> None:
         """
         Args:
@@ -145,6 +146,8 @@ class GuidagePiscine:
             sources[k] = True
             temps[k] = min(temps[k], total)
         F_eau = np.where(libre, vitesse[Milieu.EAU], 0.0)
+        if facteur_eau is not None:  # profondeur variable : vitesse locale (D2)
+            F_eau[libre] *= np.asarray(facteur_eau(noeuds[libre]), dtype=float)
         self.eau = ChampEikonal.depuis_tableaux(
             grille_eau,
             F_eau.reshape(grille_eau.forme),

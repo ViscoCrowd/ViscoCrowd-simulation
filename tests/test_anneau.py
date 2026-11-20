@@ -98,3 +98,47 @@ def test_le_simulateur_refuse_l_anneau_sans_archive():
 
     with pytest.raises(ValueError, match="diagramme-anneau"):
         _parametres(CONFIG)
+
+
+class TestNavigation:
+    """Heuristiques de Moussaid et al. (2011) sur l'anneau (#158)."""
+
+    def test_ne_se_cumule_pas_avec_temps_espacement(self):
+        with pytest.raises(ValueError, match="ne se cumulent pas"):
+            parametres_anneau(CONFIG, navigation={})  # l'exemple fixe temps_espacement
+        p = parametres_anneau(CONFIG, navigation={"horizon": 8.0}, temps_espacement=None)
+        assert p.navigation.horizon == 8.0
+
+    def test_le_plus_rapide_borne_le_pas_de_temps(self):
+        # 1,34 m/s x 0,0285 s = 0,038 m, sous r/5 = 0,04 m ; x 1,45 (3 sigma) : refuse.
+        parametres_anneau(CONFIG, temps_espacement=None, dt=0.0285)
+        with pytest.raises(ValueError, match="dt trop grand"):
+            parametres_anneau(CONFIG, temps_espacement=None, dt=0.0285, navigation={})
+
+    @pytest.mark.invariant
+    def test_tient_les_murs_et_ralentit_sous_v0(self):
+        p = parametres_anneau(
+            CONFIG, n_agents=38, temps_espacement=None, navigation={}, duree=4.0, debut_mesure=2.0
+        )
+        res = simuler_anneau(p)
+        assert res.violation_paroi_max <= p.tolerance
+        assert res.recouvrement_max <= p.tolerance
+        assert 0.5 < res.vitesse_moyenne < 1.34
+
+    @pytest.mark.slow
+    def test_reproduit_le_bilan_du_17_novembre(self):
+        """Premier point de docs/mesures/navigation-2026-11-17/anneau.json, au bit pres.
+
+        Ce bilan avait ete calcule sur une branche locale (f186b33) avant la fusion de
+        #149 ; ce test etablit que le code du depot est le meme.
+        """
+        p = parametres_anneau(
+            CONFIG,
+            n_agents=19,
+            graine=1,
+            temps_espacement=None,
+            navigation={},
+            duree=40.0,
+            debut_mesure=20.0,
+        )
+        assert simuler_anneau(p).vitesse_moyenne == 1.2257776328072303
