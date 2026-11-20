@@ -174,7 +174,7 @@ def ajouter_commande(sous) -> None:
 def commande_diagramme(args) -> int:
     from viscocrowd.io.configuration import lire_configuration
     from viscocrowd.observables import weidmann
-    from viscocrowd.scenarios.balayage_piscine import _lire_fixes
+    from viscocrowd.scenarios.balayage_piscine import lire_fixes
     from viscocrowd.scenarios.campagne import arrondir, contexte, ecrire_json, verifier_sortie
 
     debut_calcul = time.perf_counter()
@@ -183,7 +183,7 @@ def commande_diagramme(args) -> int:
         if configuration.get("scenario") != "piscine":
             raise ValueError("le diagramme attend une configuration du scenario piscine")
         graines = args.graines or [configuration["graine"] + k for k in range(10)]
-        fixes = _lire_fixes(args.fixer)
+        fixes = lire_fixes(args.fixer)
         zone = Rectangle(*args.zone) if args.zone else None
         if args.sortie is not None:
             if args.sortie.suffix != ".json":

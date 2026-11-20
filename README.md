@@ -209,6 +209,11 @@ les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via
 Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
 simule la piscine puis ouvre directement la relecture de l'archive produite
 (`make lancer CONFIG=experiments/couloir.yaml` pour le couloir ; `.\run.ps1 lancer` sous Windows).
+Pour essayer une variante de la piscine sans éditer le YAML, `FIXER` surcharge les paramètres
+de `balayer-piscine` : `make lancer FIXER="n_agents=150 largeur_porte=0.8"`, ou
+`viscocrowd simuler experiments/piscine.yaml --fixer n_agents=150 --sortie data/essai.npz`
+(`.\run.ps1 simu --fixer n_agents=150` sous Windows). L'archive garde la configuration
+effective et la liste des surcharges ; une variante n'est pas une configuration de référence.
 Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
@@ -241,6 +246,11 @@ intensités expliquent les corrections). Cette configuration de démonstration (
 150 baigneurs, panique 2, sans régulation) comprime la foule ; sur la référence régulée,
 presque aucun contact n'apparaît (98ᵉ centile à 1,4 m/s²). Intensités non étalonnées ; voir
 `viz/pression.py` pour la méthode et ses limites.
+
+Avec `egouttage` dans les paramètres (désactivé par défaut, voir le journal du 17 novembre),
+les baigneurs mouillent la plage en s'égouttant : `viscocrowd trainee config.yaml --image
+figures/trainee.png --instant 45` montre le film d'eau et, en contour blanc, le carrelage
+devenu glissant là où les trajets se superposent.
 
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
