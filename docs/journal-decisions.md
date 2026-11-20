@@ -11,6 +11,42 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-18 — Choisir son site de sortie selon la file, et maître-nageur (D3, D5)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`choix_site` absent ou `null`) : la référence ne change pas.
+
+**Contexte.** Le champ eikonal de l'eau est statique : il ignore la file devant un site
+occupé. Un vrai nageur près du bord voit la file devant l'échelle et va au rebord libre
+d'à côté. C'est le cœur de l'« extraction répartie » de la problématique.
+
+**Décision proposée.** `choix_site: {portee: 3, periode: 1, marge: 1, mode: local}`. Toutes
+les `periode` secondes, chaque nageur estime, pour les sites à moins de `portee` mètres, le
+temps jusqu'à la porte : trajet à la vitesse de l'eau, attente (fin du franchissement en
+cours, plus la durée de franchissement de chaque nageur qui vise déjà ce site), puis le
+franchissement et la plage. Il nage droit vers le meilleur, et n'en change que si le gain
+dépasse `marge` secondes, sinon il oscillerait entre deux sites voisins. En mode
+`coordonne` (D5), un maître-nageur voit tout le bassin et répartit les nageurs du plus
+avancé au moins avancé, chacun vers le site le moins coûteux compte tenu des envois
+précédents. **Aucune source ne décrit ce comportement** : `portee`, `periode` et `marge`
+sont des hypothèses, et le mode coordonné un scénario illustratif.
+
+**Mesure** (graines 1 à 10, référence mouillée, 100 baigneurs) :
+
+| Variante | t100 (s) | Sorties par les échelles | Δt100 apparié (s) | Graines en baisse |
+|---|---|---|---|---|
+| Sans choix (référence) | 51,28 ± 1,87 | 23,7 % | — | — |
+| Choix local | 50,88 ± 1,60 | 6,0 % | −0,40 ± 1,01 | 7/10 |
+| Maître-nageur | 49,44 ± 1,15 | 4,7 % | −1,84 ± 1,78 | 8/10 |
+
+Quand ils voient la file, les nageurs délaissent les échelles (4 fois moins de sorties par
+elles) pour le rebord, plus lent mais libre, et l'évacuation tend à raccourcir. Selon
+`criteres-acceptation.md` (§ 3), ni l'un ni l'autre n'est un effet détecté (2 et 3 graines
+contraires) : une indication, à confirmer sur les graines 11 à 20 si le groupe retient
+l'option.
+
+---
+
 ## 2026-11-18 — Profondeur variable du bassin, facultative (feuille de route, D2)
 
 **Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
@@ -36,6 +72,52 @@ porte) : t50 = 31,37 ± 0,48 s contre 31,43 ± 0,52 s ; écart apparié Δt50 = 
 la porte limite l'évacuation, et les nageurs du côté profond, loin de la porte, sortent de
 toute façon parmi les derniers. Une profondeur uniforme de 0,7 m redonne la référence au bit
 près.
+## 2026-11-17 — Navigation locale par heuristiques visuelles (#158)
+
+**Statut.** Module livré, facultatif (`navigation: null` dans la référence). Son activation
+dans la référence est proposée par Shaleena et reste à décider par le groupe dans #158.
+
+**Contexte.** Les baigneurs marchaient en file indienne contre le bord du bassin, puis en
+deux lignes parfaites vers la porte : 93 % des positions de plage le long du bassin au
+plus près possible, un flux de 6 cm d'épaisseur. Deux causes : le champ eikonal donne à
+tous le même plus court chemin, qui longe le bassin, et rien n'en écartait un agent
+(vitesses identiques, aucune anticipation des autres).
+
+**Décision.** Ajouter la navigation locale de Moussaïd, Helbing et Theraulaz (2011),
+vérifiée sur l'original : chaque baigneur de la plage choisit, dans son champ de vision,
+la direction qui le rapproche le plus de la porte compte tenu de la place libre, puis
+règle sa vitesse sur la distance au premier obstacle. Chacun a sa propre vitesse souhaitée
+(coefficient de variation de 0,15, celui de l'article), nageurs compris. Le champ
+eikonal reste la destination, et la projection l'exclusion. Les nageurs ne naviguent pas.
+
+**Mesure** (graines 1 à 10, commit `0cb0490`, `docs/navigation.md`) : 9 % des positions
+contre le bord au lieu de 93 %, un flux de 0,77 m d'épaisseur au lieu de 6 cm, et t100
+avancé de 4,1 ± 1,7 s (10 graines sur 10). Le gain vient des heuristiques : sans
+dispersion des vitesses, t100 avance de 6,3 s, et la dispersion en reprend 2,2 (10/10
+chacun, revue de #163). Ni le pas de temps ni les paramètres de la fig. 3 de l'article
+(45°, 8 m) ne changent rien de décelable. L'écart mouillé − sec sur t100 (+0,84 s,
+8 graines sur 10) n'est pas une détection au sens des critères (p = 0,11).
+
+**Validation, sans réglage.** Sur E0, la navigation figeait d'abord la foule devant les
+goulots étroits : deux voisins s'attendaient l'un l'autre. Seuls les agents plus avancés
+vers la sortie comptent désormais dans la seconde heuristique, comme pour la régulation T ;
+288 simulations sur 300 s'écoulent. Mais le débit reste de 16 à 38 % sous Seyfried avec
+τ = 0,5 s (1 à 25 % avec τ = 0,35 s). Sur l'anneau, la vitesse baisse progressivement
+avec la densité, comme chez Weidmann, mais 23 à 67 % trop vite au-dessus de 1,5 pers/m²
+(10 graines, code versé dans `scenarios/anneau.py` après la fusion de #149).
+
+**Options écartées.**
+- *Un bruit sur la direction.* Il casse les lignes, mais c'est un artifice statistique,
+  pas un comportement : il ne dit pas pourquoi les gens s'écartent.
+- *Une marge de confort imposée au bord du bassin.* Elle décale la file sans l'élargir, et
+  aucune source ne fixe sa valeur.
+- *Un guidage qui tient compte de la densité (Hughes, 2002).* Il est plus lourd, et il
+  répond surtout au choix du côté du bassin, pas à la marche en file. On le garde pour plus
+  tard.
+
+**Ce qu'il resterait à faire pour l'activer.** Décider si l'on accepte l'écart à Seyfried
+ou si l'on règle τ sur E0, comme on a réglé T. Puis refaire E1/E2, les balayages, les
+diagrammes et la campagne des chutes, et reprendre les § 2, 5 et 6 du rapport.
 
 ---
 
