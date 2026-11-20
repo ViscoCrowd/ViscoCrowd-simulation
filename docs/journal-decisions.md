@@ -11,6 +11,54 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-20 — Débit par paliers aux goulots étroits : E0 aussi (#198)
+
+**Statut.** Mesure, sans changement du modèle. Une limite à écrire au § 6 du rapport.
+
+**Contexte.** Dans la piscine, le débit de la porte saturée reste à 1,79 pers/s de 0,75 à
+0,82 m, passe à 1,92 pers/s à 0,85 et 0,88 m, et la porte ne sature plus à 0,90 m (mesure de
+Shaleena dans #198). Piste : des disques durs ne passent que par files entières. E0 n'avait été
+mesuré qu'au pas de 0,1 m, trop large pour le voir.
+
+**Mesure** (E0 de référence, `experiments/goulot.yaml`, N = 60, T = 0,35 s, graines 1 à 10 ;
+commit `d4d3fb1`, qui écrit la question et le critère avant le calcul ; 90 simulations, 53 s ;
+[`mesures/e0-paliers-2026-11-20/`](mesures/e0-paliers-2026-11-20/)). Q = J_s · b, en pers/s :
+
+| b (m) | 0,75 | 0,78 | 0,80 | 0,82 | 0,85 | 0,88 | 0,90 | 0,95 | 1,00 |
+|---|---|---|---|---|---|---|---|---|---|
+| Q (pers/s) | 1,262 | 1,261 | 1,331 | 1,341 | 1,379 | 1,401 | 1,678 | 1,727 | 1,968 |
+| J_s (pers/(m·s)) | 1,68 | 1,62 | 1,66 | 1,64 | 1,62 | 1,59 | 1,86 | 1,82 | 1,97 |
+
+Écarts-types entre graines de 0,005 à 0,08 pers/s ; 90 écoulements sur 90. Entre largeurs
+voisines, trois paliers (moins de 2 % d'écart) : 0,75 → 0,78, 0,80 → 0,82 et 0,85 → 0,88 m.
+Trois sauts, chacun plus de deux fois la hausse relative de largeur et plus de deux erreurs
+standard de l'écart apparié : +5,6 % de 0,78 à 0,80 m, **+19,8 % de 0,88 à 0,90 m** et +14,0 %
+de 0,95 à 1,00 m. **Selon le critère fixé avant le calcul, E0 montre la même quantification que
+la porte de la piscine.**
+
+**Lecture.** Sous 1 m, le débit d'un goulot dépend du nombre de files de disques qui y passent,
+et presque pas de la largeur entre deux seuils. Dans un palier, J_s = Q / b baisse donc quand
+la largeur augmente (de 1,68 à 0,75 m à 1,59 à 0,88 m). Seyfried mesure au contraire un débit
+qui croît régulièrement avec la largeur. Les seuils ne sont pas tout à fait les mêmes dans E0
+(parois droites, goulot de 2,8 m) et à la porte de la piscine (montants arrondis) : ils tiennent
+à la forme de l'entrée, pas seulement au diamètre de 0,40 m.
+
+**Conséquences.**
+- **Validation E0 (#141).** Le protocole compare le modèle à Seyfried à 0,8, 0,9, 1,0, 1,1 et
+  1,2 m. Or 0,80 et 0,90 m tombent juste après un saut. À 0,88 m, le modèle donne
+  1,59 pers/(m·s), contre 1,81 pour Seyfried interpolé entre 0,8 et 0,9 m (N = 60) : 12 % en
+  dessous, alors que l'écart moyen aux largeurs du protocole vaut 2,8 %. L'accord publié reste
+  juste aux largeurs mesurées par Seyfried, mais il ne se généralise pas entre elles.
+- **Rapport (§ 6, limites).** Avec des disques durs, le débit d'un goulot étroit est quantifié
+  par files. Sous 1 m environ, J_s = débit / largeur n'a de sens qu'aux largeurs mesurées.
+- **Piscine.** L'effet inertiel n'en dépend pas : Δt100 vaut de +13,5 à +14,3 s, 10/10, pour
+  toute porte de 0,75 à 0,88 m (#198).
+
+**Limites.** Un seul effectif (N = 60) et une seule régulation (T = 0,35 s). Un rayon dispersé
+(`dispersion_rayon`) devrait lisser les seuils ; c'est à vérifier avant de l'écrire.
+
+---
+
 ## 2026-11-18 — Choisir son site de sortie selon la file, et maître-nageur (D3, D5)
 
 **Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
