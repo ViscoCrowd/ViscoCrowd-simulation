@@ -11,6 +11,46 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-18 — Temps de réaction à l'alarme, facultatif (feuille de route, D1)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`reaction` absent ou `null`) : la référence, E1/E2 et les balayages ne changent pas.
+
+**Contexte.** Tous les baigneurs partent à t = 0. Dans une vraie évacuation, chacun met un
+temps à entendre l'alarme, comprendre et décider (temps de « pre-mouvement »). Étaler les
+départs désynchronise les arrivées à la porte : on peut ainsi tester si l'effet inertiel
+dépend de la synchronisation des arrivées. Ce n'est pas l'hypothèse « tampon » de la
+problématique, où ce sont l'extraction répartie et la traversée du mouillé qui étalent les
+arrivées. Limite : le tirage ne dépend pas de la position du baigneur.
+
+**Décision proposée.** `reaction: {mediane: s, dispersion: -}` dans `piscine.yaml`. Chaque
+agent tire un instant t_i = exp(log(mediane) + dispersion · Z), Z ~ N(0, 1), sur son propre
+flux de tirage (3) : les positions initiales, les chutes et la navigation ne changent pas.
+Tant que t < t_i, sa direction est nulle (il reste sur place, ou freine sous a_max), il ne
+saisit aucun site, et il ne compte pas comme « immobile » pour la règle de déblocage (#127) :
+attendre l'alarme n'est pas être bloqué.
+
+**Hypothèses.** La loi log-normale est la forme habituelle des temps de pré-mouvement
+(ISO/TR 16738 ; Purser et Bensilum, 2001, *Safety Science* 38) : **à vérifier sur les
+originaux** avant de citer. Aucune valeur n'existe pour une piscine : mediane et dispersion
+sont à balayer, sans conclusion avant.
+
+**Mesure** (graine du YAML, 100 baigneurs, référence régulée, dispersion 0,5) :
+
+| Médiane (s) | Réactions (s) | t50 mouillé / sec (s) | t100 mouillé / sec (s) |
+|---|---|---|---|
+| sans | — | 31,55 / 31,54 | 53,66 / 53,52 |
+| 1 | 0,3 à 3,3 | 32,44 / 32,43 | 54,53 / 54,53 |
+| 5 | 1,4 à 16,3 | 35,19 / 35,15 | 56,30 / 56,44 |
+| 10 | 2,8 à 32,6 | 39,44 / 39,42 | 59,90 / 59,88 |
+
+Une médiane de 10 s ne retarde t100 que de 6,2 s : la porte absorbe une partie de
+l'étalement. À la référence, l'écart mouillé − sec reste nul, comme sans réaction. Une graine,
+un contrôle de fonctionnement : l'effet de la synchronisation se mesure à porte saturée, dans une
+campagne à part (graines 1 à 10, médianes 1 à 20 s).
+
+---
+
 ## 2026-11-18 — Choisir son site de sortie selon la file, et maître-nageur (D3, D5)
 
 **Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
@@ -72,6 +112,9 @@ porte) : t50 = 31,37 ± 0,48 s contre 31,43 ± 0,52 s ; écart apparié Δt50 = 
 la porte limite l'évacuation, et les nageurs du côté profond, loin de la porte, sortent de
 toute façon parmi les derniers. Une profondeur uniforme de 0,7 m redonne la référence au bit
 près.
+
+---
+
 ## 2026-11-17 — Navigation locale par heuristiques visuelles (#158)
 
 **Statut.** Module livré, facultatif (`navigation: null` dans la référence). Son activation
