@@ -52,7 +52,7 @@ import json
 import math
 import sys
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -251,6 +251,19 @@ def _appliquer(parametres: dict, nom: str, valeur) -> dict:
     parametre = PARAMETRES[nom]
     for chemin in (parametre.chemin, *parametre.autres_chemins):
         parametres = _remplacer(parametres, chemin, valeur)
+    return parametres
+
+
+def appliquer_fixes(parametres: dict, fixes: Mapping[str, float | int]) -> dict:
+    """Copie des parametres ou chaque surcharge de `fixes` est appliquee ; l'original reste intact.
+
+    Les noms sont ceux de `PARAMETRES` : un parametre commun a plusieurs milieux (`relaxation`)
+    change partout a la fois.
+    """
+    for nom, valeur in fixes.items():
+        if nom not in PARAMETRES:
+            raise ValueError(f"surcharge inconnue {nom!r} ; attendu : {', '.join(PARAMETRES)}")
+        parametres = _appliquer(parametres, nom, valeur)
     return parametres
 
 
@@ -489,7 +502,13 @@ def ajouter_commande(sous) -> None:
     commande.set_defaults(fonction=commande_balayer)
 
 
-def _lire_fixes(textes: list[str]) -> dict[str, float]:
+# Parametres a valeur entiere : `--fixer n_agents=150` doit donner 150, pas 150.0, que
+# `ParametresPiscine` refuserait.
+ENTIERS = frozenset({"n_agents"})
+
+
+def lire_fixes(textes: list[str]) -> dict[str, float | int]:
+    """Surcharges `NOM=VALEUR` de la ligne de commande, NOM parmi `PARAMETRES`."""
     fixes = {}
     for texte in textes:
         nom, egal, valeur = texte.partition("=")
@@ -497,7 +516,13 @@ def _lire_fixes(textes: list[str]) -> dict[str, float]:
             raise ValueError(f"--fixer attend NOM=VALEUR avec NOM parmi {', '.join(PARAMETRES)}")
         if nom in fixes:
             raise ValueError(f"{nom} est fixe deux fois")
-        fixes[nom] = float(valeur)
+        nombre = float(valeur)
+        if nom in ENTIERS:
+            if not nombre.is_integer():
+                raise ValueError(f"{nom} : entier attendu, recu {valeur}")
+            fixes[nom] = int(nombre)
+        else:
+            fixes[nom] = nombre
     return fixes
 
 
@@ -510,7 +535,7 @@ def commande_balayer(args) -> int:
     try:
         configuration = lire_configuration(args.configuration)
         graines = args.graines or [configuration["graine"] + k for k in range(10)]
-        fixes = _lire_fixes(args.fixer)
+        fixes = lire_fixes(args.fixer)
         plan = planifier(configuration, args.parametre, args.valeurs, graines, fixes=fixes)
         if args.sortie is not None:
             if args.sortie.suffix != ".json":

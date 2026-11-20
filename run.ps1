@@ -25,7 +25,7 @@ function Show-Help {
     Write-Host "  test-all    Lance tous les tests, scenarios lents compris"
     Write-Host "  test-invariants  Lance uniquement les invariants physiques"
     Write-Host "  test-lents  Lance uniquement les scenarios lents"
-    Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut)"
+    Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut ; --fixer NOM=VALEUR ...)"
     Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut ; options transmises, ex. --vitesse 5)"
     Write-Host "  lancer      Simule puis ouvre la relecture (config en argument, piscine ou couloir ; options transmises a la relecture)"
     Write-Host "  comparer    Compare la piscine seche et mouillee sur dix graines (E1/E2)"
@@ -116,10 +116,17 @@ switch ($Command) {
     }
 
     "simu" {
-        $Config = if ($ExtraArgs) { $ExtraArgs[0] } else { "experiments/piscine.yaml" }
+        # Configuration facultative en premier argument ; les options qui suivent sont
+        # transmises a simuler : .\run.ps1 simu --fixer n_agents=150 largeur_porte=0.8
+        $Options = @($ExtraArgs)
+        $Config = "experiments/piscine.yaml"
+        if ($Options.Count -gt 0 -and -not ([string]$Options[0]).StartsWith("-")) {
+            $Config = $Options[0]
+            $Options = @(if ($Options.Count -gt 1) { $Options[1..($Options.Count - 1)] })
+        }
         $Nom = [IO.Path]::GetFileNameWithoutExtension($Config)
         $Sortie = "data/$Nom-$(Get-Date -Format 'yyyyMMdd-HHmmss').npz"
-        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs $Options
     }
 
     "rejouer" {

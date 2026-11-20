@@ -209,6 +209,11 @@ les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via
 Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
 simule la piscine puis ouvre directement la relecture de l'archive produite
 (`make lancer CONFIG=experiments/couloir.yaml` pour le couloir ; `.\run.ps1 lancer` sous Windows).
+Pour essayer une variante de la piscine sans éditer le YAML, `FIXER` surcharge les paramètres
+de `balayer-piscine` : `make lancer FIXER="n_agents=150 largeur_porte=0.8"`, ou
+`viscocrowd simuler experiments/piscine.yaml --fixer n_agents=150 --sortie data/essai.npz`
+(`.\run.ps1 simu --fixer n_agents=150` sous Windows). L'archive garde la configuration
+effective et la liste des surcharges ; une variante n'est pas une configuration de référence.
 Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
