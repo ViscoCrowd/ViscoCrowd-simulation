@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import yaml
 
+from utilitaires import EXEMPLE_GOULOT, piscine_reduite
 from viscocrowd.cli import main
 from viscocrowd.geometry.projection import ProjectionExclusion, ProjectionNonConvergee
 from viscocrowd.io.configuration import lire_configuration
@@ -141,3 +142,38 @@ def test_cli_et_refus_d_ecraser(tmp_path, capsys):
 def test_exemples_versionnes_lisibles(nom):
     config = lire_configuration(Path(__file__).parents[1] / "experiments" / f"{nom}.yaml")
     assert config["scenario"] == nom
+
+
+def test_fixer_archive_la_configuration_effective(tmp_path):
+    sortie = tmp_path / "a.npz"
+    executer_configuration(piscine_reduite(tmp_path), sortie, fixes={"largeur_porte": 0.9})
+    meta = lire_trajectoire(sortie).metadonnees
+    assert meta["configuration"]["parametres"]["geometrie"]["largeur_porte"] == 0.9
+    assert meta["surcharges"] == {"largeur_porte": 0.9}
+
+
+def test_sans_fixer_aucune_surcharge_archivee(tmp_path):
+    executer_configuration(piscine_reduite(tmp_path), tmp_path / "a.npz")
+    assert "surcharges" not in lire_trajectoire(tmp_path / "a.npz").metadonnees
+
+
+def test_fixer_refuse_hors_piscine(tmp_path):
+    with pytest.raises(ValueError, match="piscine"):
+        executer_configuration(EXEMPLE_GOULOT, tmp_path / "a.npz", fixes={"n_agents": 20})
+
+
+def test_fixer_ne_fait_pas_croire_le_fichier_modifie(tmp_path, monkeypatch):
+    """En cas de non-convergence, le diagnostic compare le FICHIER relu au fichier lu.
+
+    Comparer a la configuration surchargee ferait croire a un fichier modifie pendant le
+    calcul, et le diagnostic ne serait jamais sauvegarde.
+    """
+
+    def echec(*args, **kwargs):
+        raise ProjectionNonConvergee(1.0, 1e-6, 1)  # sans instantane : sauvegarde refusee
+
+    monkeypatch.setattr("viscocrowd.scenarios.experience.simuler_piscine", echec)
+    with pytest.raises(ProjectionNonConvergee) as erreur:
+        executer_configuration(piscine_reduite(tmp_path), tmp_path / "a.npz", fixes={"n_agents": 4})
+    notes = " ".join(erreur.value.__notes__)
+    assert "instantane" in notes and "modifiee" not in notes

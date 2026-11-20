@@ -32,6 +32,9 @@ SORTIE  ?= data/$(basename $(notdir $(CONFIG)))-$(shell $(VISCO_PY) -c "import d
 # simulees) dure autant a l'ecran. Transmis aussi par `make lancer VITESSE=5`, car
 # une variable de la ligne de commande passe aux sous-make.
 VITESSE ?= 1
+# Surcharges de la piscine pour simu et lancer (noms de balayer-piscine) :
+# make simu FIXER="n_agents=150 largeur_porte=0.8"
+FIXER ?=
 ARCHIVE ?= $(shell $(VISCO_PY) -c "import pathlib; a = sorted((p for p in pathlib.Path('data').glob('*.npz') if not p.name.endswith('.diagnostic.npz')), key=lambda p: p.stat().st_mtime); print(a[-1].as_posix() if a else '')")
 
 .PHONY: help install test test-all test-invariants test-lents lint format valider simu rejouer lancer comparer campagne-finale maquette figures report docker clean
@@ -67,8 +70,8 @@ format:  ## Reformate le code
 valider:  ## Rejoue les criteres de validation du moteur, chiffres
 	$(VISCO_PY) -m viscocrowd.cli valider-moteur
 
-simu:  ## Lance une simulation (CONFIG=... SORTIE=..., piscine par defaut)
-	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)
+simu:  ## Lance une simulation (CONFIG=... SORTIE=... FIXER="n_agents=150", piscine par defaut)
+	$(VISCO_PY) -m viscocrowd.cli simuler $(CONFIG) --sortie $(SORTIE)$(if $(strip $(FIXER)), --fixer $(FIXER))
 
 rejouer:  ## Relit une archive a l'ecran (ARCHIVE=..., la plus recente par defaut ; VITESSE=1)
 	$(if $(strip $(ARCHIVE)),,$(error Aucune archive dans data/ : lancer d'abord make simu))
