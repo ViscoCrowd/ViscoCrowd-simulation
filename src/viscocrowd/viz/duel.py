@@ -26,16 +26,38 @@ import numpy as np
 import yaml
 
 
-def instants_communs(fin_a: float, fin_b: float, fps: int, vitesse: float) -> np.ndarray:
-    """Instants simules de chaque image, de 0 a la plus longue des deux evacuations."""
+def instants_communs_n(fins, fps: int, vitesse: float) -> np.ndarray:
+    """Instants simules de chaque image, de 0 a la plus longue des evacuations `fins` (s)."""
     if type(fps) is not int or fps < 1 or not np.isfinite(vitesse) or vitesse <= 0:
         raise ValueError("fps et vitesse doivent etre strictement positifs")
-    fin = max(fin_a, fin_b)
+    fin = max(fins)
     return np.append(np.arange(0.0, fin, vitesse / fps), fin)
+
+
+def instants_communs(fin_a: float, fin_b: float, fps: int, vitesse: float) -> np.ndarray:
+    """Instants simules de chaque image, de 0 a la plus longue des deux evacuations."""
+    return instants_communs_n((fin_a, fin_b), fps, vitesse)
 
 
 def exporter_duel(donnees, titres, chemin: Path, *, fps: int = 15, vitesse: float = 4.0, dpi=60):
     """Ecrit le GIF des deux archives piscine `donnees`, empilees, avec leurs `titres`.
+
+    Returns:
+        Le nombre d'images du GIF.
+    """
+    if len(donnees) != 2 or len(titres) != 2:
+        raise ValueError("un duel compare exactement deux archives")
+    return exporter_comparaison(donnees, titres, chemin, fps=fps, vitesse=vitesse, dpi=dpi)
+
+
+def exporter_comparaison(
+    donnees, titres, chemin: Path, *, fps: int = 15, vitesse: float = 4.0, dpi=60
+) -> int:
+    """GIF de 2 a 4 archives piscine, horloges synchronisees (C6).
+
+    Deux vues sont empilees (comme le duel) ; trois ou quatre sont rangees sur deux
+    colonnes, la case libre restant vide. Une vue plus courte reste figee sur son dernier
+    instant.
 
     Returns:
         Le nombre d'images du GIF.
@@ -45,8 +67,9 @@ def exporter_duel(donnees, titres, chemin: Path, *, fps: int = 15, vitesse: floa
 
     from viscocrowd.ui.relecture_piscine import LecteurPiscine
 
-    if len(donnees) != 2 or len(titres) != 2:
-        raise ValueError("un duel compare exactement deux archives")
+    if not 2 <= len(donnees) <= 4 or len(titres) != len(donnees):
+        raise ValueError("comparer 2 a 4 archives, avec un titre chacune")
+    colonnes = 1 if len(donnees) == 2 else 2
     lecteurs = [LecteurPiscine(d, interactif=False) for d in donnees]
     try:
         for lecteur, titre in zip(lecteurs, titres, strict=True):
@@ -55,9 +78,7 @@ def exporter_duel(donnees, titres, chemin: Path, *, fps: int = 15, vitesse: floa
             # Le style global peut avoir ete change par un module de figures importe
             # entre-temps (grille) : la vue doit rester celle de la relecture.
             lecteur.ax.grid(False)
-        instants = instants_communs(
-            donnees[0].t[-1] - donnees[0].t[0], donnees[1].t[-1] - donnees[1].t[0], fps, vitesse
-        )
+        instants = instants_communs_n([d.t[-1] - d.t[0] for d in donnees], fps, vitesse)
 
         def image(t: float) -> Image.Image:
             vues = []
@@ -68,7 +89,13 @@ def exporter_duel(donnees, titres, chemin: Path, *, fps: int = 15, vitesse: floa
                 vue = np.asarray(lecteur.figure.canvas.buffer_rgba())[..., :3]
                 # Le bas de la figure (sous la legende, 12 %) est vide hors lecture interactive.
                 vues.append(vue[: round(0.88 * vue.shape[0])])
-            return Image.fromarray(np.concatenate(vues, axis=0)).quantize(colors=128)
+            while len(vues) % colonnes:
+                vues.append(np.full_like(vues[0], vues[0][0, 0]))  # case libre, couleur du fond
+            lignes = [
+                np.concatenate(vues[i : i + colonnes], axis=1)
+                for i in range(0, len(vues), colonnes)
+            ]
+            return Image.fromarray(np.concatenate(lignes, axis=0)).quantize(colors=128)
 
         # Generateur : seule l'image en cours est en memoire, pas les centaines du film.
         premiere = image(instants[0])

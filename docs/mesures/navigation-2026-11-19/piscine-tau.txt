@@ -1,0 +1,11 @@
+reference {'contre_le_bord': 0.929, 'epaisseur_flux': 0.056, 't50': 31.427, 't90': 45.4, 't100': 51.278, 'debit': 2.284}
+navigation_tau020 {'contre_le_bord': 0.116, 'epaisseur_flux': 0.689, 't50': 28.117, 't90': 38.885, 't100': 44.263, 'debit': 2.694}
+navigation_tau020_sec {'contre_le_bord': 0.111, 'epaisseur_flux': 0.688, 't50': 28.081, 't90': 38.543, 't100': 44.281, 'debit': 2.689}
+  navigation_tau020 - reference t50: -3.310 ± 0.480 p_signe=0.002 (0/10)
+  navigation_tau020 - reference t90: -6.515 ± 1.040 p_signe=0.002 (0/10)
+  navigation_tau020 - reference t100: -7.015 ± 1.990 p_signe=0.002 (0/10)
+  navigation_tau020 - reference debit: +0.410 ± 0.147 p_signe=0.002 (10/10)
+  navigation_tau020 - navigation_tau020_sec t50: +0.036 ± 0.591 p_signe=0.344 (7/10)
+  navigation_tau020 - navigation_tau020_sec t90: +0.342 ± 0.869 p_signe=1.000 (5/10)
+  navigation_tau020 - navigation_tau020_sec t100: -0.018 ± 0.395 p_signe=1.000 (5/10)
+  navigation_tau020 - navigation_tau020_sec debit: +0.006 ± 0.038 p_signe=1.000 (5/10)
