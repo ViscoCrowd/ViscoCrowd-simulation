@@ -106,9 +106,10 @@ def figures(bilan: dict, dossier: Path) -> None:
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7, 4))
-    bornes = np.linspace(5.0, 7.0, 81)
-    for variante, distances in bilan["histogramme"].items():
-        ax.hist(distances, bins=bornes, histtype="step", density=True, label=variante)
+    bornes = np.array(bilan["histogramme"]["bornes"])
+    for variante, comptes in bilan["histogramme"]["comptes"].items():
+        comptes = np.array(comptes, dtype=float)
+        ax.stairs(comptes / (comptes.sum() * np.diff(bornes)), bornes, label=variante)
     ax.set_xlabel("distance au centre (m)")
     ax.set_ylabel("densité de probabilité (1/m)")
     ax.set_title(f"N = {EFFECTIF_HISTOGRAMME}, régime établi (une fois par seconde, 10 graines)")
@@ -130,7 +131,14 @@ if __name__ == "__main__":
     mesures = {(v, n, g): m for v, n, g, m in resultats}
     aire = parametres_anneau(lire_configuration(Path(sys.argv[1]))).anneau.aire
 
-    bilan = {"version": 1, "contexte": ctx, "graines": GRAINES, "points": {}, "histogramme": {}}
+    bornes = np.linspace(5.0, 7.0, 81)  # cases de 2,5 cm pour l'histogramme des voies
+    bilan = {
+        "version": 1,
+        "contexte": ctx,
+        "graines": GRAINES,
+        "points": {},
+        "histogramme": {"effectif": EFFECTIF_HISTOGRAMME, "bornes": bornes.tolist(), "comptes": {}},
+    }
     print("variante | N | rho | v (m/s) | v0 moyen | v < 1,30 | derive max | violation")
     for v in VARIANTES:
         bilan["points"][v] = []
@@ -157,9 +165,10 @@ if __name__ == "__main__":
                 f" | {v0:.3f} | {sous}/10 | {point['derive_max']:.1%}"
                 f" | {point['violation_max']:.1e}"
             )
-        bilan["histogramme"][v] = [
+        distances = [
             d for g in GRAINES for d in mesures[(v, EFFECTIF_HISTOGRAMME, g)]["distances_centre"]
         ]
+        bilan["histogramme"]["comptes"][v] = np.histogram(distances, bornes)[0].tolist()
 
     print("Criteres a 1,0 et 1,5 pers/m^2 (N = 75 et 113) :")
     verdicts = {}
