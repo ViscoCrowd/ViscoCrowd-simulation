@@ -241,6 +241,16 @@ figures/duel.gif` simule la piscine et son témoin tout sec (même graine, même
 départ) et les rejoue l'une au-dessus de l'autre, horloges synchronisées (`--vitesse 4` par
 défaut). `--contre autre.yaml` remplace le témoin, `--garder dossier/` conserve les archives.
 
+`viscocrowd pression experiments/demo/pression-porte-saturee.yaml --image figures/forces.png
+--instant 35` simule la piscine en mesurant ce que la projection retire à chaque agent, puis
+retrouve l'intensité de chaque contact (moindres carrés positifs) : les chaînes de force et les
+arches devant la porte apparaissent en rouge, avec un zoom sur la porte. La console donne le
+nombre de contacts, le maximum et le résidu relatif de l'ajustement (proche de 0 : les
+intensités expliquent les corrections). Cette configuration de démonstration (porte de 0,8 m,
+150 baigneurs, panique 2, sans régulation) comprime la foule ; sur la référence régulée,
+presque aucun contact n'apparaît (98ᵉ centile à 1,4 m/s²). Intensités non étalonnées ; voir
+`viz/pression.py` pour la méthode et ses limites.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
@@ -266,6 +276,13 @@ largeur et adhérence du mouillé, niveau de panique, largeur de la porte ou pop
 paramètre à la fois. À chaque valeur et pour chaque graine, l'évacuation est comparée à la
 même piscine toute sèche, partie des mêmes positions. Voir les
 [balayages de la piscine](docs/balayages-piscine.md).
+
+Sur la plage, les baigneurs suivent tous le même plus court chemin et marchent en file
+indienne contre le bord du bassin. `navigation: {}` dans le YAML de la piscine (ou du
+goulot E0 et de l'anneau de M8, avec `temps_espacement: null`) active la navigation locale
+de Moussaïd et al. (2011) : chacun choisit une direction libre dans son champ de vision
+et règle sa vitesse sur l'obstacle le plus proche. Elle est désactivée dans la référence ;
+mesures, validation et limites dans la [note sur la navigation](docs/navigation.md).
 
 Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
 experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
@@ -453,7 +470,7 @@ src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
 ├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
-├── model/         guidage, carte des milieux, accélération bornée et chutes facultatives
+├── model/         guidage, carte des milieux, accélération bornée ; chutes et navigation facultatives
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures

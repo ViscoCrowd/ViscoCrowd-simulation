@@ -155,3 +155,9 @@ def test_bille_sans_graines_et_changement_en_cours(configurations, tmp_path, mon
     monkeypatch.setattr(campagne, "executer_configuration", changer)
     resultat = campagne.executer_campagne(configurations[:1], tmp_path / "change")
     assert resultat["resultats"][0]["statut"] == "echec"
+
+
+def test_arrondir():
+    import numpy as np
+
+    assert campagne.arrondir(np.array([1.23456, np.nan, 2.0]), 2) == [1.23, None, 2.0]
