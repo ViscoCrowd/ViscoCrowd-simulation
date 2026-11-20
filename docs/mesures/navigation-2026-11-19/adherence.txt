@@ -1,0 +1,6 @@
+reference  MOUILLE pas-agents/eval    115291  |a|>3,3 :  0.54% ± 0.06%  |a|>5,9 :  0.00%  perte moyenne 0.0028 m/s2
+reference  SEC     pas-agents/eval     96673  |a|>3,3 :  0.02% ± 0.01%  |a|>5,9 :  0.00%  perte moyenne 0.0001 m/s2
+reference  t50 moyen 31.43 s
+navigation MOUILLE pas-agents/eval     81446  |a|>3,3 :  1.05% ± 0.16%  |a|>5,9 :  0.00%  perte moyenne 0.0061 m/s2
+navigation SEC     pas-agents/eval    130271  |a|>3,3 :  0.49% ± 0.10%  |a|>5,9 :  0.00%  perte moyenne 0.0021 m/s2
+navigation t50 moyen 30.68 s

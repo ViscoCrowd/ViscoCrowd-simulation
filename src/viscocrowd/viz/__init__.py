@@ -9,9 +9,15 @@ test verifie que la liste correspond aux modules du paquet.
 from viscocrowd.viz.figures import produire_toutes
 
 COMMANDES = (
+    "attente",
+    "bouchage",
     "diagramme_anime",
     "duel",
+    "panique",
     "pose_longue",
+    "pression",
+    "trainee",
+    "variantes",
 )
 
 __all__ = ["COMMANDES", "produire_toutes"]
