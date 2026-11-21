@@ -62,3 +62,12 @@ def test_commande_bouchons_refuse_des_etiquettes_mal_comptees(tmp_path, capsys):
     image = tmp_path / "b.png"
     assert main(["bouchons", "a.npz", "b.npz", "--etiquettes", "x", "--image", str(image)]) == 1
     assert "etiquette" in capsys.readouterr().err
+
+
+def test_points_survie_sans_le_zero_final():
+    """#195 : le plus long intervalle (P = 0) n'a pas de place en echelle log."""
+    from viscocrowd.viz.bouchage import points_survie
+
+    taus, p = points_survie(np.array([0.5, 2.0, 1.0]))
+    np.testing.assert_array_equal(taus, [0.5, 1.0])
+    np.testing.assert_allclose(p, [2 / 3, 1 / 3])
