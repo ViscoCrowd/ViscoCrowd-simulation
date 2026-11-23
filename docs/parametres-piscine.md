@@ -42,7 +42,7 @@ mesures publiées ; « non balayé » veut dire qu'aucune mesure n'existe encore
 | Échelles | 2, aux 9/10 des grands côtés | — | Scénario | Côté porte | Non balayé |
 | Largeur d'une échelle, `largeur_echelle` | 0,5 | m | Scénario | Une personne à la fois | Non balayé |
 | Population N | 100 | pers | Scénario | ≈ 0,32 pers/m² dans le bassin | 50 à 200 : t100 augmente de 16,5 à 17,2 s par 50 baigneurs (#128) |
-| Rayon r | 0,2 | m | Hypothèse | Demi-largeur d'épaules ; rayons identiques | Non balayé |
+| Rayon r | 0,2 | m | Hypothèse | Demi-largeur d'épaules ; rayons identiques | Non balayé sur la piscine. Anneau avec navigation, 0,23 m : vitesse −10 % à 1,5 pers/m², −51 % à 3,5 pers/m² (`docs/navigation.md`) |
 | Espacement et bruit initiaux | 1,0 ; 0,1 | m | Scénario | Placement dans le bassin ; la graine fait varier le reste | Couvert par les 10 graines |
 | Graine, `graine` | 20262027 | — | Numérique | Graine par défaut des commandes ; les campagnes passent explicitement les graines 1 à 10 (`--graines`) | Sans objet |
 
@@ -80,6 +80,38 @@ section « Chutes »), qui mesure leur influence :
 | `lambda_bousculade` | 0 | 1/s | Hypothèse sans source (produit avec `duree_bousculade` = 0,1 s) | 0 à 10 | +9,4 à +12,0 s, sans tendance |
 | `facteur_rayon_terre` | 1,5 | – | Hypothèse sans source | 1 à 2 | +11,5 à +21,0 s, non monotone |
 | `mediane_relevage` | 3,7 | s | Sourcé (Becker et al. 2016, 20 à 50 ans) | non balayé | – |
+
+## Profondeur (option, désactivée par défaut)
+
+| Paramètre | Valeur | Unité | Statut | Source ou justification | Plage explorée et effet |
+|---|---|---|---|---|---|
+| `profondeur.gauche`, `profondeur.droite` | absent (0,7 partout) | m | Transposé ; extrapolé au-delà de 0,7 m | V ∝ d^(−0,38) (shirvani2020), mesures de 0,2 à 0,7 m | 1,0 → 0,7 m : Δt100 = +0,15 ± 0,67 s, sans effet décelable (journal du 18/11) |
+
+## Navigation
+
+`navigation: null` : la navigation locale de Moussaïd et al. (2011) est **désactivée** dans
+la référence. Son activation est à décider dans #158 (`docs/navigation.md`). Activée par
+`navigation: {}`, elle prend les valeurs de l'article :
+
+| Paramètre | Défaut | Unité | Statut | Effet mesuré |
+|---|---|---|---|---|
+| `champ_vision` | 75 | ° | Sourcé (Moussaïd 2011, fig. 2) | 45° (fig. 3) : rien de décelable |
+| `horizon` | 10 | m | Sourcé (Moussaïd 2011, fig. 2) | 8 m (fig. 3) : rien de décelable |
+| `directions` | 31 | – | Numérique (résolution angulaire de 5°) | non balayé |
+| `dispersion_vitesse` | 0,15 | – | Sourcé (0,2/1,3, Moussaïd 2011, fig. 3) ; vaut aussi pour les nageurs | 0 : t100 avance encore de 2,2 s (10/10), débit +0,30 pers/(m·s) |
+| `temps_anticipation` | τ du sol (0,5 s) | s | Sourcé (même τ que la relaxation, Moussaïd 2011) | E0 : 0,35 s relève J_s de 8 à 24 % |
+
+L'ensemble, activé, fait passer les positions contre le bord du bassin de 93 à 9 % et
+avance t100 de 4,1 s (10 graines). Les heuristiques seules l'avancent de 6,3 s : la
+dispersion des vitesses en reprend 2,2. Sur E0, sans réglage, le débit est de 16 à 38 % sous
+Seyfried (`docs/navigation.md`, validation).
+
+## Temps de réaction (option, désactivée par défaut)
+
+| Paramètre | Valeur | Unité | Statut | Source ou justification | Plage explorée et effet |
+|---|---|---|---|---|---|
+| `reaction.mediane` | absent | s | Hypothèse sans source pour une piscine | loi log-normale des temps de pré-mouvement (ISO/TR 16738, Purser et Bensilum 2001, à vérifier) | 1 à 10 s sur une graine : t100 +0,9 à +6,2 s (journal du 18/11) |
+| `reaction.dispersion` | absent | – | Hypothèse sans source | écart-type de log(t) | 0,5 seulement |
 
 ## Ce que le tableau montre
 
