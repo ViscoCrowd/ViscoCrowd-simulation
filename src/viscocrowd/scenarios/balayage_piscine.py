@@ -122,6 +122,12 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    "echelles": ParametreBalaye(
+        "E4",
+        "-",
+        "nombre d'echelles au milieu des grands cotes (2 n'est pas la reference)",
+        ("geometrie", "echelles"),
+    ),
     "vitesse_mouille": ParametreBalaye(
         "E3",
         "m/s",
@@ -203,6 +209,11 @@ PARAMETRES = {
         ("parametres_milieux", "EAU", "acceleration_max"),
     ),
 }
+
+
+# Parametres a valeur entiere : `--fixer n_agents=150` doit donner 150, pas 150.0, que
+# `ParametresPiscine` refuserait.
+ENTIERS = frozenset({"n_agents", "echelles"})
 
 
 @dataclass(frozen=True)
@@ -328,6 +339,10 @@ def _valeurs_valides(parametre: str, valeurs: Sequence[float]) -> list:
         # Le debit demande au moins deux sorties.
         if not all(float(v).is_integer() and v >= 2 for v in valeurs):
             raise ValueError("n_agents : entiers d'au moins 2 attendus")
+        return [int(v) for v in valeurs]
+    if parametre in ENTIERS:
+        if not all(float(v).is_integer() and v >= 0 for v in valeurs):
+            raise ValueError(f"{parametre} : entiers positifs ou nuls attendus")
         return [int(v) for v in valeurs]
     return [float(v) for v in valeurs]
 
@@ -500,11 +515,6 @@ def ajouter_commande(sous) -> None:
     )
     commande.add_argument("--sortie", type=Path, help="bilan JSON, mesures graine par graine")
     commande.set_defaults(fonction=commande_balayer)
-
-
-# Parametres a valeur entiere : `--fixer n_agents=150` doit donner 150, pas 150.0, que
-# `ParametresPiscine` refuserait.
-ENTIERS = frozenset({"n_agents"})
 
 
 def lire_fixes(textes: list[str]) -> dict[str, float | int]:
