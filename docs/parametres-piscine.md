@@ -86,6 +86,7 @@ section « Chutes »), qui mesure leur influence :
 | Paramètre | Valeur | Unité | Statut | Source ou justification | Plage explorée et effet |
 |---|---|---|---|---|---|
 | `profondeur.gauche`, `profondeur.droite` | absent (0,7 partout) | m | Transposé ; extrapolé au-delà de 0,7 m | V ∝ d^(−0,38) (shirvani2020), mesures de 0,2 à 0,7 m | 1,0 → 0,7 m : Δt100 = +0,15 ± 0,67 s, sans effet décelable (journal du 18/11) |
+
 ## Navigation
 
 `navigation: null` : la navigation locale de Moussaïd et al. (2011) est **désactivée** dans
@@ -104,6 +105,13 @@ L'ensemble, activé, fait passer les positions contre le bord du bassin de 93 à
 avance t100 de 4,1 s (10 graines). Les heuristiques seules l'avancent de 6,3 s : la
 dispersion des vitesses en reprend 2,2. Sur E0, sans réglage, le débit est de 16 à 38 % sous
 Seyfried (`docs/navigation.md`, validation).
+
+## Temps de réaction (option, désactivée par défaut)
+
+| Paramètre | Valeur | Unité | Statut | Source ou justification | Plage explorée et effet |
+|---|---|---|---|---|---|
+| `reaction.mediane` | absent | s | Hypothèse sans source pour une piscine | loi log-normale des temps de pré-mouvement (ISO/TR 16738, Purser et Bensilum 2001, à vérifier) | 1 à 10 s sur une graine : t100 +0,9 à +6,2 s (journal du 18/11) |
+| `reaction.dispersion` | absent | – | Hypothèse sans source | écart-type de log(t) | 0,5 seulement |
 
 ## Ce que le tableau montre
 
