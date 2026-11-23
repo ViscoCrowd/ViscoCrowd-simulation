@@ -474,3 +474,28 @@ def test_deblocage_sans_effet_sans_blocage():
 def test_deblocage_invalide_refuse(deblocage, message):
     with pytest.raises(ValueError, match=message):
         parametres(deblocage=deblocage)
+
+
+def test_echelles_entier_equivaut_a_la_liste():
+    from utilitaires import parametres_reduits
+
+    a = parametres_reduits(geometrie={"echelles": 2})
+    b = parametres_reduits(geometrie={"echelles": [["haut", 0.5], ["bas", 0.5]]})
+    assert a.piscine.echelles == b.piscine.echelles == (("haut", 0.5), ("bas", 0.5))
+    sites_a, sites_b = a.piscine.sites(), b.piscine.sites()
+    assert [s.nature for s in sites_a] == [s.nature for s in sites_b]
+    np.testing.assert_array_equal([s.position for s in sites_a], [s.position for s in sites_b])
+
+
+def test_zero_echelle_ne_laisse_que_des_rebords():
+    from utilitaires import parametres_reduits
+
+    p = parametres_reduits(geometrie={"echelles": 0})
+    assert {s.nature for s in p.piscine.sites()} == {"rebord"}
+
+
+def test_archive_ecrit_la_liste_explicite_des_echelles():
+    from utilitaires import parametres_reduits
+
+    dico = parametres_reduits(geometrie={"echelles": 2}).en_dictionnaire()
+    assert dico["geometrie"]["echelles"] == [["haut", 0.5], ["bas", 0.5]]
