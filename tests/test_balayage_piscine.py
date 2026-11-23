@@ -559,3 +559,9 @@ def test_echelles_lues_et_balayees_en_entiers():
     assert balayage._valeurs_valides("echelles", [0.0, 2.0, 4.0]) == [0, 2, 4]
     with pytest.raises(ValueError):
         balayage._valeurs_valides("echelles", [1.5])
+
+
+def test_lire_fixes_valeur_non_numerique_message_en_francais():
+    """#195 : plus de message anglais de float() (« could not convert string to float »)."""
+    with pytest.raises(ValueError, match="doit etre un nombre"):
+        balayage.lire_fixes(["n_agents=abc"])

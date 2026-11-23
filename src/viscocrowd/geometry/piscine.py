@@ -104,6 +104,11 @@ def repartir_echelles(
     echelle au milieu de chacun (fractions (i + 1/2) / k) : aucune ne tombe dans un coin.
     Refuse un espacement inferieur a deux largeurs d'echelle (longueur_bassin / k), qui ne
     laisserait presque plus de rebord entre deux echelles.
+
+    Attention : n = 2 n'est PAS la reference, qui place ses deux echelles a 0,9 de la
+    longueur, cote porte (`piscine.yaml`). Sur les graines 1 a 10, passer de la reference
+    a `echelles: 2` coute deja +0,48 s sur t50 et +2,19 s sur t100 (revue de #174) : un
+    balayage du nombre d'echelles melange leur nombre et leur placement.
     """
     if type(n) is not int or n < 0:
         raise ValueError(f"nombre d'echelles : entier positif ou nul attendu, recu {n!r}")

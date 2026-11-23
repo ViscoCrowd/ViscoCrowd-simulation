@@ -147,6 +147,15 @@ switch ($Command) {
             "--image", "data/demo/pose-longue.png") -MoreArgs @()
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "pression", "experiments/demo/pression-porte-saturee.yaml",
             "--image", "data/demo/pression.png", "--instant", "35") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "trainee", "experiments/demo/trainee-plage.yaml",
+            "--image", "data/demo/trainee.png", "--instant", "40") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "attente", "data/demo/plage-glissante.npz",
+            "--image", "data/demo/attente.png") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Demo, "--sortie", "data/demo/plage-adherente.npz",
+            "--fixer", "adherence_mouille=3.3") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "bouchons", "data/demo/plage-glissante.npz",
+            "data/demo/plage-adherente.npz", "--etiquettes", "glissant (1 m/s2)",
+            "reference (3,3 m/s2)", "--image", "data/demo/bouchons.png") -MoreArgs @()
     }
 
     "rejouer" {

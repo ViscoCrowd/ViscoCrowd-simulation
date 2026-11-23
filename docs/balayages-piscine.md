@@ -25,6 +25,7 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
+| `echelles` | E4 | – | nombre d'échelles, réparties au milieu des grands côtés. **n = 2 n'est pas la référence** (deux échelles à 0,9, côté porte), qui coûte déjà +0,48 s sur t50 et +2,19 s sur t100 (graines 1 à 10, revue de #174) : un balayage du nombre d'échelles mélange nombre et placement |
 | `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; 0,35 s, étalonné sur E0 (#58), dans le YAML depuis le 10 novembre (#57). `temps_espacement: null` dans le YAML la désactive ; `--fixer` n'accepte pas `null` |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |

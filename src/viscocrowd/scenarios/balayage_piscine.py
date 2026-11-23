@@ -129,7 +129,10 @@ PARAMETRES = {
         "E4", "m", "largeur du bassin", ("geometrie", "largeur_bassin")
     ),
     "echelles": ParametreBalaye(
-        "E4", "-", "nombre d'echelles, reparties sur les grands cotes", ("geometrie", "echelles")
+        "E4",
+        "-",
+        "nombre d'echelles au milieu des grands cotes (2 n'est pas la reference)",
+        ("geometrie", "echelles"),
     ),
     "vitesse_mouille": ParametreBalaye(
         "E3",
@@ -529,7 +532,10 @@ def lire_fixes(textes: list[str]) -> dict[str, float | int]:
             raise ValueError(f"--fixer attend NOM=VALEUR avec NOM parmi {', '.join(PARAMETRES)}")
         if nom in fixes:
             raise ValueError(f"{nom} est fixe deux fois")
-        nombre = float(valeur)
+        try:
+            nombre = float(valeur)
+        except ValueError:
+            raise ValueError(f"--fixer {texte} : {nom} doit etre un nombre") from None
         if nom in ENTIERS:
             if not nombre.is_integer():
                 raise ValueError(f"{nom} : entier attendu, recu {valeur}")

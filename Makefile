@@ -97,7 +97,16 @@ demo:  ## Regenere les films de la soutenance dans data/demo/ (experiments/demo)
 	$(VISCO_PY) -m viscocrowd.cli simuler experiments/demo/duel-plage-glissante.yaml --sortie data/demo/plage-glissante.npz
 	$(VISCO_PY) -m viscocrowd.cli pose-longue data/demo/plage-glissante.npz \
 		--image data/demo/pose-longue.png
-	$(VISCO_PY) -m viscocrowd.cli pression experiments/demo/pression-porte-saturee.yaml \n		--image data/demo/pression.png --instant 35
+	$(VISCO_PY) -m viscocrowd.cli pression experiments/demo/pression-porte-saturee.yaml \
+		--image data/demo/pression.png --instant 35
+	$(VISCO_PY) -m viscocrowd.cli trainee experiments/demo/trainee-plage.yaml \
+		--image data/demo/trainee.png --instant 40
+	$(VISCO_PY) -m viscocrowd.cli attente data/demo/plage-glissante.npz --image data/demo/attente.png
+	$(VISCO_PY) -m viscocrowd.cli simuler experiments/demo/duel-plage-glissante.yaml \
+		--sortie data/demo/plage-adherente.npz --fixer adherence_mouille=3.3
+	$(VISCO_PY) -m viscocrowd.cli bouchons data/demo/plage-glissante.npz data/demo/plage-adherente.npz \
+		--etiquettes "glissant (1 m/s2)" "reference (3,3 m/s2)" \
+		--image data/demo/bouchons.png
 
 comparer:  ## Compare la piscine seche et mouillee sur dix graines (E1/E2)
 	$(VISCO_PY) -m viscocrowd.cli comparer-piscine experiments/piscine.yaml --graines 1 2 3 4 5 6 7 8 9 10
