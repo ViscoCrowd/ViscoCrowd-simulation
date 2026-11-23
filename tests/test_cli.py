@@ -109,3 +109,39 @@ def test_simuler_refuse_un_nom_inconnu(tmp_path, capsys):
     assert main(["simuler", str(EXEMPLE), "--sortie", str(sortie), "--fixer", "porte=0.9"]) == 1
     assert "--fixer attend" in capsys.readouterr().err
     assert not sortie.exists()
+
+
+def test_tous_les_modules_viz_a_commande_sont_declares():
+    """Une commande de visualisation s'ajoute dans viz.COMMANDES, pas dans cli.py."""
+    import importlib
+    import pkgutil
+
+    from viscocrowd import viz
+
+    trouves = {
+        m.name
+        for m in pkgutil.iter_modules(viz.__path__)
+        if hasattr(importlib.import_module(f"viscocrowd.viz.{m.name}"), "ajouter_commande")
+    }
+    assert set(viz.COMMANDES) == trouves
+    assert list(viz.COMMANDES) == sorted(viz.COMMANDES)
+
+
+def test_les_commandes_de_visualisation_restent_disponibles():
+    from viscocrowd.cli import construire_analyseur
+
+    sous = next(
+        a for a in construire_analyseur()._actions if a.__class__.__name__ == "_SubParsersAction"
+    )
+    attendues = {
+        "attente",
+        "bouchons",
+        "comparer-variantes",
+        "diagramme-anime",
+        "duel",
+        "figure-panique",
+        "pose-longue",
+        "pression",
+        "trainee",
+    }
+    assert attendues <= set(sous.choices)
