@@ -29,6 +29,18 @@ def sorties_archivees(chemin: Path) -> np.ndarray:
     return np.array([np.nan if s is None else s for s in evenements["sorties"]], dtype=float)
 
 
+def points_survie(intervalles: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Points (tau, P(Delta > tau)) a tracer en echelle log : ceux ou P > 0.
+
+    Au plus long intervalle, P vaut 0 et n'a pas de place sur un axe logarithmique :
+    on s'arrete donc a l'avant-dernier intervalle distinct, et la legende le dit.
+    """
+    taus = np.sort(np.asarray(intervalles, dtype=float))
+    p = survie(taus, taus)
+    garder = p > 0
+    return taus[garder], p[garder]
+
+
 def ajouter_commande(sous) -> None:
     commande = sous.add_parser(
         "bouchons", help="distribution des intervalles entre sorties (duree des bouchons)"
@@ -72,8 +84,8 @@ def commande_bouchons(args) -> int:
                     f"plus long {intervalles.max():.2f} s ; "
                     f"{incompletes} évacuation(s) incomplète(s) sur {len(liste)}"
                 )
-                taus = np.sort(intervalles)
-                ax.step(taus, survie(intervalles, taus), where="post", label=etiquette)
+                taus, p = points_survie(intervalles)
+                ax.step(taus, p, where="post", label=etiquette)
             else:
                 print(
                     f"{etiquette} : aucun intervalle ; "
@@ -85,6 +97,14 @@ def commande_bouchons(args) -> int:
         ax.set_xlabel("intervalle entre deux sorties τ (s)")
         ax.set_ylabel("P(Δ > τ)")
         ax.set_title("Intervalles entre sorties successives")
+        figure.subplots_adjust(bottom=0.16)  # place pour la note sous l'axe
+        figure.text(
+            0.01,
+            0.015,
+            "Le plus long intervalle (P = 0) n'a pas de place en échelle log : non tracé.",
+            fontsize=8,
+            color="0.4",
+        )
         if ax.get_legend_handles_labels()[0]:
             ax.legend()
         args.image.parent.mkdir(parents=True, exist_ok=True)

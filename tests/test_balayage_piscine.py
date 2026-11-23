@@ -552,3 +552,9 @@ def test_appliquer_fixes_laisse_l_original_intact():
     sols = ("EAU", "MOUILLE", "SEC")
     assert {nouveau["parametres_milieux"][m]["relaxation"] for m in sols} == {0.4}
     assert {config["parametres_milieux"][m]["relaxation"] for m in sols} == {0.5}
+
+
+def test_lire_fixes_valeur_non_numerique_message_en_francais():
+    """#195 : plus de message anglais de float() (« could not convert string to float »)."""
+    with pytest.raises(ValueError, match="doit etre un nombre"):
+        balayage.lire_fixes(["n_agents=abc"])
