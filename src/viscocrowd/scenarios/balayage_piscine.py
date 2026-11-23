@@ -122,6 +122,12 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    "longueur_bassin": ParametreBalaye(
+        "E4", "m", "longueur du bassin", ("geometrie", "longueur_bassin")
+    ),
+    "largeur_bassin": ParametreBalaye(
+        "E4", "m", "largeur du bassin", ("geometrie", "largeur_bassin")
+    ),
     "echelles": ParametreBalaye(
         "E4",
         "-",

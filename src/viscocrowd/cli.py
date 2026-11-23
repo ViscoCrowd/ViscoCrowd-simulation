@@ -221,6 +221,10 @@ def construire_analyseur() -> argparse.ArgumentParser:
     for nom in COMMANDES:  # liste dans viz/__init__.py : une ligne par commande
         importlib.import_module(f"viscocrowd.viz.{nom}").ajouter_commande(sous)
 
+    from viscocrowd.ui import lanceur
+
+    lanceur.ajouter_commande(sous)
+
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(
         "--archiver-tous", type=int, default=1, help="piscine : un instant sur K pas"
