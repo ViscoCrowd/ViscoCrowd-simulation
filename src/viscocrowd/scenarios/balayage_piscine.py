@@ -516,7 +516,10 @@ def lire_fixes(textes: list[str]) -> dict[str, float | int]:
             raise ValueError(f"--fixer attend NOM=VALEUR avec NOM parmi {', '.join(PARAMETRES)}")
         if nom in fixes:
             raise ValueError(f"{nom} est fixe deux fois")
-        nombre = float(valeur)
+        try:
+            nombre = float(valeur)
+        except ValueError:
+            raise ValueError(f"--fixer {texte} : {nom} doit etre un nombre") from None
         if nom in ENTIERS:
             if not nombre.is_integer():
                 raise ValueError(f"{nom} : entier attendu, recu {valeur}")
