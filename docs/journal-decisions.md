@@ -11,7 +11,6 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
-<<<<<<< ours
 ## 2026-11-20 — Débit par paliers aux goulots étroits : E0 aussi (#198)
 
 **Statut.** Mesure, sans changement du modèle. Une limite à écrire au § 6 du rapport.
@@ -32,26 +31,35 @@ commit `d4d3fb1`, qui écrit la question et le critère avant le calcul ; 90 sim
 
 Écarts-types entre graines de 0,005 à 0,08 pers/s ; 90 écoulements sur 90. Entre largeurs
 voisines, trois paliers (moins de 2 % d'écart) : 0,75 → 0,78, 0,80 → 0,82 et 0,85 → 0,88 m.
+Le dernier est plutôt presque plat : +1,6 %, avec un écart apparié de +0,022 ± 0,009 pers/s
+(erreur standard), donc pas nul, mais sous le seuil fixé avant le calcul.
 Trois sauts, chacun plus de deux fois la hausse relative de largeur et plus de deux erreurs
 standard de l'écart apparié : +5,6 % de 0,78 à 0,80 m, **+19,8 % de 0,88 à 0,90 m** et +14,0 %
 de 0,95 à 1,00 m. **Selon le critère fixé avant le calcul, E0 montre la même quantification que
 la porte de la piscine.**
 
-**Lecture.** Sous 1 m, le débit d'un goulot dépend du nombre de files de disques qui y passent,
-et presque pas de la largeur entre deux seuils. Dans un palier, J_s = Q / b baisse donc quand
-la largeur augmente (de 1,68 à 0,75 m à 1,59 à 0,88 m). Seyfried mesure au contraire un débit
-qui croît régulièrement avec la largeur. Les seuils ne sont pas tout à fait les mêmes dans E0
+**Lecture.** Sous 1 m, le débit d'un goulot avance par paliers, et presque pas avec la largeur
+entre deux seuils. Dans un palier, J_s = Q / b baisse donc quand la largeur augmente (de 1,68 à
+0,75 m à 1,59 à 0,88 m). La cause n'est établie que pour le premier saut : 0,80 m, c'est deux
+diamètres de 0,40 m, deux disques de front. Ceux de 0,90 et 1,00 m restent inexpliqués (il en
+faudrait 1,20 m pour trois de front) ; des arrangements en quinconce sont possibles, mais on ne
+les a pas regardés. Seyfried mesure au contraire un débit qui croît continûment : son résumé
+cite d'autres données qui suggèrent une croissance par paliers, mais conclut « The data show a
+linear growth of the flow with the width » (Seyfried et al. 2009, arXiv physics/0702004).
+Les paliers sont donc un effet de nos disques durs de rayon identique, pas un comportement des
+piétons qu'il mesure. Les seuils ne sont pas tout à fait les mêmes dans E0
 (parois droites, goulot de 2,8 m) et à la porte de la piscine (montants arrondis) : ils tiennent
 à la forme de l'entrée, pas seulement au diamètre de 0,40 m.
 
 **Conséquences.**
 - **Validation E0 (#141).** Le protocole compare le modèle à Seyfried à 0,8, 0,9, 1,0, 1,1 et
   1,2 m. Or 0,80 et 0,90 m tombent juste après un saut. À 0,88 m, le modèle donne
-  1,59 pers/(m·s), contre 1,81 pour Seyfried interpolé entre 0,8 et 0,9 m (N = 60) : 12 % en
-  dessous, alors que l'écart moyen aux largeurs du protocole vaut 2,8 %. L'accord publié reste
+  1,59 pers/(m·s), contre 1,81 pour Seyfried interpolé linéairement entre 0,8 et 0,9 m
+  (N = 60), largeur qu'il n'a pas mesurée, mais conformément à la croissance linéaire qu'il
+  conclut : 12 % en dessous, alors que l'écart moyen aux largeurs du protocole vaut 2,8 %. L'accord publié reste
   juste aux largeurs mesurées par Seyfried, mais il ne se généralise pas entre elles.
-- **Rapport (§ 6, limites).** Avec des disques durs, le débit d'un goulot étroit est quantifié
-  par files. Sous 1 m environ, J_s = débit / largeur n'a de sens qu'aux largeurs mesurées.
+- **Rapport (§ 6, limites).** Avec des disques durs de rayon identique, le débit d'un goulot
+  étroit avance par paliers, contrairement à Seyfried. Sous 1 m environ, J_s = débit / largeur n'a de sens qu'aux largeurs mesurées.
 - **Piscine.** L'effet inertiel n'en dépend pas : Δt100 vaut de +13,5 à +14,3 s, 10/10, pour
   toute porte de 0,75 à 0,88 m (#198).
 
@@ -97,7 +105,6 @@ Une médiane de 10 s ne retarde t100 que de 6,2 s : la porte absorbe une partie 
 l'étalement. À la référence, l'écart mouillé − sec reste nul, comme sans réaction. Une graine,
 un contrôle de fonctionnement : l'effet de la synchronisation se mesure à porte saturée, dans une
 campagne à part (graines 1 à 10, médianes 1 à 20 s).
->>>>>>> theirs
 
 ---
 
