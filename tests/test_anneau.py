@@ -128,7 +128,7 @@ class TestNavigation:
 
     @pytest.mark.slow
     def test_reproduit_le_bilan_du_17_novembre(self):
-        """Premier point de docs/mesures/navigation-2026-11-17/anneau.json, au bit pres.
+        """Premier point de docs/mesures/navigation-2026-11-17/anneau.json, a 1e-9 pres.
 
         Ce bilan avait ete calcule sur une branche locale (f186b33) avant la fusion de
         #149 ; ce test etablit que le code du depot est le meme.
@@ -142,7 +142,9 @@ class TestNavigation:
             duree=40.0,
             debut_mesure=20.0,
         )
-        assert simuler_anneau(p).vitesse_moyenne == 1.2257776328072303
+        # A 1e-9 pres : les derniers chiffres changent d'une plateforme a l'autre (macOS :
+        # 1,2257776328291727, revue de #205).
+        assert simuler_anneau(p).vitesse_moyenne == pytest.approx(1.2257776328072303, rel=1e-9)
 
 
 class TestDepartEtPopulation:

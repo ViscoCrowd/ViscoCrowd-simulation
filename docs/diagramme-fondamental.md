@@ -222,12 +222,19 @@ Dérive entre les deux moitiés de la fenêtre : jusqu'à 8,3 % (20 % pour les v
   de 1,5 pers/m² : la courbe est trop plate.
 - **Pourquoi trop lent : personne ne double.** Chaque agent vise la tangente et règle sa vitesse
   sur son meneur : un agent rapide reste derrière un lent, et chaque file roule au pas de son
-  plus lent. Les piétons de Weidmann se doublent.
+  plus lent. Les piétons de Weidmann se doublent. Ce « trop lent » vaut pour cette fenêtre de
+  30 s, pas pour un régime établi : les pelotons mettent du temps à se former, surtout aux
+  faibles densités (dérive de 5,8 % à 0,5 pers/m²), et une fenêtre plus longue les
+  rapprocherait encore du pas du plus lent, au moins 0,82 m/s avec la borne à 2σ.
 - **Le modèle ne forme pas de voies, et n'en défait pas**
   ([histogramme à 1,5 pers/m²](mesures/anneau-desordre-2026-11-20/voies.png)). Partis en voies,
   les agents les gardent, même avec des vitesses dispersées. Partis en désordre, ils restent
   répartis sur toute la largeur, avec une accumulation contre les deux murs.
 - **Pour le rapport**, l'anneau n'est pas une validation au sens de `criteres-acceptation.md` : il
   montre une limite du modèle à meneur, sans dépassement ni évitement latéral. La navigation
-  (#163), qui double, est l'autre façon d'y répondre (#158). Elle reste toutefois de 23 à 67 %
-  au-dessus de Weidmann au-delà de 1,5 pers/m², selon la mesure de Shaleena.
+  (#163), qui évite latéralement et peut donc doubler, est l'autre façon d'y répondre (#158) ;
+  ses dépassements n'ont pas été comptés. Elle reste de 23 à 67 % au-dessus de Weidmann
+  au-delà de 1,5 pers/m², et à faible densité sous v0 (1,20 m/s à 0,25 pers/m²), pour une
+  autre raison : les agents longent le mur intérieur
+  ([`navigation.md`](navigation.md), section « Validation » ; bilan
+  [`mesures/navigation-2026-11-17/anneau.json`](mesures/navigation-2026-11-17/anneau.json)).
