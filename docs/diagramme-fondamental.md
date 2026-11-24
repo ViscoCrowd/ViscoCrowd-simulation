@@ -181,4 +181,60 @@ Commit `fc248ab` (empreinte des sources `5ebe7e01…`, identique à celle des bi
 - **La transition est brutale**, entre 2,0 et 2,5 pers/m², et elle découle du départ. `positions_de_depart` place les agents sur **4 voies espacées de 0,44 m**, juste au-dessus du seuil de meneur (r_i + r_j = 0,4 m), à pas uniforme. Tous ont la même vitesse souhaitée et le bruit de 2 cm ne les mélange pas : les voies se gardent, et deux voies voisines ne se freinent jamais. Le jeu sur une voie tombe sous T·v0 à ρ ≈ 4 / (2 × 0,87) ≈ 2,3 pers/m². C'est ce que donnerait n'importe quel modèle à meneur avec des vitesses identiques et des voies parfaites (revues de #149).
 - **Au-dessus de 3 pers/m², le régime n'est pas établi en 30 s** : la vitesse change de 13 à 36 % entre les deux moitiés de la fenêtre. Ces trois lignes sont à refaire sur une durée plus longue avant d'être citées. Leur vitesse diffère aussi de 10 à 15 % entre les moitiés intérieure et extérieure de l'anneau : la courbure compte quand la foule est dense.
 - **Limite de densité** : le départ sur voies concentriques plafonne à 4,5 pers/m² (N = 377 est refusé). Weidmann va jusqu'à 5,4 pers/m².
-- **Conséquence pour E0 et la piscine : une hypothèse, pas encore un résultat.** La règle de régulation ne dépend que du jeu au meneur, dans un couloir d'un diamètre de large : deux voisins côte à côte ne se freinent jamais. Ce banc montre ce que cela donne pour une foule rangée en voies parfaites, pas pour une foule quelconque. Weidmann mesure des piétons de vitesses différentes (0,26 m/s d'écart-type, p. 53), qui se doublent et changent de voie. Avant d'écrire dans le rapport que le modèle n'anticipe pas à faible densité, il faut relancer avec un départ désordonné ou une vitesse souhaitée dispersée : l'écart à Weidmann sous 2 pers/m² tient-il au modèle, ou à la symétrie du banc ? Une piste serait une vitesse souhaitée qui dépend de la densité locale (Weidmann comme loi de comportement), mais elle reviendrait à ajuster le modèle sur la courbe qui sert à le valider.
+- **Conséquence pour E0 et la piscine : une hypothèse, tranchée le 20 novembre (section suivante).** La règle de régulation ne dépend que du jeu au meneur, dans un couloir d'un diamètre de large : deux voisins côte à côte ne se freinent jamais. Ce banc montre ce que cela donne pour une foule rangée en voies parfaites, pas pour une foule quelconque. Weidmann mesure des piétons de vitesses différentes (0,26 m/s d'écart-type, p. 53), qui se doublent et changent de voie. Avant d'écrire dans le rapport que le modèle n'anticipe pas à faible densité, il faut relancer avec un départ désordonné ou une vitesse souhaitée dispersée : l'écart à Weidmann sous 2 pers/m² tient-il au modèle, ou à la symétrie du banc ? Une piste serait une vitesse souhaitée qui dépend de la densité locale (Weidmann comme loi de comportement), mais elle reviendrait à ajuster le modèle sur la courbe qui sert à le valider.
+
+## Relance du 20 novembre 2026 : départ désordonné et vitesses dispersées (#167)
+
+**Question, écrite avant le calcul** (commit `7a231d4`, docstring de
+[`mesures/anneau-desordre-2026-11-20/mesurer.py`](mesures/anneau-desordre-2026-11-20/mesurer.py)) :
+la marche à v0 jusqu'à 2 pers/m² vient-elle du banc ou du modèle ? Deux options de l'anneau,
+sans effet sur le défaut : `depart: desordonne` (positions uniformes dans l'aire de marche,
+avec rejet des recouvrements) et `dispersion_vitesse` (écart-type de v0 entre agents, 0,26 m/s
+comme Weidmann p. 53, borné à deux écarts-types). Critère : à 1,0 et 1,5 pers/m², la variante
+« reste à v0 » si v ≥ 1,33 m/s, elle « baisse » si v < 1,30 m/s sur au moins 9 graines sur 10.
+
+Graines 1 à 10, 200 simulations en 97 s, au commit `47789a8` sans modification locale, même
+configuration que le 16 novembre
+([bilan, figures](mesures/anneau-desordre-2026-11-20/)). Vitesse en m/s, moyenne ± écart-type
+entre graines :
+
+| ρ (pers/m²) | Voies (départ actuel) | Désordonné | Vitesses dispersées | Les deux | Weidmann |
+|---|---|---|---|---|---|
+| 0,50 | 1,340 ± 0,000 | 1,289 ± 0,014 | 1,056 ± 0,059 | 0,947 ± 0,077 | 1,297 |
+| 0,99 | 1,340 ± 0,000 | **1,223 ± 0,008** | **0,986 ± 0,045** | **0,852 ± 0,047** | 1,061 |
+| 1,50 | 1,340 ± 0,000 | **1,100 ± 0,031** | **0,918 ± 0,029** | **0,806 ± 0,038** | 0,807 |
+| 2,00 | 1,339 ± 0,000 | 0,830 ± 0,030 | 0,864 ± 0,035 | 0,713 ± 0,038 | 0,605 |
+| 2,49 | 0,580 ± 0,017 | 0,595 ± 0,015 | 0,630 ± 0,092 | 0,557 ± 0,016 | 0,453 |
+
+En gras, les points du critère : **les trois variantes baissent, sur 10 graines sur 10**. La
+ligne « voies » redonne celle du 16 novembre, à 0,002 m/s près à 2,5 pers/m². Aucune sortie des murs ; recouvrement au plus 10⁻⁶ m.
+Dérive entre les deux moitiés de la fenêtre : jusqu'à 8,3 % (20 % pour les vitesses dispersées
+à 2,5 pers/m², pas en régime établi).
+
+**Ce que ça dit.**
+
+- **Le plateau à v0 venait du banc**, pas du modèle : il suffit de mélanger le départ pour que la
+  vitesse baisse dès 0,5 pers/m². Le paragraphe « Conséquence pour E0 et la piscine » ci-dessus
+  ne tient donc plus sous cette forme.
+- **Le modèle ne suit pas Weidmann pour autant.** Avec le départ désordonné, il reste au-dessus :
+  +15 % à 1 pers/m², +36 % à 1,5 et +37 % à 2 pers/m². Avec les vitesses dispersées, il est
+  **trop lent aux faibles densités** (1,06 contre 1,30 m/s à 0,5 pers/m²) et trop rapide au-delà
+  de 1,5 pers/m² : la courbe est trop plate.
+- **Pourquoi trop lent : personne ne double.** Chaque agent vise la tangente et règle sa vitesse
+  sur son meneur : un agent rapide reste derrière un lent, et chaque file roule au pas de son
+  plus lent. Les piétons de Weidmann se doublent. Ce « trop lent » vaut pour cette fenêtre de
+  30 s, pas pour un régime établi : les pelotons mettent du temps à se former, surtout aux
+  faibles densités (dérive de 5,8 % à 0,5 pers/m²), et une fenêtre plus longue les
+  rapprocherait encore du pas du plus lent, au moins 0,82 m/s avec la borne à 2σ.
+- **Le modèle ne forme pas de voies, et n'en défait pas**
+  ([histogramme à 1,5 pers/m²](mesures/anneau-desordre-2026-11-20/voies.png)). Partis en voies,
+  les agents les gardent, même avec des vitesses dispersées. Partis en désordre, ils restent
+  répartis sur toute la largeur, avec une accumulation contre les deux murs.
+- **Pour le rapport**, l'anneau n'est pas une validation au sens de `criteres-acceptation.md` : il
+  montre une limite du modèle à meneur, sans dépassement ni évitement latéral. La navigation
+  (#163), qui évite latéralement et peut donc doubler, est l'autre façon d'y répondre (#158) ;
+  ses dépassements n'ont pas été comptés. Elle reste de 23 à 67 % au-dessus de Weidmann
+  au-delà de 1,5 pers/m², et à faible densité sous v0 (1,20 m/s à 0,25 pers/m²), pour une
+  autre raison : les agents longent le mur intérieur
+  ([`navigation.md`](navigation.md), section « Validation » ; bilan
+  [`mesures/navigation-2026-11-17/anneau.json`](mesures/navigation-2026-11-17/anneau.json)).

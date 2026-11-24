@@ -65,6 +65,22 @@ evite elle-meme les deux murs, vus comme un disque et une enceinte circulaires).
 agent a sa vitesse souhaitee, v0 fois un facteur individuel. La seconde heuristique est
 une relation vitesse-espacement : `temps_espacement` doit alors etre null. Sans sortie,
 il n'y a pas d'ordre d'avance : tous les voisins comptent.
+
+Depart et population (#167)
+---------------------------
+
+Par defaut, les agents partent sur des voies concentriques et ont tous la meme vitesse
+souhaitee : la foule peut garder ses voies, et deux voies voisines ne se freinent jamais.
+Deux options cassent cette symetrie du banc, sans changer le defaut :
+
+- `depart: desordonne` : positions tirees uniformement dans l'aire de marche, avec rejet
+  des recouvrements (le `bruit` ne sert alors pas) ;
+- `dispersion_vitesse` : ecart-type de la vitesse souhaitee entre agents, en m/s, tiree une
+  fois par agent sur son propre flux et bornee a deux ecarts-types (Weidmann 1993, p. 53 :
+  0,26 m/s). Elle ne se cumule pas avec la navigation, qui a sa propre dispersion.
+
+Le resultat garde aussi la distance au centre de chaque agent, une fois par seconde dans
+la fenetre de mesure, pour voir si la foule se range en voies d'elle-meme.
 """
 
 from __future__ import annotations
@@ -93,6 +109,9 @@ from viscocrowd.model.navigation import (
     vitesses_souhaitees,
 )
 
+DEPARTS = ("voies", "desordonne")
+FLUX_VITESSES_ANNEAU = 3  # tirage des vitesses souhaitees individuelles (#167)
+
 
 @dataclass(frozen=True)
 class ParametresAnneau:
@@ -116,8 +135,19 @@ class ParametresAnneau:
     sec: ParametresMilieu
     graine: int
     navigation: ParametresNavigation | dict | None = None
+    depart: str = "voies"
+    dispersion_vitesse: float = 0.0
 
     def __post_init__(self) -> None:
+        if self.depart not in DEPARTS:
+            raise ValueError(f"depart doit valoir {' ou '.join(DEPARTS)}, recu {self.depart!r}")
+        exiger_scalaire_fini("dispersion_vitesse", self.dispersion_vitesse)
+        if self.dispersion_vitesse < 0:
+            raise ValueError("dispersion_vitesse doit etre positive ou nulle")
+        if self.navigation is not None and self.dispersion_vitesse > 0:
+            raise ValueError(
+                "la navigation a sa propre dispersion des vitesses : dispersion_vitesse nulle"
+            )
         if self.navigation is not None:
             if isinstance(self.navigation, dict):
                 object.__setattr__(self, "navigation", ParametresNavigation(**self.navigation))
@@ -147,7 +177,12 @@ class ParametresAnneau:
             raise ValueError("debut_mesure doit preceder la fin de la simulation")
         if self.dt > self.sec.relaxation:
             raise ValueError("dt doit etre inferieur ou egal au temps de relaxation")
-        vitesse_max = self.facteur_vitesse * self.sec.vitesse
+        if (
+            self.dispersion_vitesse > 0
+            and 2 * self.dispersion_vitesse >= self.facteur_vitesse * self.sec.vitesse
+        ):
+            raise ValueError("dispersion_vitesse : deux ecarts-types doivent rester sous v0")
+        vitesse_max = self.facteur_vitesse * self.sec.vitesse + 2 * self.dispersion_vitesse
         if self.navigation is not None:
             vitesse_max *= self.navigation.facteur_maximal  # le plus rapide des individus
         if self.dt * vitesse_max > self.rayon / 5:
@@ -170,8 +205,11 @@ def positions_de_depart(p: ParametresAnneau, *, bruit: bool = True) -> np.ndarra
 
     Les voies sont espacees d'un diametre plus le jeu necessaire au bruit ; chacune recoit
     une part de la population proportionnelle a son perimetre. Le bruit, borne, perturbe
-    le rayon et l'angle sans permettre de recouvrement.
+    le rayon et l'angle sans permettre de recouvrement. Avec `depart: desordonne`, voir
+    `depart_desordonne`.
     """
+    if p.depart == "desordonne":
+        return depart_desordonne(p)
     pas = 2 * p.rayon + 2 * p.bruit
     largeur = p.rayon_exterieur - p.rayon_interieur
     n_voies = int((largeur - 2 * p.rayon - 2 * p.bruit) // pas) + 1
@@ -195,6 +233,46 @@ def positions_de_depart(p: ParametresAnneau, *, bruit: bool = True) -> np.ndarra
             theta = theta + rng.uniform(-p.bruit, p.bruit, n) / rayon
         points.append(np.column_stack((rho * np.cos(theta), rho * np.sin(theta))))
     return np.concatenate(points)
+
+
+def depart_desordonne(p: ParametresAnneau) -> np.ndarray:
+    """Agents (N, 2) tires uniformement dans l'aire de marche, sans recouvrement (#167).
+
+    Tirage sequentiel avec rejet : chaque candidat, uniforme en aire entre les rayons
+    accessibles au centre d'un disque, est rejete s'il touche un agent deja place. Le
+    tirage abandonne apres 1000 essais par agent : la densite est alors trop forte.
+    """
+    rng = generateur(p.graine)
+    a, b = p.rayon_interieur + p.rayon, p.rayon_exterieur - p.rayon
+    if a >= b:
+        raise ValueError("l'anneau est trop etroit pour une voie d'agents")
+    points = np.empty((p.n_agents, 2))
+    places, essais = 0, 0
+    while places < p.n_agents:
+        essais += 1
+        if essais > 1000 * p.n_agents:
+            raise ValueError("population trop grande pour un depart desordonne")
+        rho = math.sqrt(rng.uniform(a * a, b * b))
+        theta = rng.uniform(0.0, 2 * math.pi)
+        candidat = np.array([rho * math.cos(theta), rho * math.sin(theta)])
+        if places and np.min(np.hypot(*(points[:places] - candidat).T)) <= 2 * p.rayon:
+            continue
+        points[places] = candidat
+        places += 1
+    return points
+
+
+def vitesses_individuelles(p: ParametresAnneau) -> np.ndarray:
+    """Vitesse souhaitee (N,) de chaque agent, en m/s ; uniforme sans dispersion (#167).
+
+    Loi normale de moyenne v0 et d'ecart-type `dispersion_vitesse`, bornee a deux
+    ecarts-types, sur son propre flux : les positions de depart ne changent pas.
+    """
+    v0 = p.facteur_vitesse * p.sec.vitesse
+    if p.dispersion_vitesse == 0.0:
+        return np.full(p.n_agents, v0)
+    z = generateur(p.graine, flux=FLUX_VITESSES_ANNEAU).normal(0.0, 1.0, p.n_agents)
+    return v0 + p.dispersion_vitesse * np.clip(z, -2.0, 2.0)
 
 
 def jeu_au_meneur_anneau(x: np.ndarray, r: np.ndarray, portee: float) -> np.ndarray:
@@ -233,6 +311,8 @@ class ResultatAnneau:
     vitesse_interieure, vitesse_exterieure: (P,) la meme, sur les agents plus proches
         du mur interieur, resp. exterieur, que du milieu de l'anneau.
     violation_paroi_max, recouvrement_max: en m, sur toute la simulation.
+    distances_centre: (K, N) distance au centre de chaque agent, en m, une fois par
+        seconde dans la fenetre de mesure (voies, #167).
     """
 
     parametres: ParametresAnneau
@@ -242,6 +322,7 @@ class ResultatAnneau:
     vitesse_exterieure: np.ndarray
     violation_paroi_max: float
     recouvrement_max: float
+    distances_centre: np.ndarray
 
     def _fenetre(self, serie: np.ndarray) -> np.ndarray:
         return serie[self.t > self.parametres.debut_mesure]
@@ -275,7 +356,7 @@ def simuler_anneau(p: ParametresAnneau) -> ResultatAnneau:
     x = positions_de_depart(p)
     r = np.full(p.n_agents, p.rayon)
     tau, a_max = p.sec.relaxation, p.sec.acceleration_max
-    v0 = np.full(p.n_agents, p.facteur_vitesse * p.sec.vitesse)
+    v0 = vitesses_individuelles(p)
     navigation = p.navigation
     if navigation is not None:
         v0 = v0 * facteurs_individuels(p.n_agents, navigation, p.graine)
@@ -307,6 +388,8 @@ def simuler_anneau(p: ParametresAnneau) -> ResultatAnneau:
     milieu = (p.rayon_interieur + p.rayon_exterieur) / 2
     n_pas = math.ceil(p.duree / p.dt)
     t, v, v_int, v_ext = (np.empty(n_pas) for _ in range(4))
+    pas_par_seconde = max(1, round(1.0 / p.dt))
+    distances = []
     violation = anneau.violation(etat.x, r, 0.0)
     for n in range(n_pas):
         avant = etat.x
@@ -320,7 +403,19 @@ def simuler_anneau(p: ParametresAnneau) -> ResultatAnneau:
         v_int[n] = tangentielle[interieur].mean() if interieur.any() else np.nan
         v_ext[n] = tangentielle[~interieur].mean() if (~interieur).any() else np.nan
         violation = max(violation, anneau.violation(etat.x, r, etat.t))
-    return ResultatAnneau(p, t, v, v_int, v_ext, violation, projection.recouvrement_max)
+        # Compte de pas plutot que etat.t, qui accumule les arrondis de dt.
+        if (n + 1) % pas_par_seconde == 0 and (n + 1) * p.dt > p.debut_mesure + p.dt / 2:
+            distances.append(d.copy())
+    return ResultatAnneau(
+        p,
+        t,
+        v,
+        v_int,
+        v_ext,
+        violation,
+        projection.recouvrement_max,
+        np.array(distances).reshape(-1, p.n_agents),
+    )
 
 
 def parametres_anneau(configuration: dict, **remplacements) -> ParametresAnneau:

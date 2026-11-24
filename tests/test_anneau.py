@@ -12,6 +12,7 @@ from viscocrowd.scenarios.anneau import (
     parametres_anneau,
     positions_de_depart,
     simuler_anneau,
+    vitesses_individuelles,
 )
 
 CONFIG = lire_configuration(Path(__file__).parents[1] / "experiments/anneau.yaml")
@@ -148,3 +149,84 @@ class TestNavigation:
             debut_mesure=20.0,
         )
         assert simuler_anneau(p).vitesse_moyenne == pytest.approx(1.2257776328072303, rel=1e-9)
+
+
+class TestDepartEtPopulation:
+    """#167 : casser la symetrie du banc (voies concentriques, vitesses identiques)."""
+
+    def test_depart_desordonne_sans_recouvrement_entre_les_murs(self):
+        p = parametres_anneau(CONFIG, n_agents=188, depart="desordonne")
+        x = positions_de_depart(p)
+        assert x.shape == (188, 2)
+        distances = np.hypot(*(x[:, None] - x[None]).transpose(2, 0, 1))
+        np.fill_diagonal(distances, np.inf)
+        assert distances.min() > 2 * p.rayon
+        assert p.anneau.violation(x, np.full(188, p.rayon), 0.0) == 0.0
+        np.testing.assert_array_equal(x, positions_de_depart(p))  # meme graine, meme depart
+
+    def test_depart_desordonne_n_a_pas_de_voies(self):
+        """Les distances au centre couvrent la largeur au lieu de quatre valeurs."""
+        voies = positions_de_depart(parametres_anneau(CONFIG, n_agents=113, bruit=0.0))
+        desordre = positions_de_depart(parametres_anneau(CONFIG, n_agents=113, depart="desordonne"))
+        assert np.unique(np.round(np.hypot(*voies.T), 6)).size <= 5
+        assert np.unique(np.round(np.hypot(*desordre.T), 2)).size > 50
+
+    def test_depart_desordonne_trop_dense_refuse(self):
+        with pytest.raises(ValueError, match="trop grande pour un depart desordonne"):
+            parametres_anneau(CONFIG, n_agents=600, depart="desordonne")
+
+    def test_vitesses_dispersees_bornees_et_reproductibles(self):
+        p = parametres_anneau(
+            CONFIG,
+            n_agents=2000,
+            dispersion_vitesse=0.26,
+            duree=1.0,
+            debut_mesure=0.5,
+            depart="voies",
+            rayon_exterieur=40.0,
+        )
+        v = vitesses_individuelles(p)
+        assert v.min() >= 1.34 - 2 * 0.26 - 1e-12 and v.max() <= 1.34 + 2 * 0.26 + 1e-12
+        assert v.mean() == pytest.approx(1.34, abs=0.02)
+        assert v.std() == pytest.approx(0.26, rel=0.15)  # loi bornee a deux ecarts-types
+        np.testing.assert_array_equal(v, vitesses_individuelles(p))
+
+    def test_sans_option_le_banc_est_inchange_au_bit_pres(self):
+        a = simuler_anneau(parametres_anneau(CONFIG, n_agents=40, duree=2.0, debut_mesure=1.0))
+        b = simuler_anneau(
+            parametres_anneau(
+                CONFIG,
+                n_agents=40,
+                duree=2.0,
+                debut_mesure=1.0,
+                depart="voies",
+                dispersion_vitesse=0.0,
+            )
+        )
+        np.testing.assert_array_equal(a.vitesse, b.vitesse)
+
+    def test_les_vitesses_ne_changent_pas_le_depart(self):
+        a = positions_de_depart(parametres_anneau(CONFIG, n_agents=75))
+        b = positions_de_depart(parametres_anneau(CONFIG, n_agents=75, dispersion_vitesse=0.26))
+        np.testing.assert_array_equal(a, b)
+
+    def test_distances_au_centre_relevees_chaque_seconde_dans_la_fenetre(self):
+        r = simuler_anneau(parametres_anneau(CONFIG, n_agents=20, duree=4.0, debut_mesure=1.0))
+        assert r.distances_centre.shape == (3, 20)
+        assert np.all((r.distances_centre > 5.0) & (r.distances_centre < 7.0))
+
+    @pytest.mark.parametrize(
+        "changements, motif",
+        [
+            ({"depart": "spirale"}, "depart doit valoir"),
+            ({"dispersion_vitesse": -0.1}, "positive ou nulle"),
+            ({"dispersion_vitesse": 0.7}, "deux ecarts-types"),
+            (
+                {"dispersion_vitesse": 0.1, "navigation": {}, "temps_espacement": None},
+                "propre dispersion",
+            ),
+        ],
+    )
+    def test_options_mal_formees_refusees(self, changements, motif):
+        with pytest.raises(ValueError, match=motif):
+            parametres_anneau(CONFIG, **changements)
