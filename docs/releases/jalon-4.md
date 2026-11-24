@@ -86,7 +86,7 @@ il a besoin d'une file pour exister (#187) et il tient de 0,75 à 0,88 m de port
 78 des 85 PR fusionnées depuis `jalon-3` ont une revue croisée enregistrée sur GitHub. Sept
 n'en ont pas, et la revue de la PR de publication doit les couvrir : #113 (synchronisation
 après `jalon-3`), #141 (régulation contrôlée sur N = 40 et 20), #168 (vitesse de relecture et
-`make maquette`), #208 (CI parallèle), #209 (tolérance du bilan de l'anneau) **#210 (tests
+`make maquette`), #208 (CI parallèle), #209 (tolérance du bilan de l'anneau), **#210 (tests
 P6)**, la pièce qui clôt ce jalon, et #211 (ces notes).
 
 ## Validation du candidat
