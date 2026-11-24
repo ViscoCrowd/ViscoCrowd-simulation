@@ -122,6 +122,11 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    # Temps de reaction (option, journal du 18/11) : la configuration doit deja declarer
+    # `reaction` avec sa dispersion, que le balayage garde.
+    "reaction_mediane": ParametreBalaye(
+        "E4", "s", "mediane du temps de reaction a l'alarme", ("reaction", "mediane")
+    ),
     "longueur_bassin": ParametreBalaye(
         "E4", "m", "longueur du bassin", ("geometrie", "longueur_bassin")
     ),
