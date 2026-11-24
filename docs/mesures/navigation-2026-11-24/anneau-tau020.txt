@@ -1,0 +1,10 @@
+rho=0.25 v=1.280±0.043 Weidmann=1.339 ecart=-4% derive_max=2.5% viol=1.8e-15
+rho=0.50 v=1.265±0.028 Weidmann=1.297 ecart=-2% derive_max=3.8% viol=9.1e-07
+rho=0.99 v=1.231±0.028 Weidmann=1.061 ecart=+16% derive_max=3.6% viol=1.0e-06
+rho=1.50 v=1.184±0.030 Weidmann=0.807 ecart=+47% derive_max=3.2% viol=1.0e-06
+rho=2.00 v=1.113±0.021 Weidmann=0.605 ecart=+84% derive_max=3.9% viol=1.0e-06
+rho=2.49 v=1.015±0.015 Weidmann=0.453 ecart=+124% derive_max=2.0% viol=1.0e-06
+rho=3.00 v=0.836±0.006 Weidmann=0.331 ecart=+152% derive_max=2.0% viol=1.0e-06
+rho=3.50 v=0.638±0.010 Weidmann=0.234 ecart=+172% derive_max=4.6% viol=1.0e-06
+rho=4.01 v=0.475±0.007 Weidmann=0.155 ecart=+206% derive_max=6.1% viol=1.0e-06
+duree 80 min
