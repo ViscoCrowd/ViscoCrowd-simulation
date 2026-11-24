@@ -353,6 +353,6 @@ aux suivantes, puisque la suppression automatique des branches est active.
 `simuler_piscine` avec #164 et #165 ; #196 **en dernier**.
 
 **Issues ouvertes le 18 novembre** : #191 (relancer #166 sur dix graines), #192 (confirmer
-le tampon et le choix du site sur les graines 11 à 20), #193 (porte de secours), #194
+l'effet des départs échelonnés et le choix du site sur les graines 11 à 20), #193 (porte de secours), #194
 (population hétérogène), #195 (deux corrections mineures), #198 (débit de la porte entre 0,8
 et 0,9 m). Revue de #163 refaite le 18 au soir : les trois points sont traités.
