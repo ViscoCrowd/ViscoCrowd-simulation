@@ -776,14 +776,17 @@ Sur Δt90, moins sensible à ce dernier baigneur :
 | 10 | 6,84 ± 5,50 | 8/10 |
 | 20 | 3,42 ± 8,11 | 6/10 |
 
-Δt90 baisse de 5,59 ± 5,95 s entre 1 et 10 s de médiane, sur 10 graines sur 10. Entre 1
+Δt90 baisse de 5,59 ± 5,95 s entre 1 et 10 s de médiane, sur 10 graines sur 10, mais très
+inégalement : de 0,2 à 16,0 s selon la graine, 0,5 s au plus sur trois graines et plus de
+8 s sur quatre. Entre 1
 et 20 s, la baisse est de 9,00 ± 7,28 s (10/10), mais Δt90 à 20 s est trop dispersé pour
 être lu seul. En moyenne, Δ J_s reste négatif à toutes les médianes : le mouillé ne
 dépasse jamais le sec.
 
 **Lecture.** Quand les départs s'étalent, les baigneurs arrivent à la porte en flux plus
 clairsemé. La file se forme moins, et il y a moins de relances écrêtées par le sol glissant :
-la pénalité du mouillé diminue nettement de 1 à 10 s de médiane. **L'effet inertiel a besoin
+la pénalité du mouillé diminue de 1 à 10 s de médiane, sur toutes les graines, et
+nettement sur quatre d'entre elles. **L'effet inertiel a besoin
 d'une file**, ce qui rejoint le témoin de #140 (même adhérence loin de la file : aucun
 effet). Ce n'est pas l'hypothèse tampon de la problématique, où l'extraction répartie et la
 traversée du mouillé *augmenteraient* le débit : ici, le mouillé ne dépasse jamais le sec,
