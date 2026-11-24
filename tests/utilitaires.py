@@ -36,9 +36,13 @@ def _parametres_reduits_dict(**surcharges) -> dict:
     return parametres
 
 
-def parametres_reduits(**surcharges) -> ParametresPiscine:
-    """Reference a 6 agents et 10 s, avec `surcharges` (geometrie fusionnee)."""
-    graine = lire_configuration(EXEMPLE)["graine"]
+def parametres_reduits(graine: int | None = None, **surcharges) -> ParametresPiscine:
+    """Reference a 6 agents et 10 s, avec `surcharges` (geometrie fusionnee).
+
+    `graine` remplace celle de la reference (par exemple pour rejouer un cas d'issue).
+    """
+    if graine is None:
+        graine = lire_configuration(EXEMPLE)["graine"]
     return ParametresPiscine(**_parametres_reduits_dict(**surcharges), graine=graine)
 
 
