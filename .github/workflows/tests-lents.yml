@@ -55,7 +55,8 @@ jobs:
       - name: Executer les scenarios lents
         env:
           MPLBACKEND: Agg
-        run: pytest -m slow -v --junitxml=resultats-lents.xml
+        # Repartis sur les coeurs du runner, un fichier par processus (cf. ci.yml).
+        run: pytest -m slow -v -n auto --dist loadfile --junitxml=resultats-lents.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:

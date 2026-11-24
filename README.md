@@ -148,11 +148,12 @@ interruption, utiliser `viscocrowd campagne ... --sortie data/campagne`, puis la
 commande avec `--reprendre`. Le [guide des campagnes](docs/campagnes.md) décrit le plan,
 les graines, le contrôle de provenance et le suivi explicite des échecs.
 
-**Temps d'exécution mesuré le 21 octobre 2026** — après intégration de la géométrie
-piscine (#54), la suite complète passe : **598 tests en 105 s, tests lents compris**
-(`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). La CI rapide
-exclut le marqueur `slow` ; les conclusions portées par ces tests demandent donc une
-exécution explicite. La validation du moteur affiche son propre temps ; les durées
+**Temps d'exécution mesuré le 17 novembre 2026** — au commit `eb25a7d` de `dev`, la suite
+complète passe : **1028 tests en 455 s (7 min 35), tests lents compris**
+(`python -m pytest -q`, macOS arm64, Python 3.14.4, dépendances figées). Sans les 7 tests
+`slow`, `make test` en exécute 1021 en 3 min 20 environ ; le 21 octobre, la suite complète
+comptait 598 tests en 105 s. La CI rapide exclut le marqueur `slow` ; les conclusions
+portées par ces tests demandent donc une exécution explicite. La validation du moteur affiche son propre temps ; les durées
 varient selon la machine et les dépendances.
 
 ### Premier banc de foule guidée
@@ -198,13 +199,26 @@ l'erreur : ce contrôle seul ne prouve pas la convergence du modèle.
 
 La relecture ouvre une fenêtre avec **Lire/Pause**, un curseur de temps et un compteur
 de passages vers l'aval. Les disques gardent leur rayon en mètres ; l'horloge utilise
-les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux.
+les instants archivés. `--vitesse 2` accélère la lecture et le GIF d'un facteur deux
+(`make rejouer VITESSE=5` ou `make lancer VITESSE=5` ; sous Windows, `.\run.ps1 rejouer --vitesse 5`).
 Le PNG prend le dernier instant archivé inférieur ou égal à `--instant` ; le GIF rejoue
 toute la trajectoire, dernier instant compris. Aucun calcul physique n'est relancé.
 Les exports refusent d'écraser un fichier existant. Cette première vue prend en charge
-les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `interface`.
+les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via `make maquette`.
 
-Pour relire une évacuation réelle, avec les états et les occupations des sites :
+Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
+simule la piscine puis ouvre directement la relecture de l'archive produite
+(`make lancer CONFIG=experiments/couloir.yaml` pour le couloir ; `.\run.ps1 lancer` sous Windows).
+Pour essayer une variante de la piscine sans éditer le YAML, `FIXER` surcharge les paramètres
+de `balayer-piscine` : `make lancer FIXER="n_agents=150 largeur_porte=0.8"`, ou
+`viscocrowd simuler experiments/piscine.yaml --fixer n_agents=150 --sortie data/essai.npz`
+(`.\run.ps1 simu --fixer n_agents=150` sous Windows). L'archive garde la configuration
+effective et la liste des surcharges ; une variante n'est pas une configuration de référence.
+Plus simple encore, `make menu` (`.\run.ps1 menu` sous Windows) pose cinq questions
+(baigneurs, échelles, porte, panique, sol mouillé), avec la référence en défaut, puis simule
+et ouvre la relecture ; `viscocrowd menu --prereglage olympique` part d'un bassin de 50 × 25 m.
+Chaque lancement est rangé dans `data/menu/` avec sa configuration effective.
+Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
 viscocrowd simuler experiments/piscine.yaml --sortie data/piscine.npz
@@ -212,6 +226,35 @@ viscocrowd rejouer data/piscine.npz
 viscocrowd rejouer data/piscine.npz --image figures/piscine.png --instant 10
 viscocrowd rejouer data/piscine.npz --gif figures/piscine.gif --vitesse 20
 ```
+
+Pour voir toute l'évacuation en une image, `viscocrowd pose-longue data/piscine.npz --image
+figures/pose.png` superpose les trajectoires de tous les agents, colorées par leur vitesse,
+comme une photo à longue exposition : couloirs empruntés, files, zones lentes.
+
+`viscocrowd diagramme-anime data/piscine.npz` rejoue la même archive avec, à droite, le
+diagramme fondamental devant la porte (mesure de Voronoï de M8, #124) qui se trace en
+direct : point courant, traînée des 2 dernières secondes, relation de Weidmann en repère.
+Mêmes exports que `rejouer` (`--image`, `--gif`, `--instant`), lecture ×4 par défaut.
+
+Pour comparer deux évacuations à l'écran, `viscocrowd duel experiments/piscine.yaml --gif
+figures/duel.gif` simule la piscine et son témoin tout sec (même graine, mêmes positions de
+départ) et les rejoue l'une au-dessus de l'autre, horloges synchronisées (`--vitesse 4` par
+défaut). `--contre autre.yaml` remplace le témoin, `--garder dossier/` conserve les archives.
+
+`viscocrowd pression experiments/demo/pression-porte-saturee.yaml --image figures/forces.png
+--instant 35` simule la piscine en mesurant ce que la projection retire à chaque agent, puis
+retrouve l'intensité de chaque contact (moindres carrés positifs) : les chaînes de force et les
+arches devant la porte apparaissent en rouge, avec un zoom sur la porte. La console donne le
+nombre de contacts, le maximum et le résidu relatif de l'ajustement (proche de 0 : les
+intensités expliquent les corrections). Cette configuration de démonstration (porte de 0,8 m,
+150 baigneurs, panique 2, sans régulation) comprime la foule ; sur la référence régulée,
+presque aucun contact n'apparaît (98ᵉ centile à 1,4 m/s²). Intensités non étalonnées ; voir
+`viz/pression.py` pour la méthode et ses limites.
+
+Avec `egouttage` dans les paramètres (désactivé par défaut, voir le journal du 17 novembre),
+les baigneurs mouillent la plage en s'égouttant : `viscocrowd trainee config.yaml --image
+figures/trainee.png --instant 45` montre le film d'eau et, en contour blanc, le carrelage
+devenu glissant là où les trajets se superposent.
 
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
@@ -239,6 +282,13 @@ paramètre à la fois. À chaque valeur et pour chaque graine, l'évacuation est
 même piscine toute sèche, partie des mêmes positions. Voir les
 [balayages de la piscine](docs/balayages-piscine.md).
 
+Sur la plage, les baigneurs suivent tous le même plus court chemin et marchent en file
+indienne contre le bord du bassin. `navigation: {}` dans le YAML de la piscine (ou du
+goulot E0 et de l'anneau de M8, avec `temps_espacement: null`) active la navigation locale
+de Moussaïd et al. (2011) : chacun choisit une direction libre dans son champ de vision
+et règle sa vitesse sur l'obstacle le plus proche. Elle est désactivée dans la référence ;
+mesures, validation et limites dans la [note sur la navigation](docs/navigation.md).
+
 Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
 experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
 b = 0,8 à 1,2 m sur trois graines, et affiche le débit spécifique simulé à côté du débit
@@ -257,7 +307,7 @@ sections [implémentation](report/sections/04-implementation.tex) et
 ### Aperçu de la piscine
 
 ```bash
-make interface
+make maquette
 # Ou, avec l'environnement virtuel activé :
 viscocrowd interface
 ```
@@ -267,6 +317,8 @@ un bassin noir à contour blanc, une échelle à barreaux et une sortie unique �
 Le cadre extérieur reste continu derrière la sortie. Un petit repère indique les
 directions x et y. Les différents sols ne sont pas encore détaillés.
 La barre d'outils permet de zoomer, de déplacer la vue et d'enregistrer une image.
+Cette maquette ne simule rien : pour voir une évacuation, utiliser `make lancer`.
+La cible s'appelait `make interface` jusqu'au 17 novembre 2026.
 
 **Une unité du plan représente un mètre**, avec la même échelle horizontale et verticale.
 Les dimensions de travail sont regroupées dans `DimensionsPlan` : bassin de **25 × 12,5 m**
@@ -337,9 +389,9 @@ Matplotlib, par exemple TkAgg avec Tk installé. Le conteneur Docker configuré 
 | 0 | Socle du dépôt, méthodologie, cahier des charges | Socle livré ; [trace de validation à compléter](docs/validation-sujet.md#trace-de-validation) |
 | 1 | Moteur : schéma semi-implicite + projection sur le domaine | ✅ Validé |
 | 2 | Exclusion entre agents (projection itérative) | ✅ Validé collectivement, avec limites suivies ci-dessous |
-| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Livré sur `dev`, publication sur `main` à faire : couloir guidé et groupe de 24 agents ; eikonal et pilier (#43/#49) ; géométrie/carte/guidage piscine (#54) ; milieux vérifiés dans la piscine (#72) ; obstacles de la plage (#103, #110) ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire jusqu'à la prochaine relance des balayages |
-| 4 | Scénario piscine complet, franchissements | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85) et repère `N / (1,3 w)` à confronter (#11) ; module de chutes facultatif (#78, #82), désactivé par défaut, en attente de #19 |
-| 5 | Campagnes, diagramme fondamental, validation chiffrée | En cours : étalonnage E0 (#56), comparaison E1/E2 (#77, #86) et premiers balayages E3/E4 (#84) livrés ; campagne finale et sensibilité à faire (#59) |
+| 3 | Champ de guidage eikonal + milieux (eau / mouillé / sec) | Publié le 9 novembre ([`jalon-3`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-3)) : couloir guidé et groupe de 24 agents ; eikonal et pilier (#43/#49) ; géométrie/carte/guidage piscine (#54) ; milieux vérifiés dans la piscine (#72) ; obstacles de la plage (#103, #110) ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire jusqu'à la prochaine relance des balayages |
+| 4 | Scénario piscine complet, franchissements | Scénario, franchissements et sorties livrés (#55, #81) ; repère `N / (J w)` (J = 1,225 pers/(m·s), Weidmann) confronté et état absorbant acté (#105) ; porte à arrondir (#85) ; module de chutes (#78, #82, #102) inclus dans le rendu avec l'accord de l'enseignant du 3 novembre (#19), désactivé par défaut et à calibrer |
+| 5 | Campagnes, diagramme fondamental, validation chiffrée | En cours : étalonnage E0 (#56), comparaison E1/E2 (#77, #86) et premiers balayages E3/E4 (#84, #104, #108) livrés ; biais de densité borné (#101) ; relation vitesse–espacement branchée sur la piscine (#100), activée à T = 0,35 s et validée par le groupe le 10 novembre, E1/E2 refaits (#116) ; campagne finale et sensibilité à faire (#59) |
 | 6 | Rapport, figures finales, transparents | Rédaction en cours : chaîne de calcul, validation du couloir, outils et résultats E0/E1/E2 ; analyse finale à venir |
 
 Le statut du sujet et les questions encore ouvertes sont centralisés dans la
@@ -352,8 +404,11 @@ L'indicateur `2 × jeu moyen / diamètre` est de l'ordre de 4 × 10⁻⁵ pour 6
 comprimés à Δt = 0,01 s ; il ne constitue pas une borne du biais de densité au goulot.
 La décroissance annoncée avec Δt est réfutée : le banc est très sensible à de petites perturbations, et une
 perturbation de 10⁻¹² m suffit à changer le jeu moyen d'un facteur dix (voir le journal).
-L'[issue #10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10) reste ouverte
-pour cette validation avant les campagnes. Le rejet des valeurs non finies
+Ce biais est mesuré au goulot E0 dans la PR #101 (issue
+[#10](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/10)) : sur 10 graines, resserrer
+la tolérance de 10⁻⁶ à 10⁻⁷ m ne change pas la densité de façon décelable (p = 1,000), et diviser
+le pas de temps par deux la décale de +0,021 pers/m² en moyenne, un écart non significatif
+(p = 0,270) qui reste sous 3,3 % sur chaque graine. Le rejet des valeurs non finies
 ([#16](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/16)) et la protection des états
 ([#17](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/17)) sont corrigés ;
 le lancement Docker ([#18](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/18))
@@ -420,7 +475,7 @@ src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
 ├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
-├── model/         guidage, carte des milieux, accélération bornée et chutes facultatives
+├── model/         guidage, carte des milieux, accélération bornée ; chutes et navigation facultatives
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
@@ -463,7 +518,9 @@ make install     # environnement de développement
 make test        # suite de tests
 make simu        # lance une simulation de la piscine, archivée dans data/
 make rejouer     # relit la dernière archive à l'écran
+make lancer      # enchaîne les deux : simule la piscine puis ouvre sa relecture
 make comparer    # compare la piscine sèche et mouillée sur dix graines (E1/E2)
+make campagne-finale  # rejoue toute la campagne finale, avec reprise (data/finale)
 make test-invariants  # seulement les invariants physiques
 make test-lents  # seulement les scénarios lents
 make lint        # ruff

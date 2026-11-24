@@ -1,0 +1,11 @@
+M9 — balayage de dt (s)
+  pas de temps (sensibilite numerique)
+Parametres fixes hors YAML : lambda_chute = 2 ; graines [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart
+non sortis : total sur les graines, mouille/temoin, a la fin de la duree
+chutes : moyenne par evacuation, toutes causes, mouille/temoin
+  valeur t100 mouille (s)     Delta t50 (s)     Delta t90 (s)    Delta t100 (s) Delta debit (pers/(m.s))  non sortis      chutes Delta t100 > 0
+    0.01     63.36 ± 6.09     1.639 ± 1.274     6.894 ± 3.412    12.007 ± 5.251    -0.543 ± 0.166         0/0   115.0/0.0       10/10
+   0.005     61.29 ± 5.86     1.316 ± 1.839     5.406 ± 3.619     9.996 ± 6.241    -0.466 ± 0.254         0/0   108.5/0.0        9/10
+Mesures graine par graine : docs\mesures\chutes-exploratoire-2026-11-16\dt.json
+Temps d'execution : 969.8 s

@@ -192,6 +192,25 @@ def test_commande_etalonner_affiche_regimes_et_reference_du_meme_n(
     assert f"Seyfried N={n_agents}" in sortie
 
 
+def test_commande_etalonner_remplace_n_par_agents(tmp_path, capsys):
+    """--agents mesure N = 20 ou 40 sans copier la configuration de reference (N = 60)."""
+    config = yaml.safe_load(EXEMPLE.read_text(encoding="utf-8"))
+    config["parametres"]["duree"] = 25.0
+    fichier = tmp_path / "goulot.yaml"
+    fichier.write_text(yaml.safe_dump(config), encoding="utf-8")
+    arguments = ["etalonner-goulot", str(fichier), "--largeurs", "1.2", "--graines", "1"]
+    assert main([*arguments, "--agents", "20"]) == 0
+    sortie = capsys.readouterr().out
+    assert "20 agents" in sortie and "Seyfried N=20" in sortie
+    ligne = next(ligne for ligne in sortie.splitlines() if ligne.split()[:1] == ["1.20"])
+    assert ligne.split()[-1] == "2.31"
+
+
+def test_commande_etalonner_refuse_un_n_invalide(capsys):
+    assert main(["etalonner-goulot", str(EXEMPLE), "--agents", "1"]) == 1
+    assert "n_agents" in capsys.readouterr().err
+
+
 def test_commande_etalonner_refuse_un_autre_scenario(capsys):
     racine = Path(__file__).parents[1]
     assert main(["etalonner-goulot", str(racine / "experiments/couloir.yaml")]) == 1
@@ -343,6 +362,31 @@ def test_e0_avec_espacement_proche_de_seyfried():
         assert all(m.statut == "ecoulement" for m in mesures), f"b = {b} m"
         moyenne = np.mean([m.debit for m in mesures])
         assert moyenne == pytest.approx(reference_seyfried(60, b), rel=0.15)
+
+
+class TestNavigation:
+    """Navigation de Moussaid et al. (2011) sur le banc E0, comme sur la plage (#158)."""
+
+    def test_ne_se_cumule_pas_avec_temps_espacement(self):
+        with pytest.raises(ValueError, match="ne se cumulent pas"):
+            parametres(navigation={})  # l'exemple fixe temps_espacement
+        p = parametres(navigation={"champ_vision": 45.0}, temps_espacement=None)
+        assert p.navigation.champ_vision == 45.0
+
+    def test_le_plus_rapide_borne_le_pas_de_temps(self):
+        # v0 = 1,34 m/s, r = 0,2 m : dt = 0,025 s fait 0,0335 m par pas, sous r/5 ; avec le
+        # facteur maximal 1,45, 0,0486 m : refuse.
+        parametres(temps_espacement=None, dt=0.025)
+        with pytest.raises(ValueError, match="dt trop grand"):
+            parametres(temps_espacement=None, dt=0.025, navigation={})
+
+    def test_goulot_etroit_ne_se_fige_plus(self):
+        """N = 40, b = 0,8 m, graine 1 : bouche sans la regle d'ordre, s'ecoule avec."""
+        r = simuler_goulot(
+            parametres(n_agents=40, largeur_goulot=0.8, temps_espacement=None, navigation={})
+        )
+        assert r.statut == "ecoulement"
+        assert r.violation_paroi_max() <= r.parametres.tolerance
 
 
 def test_configuration_sans_temps_espacement_acceptee():

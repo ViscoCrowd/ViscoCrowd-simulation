@@ -171,6 +171,9 @@ def pas_libre_milieux(
     facteur_vitesse: float = 1.0,
     temps_espacement: float | None = None,
     avancement: Callable[[np.ndarray], np.ndarray] | None = None,
+    groupe_meneur: Callable[[np.ndarray], np.ndarray] | None = None,
+    facteur_individuel: Callable[[State], np.ndarray] | None = None,
+    vitesse_souhaitee: Callable[..., np.ndarray] | None = None,
 ) -> VitesseLibre:
     """Vitesse libre d'agents guides sur des sols differents, pour `core.integrator`.
 
@@ -207,6 +210,18 @@ def pas_libre_milieux(
         avancement: temps restant jusqu'a la sortie (N,) aux positions (N, 2),
             en s ; ordonne les agents pour la relation vitesse-espacement, dont
             le meneur doit etre plus avance. Exige si `temps_espacement` est donne.
+        groupe_meneur: fonction facultative (x) -> (N,) renvoyant les identifiants
+            de sous-population pour restreindre les meneurs au meme groupe (par ex.
+            eau vs plage).
+        facteur_individuel: fonction facultative (etat) -> (N,) qui multiplie la
+            vitesse souhaitee de chaque agent (profondeur du bassin, dispersion entre
+            individus). Meme signature que la navigation de #163. Sans elle, U est
+            inchange au bit pres.
+        vitesse_souhaitee: fonction facultative (etat, e, vitesse, tau, u) -> (N, 2)
+            qui remplace la vitesse desiree U, a partir de la direction de guidage e,
+            de la vitesse souhaitee nominale (avant la relation vitesse-espacement),
+            du temps de relaxation du sol et de U calcule comme ci-dessus. Elle sert
+            a la navigation locale (`model.navigation`). Sans elle, U est inchange.
 
     Returns:
         Une fonction (etat, dt) -> v_libre, a passer a `pas_semi_implicite`,
@@ -255,12 +270,21 @@ def pas_libre_milieux(
             )
 
         vitesse = facteur_vitesse * s[m]
+        if facteur_individuel is not None:
+            vitesse = vitesse * np.asarray(facteur_individuel(etat), dtype=float)
+        nominale = vitesse
         if temps_espacement is not None:
             avance = np.asarray(avancement(etat.x), dtype=float)
+            groupes = np.asarray(groupe_meneur(etat.x)) if groupe_meneur is not None else None
             vitesse = vitesse * facteur_espacement(
-                etat.x, etat.r, e, avance, vitesse, temps_espacement
+                etat.x, etat.r, e, avance, vitesse, temps_espacement, groupes=groupes
             )
         u = vitesse[:, None] * e
+        if vitesse_souhaitee is not None:
+            u = np.asarray(vitesse_souhaitee(etat, e, nominale, tau[m], u), dtype=float)
+            if u.shape != (etat.n, 2):
+                raise ValueError(f"vitesse_souhaitee doit rendre ({etat.n}, 2), recu {u.shape}")
+            exiger_fini("La navigation a rendu une vitesse non finie.", vitesse_souhaitee=u)
         return vitesse_libre(etat.v, u, tau[m], a_max[m], dt)
 
     return _vitesse

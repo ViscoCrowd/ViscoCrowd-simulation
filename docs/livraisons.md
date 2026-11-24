@@ -6,20 +6,21 @@ et la création de son tag annoté et de sa release. Les critères du jalon rest
 [planning](planning/README.md) suit les tâches et [CONTRIBUTING § 3.4](../CONTRIBUTING.md#34-passer-de-dev-à-main)
 décrit les opérations de publication.
 
-## Registre au 7 novembre 2026
+## Registre au 24 novembre 2026
 
 | Jalon | État technique | Publication |
 |---|---|---|
-| 0 — socle et cadrage | Socle présent depuis #1 ; trace enseignant encore incomplète (#19) | Aucun tag attestant une clôture complète de J0 |
+| 0 — socle et cadrage | Socle présent depuis #1 ; questions de cadrage validées par l'enseignant le 3 novembre ([trace](validation-sujet.md#trace-de-validation), #19) | Aucun tag attestant une clôture complète de J0 |
 | 1 — moteur | Livré sur `main` par #1, correctif Makefile #2/#3 inclus | [`jalon-1`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-1), commit `28252ef6d196caec847e6f957e7282152cf98449` ; repère historique créé le 21 octobre |
 | 2 — exclusion | Validé avec limites connues ; corrections et figures #21–#23, correctifs #28 | [`jalon-2`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-2), publication de rattrapage du 21 octobre ; [provenance, mesures et limites](releases/jalon-2.md) |
-| 3 — guidage et milieux | Terminé sur `dev` : C6 et G1–G5 livrés ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire | Publication proposée par la PR `dev` → `main` ; tag `jalon-3` et [notes de version](releases/jalon-3.md) après fusion |
-| 4 — scénario piscine | Scénario, franchissements et sorties livrés (#55, #81) ; porte à arrondir (#85), repère de #11 (#105) et tests de blocage P6 ouverts | Code présent dans la version `jalon-3`, non revendiqué comme livré |
-| 5 — campagnes | En cours : E0 (#56), E1/E2 refaits au facteur 1,5 (#86, #109), premiers balayages E3/E4 (#84) et balayage de τ outillé (#108) ; campagne finale à faire (#59) | Code et mesures présents dans la version `jalon-3`, non revendiqués comme livrés |
-| 6 — livrables | Rapport en cours ; transparents à préparer | Non publié |
+| 3 — guidage et milieux | Livré : C6 et G1–G5 ; valeurs de référence figées le 6 novembre (#109), a_max de l'eau provisoire | [`jalon-3`](https://github.com/ViscoCrowd/ViscoCrowd-simulation/releases/tag/jalon-3), commit de fusion `190d29e4b60a0864e20b75288dcc854f7f4dddfc` de la PR #112 le 9 novembre, `dev` resynchronisée dans #113 ; [notes de version](releases/jalon-3.md) |
+| 4 — scénario piscine | Livré : P1–P6. Scénario, franchissements et sorties (#55, #81) ; repère `N / (J w)` et état absorbant (#105) ; montants de porte arrondis (#125, #85) ; déblocage des nageurs immobiles (#131, #127) ; passages, blocages et absence de franchissements fantômes testés sur 11 configurations (#210) | `jalon-4`, commit de fusion de la PR de publication du 24 novembre ; [notes de version](releases/jalon-4.md) |
+| 5 — campagnes | En cours : E0 étalonné et régulation de Tordeux branchée sur la piscine (M4 : #100, #116, #141) ; E1/E2 refaits avec la porte arrondie (M5 : #128) ; balayages (M6 : #104, #119, #136, #137) ; effet inertiel confirmé sur les graines 11 à 20 (#172, #187) ; diagrammes fondamentaux (M8 : #126, #133, #149, #203, #205) ; sensibilité au pas de temps (M9 : #138). Restent la campagne finale (M7, #59), la sensibilité à N et aux graines sur la configuration finale (M9) et le domaine de validité (M8) | Présent dans la version `jalon-4`, non revendiqué comme livré |
+| 6 — livrables | Rapport rédigé jusqu'à la conclusion et au résumé (#180) ; figures finales (R2), relecture complète (R5) et transparents (R7) à faire | Présent dans la version `jalon-4`, non publié |
 
-Le module de chutes (#78, #82, #102), désactivé par défaut et en attente de la décision C1
-(#19), est lui aussi présent dans la version `jalon-3` sans y être revendiqué.
+Le module de chutes (#78, #82, #102) est lui aussi présent dans la version `jalon-3` sans y
+être revendiqué. Son inclusion dans le rendu a été validée par l'enseignant le 3 novembre
+(C1, #19) ; il reste désactivé par défaut et non calibré.
 
 Les anciennes versions restent consultables ; elles ne doivent pas être présentées comme
 la version courante ni comme une validation des travaux ultérieurs. La date de création d'un

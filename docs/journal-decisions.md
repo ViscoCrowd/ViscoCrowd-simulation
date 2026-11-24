@@ -11,6 +11,653 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-20 — Débit par paliers aux goulots étroits : E0 aussi (#198)
+
+**Statut.** Mesure, sans changement du modèle. Une limite à écrire au § 6 du rapport.
+
+**Contexte.** Dans la piscine, le débit de la porte saturée reste à 1,79 pers/s de 0,75 à
+0,82 m, passe à 1,92 pers/s à 0,85 et 0,88 m, et la porte ne sature plus à 0,90 m (mesure de
+Shaleena dans #198). Piste : des disques durs ne passent que par files entières. E0 n'avait été
+mesuré qu'au pas de 0,1 m, trop large pour le voir.
+
+**Mesure** (E0 de référence, `experiments/goulot.yaml`, N = 60, T = 0,35 s, graines 1 à 10 ;
+commit `d4d3fb1`, qui écrit la question et le critère avant le calcul ; 90 simulations, 53 s ;
+[`mesures/e0-paliers-2026-11-20/`](mesures/e0-paliers-2026-11-20/)). Q = J_s · b, en pers/s :
+
+| b (m) | 0,75 | 0,78 | 0,80 | 0,82 | 0,85 | 0,88 | 0,90 | 0,95 | 1,00 |
+|---|---|---|---|---|---|---|---|---|---|
+| Q (pers/s) | 1,262 | 1,261 | 1,331 | 1,341 | 1,379 | 1,401 | 1,678 | 1,727 | 1,968 |
+| J_s (pers/(m·s)) | 1,68 | 1,62 | 1,66 | 1,64 | 1,62 | 1,59 | 1,86 | 1,82 | 1,97 |
+
+Écarts-types entre graines de 0,005 à 0,08 pers/s ; 90 écoulements sur 90. Entre largeurs
+voisines, trois paliers (moins de 2 % d'écart) : 0,75 → 0,78, 0,80 → 0,82 et 0,85 → 0,88 m.
+Le dernier est plutôt presque plat : +1,6 %, avec un écart apparié de +0,022 ± 0,009 pers/s
+(erreur standard), donc pas nul, mais sous le seuil fixé avant le calcul.
+Trois sauts, chacun plus de deux fois la hausse relative de largeur et plus de deux erreurs
+standard de l'écart apparié : +5,6 % de 0,78 à 0,80 m, **+19,8 % de 0,88 à 0,90 m** et +14,0 %
+de 0,95 à 1,00 m. **Selon le critère fixé avant le calcul, E0 montre la même quantification que
+la porte de la piscine.**
+
+**Lecture.** Sous 1 m, le débit d'un goulot avance par paliers, et presque pas avec la largeur
+entre deux seuils. Dans un palier, J_s = Q / b baisse donc quand la largeur augmente (de 1,68 à
+0,75 m à 1,59 à 0,88 m). La cause n'est établie que pour le premier saut : 0,80 m, c'est deux
+diamètres de 0,40 m, deux disques de front. Ceux de 0,90 et 1,00 m restent inexpliqués (il en
+faudrait 1,20 m pour trois de front) ; des arrangements en quinconce sont possibles, mais on ne
+les a pas regardés. Seyfried mesure au contraire un débit qui croît continûment : son résumé
+cite d'autres données qui suggèrent une croissance par paliers, mais conclut « The data show a
+linear growth of the flow with the width » (Seyfried et al. 2009, arXiv physics/0702004).
+Les paliers sont donc un effet de nos disques durs de rayon identique, pas un comportement des
+piétons qu'il mesure. Les seuils ne sont pas tout à fait les mêmes dans E0
+(parois droites, goulot de 2,8 m) et à la porte de la piscine (montants arrondis) : ils tiennent
+à la forme de l'entrée, pas seulement au diamètre de 0,40 m.
+
+**Conséquences.**
+- **Validation E0 (#141).** Le protocole compare le modèle à Seyfried à 0,8, 0,9, 1,0, 1,1 et
+  1,2 m. Or 0,80 et 0,90 m tombent juste après un saut. À 0,88 m, le modèle donne
+  1,59 pers/(m·s), contre 1,81 pour Seyfried interpolé linéairement entre 0,8 et 0,9 m
+  (N = 60), largeur qu'il n'a pas mesurée, mais conformément à la croissance linéaire qu'il
+  conclut : 12 % en dessous, alors que l'écart moyen aux largeurs du protocole vaut 2,8 %. L'accord publié reste
+  juste aux largeurs mesurées par Seyfried, mais il ne se généralise pas entre elles.
+- **Rapport (§ 6, limites).** Avec des disques durs de rayon identique, le débit d'un goulot
+  étroit avance par paliers, contrairement à Seyfried. Sous 1 m environ, J_s = débit / largeur n'a de sens qu'aux largeurs mesurées.
+- **Piscine.** L'effet inertiel n'en dépend pas : Δt100 vaut de +13,5 à +14,3 s, 10/10, pour
+  toute porte de 0,75 à 0,88 m (#198).
+
+**Limites.** Un seul effectif (N = 60) et une seule régulation (T = 0,35 s). Un rayon dispersé
+(`dispersion_rayon`) devrait lisser les seuils ; c'est à vérifier avant de l'écrire.
+
+---
+
+## 2026-11-18 — Temps de réaction à l'alarme, facultatif (feuille de route, D1)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`reaction` absent ou `null`) : la référence, E1/E2 et les balayages ne changent pas.
+
+**Contexte.** Tous les baigneurs partent à t = 0. Dans une vraie évacuation, chacun met un
+temps à entendre l'alarme, comprendre et décider (temps de « pre-mouvement »). Étaler les
+départs désynchronise les arrivées à la porte : on peut ainsi tester si l'effet inertiel
+dépend de la synchronisation des arrivées. Ce n'est pas l'hypothèse « tampon » de la
+problématique, où ce sont l'extraction répartie et la traversée du mouillé qui étalent les
+arrivées. Limite : le tirage ne dépend pas de la position du baigneur.
+
+**Décision proposée.** `reaction: {mediane: s, dispersion: -}` dans `piscine.yaml`. Chaque
+agent tire un instant t_i = exp(log(mediane) + dispersion · Z), Z ~ N(0, 1), sur son propre
+flux de tirage (3) : les positions initiales, les chutes et la navigation ne changent pas.
+Tant que t < t_i, sa direction est nulle (il reste sur place, ou freine sous a_max), il ne
+saisit aucun site, et il ne compte pas comme « immobile » pour la règle de déblocage (#127) :
+attendre l'alarme n'est pas être bloqué.
+
+**Hypothèses.** La loi log-normale est la forme habituelle des temps de pré-mouvement
+(ISO/TR 16738 ; Purser et Bensilum, 2001, *Safety Science* 38) : **à vérifier sur les
+originaux** avant de citer. Aucune valeur n'existe pour une piscine : mediane et dispersion
+sont à balayer, sans conclusion avant.
+
+**Mesure** (graine du YAML, 100 baigneurs, référence régulée, dispersion 0,5) :
+
+| Médiane (s) | Réactions (s) | t50 mouillé / sec (s) | t100 mouillé / sec (s) |
+|---|---|---|---|
+| sans | — | 31,55 / 31,54 | 53,66 / 53,52 |
+| 1 | 0,3 à 3,3 | 32,44 / 32,43 | 54,53 / 54,53 |
+| 5 | 1,4 à 16,3 | 35,19 / 35,15 | 56,30 / 56,44 |
+| 10 | 2,8 à 32,6 | 39,44 / 39,42 | 59,90 / 59,88 |
+
+Une médiane de 10 s ne retarde t100 que de 6,2 s : la porte absorbe une partie de
+l'étalement. À la référence, l'écart mouillé − sec reste nul, comme sans réaction. Une graine,
+un contrôle de fonctionnement : l'effet de la synchronisation se mesure à porte saturée, dans une
+campagne à part (graines 1 à 10, médianes 1 à 20 s).
+
+---
+
+## 2026-11-18 — Choisir son site de sortie selon la file, et maître-nageur (D3, D5)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`choix_site` absent ou `null`) : la référence ne change pas.
+
+**Contexte.** Le champ eikonal de l'eau est statique : il ignore la file devant un site
+occupé. Un vrai nageur près du bord voit la file devant l'échelle et va au rebord libre
+d'à côté. C'est le cœur de l'« extraction répartie » de la problématique.
+
+**Décision proposée.** `choix_site: {portee: 3, periode: 1, marge: 1, mode: local}`. Toutes
+les `periode` secondes, chaque nageur estime, pour les sites à moins de `portee` mètres, le
+temps jusqu'à la porte : trajet à la vitesse de l'eau, attente (fin du franchissement en
+cours, plus la durée de franchissement de chaque nageur qui vise déjà ce site et en est plus
+près que lui, voir le correctif du 20 novembre), puis le
+franchissement et la plage. Il nage droit vers le meilleur, et n'en change que si le gain
+dépasse `marge` secondes, sinon il oscillerait entre deux sites voisins. En mode
+`coordonne` (D5), un maître-nageur voit tout le bassin et répartit les nageurs du plus
+avancé au moins avancé, chacun vers le site le moins coûteux compte tenu des envois
+précédents. **Aucune source ne décrit ce comportement** : `portee`, `periode` et `marge`
+sont des hypothèses, et le mode coordonné un scénario illustratif.
+
+**Mesure** (graines 1 à 10, référence mouillée, 100 baigneurs) :
+
+| Variante | t100 (s) | Sorties par les échelles | Δt100 apparié (s) | Graines en baisse |
+|---|---|---|---|---|
+| Sans choix (référence) | 51,28 ± 1,87 | 23,7 % | — | — |
+| Choix local | 50,88 ± 1,60 | 6,0 % | −0,40 ± 1,01 | 7/10 |
+| Maître-nageur | 49,44 ± 1,15 | 4,7 % | −1,84 ± 1,78 | 8/10 |
+
+Quand ils voient la file, les nageurs délaissent les échelles (4 fois moins de sorties par
+elles) pour le rebord, plus lent mais libre, et l'évacuation tend à raccourcir. Selon
+`criteres-acceptation.md` (§ 3), ni l'un ni l'autre n'est un effet détecté (2 et 3 graines
+contraires) : une indication, à confirmer sur les graines 11 à 20 si le groupe retient
+l'option.
+
+**Correctif du 20 novembre (#202, revues de #188).** La première version comptait dans la
+file d'un site **tous** les nageurs qui le visaient, y compris ceux plus loin que le nageur qui
+choisit : le plus proche d'une échelle surestimait son attente. Il ne compte plus que la file
+devant lui (`files_devant`). Remesuré sur les mêmes graines, aux commits `1cb8457` (avant) et
+`d25ad1f` (après), question et critère écrits avant le calcul
+([`mesures/choix-site-file-devant-2026-11-20/`](mesures/choix-site-file-devant-2026-11-20/)) :
+
+| Choix local | t100 (s) | Sorties par les échelles |
+|---|---|---|
+| Ancienne règle (toute la file) | 50,88 ± 1,60 | 6,0 % |
+| File devant soi | 50,66 ± 1,56 | 6,0 % |
+
+Écart apparié −0,22 ± 0,81 s (écart-type), 7 graines sur 10 en baisse : **pas d'effet**
+selon le critère fixé (9 sur 10). La part des échelles ne bouge pas (de 4 à 8 sorties sur 100
+selon la graine, au lieu de 4 à 9). La prédiction des relectures, qui attendaient un retour vers
+les échelles, ne se vérifie donc pas : les nageurs ne délaissent pas les échelles parce qu'ils
+comptent les autres en trop. Par rapport à l'évacuation sans choix du site, Δt100 vaut
+désormais −0,62 ± 0,96 s (écart-type), 7 graines sur 10 en baisse : toujours une
+indication, pas un effet.
+
+---
+
+## 2026-11-18 — Profondeur variable du bassin, facultative (feuille de route, D2)
+
+**Statut.** Proposition de Hamza, à valider en relecture. Option désactivée par défaut
+(`profondeur` absent ou `null`) : la référence ne change pas.
+
+**Contexte.** Le bassin a une profondeur unique, 0,7 m, d'où la vitesse dans l'eau de
+0,69 m/s (V = 0,53 M^(−0,19), M = d²/2, d'après `shirvani2020`, entrée du 25 octobre). Un
+vrai bassin a un petit et un grand bain : on marche plus vite là où l'eau est basse.
+
+**Décision proposée.** `profondeur: {gauche: m, droite: m}`, linéaire en x d'un bord du
+bassin à l'autre. Dans l'eau, la vitesse souhaitée est multipliée par (d / 0,7)^(−0,38), la
+loi de la référence ramenée à sa valeur de 0,7 m. Le champ de guidage de l'eau utilise la
+même vitesse locale : un nageur préfère traverser là où l'eau est basse. Le crochet
+`facteur_individuel` de `pas_libre_milieux` porte la même signature que dans #163.
+
+**Domaine.** Bernardini et al. (2020), d'après `shirvani2021these`, ont mesuré en eau calme
+de 0,2 à 0,7 m. Le code accepte 0,2 à 1,0 m pour représenter un petit bain ; **au-delà de
+0,7 m, c'est une extrapolation**. Plus profond, on nage, et la loi ne s'applique plus.
+
+**Mesure** (graines 1 à 10, référence mouillée, bassin de 1,0 m à gauche à 0,7 m côté
+porte) : t50 = 31,37 ± 0,48 s contre 31,43 ± 0,52 s ; écart apparié Δt50 = −0,05 ± 0,28 s
+(6 graines sur 10 positives), Δt100 = +0,15 ± 0,67 s (5 sur 10). **Aucun effet décelable** :
+la porte limite l'évacuation, et les nageurs du côté profond, loin de la porte, sortent de
+toute façon parmi les derniers. Une profondeur uniforme de 0,7 m redonne la référence au bit
+près.
+
+---
+
+## 2026-11-17 — Navigation locale par heuristiques visuelles (#158)
+
+**Statut.** Module livré, facultatif (`navigation: null` dans la référence). Son activation
+dans la référence est proposée par Shaleena et reste à décider par le groupe dans #158.
+
+**Contexte.** Les baigneurs marchaient en file indienne contre le bord du bassin, puis en
+deux lignes parfaites vers la porte : 93 % des positions de plage le long du bassin au
+plus près possible, un flux de 6 cm d'épaisseur. Deux causes : le champ eikonal donne à
+tous le même plus court chemin, qui longe le bassin, et rien n'en écartait un agent
+(vitesses identiques, aucune anticipation des autres).
+
+**Décision.** Ajouter la navigation locale de Moussaïd, Helbing et Theraulaz (2011),
+vérifiée sur l'original : chaque baigneur de la plage choisit, dans son champ de vision,
+la direction qui le rapproche le plus de la porte compte tenu de la place libre, puis
+règle sa vitesse sur la distance au premier obstacle. Chacun a sa propre vitesse souhaitée
+(coefficient de variation de 0,15, celui de l'article), nageurs compris. Le champ
+eikonal reste la destination, et la projection l'exclusion. Les nageurs ne naviguent pas.
+
+**Mesure** (graines 1 à 10, commit `0cb0490`, `docs/navigation.md`) : 9 % des positions
+contre le bord au lieu de 93 %, un flux de 0,77 m d'épaisseur au lieu de 6 cm, et t100
+avancé de 4,1 ± 1,7 s (10 graines sur 10). Le gain vient des heuristiques : sans
+dispersion des vitesses, t100 avance de 6,3 s, et la dispersion en reprend 2,2 (10/10
+chacun, revue de #163). Ni le pas de temps ni les paramètres de la fig. 3 de l'article
+(45°, 8 m) ne changent rien de décelable. L'écart mouillé − sec sur t100 (+0,84 s,
+8 graines sur 10) n'est pas une détection au sens des critères (p = 0,11).
+
+**Validation, sans réglage.** Sur E0, la navigation figeait d'abord la foule devant les
+goulots étroits : deux voisins s'attendaient l'un l'autre. Seuls les agents plus avancés
+vers la sortie comptent désormais dans la seconde heuristique, comme pour la régulation T ;
+288 simulations sur 300 s'écoulent. Mais le débit reste de 16 à 38 % sous Seyfried avec
+τ = 0,5 s (1 à 25 % avec τ = 0,35 s). Sur l'anneau, la vitesse baisse progressivement
+avec la densité, comme chez Weidmann, mais 23 à 67 % trop vite au-dessus de 1,5 pers/m²
+(10 graines, code versé dans `scenarios/anneau.py` après la fusion de #149).
+
+**Options écartées.**
+- *Un bruit sur la direction.* Il casse les lignes, mais c'est un artifice statistique,
+  pas un comportement : il ne dit pas pourquoi les gens s'écartent.
+- *Une marge de confort imposée au bord du bassin.* Elle décale la file sans l'élargir, et
+  aucune source ne fixe sa valeur.
+- *Un guidage qui tient compte de la densité (Hughes, 2002).* Il est plus lourd, et il
+  répond surtout au choix du côté du bassin, pas à la marche en file. On le garde pour plus
+  tard.
+
+**Ce qu'il resterait à faire pour l'activer.** Décider si l'on accepte l'écart à Seyfried
+ou si l'on règle τ sur E0, comme on a réglé T. Puis refaire E1/E2, les balayages, les
+diagrammes et la campagne des chutes, et reprendre les § 2, 5 et 6 du rapport.
+
+## 2026-11-17 — Traînée d'eau des baigneurs sur la plage, facultative
+
+**Statut.** Proposition de Lenny, à valider par le groupe. Désactivée par défaut
+(`egouttage` absent ou `null`) : la référence, E1/E2 et les balayages ne changent pas.
+
+**Idée.** Un baigneur qui sort de l'eau ruisselle et mouille la plage derrière lui. Une
+trace seule ne rend pas le carrelage glissant ; là où beaucoup de trajets se superposent,
+si. La bande mouillée fixe de 3 m autour du bassin ne représente pas ce mécanisme, alors
+qu'il porte l'eau exactement là où la foule converge : vers la porte.
+
+**Modèle (`model/egouttage.py`).** Chaque baigneur de la plage dépose sur la case sous lui
+`volume / duree · exp(−(t − t_sortie) / duree) · dt` litres ; l'intégrale vaut `volume`.
+Une case sèche devient MOUILLE quand son film dépasse `seuil` (L/m², soit mm). La carte des
+milieux étant relue à chaque pas, l'adhérence, la vitesse et les glissades du module de
+chutes s'appliquent sur la traînée sans autre changement. L'eau ne sèche pas (l'évacuation
+dure une minute). Le guidage reste statique : les agents ne contournent pas la traînée.
+
+```yaml
+  egouttage:
+    volume: 0.4    # L emportés par un baigneur (hypothèse)
+    duree: 30.0    # s, constante d'égouttage (hypothèse)
+    seuil: 0.05    # L/m², film à partir duquel le carrelage est mouillé (hypothèse)
+    pas: 0.1       # m, côté d'une case (au plus rayon / 2)
+```
+
+**Mesures (remesurées le 19 novembre, après le dépôt sur l'empreinte du baigneur, cases de
+0,1 m ; 100 agents, référence par ailleurs inchangée).**
+
+| Graine | Chutes | t50 sans → avec traînée | t100 sans → avec | Chutes sans → avec | Plage mouillée |
+|---|---|---|---|---|---|
+| 20262027 | non | 31,55 → 31,55 s | 53,66 → 53,66 s | – | 4,5 % |
+| 20262028 | non | 31,14 → 31,14 s | 54,31 → 54,31 s | – | 4,0 % |
+| 20262029 | non | 31,62 → 31,62 s | 49,26 → 49,26 s | – | 5,8 % |
+| 20262027 | oui (`{}`) | 32,62 → 58,82 s | 69,64 → 99,60 s | 174 → 525 | 9,6 % |
+| 20262028 | oui | 31,09 → 34,22 s | 57,78 → 62,58 s | 89 → 134 | 6,5 % |
+| 20262029 | oui | 31,54 → 45,75 s | 55,69 → 77,43 s | 81 → 299 | 8,8 % |
+
+Aucune sortie des murs (au plus 7·10⁻¹⁵ m).
+
+**Lecture.** Sans chutes, la traînée mouille 4 à 6 % de la plage, sur les deux files qui
+mènent à la porte, et ne change rien à l'évacuation : comme pour la bande fixe, le mouillé
+n'agit que là où l'on freine ou tourne. Avec les chutes par défaut, elle multiplie les
+glissades et retarde fortement l'évacuation. **Ces chiffres ne mesurent que les taux par
+défaut, non calibrés (#130) : à ne citer nulle part avant la calibration.** Un baigneur seul
+ne mouille aucune case de plage sèche (test), quelle que soit la grille.
+
+**Correctif du 19 novembre (revue de #165).** Le premier dépôt mettait tout le volume d'un
+pas sur la case sous le centre : le film laissé par un passage valait q / (v · pas) et
+dépendait donc de la taille des cases (0,027 L/m² à 0,25 m, 0,053 à 0,125 m), si bien que la
+propriété « un seul baigneur ne mouille rien » tenait au choix de la grille. Le dépôt est
+maintenant réparti sur l'empreinte du baigneur (les cases dont le centre est à moins de r) :
+le film vaut environ 2 q / (π r v) ≈ 0,021 L/m², à 10 % près entre 0,1 et 0,05 m. La
+configuration refuse des cases de plus de r / 2, pour lesquelles l'empreinte ne contient que
+une ou deux cases.
+
+**Limites.** Les trois valeurs physiques sont des hypothèses sans source ; il faut les
+balayer avant toute conclusion. Les chutes elles-mêmes ne sont pas calibrées (#130).
+
+---
+
+## 2026-11-16 — Chutes : référence sans chutes, campagne exploratoire à part (#130)
+
+**Statut.** Décision proposée par Shaleena, à valider en relecture de la PR. Elle reprend la
+proposition de Lenny du 14 novembre (entrée plus bas), complétée par la mesure.
+
+**Contexte.** L'enseignant a validé l'inclusion des chutes dans le rendu (C1, 3 novembre),
+pas leurs valeurs. Aucun des quatre paramètres libres du module n'a de source primaire :
+`lambda_chute`, `lambda_domino`, `lambda_bousculade` (seul compte son produit avec
+`duree_bousculade`, #135) et `facteur_rayon_terre`. Il n'existe pas non plus de taux de chute
+observé pendant une évacuation de piscine sur lequel les caler.
+
+**Décision.**
+1. **La référence reste sans chutes** (`chutes: null` dans `experiments/piscine.yaml`).
+   E1/E2, les balayages E3/E4 et les conclusions principales du rapport en restent là.
+2. **Les chutes sont présentées dans une campagne exploratoire à part.** Elle balaie les
+   quatre paramètres comme des hypothèses, un à la fois, avec le témoin sec habituel, qui
+   garde les mêmes chutes. `lambda_domino`, `lambda_bousculade` et `facteur_rayon_terre`
+   deviennent balayables comme `lambda_chute`, et chaque évacuation compte ses chutes par
+   cause.
+3. **Les valeurs par défaut ne changent pas** (λ_chute = 2 /s, λ_domino = 4 /s,
+   λ_bousculade = 0, r_terre = 1,5 r) : ce sont des points de départ, pas des valeurs
+   calibrées.
+4. **Relevage systématique**, sans piétinement : c'est le plus simple, et cela suffit pour
+   une question de débit.
+5. **Population homogène** de nageurs, médiane de relevage 3,7 s (Becker et al. 2016,
+   adultes de 20 à 50 ans). La fraction de 60 ans et plus n'est pas modélisée.
+
+**Mesure** (16 novembre, Windows, graines 1 à 10, référence régulée, mouillé et témoin sec ;
+`docs/balayages-piscine.md`, section « Chutes » ; bilans dans
+`docs/mesures/chutes-exploratoire-2026-11-16/`) :
+
+| Hypothèse (les autres par défaut) | Chutes par évacuation, mouillé | Δ t100 (s) | Graines plus lentes |
+|---|---|---|---|
+| λ_chute = 0,5 → 10 /s | 57 → 252 | +7,0 → +24,8 | 10/10 |
+| λ_domino = 1 → 16 /s | 63 → 175 | +6,1 → +17,8 | 9 à 10/10 |
+| λ_bousculade = 0 → 10 /s | 115 → 129 (témoin : 0 → 37) | +12,0 → +11,7 | 9 à 10/10 |
+| r_terre = 1 → 2 r | 124, 115, 125 | +21,0, +12,0, +11,5 | 10/10 |
+
+- **Le module donne le premier effet net du sol mouillé** : t100 recule de 6 à 25 s selon les
+  hypothèses, sur 9 ou 10 graines sur 10. Sans bousculade, le témoin sec ne tombe jamais :
+  5,9 m/s² n'est pas dépassé. Les glissades partent de la bande mouillée, et le domino les
+  propage.
+- **Le domino domine** : aux valeurs par défaut, 85 des 115 chutes, soit près de trois chutes
+  par glissade.
+- **Les nombres ne sont pas plausibles.** 115 chutes pour 100 baigneurs, c'est plus d'une
+  chute par personne ; même à λ_chute = 0,5 /s, il y en a 57. C'est pourquoi aucun de ces
+  chiffres n'est un résultat : la campagne montre un sens et une sensibilité, pas une
+  amplitude.
+- **r_terre n'est pas monotone.** À r_terre = r, il y a deux fois plus de glissades (68
+  contre 30) et le plus grand retard. Ce n'est pas expliqué, et ce n'est pas mesuré plus
+  avant.
+- **La bousculade ne dépend pas du sol.** Elle apparaît aussi sur le témoin sec, par
+  compression devant la porte, et Δ ne croît pas avec elle.
+- **Pas de dépendance décelable au pas de temps dans une évacuation**, glissade et domino
+  actifs (Δt = 0,01 et 0,005 s, mêmes graines) : 115,0 et 108,5 chutes par évacuation,
+  écart apparié −6,5 ± 22,0 (IC 95 % : −22 à +9 ; p = 0,37 par permutation exacte) ;
+  glissade +2 % (p = 0,88), domino −8 % (p = 0,15). Sur 10 graines, une dépendance de
+  l'ordre de 20 % ne peut pas être exclue.
+
+**Options écartées.**
+- *Activer les chutes dans la référence.* Tous les résultats dépendraient alors de taux sans
+  source, dont la mesure montre qu'ils fixent l'amplitude de l'effet.
+- *Caler λ_chute sur un taux « plausible ».* Sans observation de référence, ce serait
+  ajuster le module pour obtenir le résultat attendu (déjà écarté le 14 novembre).
+- *Population hétérogène.* La seule source donne 5,7 s pour les 60 ans et plus, mais rien
+  sur leur part dans une piscine ; ce serait une hypothèse de plus.
+
+---
+
+## 2026-11-14 — Compter le risque de bousculade par choc, et non par pas (#130)
+
+**Contexte.** L'entrée suivante montre que la bousculade dépend de Δt dans une évacuation.
+Diagnostic : à Δt = 0,01 et 0,005 s, les épisodes de compression au-dessus du seuil sont aussi
+fréquents (1,33 et 1,32 /s, porte de 0,8 m, graine 1) et aussi forts (0,66 et 0,65 m/s), mais
+chacun ne dure qu'**un pas**. Le risque λ · excès · Δt était donc proportionnel au pas.
+
+**Décision proposée.** Au premier pas d'un choc, le risque est compté sur une durée physique
+fixe, `duree_bousculade` (0,1 s, hypothèse) ; aux pas suivants d'un même choc, sur Δt. Un choc
+d'un pas a ainsi le même risque à Δt et à Δt/2, et une compression qui dure garde un taux par
+seconde. `λ_bousculade` reste à 0 par défaut : rien ne change dans la référence.
+
+**Mesure** (porte de 0,8 m, bousculade seule, λ = 2 /s, graines 1 à 10) : 39 chutes à
+Δt = 0,01 s, 47 à Δt/2 et 38 à Δt/4. Écart apparié à Δt : 0,8 ± 1,9 par évacuation à Δt/2
+(IC à 95 % : −0,5 à +2,1 ; 5 en hausse, 3 en baisse), −0,1 ± 2,0 à Δt/4 (−1,5 à +1,3 ; 5 et 5).
+Avant : 39 contre 21, en baisse sur 8 graines sur 10. Le taux n'est donc plus divisé par le
+pas, sans tendance sur trois pas ; 10 graines ne bornent la dépendance résiduelle qu'à
+quelques dizaines de pour cent (jusqu'à +55 % à Δt/2, ±35 % à Δt/4).
+
+**Un seul paramètre.** Pour un choc d'un pas, λ_bousculade et `duree_bousculade` n'entrent que
+par leur produit (0,2 ici) : c'est lui qu'il faudrait calibrer. Le point 2 de l'entrée suivante
+devient donc : `λ_bousculade` reste à 0 tant que λ_bousculade · `duree_bousculade` n'a pas de
+source.
+
+*Écarté : une compression cumulée sur une fenêtre glissante.* Elle demande une durée de
+fenêtre, tout aussi arbitraire, et un historique par agent, pour le même effet sur des chocs
+d'un pas.
+
+---
+
+## 2026-11-14 — Taux de chute et pas de temps : la bousculade en dépend (#130)
+
+**Statut.** Mesure, et proposition de Lenny pour la décision de #130, à valider par le groupe.
+
+**Contexte.** #130 demande de calibrer le module de chutes et de décider de son activation
+avant la campagne finale. L'un de ses critères : le taux de chute ne dépend pas de Δt, pour
+chaque mécanisme activé. Ce n'était vérifié que pour la glissade.
+
+**Mesure.**
+- *À excès donné*, les trois mécanismes vérifient l'indépendance à Δt (`tests/test_chutes.py`,
+  Δt = 0,02 et 0,01 s, 50 graines) : glissade 6,0 /s, domino 1,2 /s (urgence 0,3), bousculade
+  2,0 /s (vitesse de compression fixée à 1 m/s), chacun à 10 % du taux théorique.
+- *Dans une évacuation*, la bousculade n'est pas indépendante de Δt : un choc ne dure qu'un
+  pas, quel que soit Δt, et son risque λ · excès · Δt est donc proportionnel au pas (diagnostic :
+  #135). Porte de 0,8 m, bousculade seule active
+  (λ = 20 /s), graines 1 à 10 : 39 chutes à Δt = 0,01 s, 21 à Δt = 0,005 s, moins sur
+  8 graines sur 10. Sur la référence (1,2 m, λ = 2 /s), elle est presque absente (3 contre 1).
+
+**Proposition pour #130.**
+1. Garder le module **désactivé** dans les campagnes de référence et dans les conclusions du
+   rapport : aucun de ses taux n'a de source, et la bousculade dépend du pas de temps.
+2. Garder `λ_bousculade` à 0 tant que l'indicateur n'est pas reformulé sur une durée physique
+   (compression cumulée sur un temps fixe, par exemple) au lieu d'un pas.
+3. Présenter la glissade et le domino, si on les montre, comme un **balayage exploratoire** de
+   `λ_chute` (déjà outillé, #104), avec un témoin sec qui garde les mêmes chutes.
+
+*Écarté : calibrer λ_chute sur un taux « plausible » sans source.* Ce serait ajuster le module
+pour obtenir un résultat attendu.
+
+---
+
+## 2026-11-14 — Débloquer un nageur immobile près d'un site libre (#127)
+
+**Statut.** Proposition de Lenny, à valider en relecture.
+
+**Contexte.** Sans régulation, à 200 baigneurs et a_max de l'eau à 1,6 m/s², la graine 4
+ne finit pas son évacuation : 13 baigneurs restent dans l'eau jusqu'aux 180 s. Diagnostic
+du 14 novembre : ils sont **immobiles** (déplacement nul sur les 10 dernières secondes), en
+réseau serré sous l'échelle du haut. Le point d'attente de l'échelle, en (25,5 ; 16,3) m, est
+libre, mais les quatre nageurs les plus proches en sont tous à 0,40 m, un diamètre, au-delà de
+la portée de 0,25 m. Les deux du dessous poussent vers ce trou par symétrie et se bloquent
+l'un l'autre. C'est le blocage mutuel qui avait fixé la portée (docstring du scénario), un rang
+plus loin. Avec a_max de l'eau à 1,67 (depuis #128), la graine 4 passe, mais par chance.
+
+**Décision proposée.** Une règle facultative, `deblocage` dans `piscine.yaml` : un nageur
+immobile (moins de 1 mm/s) depuis 2 s, à moins de 0,65 m (un diamètre plus la portée, à bout
+de bras) du point d'attente d'un site **libre**, le saisit. Elle ne sert qu'après
+l'attribution ordinaire : tant qu'aucun nageur n'est bloqué, elle ne change rien, au bit près.
+
+**Mesure** (14 novembre, macOS arm64, graines 1 à 10, mouillé et témoin sec, 160 évacuations) :
+
+| Cas | Évacuations incomplètes | Déblocages | Sorties identiques au bit près |
+|---|---|---|---|
+| Sans régulation, 200 baigneurs, a_max eau 1,6 | 0 (2 avant) | 6 | — (c'est la correction) |
+| Sans régulation, 200 baigneurs, a_max eau 1,67 | 0 | 0 | — |
+| Référence régulée | 0 | 1 | oui |
+| Porte de 0,8 m, régulée | 0 | 0 | oui |
+| 200 baigneurs, régulée | 0 | 5 | non |
+
+- **La règle trouve aussi de petits blocages dans les cas régulés.** Sur la référence (témoin
+  sec, graine 8), un nageur restait immobile **7 s** à 0,269 m d'un site de rebord libre ; il le
+  saisit au bout de 2 s, mais sa réintroduction sur la plage attend de toute façon que le point
+  d'arrivée se libère, et les sorties ne changent pas.
+- **À 200 baigneurs régulés, l'effet est minime** : t50 et t90 identiques dans 4 cas sur 5,
+  t100 avancé de 0,48 s (sec, graine 4) et de 0,75 s (mouillé, graine 8), inchangé ailleurs.
+
+**Pourquoi l'activer par défaut, alors que la référence ne se bloque plus.** Avec a_max de
+l'eau à 1,67 m/s² (`piscine.yaml` depuis #128), le blocage de #127 ne se produit plus, même
+sans régulation : 0 évacuation incomplète et 0 déblocage. La règle protège surtout les
+**balayages** qui s'écartent de la référence : l'adhérence dans l'eau (#119 la balaie, et
+toute valeur autour de 1,6 m/s² retombe sur l'arche de #127) et les populations sans
+régulation. C'est ce qui justifie d'ajouter trois hypothèses sans source. L'autre option,
+`deblocage: null` dans le YAML et activation seulement dans les balayages concernés, est
+écartée : un modèle qui change selon la campagne serait plus dur à défendre.
+
+**Effet sur les résultats publiés** (relance du 14 novembre, commit `7a96db1`, graines 1 à
+10, `docs/mesures/deblocage-2026-11-14/`, avec un contrôle sans la règle sur la même machine).
+La règle ne change aucune évacuation du balayage de largeur de porte, et 10 des 80 du balayage
+de population : au plus 0,006 s sur t100, sauf deux à N = 200 (−0,49 et −0,76 s). Dans
+`tab:e4-population`, seule la ligne N = 200 bouge : t100 passe de 84,78 ± 1,52 à
+84,73 ± 1,61 s et Δ t50 est positif sur 7 graines au lieu de 8. Le contrôle montre aussi que
+macOS et Windows ne donnent pas les mêmes résultats au bit près (16 évacuations sur 160, au
+plus 0,024 s sur t100), sans effet aux arrondis des tableaux.
+
+*Écarté : agrandir la portée.* Elle doit rester sous la moitié du pas des sites de rebord, et
+tous les résultats changeraient, E1/E2 compris. *Écarté : un bruit sur la direction des
+nageurs.* Au goulot E0, il ne cassait pas les arches (entrée E0).
+
+**Limites.** Le délai (2 s), la portée (0,65 m) et le seuil d'immobilité (1 mm/s) sont des
+hypothèses sans source. Le nageur débloqué est placé sur le bord comme les autres, depuis un
+peu plus loin.
+
+---
+
+## 2026-11-13 — Arrondir les montants de la porte de la piscine (#85)
+
+**Contexte.** Les balayages M6 du 2 novembre bouchaient la porte en arches statiques
+(8 graines sur 10 à 0,8 m). Shaleena en avait identifié la cause probable : la plage était
+projetée sur l'union de l'emprise réduite d'un rayon et du couloir de la porte réduit d'un
+rayon. Cette union est plus stricte que l'ensemble admissible exact près des montants. Elle
+y laisse un angle vif, alors que les centres admissibles s'arrêtent sur un arc de rayon r
+autour du coin du mur. C'est la construction de la première géométrie du goulot E0, qui s'y
+bouchait sur toutes les graines jusqu'à ce que ses coins soient arrondis.
+
+**Décision.** La plage reprend la géométrie du goulot (`geometry/bande.py`) : centres
+ramenés dans la boîte emprise + couloir, puis hors des deux pans du mur de droite
+(`Piscine.montants`), des `ObstacleRectangle` dont `repousser` arrondit exactement les
+coins. Le guidage marque ses nœuds libres avec la même projection et suit donc le même
+ensemble.
+
+**Mesure** (commandes de l'issue : `largeur_porte` 0,8 et 1,0 m, puis 200 baigneurs, facteur
+1,5, graines 1 à 10, mouillé et témoin sec, soit 60 évacuations par ligne ; 13 novembre,
+Windows, une graine par processus) :
+
+| Géométrie | Régulation (T) | Bouchées à 0,8 m (mouillé / sec) | à 1,0 m | à 200 baigneurs |
+|---|---|---|---|---|
+| `dev`, coins vifs | aucune | 8 / 7 sur 10 | 2 / 0 (graines 2 et 7) | 1 / 1 (graine 4) |
+| montants arrondis | aucune | 0 / 0 | 0 / 0 | 1 / 1 (graine 4) |
+| `dev`, coins vifs | 0,35 s | 0 / 0 | 0 / 0 | 0 / 0 |
+| montants arrondis | 0,35 s | 0 / 0 | 0 / 0 | 0 / 0 |
+
+- Sans régulation, `dev` reproduit **à l'identique** les bouchages de l'issue, jusqu'au nombre
+  de baigneurs restés (65, 56, 59… à 0,8 m ; 23 et 27 à 1,0 m). Avec les montants arrondis,
+  plus aucun bouchage à la porte.
+- **Le bouchage à 200 baigneurs (graine 4) n'est pas celui de la porte.** Il subsiste avec les
+  montants arrondis, et les 13 (mouillé) et 14 (sec) baigneurs restés sont tous encore
+  **dans l'eau**, groupés en (25,5 ; 15,8) m, juste sous l'échelle du haut, en (25,5 ; 16,5) m.
+  Ils y restent jusqu'à la fin des 180 s : c'est un blocage devant un site de franchissement, et
+  non à la porte. Il n'apparaît que sans régulation et il est suivi dans #127.
+- **La régulation masquait le défaut.** Activée depuis le 10 novembre (#116), elle garde un
+  jeu derrière le meneur : les agents n'atteignent presque jamais l'angle des montants, et
+  les deux géométries donnent alors des moyennes quasi identiques (t100 à 0,8 m : 70,34 s
+  sur `dev`, 70,26 s corrigé ; à 1,0 m et à 200 baigneurs, identiques à 0,01 s près). La
+  correction reste nécessaire : sans elle, tout réglage qui rapproche les agents, T plus
+  court ou régulation coupée, refait apparaître des arches qui ne sont pas un comportement
+  de foule.
+
+*Écarté : laisser la géométrie en l'état puisque la référence régulée ne se bouche plus.*
+Le défaut resterait caché dans chaque balayage qui touche à T, et l'ensemble admissible ne
+serait pas celui que la spec définit.
+
+**Conséquences.** E1/E2 et les balayages de porte et de population sont refaits avec la porte
+arrondie dans #128, empilée sur cette PR.
+
+---
+
+## 2026-11-10 — Consigner l'accord de l'enseignant du 3 novembre (C1, #19)
+
+**Contexte.** L'issue #19 suivait trois questions de cadrage : l'usage de SciPy pour la densité
+de Voronoï, le dimensionnement du sujet et l'inclusion des chutes. Lenny l'a close le
+3 novembre pendant la séance, sans compte rendu. Les documents présentaient encore ces
+réponses comme attendues : le module de chutes restait « à décider », et Voronoï « à
+confirmer ».
+
+**Ce qui est consigné.** D'après le compte rendu de Shaleena, O. Pantz a validé l'ensemble
+oralement, en séance, le mardi 3 novembre 2026, sans réserve rapportée :
+1. *SciPy pour Voronoï* : la densité de Voronoï de #53 est retenue. Le repli par comptage n'est
+   plus nécessaire.
+2. *Dimensionnement* : le sujet est tenable à trois, chutes comprises.
+3. *Chutes* : le module (#78, #82, #102) fait partie du rendu.
+
+**Ce qui ne change pas.** Le module de chutes reste désactivé par défaut (`chutes: null`).
+`lambda_chute`, `lambda_domino` et `facteur_rayon_terre` restent des valeurs par défaut non
+calibrées ; `lambda_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est
+actif. La validation porte sur l'inclusion, pas sur les valeurs : aucun chiffre obtenu avec ce
+module n'est un résultat avant sa calibration. Calibrer ces taux et décider de l'activation des
+chutes dans les campagnes sont suivis dans #130.
+
+**Mise à jour.** [Fiche de cadrage](validation-sujet.md#trace-de-validation), tâches C1 et M1
+et pistes de chutes du [planning](planning/README.md), [modèle de chutes](modele-chutes.md),
+README, [registre des livraisons](livraisons.md), [repères de soutenance](repères-soutenance.md)
+et messages du balayage de `lambda_chute`.
+
+---
+
+## 2026-11-10 — Activer la régulation vitesse–espacement dans la piscine (#57)
+
+**Statut.** Validée par le groupe le 10 novembre 2026 : proposition de Lenny, approuvée
+par [Shaleena](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/116#pullrequestreview-5840087596)
+et [Hamza](https://github.com/ViscoCrowd/ViscoCrowd-simulation/pull/116#pullrequestreview-5840139159)
+dans #116, fusionnée le même jour. Les trois réponses ci-dessous sont acceptées.
+`temps_espacement: null` permet toujours de reproduire le modèle sans régulation
+et les mesures du 6 novembre.
+
+**Contexte.** #57 posait trois questions au groupe : garder la règle de Tordeux et al. (2016),
+garder T = 0,35 s, l'appliquer aussi dans l'eau. Les relectures de #58 et de #100 avaient
+accepté la règle comme proposition expérimentale, sans trancher l'activation. #100 l'avait
+branchée sur la piscine, avec un meneur cherché seulement du même côté du bord du bassin,
+mais désactivée par défaut. Il manquait la mesure sur la piscine elle-même.
+
+**Mesure.** Balayage E4 de T sur la configuration de référence (graines 1 à 10, les mêmes
+que E1/E2, porte de 1,2 m, 100 baigneurs, facteur 1,5 ; `docs/balayages-piscine.md`) :
+
+| T (s) | t100 mouillé (s) | Débit mouillé (pers/(m·s)) | Non sortis |
+|---|---|---|---|
+| sans (`temps_espacement: null`) | 41,20 ± 3,06 | 3,20 ± 0,45 | 0 |
+| 0,25 | 47,44 ± 2,31 | 2,56 ± 0,17 | 0 |
+| 0,35 | 51,83 ± 1,68 | 2,25 ± 0,10 | 0 |
+| 0,5 | 57,77 ± 1,78 | 1,94 ± 0,07 | 0 |
+
+**Décision.** Activer T = 0,35 s dans `experiments/piscine.yaml`, dans l'eau comme
+sur la plage. Réponses aux trois questions de #57 :
+
+1. *La règle* : oui. Sans elle, le débit à la porte vaut 3,20 pers/(m·s), 2,6 fois le
+   maximum de Weidmann (1,225), pour la même raison qu'en E0 : rien ne fait ralentir un
+   agent avant le contact.
+2. *T = 0,35 s* : oui, c'est la valeur étalonnée sur E0 (#58), sans nouveau réglage sur la
+   piscine. Choisir T sur la piscine reviendrait à ajuster le modèle sur la mesure qu'on veut
+   ensuite interpréter.
+3. *Dans l'eau* : oui. T décrit le comportement d'une personne qui suit quelqu'un, pas le sol
+   (proposition de Hamza dans #57). Le cloisonnement de #100 empêche de suivre quelqu'un à
+   travers le bord du bassin.
+
+**Conséquence : E1/E2 refaits** (graines 1 à 10, `comparer-piscine`, 1 min 59 s sous macOS
+arm64). Le rapport (§ 6.2 et 6.4) est mis à jour.
+
+| | t50 (s) | t90 (s) | t100 (s) | Débit (pers/(m·s)) |
+|---|---|---|---|---|
+| E1 sec | 31,41 ± 0,54 | 45,40 ± 0,65 | 51,95 ± 1,91 | 2,24 ± 0,11 |
+| E2 mouillé | 31,42 ± 0,53 | 45,41 ± 0,71 | 51,83 ± 1,68 | 2,25 ± 0,10 |
+| Δ apparié | 0,01 ± 0,02 | 0,01 ± 0,09 | −0,12 ± 0,42 | 0,01 ± 0,02 |
+
+Aucune arche à la porte sur les 60 évacuations du balayage ni sur les 20 de E1/E2, malgré
+les coins vifs de #85. L'effet du sol mouillé reste de l'ordre du centième de seconde.
+
+**Options écartées.**
+- *Garder la régulation désactivée.* Aucune campagne n'était à refaire, mais toutes les
+  conclusions sur la porte auraient reposé sur un débit 2,6 fois trop élevé.
+- *T = 0,5 s*, qui rapproche davantage le débit du repère (1,94). Ce serait un réglage fait
+  sur la piscine, sans mesure de référence pour la justifier.
+- *Activer seulement sur la plage.* Rien ne justifie qu'un nageur ne ralentisse pas derrière
+  un autre nageur ; ça créerait aussi deux comportements à défendre.
+
+**Limite.** Avec la régulation, le débit (2,24) reste au-dessus de la mesure de Seyfried à
+1,2 m (1,97) et de E0 régulé (1,84 sur 10 graines). Le facteur de panique en explique une
+partie : E0 relancé au facteur 1,5 avec T = 0,35 s donne 2,04 ± 0,05 (b = 1,2 m, graines 1
+à 10, mesure du 10 novembre, suggérée par Hamza en revue). Avec V = min(v0, jeu/T), le
+facteur ne change la vitesse que si le jeu au meneur dépasse T × 1,34 ≈ 0,47 m. Le reste,
+de 2,04 à 2,24, n'est pas expliqué ; pistes non mesurées : la géométrie de la porte
+(1 m de profondeur, coins vifs de #85) et l'arrivée de la foule par la plage.
+
+---
+
+## 2026-11-07 — Clôture de l'issue #11 : repère analytique N / (J w) et état absorbant
+
+**Contexte.** L'issue #11 (« État de sortie par agent : distinguer franchissement et évacuation définitive ») restait ouverte pour deux motifs :
+1. Valider collectivement le passage à l'état absorbant (livré au moteur dans la PR #55 et validé par contrôle croisé dans la PR #81).
+2. Confronter les temps d'évacuation mesurés au repère analytique d'ingénierie $T_{\text{repère}} = N / (J \cdot w)$ sur le goulot et la piscine.
+
+**Décision.**
+1. L'état absorbant est formellement acté : dès qu'un agent franchit la ligne de porte orientée, son état passe à `SORTI`, il est soustrait du solveur d'exclusion et du guidage eikonal, et ses coordonnées sont fixées au point extérieur. Le contrôle croisé automatique (`tests/test_piscine_scenario.py`) garantit l'équivalence exacte des effectifs avec l'observable rétrospective `sorties_definitives` et un écart temporel maximal inférieur au pas physique $\Delta t \le 0{,}01\text{ s}$.
+2. Confrontation au repère, avec $J = J_{\max} = 1{,}225\text{ pers}\cdot\text{m}^{-1}\cdot\text{s}^{-1}$, le débit spécifique maximal de Weidmann (1993, p. 63-64), vérifié sur l'original (#12, #51, `observables/weidmann.py`). L'issue #11 citait $1{,}3$ (fourchette 1,2 à 1,4) sans source : cette valeur n'est pas reprise.
+   - **Goulot E0 ($N = 60$, $w = 1{,}2\text{ m}$)** : $T_{\text{repère}} = 60 / (1{,}225 \times 1{,}2) \approx 40{,}8\text{ s}$. Sans régulation, le modèle évacue en $\approx 10{,}1\text{ s}$ ($J_s \approx 4{,}96$). Avec la régulation vitesse-espacement ($T = 0{,}35\text{ s}$), la vidange demande $\approx 27{,}3\text{ s}$ ($J_s \approx 1{,}83$), proche de Seyfried et al. (2009) ($25{,}4\text{ s}$, $J_s \approx 1{,}97$).
+   - **Piscine E1 ($N = 100$, $w = 1{,}2\text{ m}$, facteur de panique 1,5)** : $T_{\text{repère}} = 100 / (1{,}225 \times 1{,}2) \approx 68{,}0\text{ s}$. Sur 10 graines, l'intervalle de décharge vaut $\Delta t_{\text{flux}} = 26{,}5 \pm 3{,}5\text{ s}$ ($J_s = 3{,}20 \pm 0{,}47$) et la première sortie a lieu à $14{,}7 \pm 0{,}5\text{ s}$. Une porte écoulant au débit du repère porterait l'évacuation à $\approx 14{,}7 + 68{,}0 = 82{,}7\text{ s}$, contre $t_{100} = 41{,}23 \pm 3{,}47\text{ s}$ simulé. Mesure du 7 novembre, mêmes graines que E1 (t100 identique au tableau du rapport).
+   - Le repère, qui décrit un écoulement libre et non un goulot saturé, reste au-dessus des deux mesures. Sur E0, la régulation comble à peu près la moitié de l'écart au repère (17,2 s sur 30,7 s) et retrouve la mesure de Seyfried ; le reste tient au repère lui-même. Sur la piscine, la part due à l'absence de freinage anticipé n'est pas mesurée : c'est une hypothèse, que la régulation étalonnée sur E0, branchée par #100 mais désactivée par défaut, permettra de tester.
+3. L'issue #11 peut être close à la fusion.
+
+---
+
 ## 2026-11-06 — Figer les valeurs de référence de la piscine (C6)
 
 **Contexte.** Les valeurs de `experiments/piscine.yaml` étaient une proposition « à valider
@@ -47,8 +694,12 @@ sous Windows). Le rapport (§ 6.2 et 6.4) est mis à jour.
 Ces chiffres sont identiques à ceux du balayage M6 au même réglage, ce qui recoupe les deux
 outils. Δ t50 est positif sur les dix graines (bilan brut de M6, de 0,005 à 0,053 s).
 
-**Lecture.** À 2,0 m/s, une relance depuis l'arrêt sur le mouillé demande 4,0 m/s², plus que
-les 3,3 m/s² disponibles. Le calcul exact du modèle continu donne :
+**Lecture.** À U = 1,34 × 1,5 = 2,01 m/s, une relance depuis l'arrêt sur le mouillé demande
+4,02 m/s², plus que les 3,3 m/s² disponibles. L'accélération reste écrêtée jusqu'à
+v₁ = U − a_max τ, puis la vitesse relaxe vers U. Le temps perdu sur la distance, par rapport à
+une relance jamais écrêtée, vaut alors exactement v₁² / (2 a_max U). Ce n'est pas le décalage
+des profils de vitesse, un peu plus grand (0,0104 s ici). Le calcul exact du modèle continu
+donne :
 
 | Situation | Temps perdu par relance, par rapport au sec |
 |---|---|
@@ -56,12 +707,90 @@ les 3,3 m/s² disponibles. Le calcul exact du modèle continu donne :
 | Facteur 1 | 0 s (2,7 m/s² demandés) |
 | Adhérence de 1 m/s² | 0,57 s (M6 mesure 0,38 s sur t50) |
 
+*Revérifié le 9 novembre, après la revue de #112.* L'intégration numérique fine retrouve la
+formule à 10⁻⁵ s près. Avec U arrondi à 2,0 m/s, on obtiendrait 0,0093 s et 0,562 s : les
+valeurs du tableau supposent bien la vitesse souhaitée exacte.
+
 Les 0,02 s mesurés correspondent donc à environ deux relances par baigneur. **Le mécanisme
 inertiel existe et il est identifié, mais il coûte un centième de seconde** tant que
 l'adhérence du mouillé reste à 3,3 m/s² et que la porte n'est pas encombrée.
 
 Par ailleurs, la commande avait planté à l'affichage sous Windows, sur le « Δ », après le
 calcul (#107).
+
+---
+
+## 2026-11-03 — Mesurer le biais de densité lié à la tolérance et aux contacts multiples au goulot (M2, #10)
+
+**Contexte.** L'issue #10 soulevait le risque qu'en présence de contacts multiples simultanés résolus par Jacobi vectorisé, le jeu résiduel ne s'efface pas au raffinement et sous-estime la densité locale au goulot d'étranglement, faussant le diagramme fondamental (E0). Un premier essai exploratoire contre une paroi plane (#53) manquait de puissance statistique et ne portait pas sur la géométrie cible.
+
+**Décision.** Conduire une campagne appariée sur la géométrie cible du banc E0 (`experiments/goulot.yaml`, Seyfried et al. 2009) sur dix graines (1 à 10), dans l'entonnoir amont comprimé ($x\in[6{,}0\,;\,7{,}8]\,\text{m}$, $y\in[1{,}5\,;\,3{,}5]\,\text{m}$, densité moyenne de référence $\bar\rho_{\text{ref}} = 3{,}931\,\text{pers/m}^2$), en comparant la tolérance nominale ($10^{-6}\,\text{m}$, $\Delta t = 0{,}01\,\text{s}$) à :
+1. Une tolérance resserrée à $10^{-7}\,\text{m}$ : différence moyenne de $-2{,}31\cdot 10^{-5}\,\text{pers/m}^2$ (écart relatif $-0{,}0006\,\%$, erreur standard $8{,}76\cdot 10^{-5}\,\text{pers/m}^2$, écart maximal $6{,}9\cdot 10^{-4}\,\text{pers/m}^2$, $p_{\text{perm}} = 1{,}000$).
+2. Une tolérance relâchée à $10^{-5}\,\text{m}$ : décalage moyen de $+0{,}0047\,\text{pers/m}^2$ ($+0{,}12\,\%$, écart maximal $0{,}023\,\text{pers/m}^2$, $p_{\text{perm}} = 0{,}016$).
+3. Un pas de temps raffiné ($\Delta t = 0{,}005\,\text{s}$) : décalage moyen de $+0{,}021\,\text{pers/m}^2$ ($p_{\text{perm}} = 0{,}270$, écart maximal $0{,}130\,\text{pers/m}^2$ sur une graine, soit $3{,}3\,\%$).
+
+Aucune non-convergence (`non_convergences == 0`) et aucune violation résiduelle des parois ($\le 4{,}2\cdot 10^{-16}\,\text{m}$) ne sont observées. Le protocole et les résultats sont archivés dans `docs/mesures/biais-densite-goulot-2026-11-03/` ; `tests/test_biais_densite_goulot.py` rejoue la campagne sur les mêmes dix graines (test lent).
+
+**Conclusions, à lire séparément.**
+- *Tolérance* : aucun effet décelable sous la valeur nominale. Resserrer de $10^{-6}$ à $10^{-7}\,\text{m}$ déplace la densité d'au plus $6{,}9\cdot 10^{-4}\,\text{pers/m}^2$ sur les dix graines. Relâchée à $10^{-5}\,\text{m}$, elle a un effet décelable ($p = 0{,}016$, positif sur huit graines sur dix) mais faible ($+0{,}12\,\%$) : on garde $10^{-6}\,\text{m}$.
+- *Pas de temps* : pas d'effet systématique décelable ($p = 0{,}27$), mais une graine isolée peut s'écarter de $3{,}3\,\%$.
+
+Une absence de différence détectée ne prouve pas l'absence d'effet : ces chiffres sont des écarts maximaux observés sur dix graines, pas des bornes garanties. Ils suffisent aux critères de clôture de #10.
+
+**Pourquoi.** Définir l'incertitude et les hypothèses statistiques sans assimiler $\pm 2$ erreurs standard à une borne garantie (recours au test de permutation exact sur $2^{10}$ assignations de signes) et vérifier empiriquement le biais sur la géométrie réelle du scénario d'étalonnage.
+
+**Options écartées.**
+- *Sous-relaxer les corrections en contact multiple* : superflu et coûteux, puisqu'aucun effet de la tolérance n'est décelable dès $10^{-6}\,\text{m}$.
+- *Appliquer une correction empirique de densité* : rien à corriger, l'écart moyen observé sur la tolérance ($< 10^{-4}\,\text{pers/m}^2$) étant très inférieur au millième de personne par m².
+
+---
+
+## 2026-11-03 — Balayer la vitesse sur sol mouillé et le taux de chute (E3, #26, #59)
+
+**Contexte.** Les balayages E3 de la piscine variaient initialement la seule largeur mouillée et l'accélération maximale ($a_{\text{max}}$). Or la problématique de l'inertie du sol mouillé (#26, #59) implique également la réduction de vitesse de marche sur carrelage glissant ($s_{\text{mouillé}}$) et le risque de glissade en panique ($\lambda_{\text{chute}}$).
+
+**Décision.**
+1. **Ajout de `vitesse_mouille`** (`("parametres_milieux", "MOUILLE", "vitesse")`, m/s) à `PARAMETRES` de `balayage_piscine.py` pour étudier l'impact de l'auto-régulation de la vitesse sur le débit et le temps d'évacuation face à un témoin sec.
+2. **Ajout de `lambda_chute`** (`("chutes", "lambda_chute")`, 1/s) pour mesurer la dégradation du débit provoquée par les pertes d'adhérence et les personnes à terre.
+3. **Témoin et paramètres imbriqués** : `_remplacer` crée la section `chutes` si elle est absente ou nulle dans le YAML. Balayer `lambda_chute` active donc le module de chutes avec toutes ses autres valeurs par défaut, **non calibrées** : aucun chiffre obtenu ainsi n'est un résultat avant #19 (`modele-chutes.md`). Le témoin garde les **mêmes** chutes que le mouillé : Δ ne mesure que le sol, comme dans tout le protocole M6 (revue de #104).
+
+**Pourquoi.** Permettre à l'équipe et à l'outil CLI `balayer-piscine` d'explorer l'ensemble des axes physiques reliant sol mouillé, adhérence et chute (campagnes E3/E4, M6).
+
+**Options écartées.**
+- *Exiger la présence préalable de `chutes` dans le YAML de base* : forcerait l'utilisateur à modifier `experiments/piscine.yaml` avant de pouvoir balayer `lambda_chute`.
+- *Témoin sans chutes* (première version) : Δ aurait mélangé l'effet du sol et celui d'activer le module de chutes, y compris pour les chutes qui ont lieu sur le sec.
+
+---
+
+## 2026-11-03 — Intégrer la régulation vitesse–espacement de Tordeux à la piscine (#57)
+
+**Contexte.** Sur le goulot E0, l'absence de régulation vitesse–espacement conduisait à un débit
+environ deux fois supérieur aux mesures de Seyfried et al. (2009), la foule marchant à pleine
+vitesse jusqu'au contact. La fonction de vitesse optimale de Tordeux et al. (2016) avec
+$T = 0{,}35\text{ s}$ ajustée sur E0 ramène le débit simulé à $-7$ à $+3\,\%$ de la mesure.
+Toutefois, la piscine ne disposait pas encore du paramètre `temps_espacement`, ce qui laissait
+la porte alimentée à un débit surévalué sans saturation naturelle (signalé dans les issues #57, #59
+et les rapports E1/E2).
+
+**Décision.**
+1. Ajouter le paramètre optionnel `temps_espacement: float | None = None` dans `ParametresPiscine`
+   et dans les paramètres de balayage (`balayage_piscine.PARAMETRES`).
+2. Transmettre le temps d'espacement à `pas_libre_milieux` avec comme champ d'avancement
+   `guidage.temps` (potentiel eikonal jusqu'à la porte) pour maintenir un ordre strict sans cycle.
+3. Restreindre la recherche de meneur au même sous-domaine (`groupe_meneur = piscine.dans_bassin`) :
+   les nageurs dans l'eau ne prennent pour meneur que des nageurs dans l'eau, et les plagistes ne
+   prennent que des plagistes. Le mur du bassin coupe ainsi la visibilité du meneur.
+
+**Pourquoi.** Sans séparation par groupe, un nageur proche du bord du bassin ralentirait derrière un
+agent déjà sorti sur la plage en raison de la recherche en ligne droite, alors que le bord est un mur
+infranchissable hors des sites de franchissement. Séparer par sous-domaine résout exactement la limite
+identifiée dans l'étalonnage E0 sans alourdir le calcul.
+
+**Options écartées.**
+- *Calculer la visibilité à travers des rayons optiques (raycasting)* : coûteux sur chaque paire
+  candidate, inutile ici puisque la seule frontière opaque interne est le bord du bassin.
+- *Appliquer l'espacement uniquement sur la plage et pas dans l'eau* : $T$ est un trait de comportement
+  qui s'applique aux deux milieux, régulant à la fois la file vers la porte et les regroupements aux rebords.
 
 ---
 
@@ -555,6 +1284,21 @@ largeurs : 2,00 contre 2,04 pour N = 20, 1,92 contre 1,90 pour N = 40, 1,84 cont
 N = 60. Il retrouve aussi la tendance du débit à croître quand N diminue. C'est une
 validation partielle : un seul protocole, sol sec, trois graines.
 
+*Mise à jour du 14 novembre : dix graines.* Relancé sur les graines 1 à 10, au commit
+`808ae35` : `dev` à `3d6d43a`, plus la seule option `--agents` de `etalonner-goulot`
+(`docs/mesures/e0-dix-graines-2026-11-14/`). Les graines 1 à 3 redonnent
+exactement les chiffres ci-dessus. Sur dix graines, l'écart moyen vaut **5,7 % pour N = 40** et
+**7,3 % pour N = 20** (2,8 % pour N = 60). Selon le triplet de graines consécutives retenu, il
+va de 5,1 à 7,1 % et de 5,7 à 9,7 % : les trois premières graines tombaient sur le triplet le
+plus défavorable pour N = 20. Le niveau moyen sur les cinq largeurs est retrouvé à 2,2 % près
+(1,99 contre 2,04 pour N = 20, 1,93 contre 1,90 pour N = 40, 1,85 contre 1,85 pour N = 60).
+Aucun bouchage sur les 150 simulations régulées. La ligne « sans règle » du tableau
+d'étalonnage ci-dessus (2,99 à 4,96) ne se reproduit plus, ni avec le code actuel, ni au commit
+qui l'a introduite (`48ccb4c`, #56), et pas davantage avec le débit des 80 % centraux : à
+b = 0,9 m, graines 1 à 3, on obtient 3,49 au lieu de 3,94. Sur dix graines, elle vaut 3,04,
+3,72, 4,15, 4,35 et 4,81, soit 1,9 à 2,4 fois Seyfried (écart moyen de 115 %), avec une arche
+à b = 0,8 m sur la graine 10. Le rapport (`tab:e0`) reprend ces valeurs.
+
 **Sensibilité au pas de temps** (T = 0,35 s, N = 60). Avec Δt = 0,005 s : 1,65, 1,86, 1,92, 1,96
 et 1,87, contre 1,66, 1,85, 1,95, 1,92 et 1,83 avec Δt = 0,01 s. L'écart le plus fort, 0,04 à
 b = 1,1 et 1,2 m, reste de l'ordre de l'écart-type entre graines (0,03 à 0,08). Une étude à
@@ -927,8 +1671,7 @@ l'intérieur : avant un refoulement, un agent peut être dehors sans être class
 La revue de #47 ajoute les retours hors porte et le rejet des temps/positions invalides ;
 un passage antérieur à la dernière présence intérieure n'est pas une sortie définitive.
 
-**Reste à faire (P5).** Confronter le temps d'évacuation au repère `N / (1,3 w)` sur un goulot,
-et décider du retrait des agents sortis dans le scénario piscine.
+**Suivi (P5).** L'état absorbant avec retrait au moteur a été acté (#55, #81) et le repère `N / (J w)` confronté au goulot et à la piscine avec le débit maximal de Weidmann, J = 1,225 (décision du 7 novembre 2026, actée par la revue de #105, #11).
 
 ---
 
@@ -1110,7 +1853,7 @@ figures existantes restent inchangés ; aucune nouvelle figure du rapport n'est 
 
 ## 2026-10-21 — Mesurer la densité par cellules de Voronoï (M1) et le biais de la tolérance (#10)
 
-**Décision (proposée dans #19, à confirmer).** La densité suit Steffen & Seyfried (2010) :
+**Décision (proposée dans #19, confirmée par l'enseignant le 3 novembre : entrée du 10 novembre).** La densité suit Steffen & Seyfried (2010) :
 `ρ_V = (1/|M|) Σᵢ |Cᵢ ∩ M| / |Cᵢ|`, et la vitesse `v_V = (1/|M|) Σᵢ |vᵢ| |Cᵢ ∩ M|`.
 Les cellules sont bornées par la salle en ajoutant le reflet de chaque agent par rapport aux
 quatre murs, ce qui est exact pour un rectangle. `scipy.spatial.Voronoi` calcule les cellules ;

@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "parametre": "facteur_vitesse",
+  "unite": "-",
+  "fixes": {
+    "largeur_porte": 0.8,
+    "n_agents": 150.0,
+    "dt": 0.005
+  },
+  "graines": [
+    20262027,
+    20262028,
+    20262029,
+    20262030,
+    20262031
+  ],
+  "mesures": [
+    "t50",
+    "t90",
+    "t100",
+    "debit",
+    "non_sortis",
+    "chutes_glissade",
+    "chutes_domino",
+    "chutes_bousculade"
+  ],
+  "unites": {
+    "t50": "s",
+    "t90": "s",
+    "t100": "s",
+    "debit": "pers/(m.s)",
+    "non_sortis": "pers",
+    "chutes_glissade": "chutes",
+    "chutes_domino": "chutes",
+    "chutes_bousculade": "chutes"
+  },
+  "configuration_source": {
+    "version": 1,
+    "scenario": "piscine",
+    "graine": 20262027,
+    "parametres": {
+      "geometrie": {
+        "longueur_bassin": 25.0,
+        "largeur_bassin": 12.5,
+        "plage_gauche": 3.0,
+        "plage_verticale": 4.0,
+        "plage_sortie": 20.0,
+        "largeur_porte": 1.2,
+        "profondeur_porte": 1.0,
+        "largeur_mouillee": 3.0,
+        "pas_rebord": 0.6,
+        "largeur_echelle": 0.5,
+        "echelles": [
+          [
+            "haut",
+            0.9
+          ],
+          [
+            "bas",
+            0.9
+          ]
+        ]
+      },
+      "n_agents": 100,
+      "rayon": 0.2,
+      "espacement": 1.0,
+      "bruit": 0.1,
+      "parametres_milieux": {
+        "EAU": {
+          "relaxation": 0.5,
+          "acceleration_max": 1.67,
+          "vitesse": 0.69
+        },
+        "MOUILLE": {
+          "relaxation": 0.5,
+          "acceleration_max": 3.3,
+          "vitesse": 1.34
+        },
+        "SEC": {
+          "relaxation": 0.5,
+          "acceleration_max": 5.9,
+          "vitesse": 1.34
+        }
+      },
+      "facteur_vitesse": 1.5,
+      "temps_espacement": null,
+      "durees": {
+        "rebord": 4.0,
+        "echelle": 2.0
+      },
+      "portee": 0.25,
+      "deblocage": {
+        "delai": 2.0,
+        "portee": 0.65,
+        "vitesse": 0.001
+      },
+      "dt": 0.01,
+      "duree": 180.0,
+      "tolerance": 1e-06,
+      "pas_guidage": 0.1
+    }
+  },
+  "contexte": {
+    "code": {
+      "commit": "eb25a7df89bc23f77f1c5db78d050da5c7e6cd98",
+      "modifications_locales": false,
+      "source": "git"
+    },
+    "sources_sha256": "e1db3705a333775cc4d6cd6a80722812a0decef29938ff2b919996905f01c4d9",
+    "python": "3.14.4",
+    "plateforme": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "versions": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "pyyaml": "6.0.3"
+    }
+  },
+  "points": [
+    {
+      "valeur": 1.0,
+      "equivaut_au_sec": false,
+      "mouille": [
+        [
+          52.12677104236185,
+          84.92652106263208,
+          91.53183532725865,
+          2.619797674816524,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          41.2563842124035,
+          65.76119664358487,
+          71.62183614883016,
+          3.6194131209083538,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          43.49219739725334,
+          69.31373604200571,
+          75.35729302666597,
+          3.3726631611455082,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          41.51695702390276,
+          68.84151208568322,
+          74.81067671909133,
+          3.412190203181268,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          45.534215867537085,
+          71.67789862149716,
+          78.21012079552509,
+          3.217668566772666,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "temoin": [
+        [
+          40.9845979932226,
+          66.97119614992211,
+          73.19183645140187,
+          3.5224223507853463,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          41.63522727128625,
+          65.03231107414278,
+          70.94697837055325,
+          3.66718607409706,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          42.51769580774718,
+          null,
+          null,
+          null,
+          42.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          44.38635746595261,
+          null,
+          null,
+          null,
+          50.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          40.966383288934225,
+          63.932743588878374,
+          69.67384186431606,
+          3.7699258345593725,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    }
+  ]
+}

@@ -50,6 +50,7 @@ def appels(monkeypatch):
             "t100": p.facteur_vitesse,
             "debit": p.piscine.largeur_mouillee,
             "non_sortis": 0.0,
+            **{f"chutes_{cause}": 0.0 for cause in balayage.CAUSES_CHUTE},
         }
 
     monkeypatch.setattr(balayage, "mesurer", factice)
@@ -80,6 +81,88 @@ class TestAppariement:
         assert {p.piscine.largeur_mouillee for p in mouilles} == {3.0}
         assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
 
+    def test_balayage_vitesse_mouille_applique(self, configuration, appels):
+        balayage.balayer(configuration, "vitesse_mouille", [0.8, 1.2], [1])
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        assert {p.parametres_milieux[Milieu.MOUILLE].vitesse for p in mouilles} == {0.8, 1.2}
+
+    def test_balayage_lambda_chute_applique(self, configuration, appels):
+        balayage.balayer(configuration, "lambda_chute", [1.0, 5.0], [1])
+        mouilles = [p for p in appels if p.chutes is not None and p.piscine.largeur_mouillee > 0]
+        assert {p.chutes.lambda_chute for p in mouilles} == {1.0, 5.0}
+
+    def test_temoin_lambda_chute_garde_les_memes_chutes(self, configuration, appels):
+        """Mouille et temoin ne different que par le sol, chutes comprises (revue de #104)."""
+        (point,) = balayage.balayer(configuration, "lambda_chute", [5.0], [1, 2])
+
+        assert len(appels) == 2 * 2
+        mouilles = {p.graine: p for p in appels if p.piscine.largeur_mouillee > 0}
+        temoins = {p.graine: p for p in appels if p.piscine.largeur_mouillee == 0}
+        assert mouilles.keys() == temoins.keys() == {1, 2}
+        for g, mouille in mouilles.items():
+            assert mouille.chutes is not None
+            assert mouille.chutes == temoins[g].chutes
+        assert not point.equivaut_au_sec
+
+    @pytest.mark.parametrize(
+        ("parametre", "valeurs"),
+        [
+            ("lambda_domino", [2.0, 8.0]),
+            ("lambda_bousculade", [0.0, 5.0]),
+            ("facteur_rayon_terre", [1.0, 2.0]),
+        ],
+    )
+    def test_hypotheses_des_chutes_balayees_avec_le_meme_temoin(
+        self, configuration, appels, parametre, valeurs
+    ):
+        """Les hypotheses sans source du module se balaient comme lambda_chute (#130).
+
+        Le module est active avec ses autres valeurs par defaut, et le temoin garde les
+        memes chutes : Delta ne mesure que le sol.
+        """
+        balayage.balayer(configuration, parametre, valeurs, [1])
+        assert len(appels) == 2 * len(valeurs)
+        assert all(p.chutes is not None for p in appels)
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        temoins = [p for p in appels if p.piscine.largeur_mouillee == 0]
+        assert {getattr(p.chutes, parametre) for p in mouilles} == set(valeurs)
+        assert {p.chutes for p in mouilles} == {p.chutes for p in temoins}
+        # Les autres valeurs du module restent celles par defaut.
+        assert {p.chutes.lambda_chute for p in appels} == {2.0}
+
+    @pytest.mark.parametrize(
+        ("parametre", "valeur", "message"),
+        [
+            ("facteur_rayon_terre", 0.9, "facteur_rayon_terre"),
+            ("lambda_bousculade", -1.0, "lambda_bousculade"),
+        ],
+    )
+    def test_hypotheses_des_chutes_hors_domaine_refusees(
+        self, configuration, appels, parametre, valeur, message
+    ):
+        with pytest.raises(ValueError, match=message):
+            balayage.balayer(configuration, parametre, [valeur], [1])
+        assert appels == []
+
+    def test_section_scalaire_refusee(self, configuration, appels):
+        configuration["parametres"]["chutes"] = 1.0
+        with pytest.raises(ValueError, match="pas une section"):
+            balayage.balayer(configuration, "lambda_chute", [5.0], [1])
+
+    def test_balayage_temps_espacement_sur_le_yaml_de_reference(self, configuration, appels):
+        """Le YAML de reference porte le champ : le balayage n'est pas refuse (revue de #100).
+
+        La reference active T = 0,35 s (#57) ; le balayage remplace bien cette valeur.
+        """
+        assert configuration["parametres"]["temps_espacement"] == 0.35
+        balayage.balayer(configuration, "temps_espacement", [0.25, 0.5], [1])
+
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        temoins = [p for p in appels if p.piscine.largeur_mouillee == 0]
+        assert {p.temps_espacement for p in mouilles} == {0.25, 0.5}
+        # Le temoin garde le meme temps d'espacement : seul le sol differe.
+        assert {p.temps_espacement for p in temoins} == {0.25, 0.5}
+
     def test_parametres_fixes_appliques_au_mouille_et_au_temoin(self, configuration, appels):
         balayage.balayer(
             configuration, "largeur_mouillee", [3.0, 20.0], [1], fixes={"facteur_vitesse": 1.5}
@@ -102,6 +185,44 @@ class TestAppariement:
         # Seul tau change : l'adherence et la vitesse du mouille restent celles du YAML.
         mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
         assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
+
+    @pytest.mark.parametrize(
+        ("parametre", "nature", "autre", "duree_autre"),
+        [("duree_rebord", "rebord", "echelle", 2.0), ("duree_echelle", "echelle", "rebord", 4.0)],
+    )
+    def test_duree_de_franchissement_appliquee_au_mouille_et_au_temoin(
+        self, configuration, appels, parametre, nature, autre, duree_autre
+    ):
+        """La duree change pour le mouille ET le temoin : Delta ne mesure que le sol.
+
+        Le temoin depend donc de la valeur, et il est recalcule a chaque valeur.
+        """
+        balayage.balayer(configuration, parametre, [1.0, 6.0], [1])
+
+        assert len(appels) == 4  # deux valeurs, un mouille et un temoin chacune
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        temoins = [p for p in appels if p.piscine.largeur_mouillee == 0]
+        assert sorted(p.durees[nature] for p in mouilles) == [1.0, 6.0]
+        assert sorted(p.durees[nature] for p in temoins) == [1.0, 6.0]
+        # L'autre nature de site garde la duree du YAML.
+        assert {p.durees[autre] for p in appels} == {duree_autre}
+
+    def test_duree_negative_refusee_avant_calcul(self, configuration, appels):
+        with pytest.raises(ValueError, match="durees"):
+            balayage.balayer(configuration, "duree_rebord", [4.0, -1.0], [1])
+        assert appels == []
+
+    def test_adherence_eau_sans_toucher_au_mouille_ni_au_sec(self, configuration, appels):
+        """Seul a_max de l'eau change, pour le mouille comme pour le temoin."""
+        balayage.balayer(configuration, "adherence_eau", [1.0, 1.67], [1])
+
+        assert sorted({p.parametres_milieux[Milieu.EAU].acceleration_max for p in appels}) == [
+            1.0,
+            1.67,
+        ]
+        mouilles = [p for p in appels if p.piscine.largeur_mouillee > 0]
+        assert {p.parametres_milieux[Milieu.MOUILLE].acceleration_max for p in mouilles} == {3.3}
+        assert {p.parametres_milieux[Milieu.SEC].acceleration_max for p in appels} == {5.9}
 
     def test_relaxation_plus_courte_que_dt_refusee_avant_calcul(self, configuration, appels):
         with pytest.raises(ValueError, match="relaxation"):
@@ -234,6 +355,19 @@ class TestSimulationReelle:
         assert not point.equivaut_au_sec
         assert point.ecart[0, balayage.MESURES.index("t100")] > 0.1  # s
 
+    def test_rebord_plus_lent_retarde_la_derniere_sortie(self, configuration):
+        """Le balayage des durees voit leur effet : 1 s contre 8 s sur le rebord.
+
+        Mesure le 13 novembre, graine 1, trois agents au facteur 1,5 : t100 passe de
+        21,6 s a 31,2 s. Le seuil de 5 s laisse une marge sans accepter une duree ignoree.
+        """
+        config = configuration | {"parametres": configuration["parametres"] | {"n_agents": 3}}
+        rapide, lent = balayage.balayer(config, "duree_rebord", [1.0, 8.0], [1])
+
+        t100 = balayage.MESURES.index("t100")
+        assert lent.mouille[0, t100] - rapide.mouille[0, t100] > 5.0  # s
+        assert lent.temoin[0, t100] - rapide.temoin[0, t100] > 5.0  # s
+
     def test_evacuation_inachevee_conservee_sans_debit(self, configuration):
         """5 s ne suffisent a personne : rien n'est moyenne sur les seuls agents sortis."""
         base = configuration["parametres"] | {"n_agents": 3, "duree": 5.0}
@@ -251,6 +385,7 @@ class TestSimulationReelle:
             temps_evacuation=lambda fraction: Sorties(
                 np.array([10.0, 12.0, np.nan])
             ).temps_evacuation(fraction),
+            chutes=(),
         )
         monkeypatch.setattr(balayage, "simuler_piscine", lambda p, **options: resultat)
         base = configuration["parametres"] | {"n_agents": 3}
@@ -259,6 +394,40 @@ class TestSimulationReelle:
         assert mesures["non_sortis"] == 1.0
         assert mesures["t50"] == 12.0 and mesures["t100"] == math.inf
         assert math.isnan(mesures["debit"])
+        assert all(mesures[f"chutes_{c}"] == 0.0 for c in balayage.CAUSES_CHUTE)
+
+    def test_chutes_comptees_par_cause(self, configuration, monkeypatch):
+        """Le balayage compte les chutes de chaque cause : c'est la mesure des chutes (#130)."""
+        causes = ("glissade", "domino", "glissade", "bousculade", "glissade")
+        resultat = SimpleNamespace(
+            sorties=np.array([10.0, 12.0, 14.0]),
+            projection=SimpleNamespace(verifier_convergence=lambda: None),
+            temps_evacuation=lambda fraction: Sorties(
+                np.array([10.0, 12.0, 14.0])
+            ).temps_evacuation(fraction),
+            chutes=tuple(SimpleNamespace(cause=c) for c in causes),
+        )
+        monkeypatch.setattr(balayage, "simuler_piscine", lambda p, **options: resultat)
+        base = configuration["parametres"] | {"n_agents": 3}
+        mesures = balayage.mesurer(ParametresPiscine(**base, graine=1))
+
+        assert mesures["chutes_glissade"] == 3.0
+        assert mesures["chutes_domino"] == 1.0
+        assert mesures["chutes_bousculade"] == 1.0
+
+    def test_vraies_chutes_comptees(self, configuration):
+        """Simulation reelle : le decompte rend exactement l'historique du module."""
+        base = configuration["parametres"] | {
+            "n_agents": 6,
+            "chutes": {"lambda_chute": 50.0},
+            "facteur_vitesse": 1.5,
+        }
+        p = ParametresPiscine(**base, graine=3)
+        mesures = balayage.mesurer(p)
+        r = simuler_piscine(p, archiver_tous=math.ceil(p.duree / p.dt))
+        total = sum(mesures[f"chutes_{c}"] for c in balayage.CAUSES_CHUTE)
+        assert len(r.chutes) > 0  # sinon le test ne verifierait rien
+        assert total == len(r.chutes)
 
 
 class TestCommande:
@@ -297,8 +466,16 @@ class TestCommande:
         assert bilan["contexte"]["code"]["source"] in ("git", "environnement", "indisponible")
         premier, second = bilan["points"]
         assert premier["valeur"] == 1.0 and not premier["equivaut_au_sec"]
-        assert premier["mouille"] == [[3.0, 1.0, 1.5, 3.0, 0.0], [4.0, 1.0, 1.5, 3.0, 0.0]]
-        assert premier["temoin"] == [[3.0, 5.9, 1.5, 0.0, 0.0], [4.0, 5.9, 1.5, 0.0, 0.0]]
+        assert bilan["mesures"] == list(balayage.MESURES)
+        sans_chutes = [0.0] * len(balayage.CAUSES_CHUTE)
+        assert premier["mouille"] == [
+            [3.0, 1.0, 1.5, 3.0, 0.0, *sans_chutes],
+            [4.0, 1.0, 1.5, 3.0, 0.0, *sans_chutes],
+        ]
+        assert premier["temoin"] == [
+            [3.0, 5.9, 1.5, 0.0, 0.0, *sans_chutes],
+            [4.0, 5.9, 1.5, 0.0, 0.0, *sans_chutes],
+        ]
         assert second["equivaut_au_sec"]
         assert "(= temoin)" in capsys.readouterr().out
 
@@ -315,6 +492,7 @@ class TestCommande:
                 "t100": math.inf if bouche else 30.0,
                 "debit": math.nan if bouche else 1.5,
                 "non_sortis": 4.0 if bouche else 0.0,
+                **{f"chutes_{cause}": 0.0 for cause in balayage.CAUSES_CHUTE},
             }
 
         monkeypatch.setattr(balayage, "mesurer", mesure)
@@ -328,7 +506,7 @@ class TestCommande:
         assert "4/4" in bouche  # non sortis : mouille/temoin, total sur les graines
         assert "incomplet" not in normal
         bilan = json.loads(sortie.read_text(encoding="utf-8"))
-        assert bilan["points"][0]["mouille"][1] == [10.0, 20.0, None, None, 4.0]
+        assert bilan["points"][0]["mouille"][1] == [10.0, 20.0, None, None, 4.0, 0.0, 0.0, 0.0]
         assert [p["valeur"] for p in bilan["points"]] == [2.0, 1.0]
 
     @pytest.mark.parametrize(
@@ -353,3 +531,46 @@ class TestCommande:
         assert main([*args, "--valeurs", "1", "--graines", "1", "--sortie", str(sortie)]) == 1
         assert sortie.read_text(encoding="utf-8") == "{}"
         assert appels == []
+
+
+def test_lire_fixes_convertit_n_agents_en_entier():
+    fixes = balayage.lire_fixes(["n_agents=150", "largeur_porte=0.8"])
+    assert fixes == {"n_agents": 150, "largeur_porte": 0.8}
+    assert type(fixes["n_agents"]) is int
+
+
+def test_lire_fixes_refuse_un_entier_non_entier():
+    with pytest.raises(ValueError, match="entier"):
+        balayage.lire_fixes(["n_agents=150.5"])
+
+
+def test_appliquer_fixes_laisse_l_original_intact():
+    config = lire_configuration(EXEMPLE)["parametres"]
+    nouveau = balayage.appliquer_fixes(config, {"largeur_porte": 0.8, "relaxation": 0.4})
+    assert config["geometrie"]["largeur_porte"] == 1.2
+    assert nouveau["geometrie"]["largeur_porte"] == 0.8
+    sols = ("EAU", "MOUILLE", "SEC")
+    assert {nouveau["parametres_milieux"][m]["relaxation"] for m in sols} == {0.4}
+    assert {config["parametres_milieux"][m]["relaxation"] for m in sols} == {0.5}
+
+
+def test_reaction_mediane_garde_la_dispersion():
+    base = lire_configuration(EXEMPLE)["parametres"] | {
+        "reaction": {"mediane": 1.0, "dispersion": 0.5}
+    }
+    nouveau = balayage._appliquer(base, "reaction_mediane", 10.0)
+    assert nouveau["reaction"] == {"mediane": 10.0, "dispersion": 0.5}
+    assert base["reaction"]["mediane"] == 1.0
+
+
+def test_echelles_lues_et_balayees_en_entiers():
+    assert balayage.lire_fixes(["echelles=4"]) == {"echelles": 4}
+    assert balayage._valeurs_valides("echelles", [0.0, 2.0, 4.0]) == [0, 2, 4]
+    with pytest.raises(ValueError):
+        balayage._valeurs_valides("echelles", [1.5])
+
+
+def test_lire_fixes_valeur_non_numerique_message_en_francais():
+    """#195 : plus de message anglais de float() (« could not convert string to float »)."""
+    with pytest.raises(ValueError, match="doit etre un nombre"):
+        balayage.lire_fixes(["n_agents=abc"])

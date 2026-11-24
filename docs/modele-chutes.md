@@ -1,21 +1,33 @@
 # Modèle de chute, de relevage et de contournement
 
 **Addendum à la [spécification de conception](superpowers/specs/2026-10-06-viscocrowd-design.md)**
-Statut : module facultatif, désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion dans le rendu à décider (#19) · 3 novembre 2026
+Statut : module désactivé par défaut (`viscocrowd.model.chutes`) ; inclusion dans le rendu validée par l'enseignant le 3 novembre 2026 ([trace](validation-sujet.md#trace-de-validation)) · mis à jour le 10 novembre 2026
 
-**Planification : extension non programmée.** Les jalons principaux ne dépendent pas de ce
-module. Son éventuelle inclusion est suivie dans l'[issue #19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)
-et les [pistes complémentaires du planning](planning/README.md#pistes-complémentaires-non-programmées),
-avec avis de l'enseignant et décision du groupe avant toute affectation de dates.
+**Planification : inclus dans le rendu, à calibrer.** L'enseignant a validé l'inclusion des
+chutes en séance le 3 novembre ([#19](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/19)).
+Les jalons principaux ne dépendent toujours pas de ce module. Avant d'en tirer des résultats,
+il reste à calibrer ses taux (§ 8) et à décider de son activation dans les campagnes ; ces
+tâches sont suivies dans [#130](https://github.com/ViscoCrowd/ViscoCrowd-simulation/issues/130) et le [planning](planning/README.md#pistes-complémentaires-non-programmées).
 
 ---
 
 **Ce qui est implémenté.** Glissade (§ 1), chute par bousculade et compression (§ 2),
 état à terre et domino (§ 3), relevage (§ 4), contournement (§ 5) et observables de
-cascade (§ 6). L'indépendance du taux de chute à Δt est vérifiée pour la glissade à excès
-constant (§ 7), pas encore pour la bousculade. `λ_chute`, `λ_domino`, `λ_bousculade`,
-`r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) :
-aucun chiffre obtenu avec ce module ne peut encore servir de résultat.
+cascade (§ 6). À excès donné, le taux de chute ne dépend pas de Δt pour les trois mécanismes
+(glissade, domino, bousculade ; § 7). Dans une vraie évacuation, la bousculade en dépendait :
+un choc ne dure qu'un pas, quel que soit Δt. Son risque est maintenant compté sur une durée
+fixe par choc, `duree_bousculade` (§ 2) : il n'est plus divisé par deux quand le pas l'est, et
+aucun écart n'est décelable sur 10 graines entre Δt, Δt/2 et Δt/4 (mesure du 14 novembre).
+`λ_chute`, `λ_domino`,
+`r_terre` et les paramètres du contournement restent des valeurs par défaut non calibrées (§ 8) ;
+`λ_bousculade` vaut 0, ce qui éteint la bousculade même quand le module est actif. Aucun chiffre
+obtenu avec ce module ne peut encore servir de résultat.
+
+**Décision du 16 novembre (#130, journal).** La référence reste sans chutes. Les chutes sont
+présentées dans une campagne exploratoire, qui balaie les quatre hypothèses sans source
+(`docs/balayages-piscine.md`, section « Chutes ») : elles y donnent au sol mouillé son premier
+effet net (t100 retardé de 6 à 25 s), mais avec des nombres de chutes qui ne sont pas
+plausibles.
 
 ---
 
@@ -111,9 +123,34 @@ produite par le solveur.
   murs, le bord du bassin et les obstacles. Un agent poussé seul contre un mur peut donc
   dépasser le seuil sans foule. L'indicateur mesure une compression, pas uniquement une
   bousculade.
-- *L'indépendance à Δt n'est pas acquise.* La forme `1 − exp(−λ · excès · Δt)` la garantit à
-  excès donné, mais ici l'excès dépend lui-même de Δt, puisque la correction est divisée par
-  Δt. Elle reste à vérifier par le test du § 7 avant toute calibration.
+- *Le taux dépend de Δt (mesuré le 14 novembre, #130).* La forme `1 − exp(−λ · excès · Δt)`
+  garantit l'indépendance à excès donné (test du § 7). Mais un choc ne dure qu'un pas, quel que
+  soit Δt : son exposition, et donc son risque, sont proportionnels au pas (diagnostic dans
+  #135). Mesure : porte de 0,8 m (saturée), bousculade
+  seule active (λ = 20 /s), graines 1 à 10. À Δt = 0,01 s, 39 chutes (3,9 ± 1,6 par
+  évacuation) ; à Δt = 0,005 s, 21 chutes (2,1 ± 1,0), moins sur 8 graines sur 10. Sur la
+  référence (porte de 1,2 m, λ = 2 /s), elle est presque absente (3 chutes contre 1 sur
+  10 graines) : la compression y dépasse rarement le seuil de 0,5 m/s. Mesures et scripts :
+  `docs/mesures/chutes-dt-2026-11-14/`. Tant que l'indicateur n'est pas reformulé (par exemple
+  sur une compression cumulée sur une durée fixe, et non sur un pas), aucun chiffre de
+  bousculade n'est un résultat.
+- *Pourquoi, et la correction (14 novembre).* Mesure sur la même porte (graine 1, Δt = 0,01 et
+  0,005 s) : les épisodes au-dessus du seuil sont aussi fréquents (1,33 et 1,32 /s) et aussi
+  forts (pic moyen 0,66 et 0,65 m/s) aux deux pas, mais chacun dure **exactement un pas**. Le
+  risque cumulé, λ · excès · Δt, était donc proportionnel à Δt. Il est maintenant compté sur
+  `duree_bousculade` (0,1 s, hypothèse) au premier pas d'un choc, puis sur Δt aux pas suivants.
+  Même mesure, λ = 2 /s : **39 chutes à Δt = 0,01 s, 47 à Δt/2, 38 à Δt/4**, pour 3,9 par
+  évacuation au pas de référence. Écart apparié à Δt : 0,8 ± 1,9 à Δt/2 (intervalle de
+  confiance à 95 % : −0,5 à +2,1 chute par évacuation ; 5 graines en hausse, 3 en baisse) et
+  −0,1 ± 2,0 à Δt/4 (−1,5 à +1,3 ; 5 et 5). Compté par pas, le taux aurait été divisé par
+  deux puis par quatre : la mesure l'exclut nettement. Elle ne montre pas de tendance avec
+  le pas, mais sur 10 graines elle ne peut exclure une dépendance résiduelle de quelques
+  dizaines de pour cent (jusqu'à +55 % à Δt/2, ±35 % à Δt/4). Sortie : `par_choc_porte_08.txt` et `par_choc_porte_08_dt4.txt`.
+- *Un seul paramètre identifiable.* Pour un choc d'un pas, le risque vaut
+  `1 − exp(−λ_bousculade · excès · duree_bousculade)` : λ_bousculade et `duree_bousculade`
+  n'y entrent que par leur **produit** (0,2 ici). Tant que presque tous les chocs durent un
+  pas, on ne peut calibrer que ce produit, et c'est lui qui reste une hypothèse sans source.
+  Balayer l'un des deux n'explore pas un second paramètre.
 
 ---
 
@@ -215,6 +252,18 @@ Aux critères déjà prévus s'ajoutent :
 
 1. **Indépendance à Δt du taux de chute** — c'est le test qui valide la forme exponentielle de la
    probabilité. Relancer à Δt/2 et Δt/4 : le taux de chute par seconde doit être stable.
+   *Fait à excès donné pour les trois mécanismes* (`tests/test_chutes.py` : glissade, domino et
+   bousculade, Δt = 0,02 et 0,01 s, à 10 % du taux théorique). *Dans une évacuation*, la
+   bousculade ne le vérifie pas (§ 2). Elle seule est en cause, pour une raison de structure :
+   la glissade et le domino lisent un état qui relaxe en τ ≫ Δt. Après un choc, `|v_d − v|`
+   relaxe en τ = 0,5 s, soit 50 pas, et l'urgence du domino dépend de `v` et des distances,
+   continues d'un pas à l'autre : leur exposition dure un temps physique. La bousculade lit
+   la correction d'un seul pas, et un choc mou est absorbé en un pas, quel que soit Δt.
+   *Mesuré en évacuation le 16 novembre* pour la glissade et le domino (référence régulée,
+   λ_chute = 2 /s, graines 1 à 10) : 115,0 chutes par évacuation à Δt = 0,01 s, 108,5 à
+   Δt/2. Écart apparié −6,5 ± 22,0 (p = 0,37) ; glissade +2 % (p = 0,88), domino −8 %
+   (p = 0,15). Aucune dépendance décelable, mais 10 graines ne peuvent exclure un écart de
+   l'ordre de 20 %.
 2. **Cas limite sans chute** — en fixant μ très grand, le modèle doit redonner **exactement** les
    résultats du modèle sans chute. Un écart signale un couplage parasite.
 3. **Cohérence de la distribution de relevage** — vérifier sur un grand nombre de tirages que la
@@ -224,12 +273,22 @@ Aux critères déjà prévus s'ajoutent :
 
 ---
 
-## 8. Ce qu'il reste à décider
+## 8. Décisions (16 novembre 2026, #130)
 
-- [ ] Valeur de `λ_chute` : par calibration sur un taux de chute plausible, ou par balayage assumé ?
-- [ ] Le rayon au sol `r_terre` : 1,5 · r est une estimation. Trouver une source, ou l'assumer explicitement comme hypothèse.
-- [ ] Les agents à terre sont-ils piétinés (blessés, immobilisés définitivement) ou se relèvent-ils toujours ? La littérature modélise les deux ; le second est plus simple et suffit probablement à notre question.
-- [ ] Hétérogénéité de la population : faut-il une fraction d'agents plus lents à se relever (la source donne 5,7 s pour les 60 ans et plus) ?
+- [x] **`λ_chute` : balayage assumé** (0,5 à 10 /s), pas de calibration. Aucun taux de chute
+  observé en évacuation de piscine ne permet de le caler, et le caler sur un taux
+  « plausible » reviendrait à ajuster le module pour obtenir le résultat attendu.
+  `λ_domino` (1 à 16 /s) et `λ_bousculade` (0 à 10 /s) sont traités de la même façon.
+- [x] **Rayon au sol `r_terre` : hypothèse assumée**, 1,5 · r par défaut, balayée de r à 2 r.
+  Aucune source trouvée.
+- [x] **Relevage systématique**, sans piétinement : c'est le plus simple, et cela suffit pour
+  une question de débit.
+- [x] **Population homogène**, médiane de relevage 3,7 s (adultes de 20 à 50 ans, Becker et
+  al. 2016). La fraction de 60 ans et plus n'est pas modélisée : sa part dans une piscine
+  serait une hypothèse de plus.
+- [x] **Activation : la référence reste sans chutes** (`chutes: null`). Les chutes sont
+  présentées dans une campagne exploratoire à part ([balayages](balayages-piscine.md),
+  section « Chutes »), dont aucun chiffre n'est un résultat.
 
 ---
 

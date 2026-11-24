@@ -36,10 +36,13 @@ _SHA = re.compile(r"[0-9a-f]{40}")
 
 
 def _git(racine: Path, *arguments: str) -> str:
+    # git ecrit ses chemins en UTF-8. Decodes avec l'encodage local de Windows (cp1252),
+    # « Université » devenait « UniversitÃ© » : le depot ne se reconnaissait plus, et
+    # toute archive produite sous un chemin accentue perdait son commit.
     resultat = subprocess.run(
         ["git", "-C", str(racine), *arguments],
         capture_output=True,
-        text=True,
+        encoding="utf-8",
         check=True,
         timeout=10,
     )

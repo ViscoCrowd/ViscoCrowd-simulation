@@ -2,6 +2,7 @@
 
 import json
 import platform
+from collections.abc import Mapping
 from dataclasses import asdict
 from pathlib import Path
 
@@ -34,6 +35,11 @@ def _parametres(
         raise ValueError(
             "le goulot est un banc de mesure (E0) sans archive : "
             "utiliser la commande etalonner-goulot"
+        )
+    if config["scenario"] == "anneau":
+        raise ValueError(
+            "l'anneau est un banc de mesure (M8) sans archive : "
+            "utiliser la commande diagramme-anneau"
         )
     for nom, classe in (("couloir", ParametresCouloir), ("piscine", ParametresPiscine)):
         if config["scenario"] == nom:
@@ -75,11 +81,29 @@ def _parametres(
 
 
 def executer_configuration(
-    configuration: str | Path, sortie: str | Path, *, archiver_tous: int = 1
+    configuration: str | Path,
+    sortie: str | Path,
+    *,
+    archiver_tous: int = 1,
+    fixes: Mapping[str, float | int] | None = None,
 ) -> Trajectoire:
-    """Archive uniquement un calcul fini, confine et converge ; aucun affichage."""
+    """Archive uniquement un calcul fini, confine et converge ; aucun affichage.
+
+    `fixes` : surcharges de la piscine (noms de `balayage_piscine.PARAMETRES`), appliquees
+    apres lecture du YAML. L'archive garde la configuration EFFECTIVE et, a part, les
+    surcharges (metadonnee `surcharges`) : on sait ce qui a tourne et ce qui differait du
+    fichier.
+    """
     code = provenance_code()
-    config = lire_configuration(configuration)
+    config_fichier = lire_configuration(configuration)
+    config = config_fichier
+    if fixes:
+        if config_fichier.get("scenario") != "piscine":
+            raise ValueError("les surcharges (--fixer) ne sont disponibles que pour la piscine")
+        from viscocrowd.scenarios.balayage_piscine import appliquer_fixes
+
+        parametres = appliquer_fixes(config_fichier["parametres"], fixes)
+        config = config_fichier | {"parametres": parametres}
     p = _parametres(config)
     if type(archiver_tous) is not int or archiver_tous < 1:
         raise ValueError("archiver_tous doit etre un entier strictement positif")
@@ -118,7 +142,7 @@ def executer_configuration(
 
             diagnostic = Path(sortie).with_suffix(".diagnostic.npz")
             try:
-                if lire_configuration(configuration) != config:
+                if lire_configuration(configuration) != config_fichier:
                     raise ValueError("configuration modifiee pendant le calcul")
                 ecrire_diagnostic(diagnostic, erreur, _configuration_effective(config, p), code)
                 erreur.add_note(f"Diagnostic rejouable : {diagnostic}")
@@ -171,6 +195,7 @@ def executer_configuration(
                 "validation_tous_les_pas": True,
             },
             **metadonnees_evenements,
+            **({"surcharges": dict(fixes)} if fixes else {}),
         },
         etats=etats,
     )

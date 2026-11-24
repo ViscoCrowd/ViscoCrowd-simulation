@@ -191,16 +191,39 @@ def construire_analyseur() -> argparse.ArgumentParser:
 
     # Chaque module declare sa sous-commande ; noms qualifies, les deux fonctions
     # portant le meme nom.
-    from viscocrowd.scenarios import balayage_piscine, campagne, performances
+    from viscocrowd.scenarios import (
+        anneau,
+        balayage_piscine,
+        campagne,
+        campagne_finale,
+        diagramme_goulot,
+        diagramme_piscine,
+        performances,
+    )
 
     performances.ajouter_commande(sous)
     balayage_piscine.ajouter_commande(sous)
+    diagramme_goulot.ajouter_commande(sous)
+    diagramme_piscine.ajouter_commande(sous)
+    anneau.ajouter_commande(sous)
     interface = sous.add_parser(
         "interface", help="ouvre une maquette visuelle de la piscine, sans simulation"
     )
     interface.set_defaults(fonction=commande_interface)
 
     campagne.ajouter_commande(sous)
+    campagne_finale.ajouter_commande(sous)
+
+    import importlib
+
+    from viscocrowd.viz import COMMANDES
+
+    for nom in COMMANDES:  # liste dans viz/__init__.py : une ligne par commande
+        importlib.import_module(f"viscocrowd.viz.{nom}").ajouter_commande(sous)
+
+    from viscocrowd.ui import lanceur
+
+    lanceur.ajouter_commande(sous)
 
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(
@@ -208,6 +231,13 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
+    simuler.add_argument(
+        "--fixer",
+        nargs="+",
+        default=[],
+        metavar="NOM=VALEUR",
+        help="piscine : surcharges du YAML, noms de balayer-piscine (ex. n_agents=150)",
+    )
     simuler.set_defaults(fonction=commande_simuler)
 
     rejouer = sous.add_parser(
@@ -275,6 +305,11 @@ def construire_analyseur() -> argparse.ArgumentParser:
         nargs="+",
         help="graines distinctes (defaut : celle de la configuration et les deux suivantes)",
     )
+    etalonner.add_argument(
+        "--agents",
+        type=int,
+        help="nombre d'agents N, a la place de celui du YAML (Seyfried mesure N = 20, 40, 60)",
+    )
     etalonner.set_defaults(fonction=commande_etalonner_goulot)
 
     from viscocrowd.io.diagnostic_projection import ajouter_commande
@@ -308,6 +343,10 @@ def commande_etalonner_goulot(args: argparse.Namespace) -> int:
     debut = time.perf_counter()
     try:
         configuration = lire_configuration(args.configuration)
+        if args.agents is not None:
+            # Meme protocole a un autre N : la validation reste celle de ParametresGoulot.
+            parametres = configuration["parametres"] | {"n_agents": args.agents}
+            configuration = configuration | {"parametres": parametres}
         graine = configuration["graine"]
         graines = args.graines or [graine, graine + 1, graine + 2]
         resultats = etalonner(configuration, args.largeurs, graines)
@@ -428,11 +467,15 @@ def commande_comparer_piscine(args: argparse.Namespace) -> int:
 def commande_simuler(args: argparse.Namespace) -> int:
     """Produit une trajectoire relisible, ou un diagnostic sans archive exploitable."""
     from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.scenarios.balayage_piscine import lire_fixes
     from viscocrowd.scenarios.experience import executer_configuration
 
     try:
         donnees = executer_configuration(
-            args.configuration, args.sortie, archiver_tous=args.archiver_tous
+            args.configuration,
+            args.sortie,
+            archiver_tous=args.archiver_tous,
+            fixes=lire_fixes(args.fixer),
         )
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Simulation refusee : {erreur}", file=sys.stderr)

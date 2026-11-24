@@ -10,6 +10,7 @@ from viscocrowd.core.rng import generateur
 from viscocrowd.io.configuration import lire_configuration
 from viscocrowd.io.trajectoires import lire_trajectoire
 from viscocrowd.observables.sortie import sorties_definitives
+from viscocrowd.observables.weidmann import debit_specifique
 from viscocrowd.scenarios.experience import executer_configuration
 from viscocrowd.scenarios.piscine import (
     EAU,
@@ -137,6 +138,30 @@ def test_etats_retrouves_depuis_les_evenements(evacuation):
     # Tant qu'un agent n'est pas sorti, il reste en deca de la porte.
     x_porte = r.parametres.piscine.longueur_emprise
     assert np.all(r.x[..., 0][r.etats != SORTI] < x_porte)
+
+
+def test_confrontation_repere_analytique_debit(evacuation):
+    """Confrontation au repere analytique T = N / (J_max * w) (#11).
+
+    J_max est le debit specifique maximal du diagramme de Weidmann (1,225 pers/(m*s),
+    p. 63-64), calcule ici par `debit_specifique`. Avec 20 agents disperses dans le
+    bassin, la nage et les echelles etalent les arrivees : la porte s'ecoule plus
+    longtemps que le repere ne le prevoit pour un flux continu. Le debit reste sous la
+    capacite du goulot E0 sans regulation (4,96 pers/(m*s), rapport tab. E0).
+    """
+    r = evacuation
+    n = r.parametres.n_agents
+    w = r.parametres.piscine.largeur_porte
+    j_max = float(debit_specifique(np.linspace(0.5, 5.0, 10001)).max())
+    assert j_max == pytest.approx(1.225, abs=1e-3)
+
+    sorties = np.sort(r.sorties)
+    assert np.all(np.isfinite(sorties)) and sorties.size == n
+    dt_flux = sorties[-1] - sorties[0]
+    j_s = (n - 1) / (dt_flux * w)
+
+    assert dt_flux > n / (j_max * w)  # 15,1 s contre 13,6 s (mesure du 7 novembre)
+    assert j_s < 4.96
 
 
 def test_le_partage_vers_les_echelles_suit_leur_duree():
@@ -332,3 +357,145 @@ def test_obstacle_laissant_un_passage_trop_etroit_refuse_a_la_lecture():
     geom["obstacles"] = [{"x_min": 40.0, "x_max": 41.0, "y_min": 18.0, "y_max": 20.3}]
     with pytest.raises(ValueError, match="passage"):
         parametres(geometrie=geom)
+
+
+@pytest.mark.parametrize("temps", [0.0, -0.5, np.nan, "invalide"])
+def test_parametres_piscine_temps_espacement_invalide(temps):
+    with pytest.raises(ValueError, match="temps_espacement"):
+        parametres(temps_espacement=temps)
+
+
+def test_simulation_piscine_avec_temps_espacement():
+    """Verifie que l'espacement de Tordeux s'applique sans violer les invariants de la piscine."""
+    p = parametres(n_agents=6, duree=60.0, temps_espacement=0.35)
+    assert p.temps_espacement == 0.35
+    assert p.en_dictionnaire()["temps_espacement"] == 0.35
+
+    r = simuler_piscine(p)
+    assert r.projection.non_convergences == 0
+    assert np.all(r.etats[-1] == SORTI)
+    assert np.all(np.isfinite(r.sorties))
+    assert r.violation_paroi_max() <= 1e-14
+
+
+def test_temps_espacement_ralentit_l_ecoulement():
+    """La regulation agit : meme graine, les baigneurs sortent plus tard avec T = 0,35 s.
+
+    A 6 agents la porte ne sature pas et les sorties sont identiques au bit pres ; a 30,
+    le temps de sortie moyen passe de 22,73 a 23,12 s (mesure du 7 novembre).
+    """
+    # Le YAML active T = 0,35 s depuis #57 : le cas libre coupe la regulation explicitement.
+    libre = simuler_piscine(parametres(n_agents=30, duree=90.0, temps_espacement=None)).sorties
+    regule = simuler_piscine(parametres(n_agents=30, duree=90.0, temps_espacement=0.35)).sorties
+
+    assert np.all(np.isfinite(libre)) and np.all(np.isfinite(regule))
+    assert regule.mean() > libre.mean() + 0.1
+    assert regule.max() >= libre.max()
+
+
+# --- Deblocage pres d'un site libre (#127) ------------------------------------------
+
+DEBLOCAGE = {"delai": 0.3, "portee": 0.65, "vitesse": 0.001}
+
+# Les 13 nageurs restes a la fin de l'evacuation de #127 (200 baigneurs, graine 4,
+# sans regulation, a_max de l'eau a 1,6) : un reseau serre sous l'echelle du haut,
+# dont le point d'attente (25,5 ; 16,3) est libre mais a un diametre de tous.
+ARCHE_ECHELLE = [
+    [25.1001, 16.3],
+    [24.7, 15.6073],
+    [24.9, 15.9536],
+    [25.1, 15.6072],
+    [25.3, 15.9535],
+    [25.3, 15.2607],
+    [25.5, 15.6071],
+    [25.7, 15.9535],
+    [25.7, 15.2607],
+    [25.9, 15.6072],
+    [26.1, 15.9536],
+    [26.3, 15.6073],
+    [25.8999, 16.3],
+]
+
+
+def _simuler_arche(monkeypatch, deblocage):
+    import viscocrowd.scenarios.piscine as scenario
+
+    p = parametres(
+        n_agents=len(ARCHE_ECHELLE), duree=1.0, temps_espacement=None, deblocage=deblocage
+    )
+    monkeypatch.setattr(scenario, "positions_initiales", lambda _: np.array(ARCHE_ECHELLE))
+    return simuler_piscine(p)
+
+
+def test_arche_devant_l_echelle_sans_deblocage(monkeypatch):
+    """Le blocage de #127 : point d'attente libre, mais aucun nageur a portee, ni ne bouge."""
+    r = _simuler_arche(monkeypatch, None)
+    assert r.franchissements.shape[0] == 0
+    assert np.all(r.etats[-1] == 0)  # tous encore dans l'eau
+    assert np.max(np.hypot(*(r.x[-1] - r.x[0]).T)) < 1e-3  # m, immobiles
+    assert r.deblocages == 0
+
+
+def test_deblocage_d_une_arche_devant_l_echelle(monkeypatch):
+    """Immobile depuis `delai`, un nageur a bout de bras d'un site libre le saisit."""
+    r = _simuler_arche(monkeypatch, DEBLOCAGE)
+    assert r.deblocages >= 1
+    # Un franchissement n'est enregistre qu'a la reintroduction, apres la duree du site :
+    # on lit donc l'etat des nageurs qui ont saisi un site.
+    assert np.sum(r.etats[-1] == FRANCHISSEMENT) == r.deblocages
+
+
+def test_deblocage_attend_le_delai(monkeypatch):
+    """Immobile depuis moins que `delai`, personne n'est debloque (1 s simulee)."""
+    r = _simuler_arche(monkeypatch, DEBLOCAGE | {"delai": 1.05})
+    assert r.deblocages == 0
+    r = _simuler_arche(monkeypatch, DEBLOCAGE | {"delai": 0.95})
+    assert r.deblocages >= 1
+
+
+def test_deblocage_sans_effet_sans_blocage():
+    """Sans nageur bloque, la regle ne change rien, au bit pres (critere de #127)."""
+    sans = simuler_piscine(parametres(n_agents=15, duree=60.0, deblocage=None))
+    avec = simuler_piscine(parametres(n_agents=15, duree=60.0, deblocage=DEBLOCAGE))
+    assert avec.deblocages == 0
+    np.testing.assert_array_equal(avec.sorties, sans.sorties)
+    np.testing.assert_array_equal(avec.franchissements, sans.franchissements)
+
+
+@pytest.mark.parametrize(
+    "deblocage, message",
+    [
+        ({"delai": 2.0, "portee": 0.65}, "delai"),
+        ({"delai": 0.0, "portee": 0.65, "vitesse": 0.001}, "strictement positifs"),
+        ({"delai": 2.0, "portee": float("nan"), "vitesse": 0.001}, "strictement positifs"),
+        ({"delai": 2.0, "portee": 0.2, "vitesse": 0.001}, "portee ordinaire"),
+    ],
+)
+def test_deblocage_invalide_refuse(deblocage, message):
+    with pytest.raises(ValueError, match=message):
+        parametres(deblocage=deblocage)
+
+
+def test_echelles_entier_equivaut_a_la_liste():
+    from utilitaires import parametres_reduits
+
+    a = parametres_reduits(geometrie={"echelles": 2})
+    b = parametres_reduits(geometrie={"echelles": [["haut", 0.5], ["bas", 0.5]]})
+    assert a.piscine.echelles == b.piscine.echelles == (("haut", 0.5), ("bas", 0.5))
+    sites_a, sites_b = a.piscine.sites(), b.piscine.sites()
+    assert [s.nature for s in sites_a] == [s.nature for s in sites_b]
+    np.testing.assert_array_equal([s.position for s in sites_a], [s.position for s in sites_b])
+
+
+def test_zero_echelle_ne_laisse_que_des_rebords():
+    from utilitaires import parametres_reduits
+
+    p = parametres_reduits(geometrie={"echelles": 0})
+    assert {s.nature for s in p.piscine.sites()} == {"rebord"}
+
+
+def test_archive_ecrit_la_liste_explicite_des_echelles():
+    from utilitaires import parametres_reduits
+
+    dico = parametres_reduits(geometrie={"echelles": 2}).en_dictionnaire()
+    assert dico["geometrie"]["echelles"] == [["haut", 0.5], ["bas", 0.5]]

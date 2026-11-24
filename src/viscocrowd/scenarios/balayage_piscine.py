@@ -7,7 +7,8 @@ Au point de reference, le sol mouille ne change rien de mesurable (#83) : a
 du YAML, pour tracer les courbes de reponse de la spec § 4 :
 
   - E3 : largeur de la bande mouillee et adherence du mouille ;
-  - E4 : niveau de panique, largeur de la porte et population.
+  - E4 : niveau de panique, largeur de la porte, population et durees de
+    franchissement du rebord et des echelles.
 
 Mesure appariee
 ---------------
@@ -33,7 +34,9 @@ Mesures, par simulation, sur TOUTE la population :
   - t50, t90, t100 : instants ou 50, 90 et 100 % des agents sont sortis, en s ;
   - debit : debit specifique a la porte, en pers/(m.s), avec l'estimateur du
     goulot E0 (`debit_seyfried`), pour que les deux restent comparables ;
-  - non_sortis : agents encore presents a la fin de `duree`.
+  - non_sortis : agents encore presents a la fin de `duree` ;
+  - chutes_glissade, chutes_domino, chutes_bousculade : nombre de chutes de chaque
+    cause pendant l'evacuation, nul quand le module de chutes est desactive.
 
 Une evacuation INCOMPLETE (non_sortis > 0) est un resultat, pas une erreur : une
 porte qui se bouche en est un. Elle est donc conservee, avec t100 = +inf et un
@@ -49,7 +52,7 @@ import json
 import math
 import sys
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -59,8 +62,24 @@ from viscocrowd.model.milieu import Milieu
 from viscocrowd.scenarios.goulot import debit_seyfried
 from viscocrowd.scenarios.piscine import ParametresPiscine, simuler_piscine
 
-MESURES = ("t50", "t90", "t100", "debit", "non_sortis")
-UNITES = {"t50": "s", "t90": "s", "t100": "s", "debit": "pers/(m.s)", "non_sortis": "pers"}
+# Les chutes par cause valent 0 quand le module est desactive (`chutes: null`).
+CAUSES_CHUTE = ("glissade", "domino", "bousculade")
+MESURES = (
+    "t50",
+    "t90",
+    "t100",
+    "debit",
+    "non_sortis",
+    *(f"chutes_{cause}" for cause in CAUSES_CHUTE),
+)
+UNITES = {
+    "t50": "s",
+    "t90": "s",
+    "t100": "s",
+    "debit": "pers/(m.s)",
+    "non_sortis": "pers",
+    **{f"chutes_{cause}": "chutes" for cause in CAUSES_CHUTE},
+}
 
 
 @dataclass(frozen=True)
@@ -103,6 +122,69 @@ PARAMETRES = {
         "E4", "m", "largeur de la porte", ("geometrie", "largeur_porte")
     ),
     "n_agents": ParametreBalaye("E4", "pers", "nombre de baigneurs", ("n_agents",)),
+    # Temps de reaction (option, journal du 18/11) : la configuration doit deja declarer
+    # `reaction` avec sa dispersion, que le balayage garde.
+    "reaction_mediane": ParametreBalaye(
+        "E4", "s", "mediane du temps de reaction a l'alarme", ("reaction", "mediane")
+    ),
+    "longueur_bassin": ParametreBalaye(
+        "E4", "m", "longueur du bassin", ("geometrie", "longueur_bassin")
+    ),
+    "largeur_bassin": ParametreBalaye(
+        "E4", "m", "largeur du bassin", ("geometrie", "largeur_bassin")
+    ),
+    "echelles": ParametreBalaye(
+        "E4",
+        "-",
+        "nombre d'echelles au milieu des grands cotes (2 n'est pas la reference)",
+        ("geometrie", "echelles"),
+    ),
+    "vitesse_mouille": ParametreBalaye(
+        "E3",
+        "m/s",
+        "vitesse souhaitee sur le carrelage mouille",
+        ("parametres_milieux", "MOUILLE", "vitesse"),
+    ),
+    "lambda_chute": ParametreBalaye(
+        "E3",
+        "1/s",
+        "taux de chute par perte d'adherence (active le module de chutes, avec ses autres "
+        "valeurs par defaut non calibrees : inclusion validee (#19), aucun chiffre n'est un "
+        "resultat avant calibration)",
+        ("chutes", "lambda_chute"),
+    ),
+    # Les trois parametres suivants n'ont pas de source (docs/modele-chutes.md, § 8) : la
+    # campagne exploratoire des chutes les balaie comme hypotheses (#130). Comme pour
+    # lambda_chute, balayer l'un active le module avec les autres valeurs par defaut.
+    "lambda_domino": ParametreBalaye(
+        "E3",
+        "1/s",
+        "taux de chute par effet domino, pres d'un corps au sol (active le module de chutes ; "
+        "hypothese sans source, #130)",
+        ("chutes", "lambda_domino"),
+    ),
+    # Seul le produit lambda_bousculade x duree_bousculade compte pour un choc d'un pas
+    # (0,1 s par defaut, #135) : balayer lambda revient a balayer ce produit.
+    "lambda_bousculade": ParametreBalaye(
+        "E3",
+        "1/s",
+        "taux de chute par bousculade (0 l'eteint ; active le module de chutes ; hypothese "
+        "sans source, #130)",
+        ("chutes", "lambda_bousculade"),
+    ),
+    "facteur_rayon_terre": ParametreBalaye(
+        "E3",
+        "-",
+        "rayon d'un corps au sol rapporte au rayon debout (active le module de chutes ; "
+        "hypothese sans source, #130)",
+        ("chutes", "facteur_rayon_terre"),
+    ),
+    "temps_espacement": ParametreBalaye(
+        "E4",
+        "s",
+        "temps d'espacement de Tordeux et al. (regulation vitesse-espacement)",
+        ("temps_espacement",),
+    ),
     # Pas mesure sur les sols de la piscine : on verifie que les conclusions tiennent
     # quand tau varie (helbing2000 prend 0,5 s). Un tau plus court rend les agents plus
     # vifs, donc l'adherence limite plus souvent.
@@ -119,7 +201,30 @@ PARAMETRES = {
     # Pas un parametre physique : il sert a verifier que les ecarts ne dependent pas
     # du pas de temps (spec § 5), et a fixer un pas plus fin quand la panique l'exige.
     "dt": ParametreBalaye("M9", "s", "pas de temps (sensibilite numerique)", ("dt",)),
+    # Les durees de franchissement n'ont aucune source (piscine.yaml) : la spec § 4
+    # demande de mesurer leur influence. Elles pesent aussi sur le guidage, puisque
+    # phi_eau = T_k + phi_plage : un rebord lent envoie plus de nageurs aux echelles.
+    # Le temoin recoit la meme duree, si bien que Delta ne mesure toujours que le sol.
+    "duree_rebord": ParametreBalaye(
+        "E4", "s", "duree pour se hisser sur le rebord, a chaque site", ("durees", "rebord")
+    ),
+    "duree_echelle": ParametreBalaye(
+        "E4", "s", "duree de montee d'une echelle, a chaque site", ("durees", "echelle")
+    ),
+    # 0,34 g x poids apparent ~0,5 : le poids apparent est une hypothese (journal du
+    # 6 novembre 2026) ; 1,67 m/s^2 dans le YAML depuis la relance du 13 novembre (#128).
+    "adherence_eau": ParametreBalaye(
+        "M9",
+        "m/s^2",
+        "acceleration maximale dans l'eau (hypothese de poids apparent, sensibilite)",
+        ("parametres_milieux", "EAU", "acceleration_max"),
+    ),
 }
+
+
+# Parametres a valeur entiere : `--fixer n_agents=150` doit donner 150, pas 150.0, que
+# `ParametresPiscine` refuserait.
+ENTIERS = frozenset({"n_agents", "echelles"})
 
 
 @dataclass(frozen=True)
@@ -148,11 +253,19 @@ class PointBalayage:
 
 
 def _remplacer(table: dict, chemin: tuple[str, ...], valeur) -> dict:
-    """Copie de `table` ou seule la valeur au bout de `chemin` change."""
+    """Copie de `table` ou seule la valeur au bout de `chemin` change.
+
+    Un champ absent ou nul est cree : balayer `lambda_chute` sur un YAML sans section
+    `chutes` active ainsi le module de chutes, toutes ses autres valeurs restant celles
+    par defaut de `ParametresChutes`, non calibrees (docs/modele-chutes.md).
+    """
     tete, *reste = chemin
-    if tete not in table:
-        raise ValueError(f"la configuration n'a pas de champ {'.'.join(chemin)}")
-    return table | {tete: _remplacer(table[tete], tuple(reste), valeur) if reste else valeur}
+    sous_table = table.get(tete)
+    if sous_table is None:
+        sous_table = {}
+    elif reste and not isinstance(sous_table, dict):
+        raise ValueError(f"le champ {tete} de la configuration n'est pas une section")
+    return table | {tete: _remplacer(sous_table, tuple(reste), valeur) if reste else valeur}
 
 
 def _appliquer(parametres: dict, nom: str, valeur) -> dict:
@@ -163,8 +276,26 @@ def _appliquer(parametres: dict, nom: str, valeur) -> dict:
     return parametres
 
 
+def appliquer_fixes(parametres: dict, fixes: Mapping[str, float | int]) -> dict:
+    """Copie des parametres ou chaque surcharge de `fixes` est appliquee ; l'original reste intact.
+
+    Les noms sont ceux de `PARAMETRES` : un parametre commun a plusieurs milieux (`relaxation`)
+    change partout a la fois.
+    """
+    for nom, valeur in fixes.items():
+        if nom not in PARAMETRES:
+            raise ValueError(f"surcharge inconnue {nom!r} ; attendu : {', '.join(PARAMETRES)}")
+        parametres = _appliquer(parametres, nom, valeur)
+    return parametres
+
+
 def temoin(parametres: dict) -> dict:
-    """Les memes parametres, sol entierement sec."""
+    """Les memes parametres, sol entierement sec.
+
+    Les chutes, si elles sont actives, restent les memes : Delta ne doit mesurer que le
+    sol, pas le fait d'activer le module (revue de #104). Sur le sec, a_max = 5,9 m/s^2
+    rend la glissade rare, et c'est ce que Delta doit montrer.
+    """
     milieux = parametres["parametres_milieux"]
     return parametres | {
         "geometrie": parametres["geometrie"] | {"largeur_mouillee": 0.0},
@@ -192,12 +323,17 @@ def mesurer(p: ParametresPiscine) -> dict[str, float]:
     r = simuler_piscine(p, archiver_tous=math.ceil(p.duree / p.dt))
     r.projection.verifier_convergence()
     restants = int(np.sum(~np.isfinite(r.sorties)))
+    causes = [evenement.cause for evenement in r.chutes]
+    inconnues = set(causes) - set(CAUSES_CHUTE)
+    if inconnues:
+        raise ValueError(f"cause de chute inconnue du balayage : {sorted(inconnues)}")
     return {
         "t50": r.temps_evacuation(0.5),
         "t90": r.temps_evacuation(0.9),
         "t100": r.temps_evacuation(1.0),
         "debit": debit_seyfried(r.sorties, p.piscine.largeur_porte) if not restants else math.nan,
         "non_sortis": float(restants),
+        **{f"chutes_{cause}": float(causes.count(cause)) for cause in CAUSES_CHUTE},
     }
 
 
@@ -214,6 +350,10 @@ def _valeurs_valides(parametre: str, valeurs: Sequence[float]) -> list:
         # Le debit demande au moins deux sorties.
         if not all(float(v).is_integer() and v >= 2 for v in valeurs):
             raise ValueError("n_agents : entiers d'au moins 2 attendus")
+        return [int(v) for v in valeurs]
+    if parametre in ENTIERS:
+        if not all(float(v).is_integer() and v >= 0 for v in valeurs):
+            raise ValueError(f"{parametre} : entiers positifs ou nuls attendus")
         return [int(v) for v in valeurs]
     return [float(v) for v in valeurs]
 
@@ -351,11 +491,15 @@ def _ligne_tableau(point: PointBalayage) -> str:
     finis = np.isfinite(ecart)
     non_sortis = f"{point.mouille[:, k['non_sortis']].sum():.0f}/"
     non_sortis += f"{point.temoin[:, k['non_sortis']].sum():.0f}"
+    colonnes_chutes = [k[f"chutes_{cause}"] for cause in CAUSES_CHUTE]
+    chutes = f"{point.mouille[:, colonnes_chutes].sum(axis=1).mean():.1f}/"
+    chutes += f"{point.temoin[:, colonnes_chutes].sum(axis=1).mean():.1f}"
     cellules = [
         f"{point.valeur:>8g}",
         f"{_moyenne_ecart(point.mouille[:, k['t100']], 2):>16}",
         *(f"{_moyenne_ecart(point.ecart[:, k[m]], 3):>17}" for m in _ECARTS),
         f"{non_sortis:>11}",
+        f"{chutes:>11}",
         f"{int(np.sum(ecart[finis] > 0)):>8}/{int(finis.sum())}",
     ]
     if point.equivaut_au_sec:
@@ -384,7 +528,8 @@ def ajouter_commande(sous) -> None:
     commande.set_defaults(fonction=commande_balayer)
 
 
-def _lire_fixes(textes: list[str]) -> dict[str, float]:
+def lire_fixes(textes: list[str]) -> dict[str, float | int]:
+    """Surcharges `NOM=VALEUR` de la ligne de commande, NOM parmi `PARAMETRES`."""
     fixes = {}
     for texte in textes:
         nom, egal, valeur = texte.partition("=")
@@ -392,7 +537,16 @@ def _lire_fixes(textes: list[str]) -> dict[str, float]:
             raise ValueError(f"--fixer attend NOM=VALEUR avec NOM parmi {', '.join(PARAMETRES)}")
         if nom in fixes:
             raise ValueError(f"{nom} est fixe deux fois")
-        fixes[nom] = float(valeur)
+        try:
+            nombre = float(valeur)
+        except ValueError:
+            raise ValueError(f"--fixer {texte} : {nom} doit etre un nombre") from None
+        if nom in ENTIERS:
+            if not nombre.is_integer():
+                raise ValueError(f"{nom} : entier attendu, recu {valeur}")
+            fixes[nom] = int(nombre)
+        else:
+            fixes[nom] = nombre
     return fixes
 
 
@@ -405,7 +559,7 @@ def commande_balayer(args) -> int:
     try:
         configuration = lire_configuration(args.configuration)
         graines = args.graines or [configuration["graine"] + k for k in range(10)]
-        fixes = _lire_fixes(args.fixer)
+        fixes = lire_fixes(args.fixer)
         plan = planifier(configuration, args.parametre, args.valeurs, graines, fixes=fixes)
         if args.sortie is not None:
             if args.sortie.suffix != ".json":
@@ -435,10 +589,11 @@ def commande_balayer(args) -> int:
         print(f"Parametres fixes hors YAML : {autres} ; graines {graines}")
         print("Delta = mouille - temoin (meme piscine toute seche, meme graine) ; moyenne ± ecart")
         print("non sortis : total sur les graines, mouille/temoin, a la fin de la duree")
+        print("chutes : moyenne par evacuation, toutes causes, mouille/temoin")
         print(
             f"{'valeur':>8} {'t100 mouille (s)':>16} "
             + " ".join(f"{'Delta ' + m + ' (' + UNITES[m] + ')':>17}" for m in _ECARTS)
-            + f" {'non sortis':>11} Delta t100 > 0"
+            + f" {'non sortis':>11} {'chutes':>11} Delta t100 > 0"
         )
 
         def apres_point(point: PointBalayage) -> None:

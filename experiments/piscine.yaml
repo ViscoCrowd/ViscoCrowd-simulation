@@ -23,8 +23,8 @@ parametres:
   parametres_milieux:
     EAU:                       # petit bain de 0,7 m, eau calme : V = 0,53 (d^2/2)^-0,19 (shirvani2020)
       relaxation: 0.5          # s (Helbing et al. 2000)
-      acceleration_max: 1.6    # m/s^2 : 0,34 g x poids apparent ~0,5 = 1,67 (hypothese) ;
-                               # 1,6 provisoire, 1,67 a la prochaine relance des balayages
+      acceleration_max: 1.67   # m/s^2 : 0,34 g x poids apparent ~0,5 (hypothese) ;
+                               # 1,6 provisoire jusqu'a la relance du 13 novembre 2026
       vitesse: 0.69            # m/s
     MOUILLE:
       relaxation: 0.5
@@ -35,10 +35,15 @@ parametres:
       acceleration_max: 5.9    # 0,60 g (Kendzior 2023)
       vitesse: 1.34
   facteur_vitesse: 1.5         # panique : vitesse souhaitee 2,0 m/s sur les plages (Helbing 2000)
+  temps_espacement: 0.35       # s, Tordeux et al. (2016) etalonne sur E0 (#58), eau comprise (#57) ; null le desactive
   durees:                      # s, hypotheses non sourcees, balayees en E4
     rebord: 4.0
     echelle: 2.0
   portee: 0.25                 # m : on saisit le bord a moins d'une demi-echelle
+  deblocage:                   # #127 : un nageur bloque pres d'un site libre finit par le saisir
+    delai: 2.0                 # s immobile avant de tendre le bras (hypothese, sans source)
+    portee: 0.65               # m : un diametre plus la portee, a bout de bras
+    vitesse: 0.001             # m/s : en dessous, le nageur est tenu pour immobile
   dt: 0.01                     # s
   duree: 180.0                 # s, borne ; le calcul s'arrete quand tous sont sortis
   tolerance: 1.0e-6            # m

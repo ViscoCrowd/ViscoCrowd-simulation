@@ -1,0 +1,342 @@
+{
+  "provenance": {
+    "commit": null,
+    "modifications_locales": null,
+    "source": "indisponible"
+  },
+  "graines": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "zone_mesure": {
+    "x_min": 6.0,
+    "x_max": 7.8,
+    "y_min": 1.5,
+    "y_max": 3.5
+  },
+  "densite_moyenne_reference": 3.9307752798593767,
+  "comparaisons": {
+    "serree_tol_1e-7_dt_0.01": {
+      "difference_moyenne": -2.3128874086397744e-05,
+      "difference_relative": -5.884048931747932e-06,
+      "ecart_type": 0.0002769032749882134,
+      "erreur_standard": 8.756450405226888e-05,
+      "valeur_p_permutation": 1.0,
+      "ecart_absolu_max": 0.0006938662225928205
+    },
+    "large_tol_1e-5_dt_0.01": {
+      "difference_moyenne": 0.00471829031362776,
+      "difference_relative": 0.0012003459820772446,
+      "ecart_type": 0.007528794907345099,
+      "erreur_standard": 0.002380813994348687,
+      "valeur_p_permutation": 0.015625,
+      "ecart_absolu_max": 0.022897585345545313
+    },
+    "pas_fin_tol_1e-6_dt_0.005": {
+      "difference_moyenne": 0.021316441182781844,
+      "difference_relative": 0.005422961035702971,
+      "ecart_type": 0.057780153620368715,
+      "erreur_standard": 0.01827168889947891,
+      "valeur_p_permutation": 0.26953125,
+      "ecart_absolu_max": 0.1299541210220596
+    }
+  },
+  "simulations": {
+    "ref_tol_1e-6_dt_0.01": [
+      {
+        "graine": 1,
+        "densite": 3.989962068646498,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.608224830031759e-16
+      },
+      {
+        "graine": 2,
+        "densite": 3.9679896382644086,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.0531133177191805e-16
+      },
+      {
+        "graine": 3,
+        "densite": 3.900915903413822,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 1.3877787807814457e-16
+      },
+      {
+        "graine": 4,
+        "densite": 3.9265889536497367,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 1.3877787807814457e-16
+      },
+      {
+        "graine": 5,
+        "densite": 3.822509020260894,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 4.163336342344337e-16
+      },
+      {
+        "graine": 6,
+        "densite": 3.9568877787029333,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.3306690738754696e-16
+      },
+      {
+        "graine": 7,
+        "densite": 4.137755574058655,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.0531133177191805e-16
+      },
+      {
+        "graine": 8,
+        "densite": 4.070219261726339,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 1.3877787807814457e-16
+      },
+      {
+        "graine": 9,
+        "densite": 3.686511240632806,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      },
+      {
+        "graine": 10,
+        "densite": 3.8484133592376724,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      }
+    ],
+    "serree_tol_1e-7_dt_0.01": [
+      {
+        "graine": 1,
+        "densite": 3.989962068646498,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.608224830031759e-16
+      },
+      {
+        "graine": 2,
+        "densite": 3.968220927005273,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 1.6653345369377348e-16
+      },
+      {
+        "graine": 3,
+        "densite": 3.900915903413822,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.498001805406602e-16
+      },
+      {
+        "graine": 4,
+        "densite": 3.925895087427144,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.220446049250313e-16
+      },
+      {
+        "graine": 5,
+        "densite": 3.8222777315200296,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.220446049250313e-16
+      },
+      {
+        "graine": 6,
+        "densite": 3.9568877787029333,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.608224830031759e-16
+      },
+      {
+        "graine": 7,
+        "densite": 4.1379868627995195,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.7755575615628914e-16
+      },
+      {
+        "graine": 8,
+        "densite": 4.070219261726339,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.220446049250313e-16
+      },
+      {
+        "graine": 9,
+        "densite": 3.686511240632806,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      },
+      {
+        "graine": 10,
+        "densite": 3.848644647978537,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      }
+    ],
+    "large_tol_1e-5_dt_0.01": [
+      {
+        "graine": 1,
+        "densite": 3.990193357387363,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.608224830031759e-16
+      },
+      {
+        "graine": 2,
+        "densite": 3.970071236932187,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 1.6653345369377348e-16
+      },
+      {
+        "graine": 3,
+        "densite": 3.9018410583772782,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.608224830031759e-16
+      },
+      {
+        "graine": 4,
+        "densite": 3.949486538995282,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 8.326672684688674e-17
+      },
+      {
+        "graine": 5,
+        "densite": 3.8289851050050885,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 4.163336342344337e-16
+      },
+      {
+        "graine": 6,
+        "densite": 3.9587380886298456,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 4.163336342344337e-16
+      },
+      {
+        "graine": 7,
+        "densite": 4.137524285317791,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 5.551115123125783e-17
+      },
+      {
+        "graine": 8,
+        "densite": 4.07137570543066,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.220446049250313e-16
+      },
+      {
+        "graine": 9,
+        "densite": 3.685817374410214,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 1.3877787807814457e-16
+      },
+      {
+        "graine": 10,
+        "densite": 3.8609029512443334,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      }
+    ],
+    "pas_fin_tol_1e-6_dt_0.005": [
+      {
+        "graine": 1,
+        "densite": 3.9935906335323246,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.7755575615628914e-16
+      },
+      {
+        "graine": 2,
+        "densite": 3.9638576519042994,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.220446049250313e-16
+      },
+      {
+        "graine": 3,
+        "densite": 3.894210745522699,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.7755575615628914e-17
+      },
+      {
+        "graine": 4,
+        "densite": 3.8449257253921973,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.3306690738754696e-16
+      },
+      {
+        "graine": 5,
+        "densite": 3.8497848118839375,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.7755575615628914e-16
+      },
+      {
+        "graine": 6,
+        "densite": 3.9804016844833177,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 3.3306690738754696e-16
+      },
+      {
+        "graine": 7,
+        "densite": 4.233999722337915,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 2.220446049250313e-16
+      },
+      {
+        "graine": 8,
+        "densite": 4.089268360405386,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 4.163336342344337e-16
+      },
+      {
+        "graine": 9,
+        "densite": 3.8164653616548656,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      },
+      {
+        "graine": 10,
+        "densite": 3.854412513304642,
+        "statut": "bouchage",
+        "non_convergences": 0,
+        "violation_max": 0.0
+      }
+    ]
+  }
+}

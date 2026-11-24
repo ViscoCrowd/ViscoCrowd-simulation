@@ -25,20 +25,24 @@ function Show-Help {
     Write-Host "  test-all    Lance tous les tests, scenarios lents compris"
     Write-Host "  test-invariants  Lance uniquement les invariants physiques"
     Write-Host "  test-lents  Lance uniquement les scenarios lents"
-    Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut)"
-    Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut)"
+    Write-Host "  simu        Lance une simulation (config en argument, piscine par defaut ; --fixer NOM=VALEUR ...)"
+    Write-Host "  rejouer     Relit une archive (en argument, la plus recente de data par defaut ; options transmises, ex. --vitesse 5)"
+    Write-Host "  menu        Parametre la piscine par questions, simule puis relit (config en argument)"
+    Write-Host "  demo        Regenere les films de la soutenance dans data/demo/"
+    Write-Host "  lancer      Simule puis ouvre la relecture (config en argument, piscine ou couloir ; options transmises a la relecture)"
     Write-Host "  comparer    Compare la piscine seche et mouillee sur dix graines (E1/E2)"
+    Write-Host "  campagne-finale  Rejoue la campagne finale, avec reprise, dans data/finale"
     Write-Host "  lint        Verifie le style et le formatage avec ruff"
     Write-Host "  format      Reformate le code avec ruff"
     Write-Host "  valider     Rejoue les criteres de validation du moteur, chiffres"
-    Write-Host "  interface   Ouvre l'apercu de la piscine (affichage local)"
+    Write-Host "  maquette    Ouvre la maquette de la piscine, sans simulation"
     Write-Host "  figures     Regenere toutes les figures dans report/figures"
     Write-Host "  report      Compile le rapport LaTeX (report/main.tex)"
     Write-Host "  docker      Construit l'image Docker de reproductibilite"
     Write-Host "  clean       Supprime les caches et artefacts temporaires"
     Write-Host "  help        Affiche cette aide"
     Write-Host ""
-    Write-Host "Apres test, test-all, valider, interface et figures, les arguments sont transmis"
+    Write-Host "Apres test, test-all, valider, maquette et figures, les arguments sont transmis"
     Write-Host "tels quels, par exemple : .\run.ps1 test -v -k milieu"
 }
 
@@ -63,8 +67,8 @@ function Invoke-Py {
 # `test -p no:cacheprovider` echouait. On lit donc $args a la main.
 $Commandes = @(
     "help", "install", "test", "test-all", "test-invariants", "test-lents",
-    "lint", "format", "valider", "simu", "rejouer", "comparer",
-    "interface", "figures", "report", "docker", "clean"
+    "lint", "format", "valider", "simu", "rejouer", "lancer", "menu", "demo", "comparer", "campagne-finale",
+    "maquette", "figures", "report", "docker", "clean"
 )
 $Command = if ($args.Count -gt 0) { [string]$args[0] } else { "help" }
 $ExtraArgs = @(if ($args.Count -gt 1) { $args[1..($args.Count - 1)] })  # @() : jamais $null
@@ -114,25 +118,89 @@ switch ($Command) {
     }
 
     "simu" {
-        $Config = if ($ExtraArgs) { $ExtraArgs[0] } else { "experiments/piscine.yaml" }
+        # Configuration facultative en premier argument ; les options qui suivent sont
+        # transmises a simuler : .\run.ps1 simu --fixer n_agents=150 largeur_porte=0.8
+        $Options = @($ExtraArgs)
+        $Config = "experiments/piscine.yaml"
+        if ($Options.Count -gt 0 -and -not ([string]$Options[0]).StartsWith("-")) {
+            $Config = $Options[0]
+            $Options = @(if ($Options.Count -gt 1) { $Options[1..($Options.Count - 1)] })
+        }
         $Nom = [IO.Path]::GetFileNameWithoutExtension($Config)
         $Sortie = "data/$Nom-$(Get-Date -Format 'yyyyMMdd-HHmmss').npz"
-        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs $Options
+    }
+
+    "menu" {
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "menu") -MoreArgs $ExtraArgs
+    }
+
+    "demo" {
+        Remove-Item -Recurse -Force data/demo -ErrorAction SilentlyContinue
+        $Demo = "experiments/demo/duel-plage-glissante.yaml"
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "duel", $Demo, "--gif", "data/demo/duel.gif") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "comparer-variantes", $Demo, "--gif", "data/demo/variantes.gif",
+            "--variante", "adherence_mouille=3.3", "--variante", "adherence_mouille=2",
+            "--variante", "adherence_mouille=1") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Demo, "--sortie", "data/demo/plage-glissante.npz") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "pose-longue", "data/demo/plage-glissante.npz",
+            "--image", "data/demo/pose-longue.png") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "pression", "experiments/demo/pression-porte-saturee.yaml",
+            "--image", "data/demo/pression.png", "--instant", "35") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "trainee", "experiments/demo/trainee-plage.yaml",
+            "--image", "data/demo/trainee.png", "--instant", "40") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "attente", "data/demo/plage-glissante.npz",
+            "--image", "data/demo/attente.png") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Demo, "--sortie", "data/demo/plage-adherente.npz",
+            "--fixer", "adherence_mouille=3.3") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "bouchons", "data/demo/plage-glissante.npz",
+            "data/demo/plage-adherente.npz", "--etiquettes", "glissant (1 m/s2)",
+            "reference (3,3 m/s2)", "--image", "data/demo/bouchons.png") -MoreArgs @()
     }
 
     "rejouer" {
-        $Archive = if ($ExtraArgs) { $ExtraArgs[0] } else {
+        # L'archive en premier argument est facultative ; les options qui suivent sont
+        # transmises a la relecture : .\run.ps1 rejouer --vitesse 5
+        $Options = @($ExtraArgs)
+        $Archive = $null
+        if ($Options.Count -gt 0 -and -not ([string]$Options[0]).StartsWith("-")) {
+            $Archive = $Options[0]
+            $Options = @(if ($Options.Count -gt 1) { $Options[1..($Options.Count - 1)] })
+        }
+        if (-not $Archive) {
             # Les diagnostics de projection (#69) ne sont pas des trajectoires.
-            Get-ChildItem data/*.npz -ErrorAction SilentlyContinue |
+            $Archive = Get-ChildItem data/*.npz -ErrorAction SilentlyContinue |
                 Where-Object { $_.Name -notlike '*.diagnostic.npz' } |
                 Sort-Object LastWriteTime | Select-Object -Last 1
         }
         if (-not $Archive) { throw "Aucune archive dans data/ : lancer d'abord .\run.ps1 simu" }
-        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer", "$Archive") -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer", "$Archive") -MoreArgs $Options
+    }
+
+    "lancer" {
+        # Relit l'archive qui vient d'etre ecrite, pas « la plus recente de data » :
+        # un autre calcul fini entre-temps serait relu a sa place. Invoke-Py quitte
+        # le script si la simulation echoue, la relecture n'est alors pas lancee.
+        # Comme pour rejouer : configuration facultative, options transmises a la
+        # relecture (.\run.ps1 lancer --vitesse 5).
+        $Options = @($ExtraArgs)
+        $Config = "experiments/piscine.yaml"
+        if ($Options.Count -gt 0 -and -not ([string]$Options[0]).StartsWith("-")) {
+            $Config = $Options[0]
+            $Options = @(if ($Options.Count -gt 1) { $Options[1..($Options.Count - 1)] })
+        }
+        $Nom = [IO.Path]::GetFileNameWithoutExtension($Config)
+        $Sortie = "data/$Nom-$(Get-Date -Format 'yyyyMMdd-HHmmss').npz"
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "simuler", $Config, "--sortie", $Sortie) -MoreArgs @()
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer", $Sortie) -MoreArgs $Options
     }
 
     "comparer" {
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "comparer-piscine", "experiments/piscine.yaml", "--graines", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10") -MoreArgs @()
+    }
+
+    "campagne-finale" {
+        Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "rejouer-campagne", "experiments/campagne-finale.yaml", "--sortie", "data/finale") -MoreArgs $ExtraArgs
     }
 
     "lint" {
@@ -154,8 +222,8 @@ switch ($Command) {
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "valider-moteur") -MoreArgs $ExtraArgs
     }
 
-    "interface" {
-        Write-Host "==> Lancement de l'interface..." -ForegroundColor Green
+    "maquette" {
+        Write-Host "==> Ouverture de la maquette..." -ForegroundColor Green
         Invoke-Py -BaseArgs @("-m", "viscocrowd.cli", "interface") -MoreArgs $ExtraArgs
     }
 
