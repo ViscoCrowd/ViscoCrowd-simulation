@@ -58,7 +58,7 @@ devant lui (`files_devant`). Remesuré sur les mêmes graines, aux commits `1cb8
 | Ancienne règle (toute la file) | 50,88 ± 1,60 | 6,0 % |
 | File devant soi | 50,66 ± 1,56 | 6,0 % |
 
-Écart apparié −0,22 ± 0,26 s (erreur standard), 7 graines sur 10 en baisse : **pas d'effet**
+Écart apparié −0,22 ± 0,81 s (écart-type), 7 graines sur 10 en baisse : **pas d'effet**
 selon le critère fixé (9 sur 10). La part des échelles ne bouge pas (de 4 à 8 sorties sur 100
 selon la graine, au lieu de 4 à 9). La prédiction des relectures, qui attendaient un retour vers
 les échelles, ne se vérifie donc pas : les nageurs ne délaissent pas les échelles parce qu'ils
