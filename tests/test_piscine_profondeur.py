@@ -69,3 +69,13 @@ def test_profondeur_mal_formee_ou_hors_domaine_refusee(valeur):
 def test_profondeur_ecrite_dans_le_dictionnaire():
     p = parametres_reduits(profondeur={"gauche": 1.0, "droite": 0.7})
     assert p.en_dictionnaire()["profondeur"] == {"gauche": 1.0, "droite": 0.7}
+
+
+def test_profondeur_et_navigation_se_composent():
+    """Les deux options passent par le meme crochet : leurs facteurs se multiplient.
+
+    Avec la navigation (#163), chaque agent a sa vitesse souhaitee ; au grand bain, celle
+    des nageurs est en plus multipliee par le facteur de la profondeur (#186).
+    """
+    rapport = vitesse_nageur(profondeur=GRAND_BAIN, navigation={}) / vitesse_nageur(navigation={})
+    assert rapport == pytest.approx(float(facteur_profondeur(np.array([1.0]))[0]), rel=0.01)

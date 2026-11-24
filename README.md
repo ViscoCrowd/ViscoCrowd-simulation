@@ -209,6 +209,15 @@ les bancs `couloir` et `piscine` ; la maquette reste disponible séparément via
 Pour relire une évacuation réelle, avec les états et les occupations des sites, `make lancer`
 simule la piscine puis ouvre directement la relecture de l'archive produite
 (`make lancer CONFIG=experiments/couloir.yaml` pour le couloir ; `.\run.ps1 lancer` sous Windows).
+Pour essayer une variante de la piscine sans éditer le YAML, `FIXER` surcharge les paramètres
+de `balayer-piscine` : `make lancer FIXER="n_agents=150 largeur_porte=0.8"`, ou
+`viscocrowd simuler experiments/piscine.yaml --fixer n_agents=150 --sortie data/essai.npz`
+(`.\run.ps1 simu --fixer n_agents=150` sous Windows). L'archive garde la configuration
+effective et la liste des surcharges ; une variante n'est pas une configuration de référence.
+Plus simple encore, `make menu` (`.\run.ps1 menu` sous Windows) pose cinq questions
+(baigneurs, échelles, porte, panique, sol mouillé), avec la référence en défaut, puis simule
+et ouvre la relecture ; `viscocrowd menu --prereglage olympique` part d'un bassin de 50 × 25 m.
+Chaque lancement est rangé dans `data/menu/` avec sa configuration effective.
 Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
@@ -242,6 +251,11 @@ intensités expliquent les corrections). Cette configuration de démonstration (
 presque aucun contact n'apparaît (98ᵉ centile à 1,4 m/s²). Intensités non étalonnées ; voir
 `viz/pression.py` pour la méthode et ses limites.
 
+Avec `egouttage` dans les paramètres (désactivé par défaut, voir le journal du 17 novembre),
+les baigneurs mouillent la plage en s'égouttant : `viscocrowd trainee config.yaml --image
+figures/trainee.png --instant 45` montre le film d'eau et, en contour blanc, le carrelage
+devenu glissant là où les trajets se superposent.
+
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
 fin de l'archive. Le compteur indique les évacués à l'instant archivé affiché, sans
@@ -267,6 +281,13 @@ largeur et adhérence du mouillé, niveau de panique, largeur de la porte ou pop
 paramètre à la fois. À chaque valeur et pour chaque graine, l'évacuation est comparée à la
 même piscine toute sèche, partie des mêmes positions. Voir les
 [balayages de la piscine](docs/balayages-piscine.md).
+
+Sur la plage, les baigneurs suivent tous le même plus court chemin et marchent en file
+indienne contre le bord du bassin. `navigation: {}` dans le YAML de la piscine (ou du
+goulot E0 et de l'anneau de M8, avec `temps_espacement: null`) active la navigation locale
+de Moussaïd et al. (2011) : chacun choisit une direction libre dans son champ de vision
+et règle sa vitesse sur l'obstacle le plus proche. Elle est désactivée dans la référence ;
+mesures, validation et limites dans la [note sur la navigation](docs/navigation.md).
 
 Pour comparer le modèle à une mesure connue (E0), `viscocrowd etalonner-goulot
 experiments/goulot.yaml` rejoue le protocole de goulot de Seyfried et al. (2009) pour
@@ -454,7 +475,7 @@ src/viscocrowd/
 ├── core/          état, schéma semi-implicite, graines aléatoires
 ├── io/            configurations YAML, lecture et écriture des trajectoires NPZ
 ├── geometry/      domaines, parois, projection d'exclusion, grille de voisins
-├── model/         guidage, carte des milieux, accélération bornée et chutes facultatives
+├── model/         guidage, carte des milieux, accélération bornée ; chutes et navigation facultatives
 ├── observables/   énergie, densité, débit  (ne dépend d'aucun module de simulation)
 ├── scenarios/     assemblages testables
 ├── viz/           figures
