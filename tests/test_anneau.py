@@ -127,10 +127,16 @@ class TestNavigation:
 
     @pytest.mark.slow
     def test_reproduit_le_bilan_du_17_novembre(self):
-        """Premier point de docs/mesures/navigation-2026-11-17/anneau.json, au bit pres.
+        """Premier point de docs/mesures/navigation-2026-11-17/anneau.json.
 
         Ce bilan avait ete calcule sur une branche locale (f186b33) avant la fusion de
         #149 ; ce test etablit que le code du depot est le meme.
+
+        L'egalite au bit pres ne tient que sur Windows, ou le bilan a ete calcule :
+        sur 40 s simulees, les arrondis de NumPy et de la libm different d'un systeme a
+        l'autre (Ubuntu 1.2257776328284553, macOS 1.2257776328291727, ecart relatif
+        2e-11). Une tolerance relative de 1e-9, cinquante fois cet ecart, absorbe ces
+        arrondis et exige encore neuf chiffres significatifs identiques.
         """
         p = parametres_anneau(
             CONFIG,
@@ -141,4 +147,4 @@ class TestNavigation:
             duree=40.0,
             debut_mesure=20.0,
         )
-        assert simuler_anneau(p).vitesse_moyenne == 1.2257776328072303
+        assert simuler_anneau(p).vitesse_moyenne == pytest.approx(1.2257776328072303, rel=1e-9)
