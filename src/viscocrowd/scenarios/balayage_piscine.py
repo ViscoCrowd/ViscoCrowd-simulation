@@ -127,6 +127,18 @@ PARAMETRES = {
     "reaction_mediane": ParametreBalaye(
         "E4", "s", "mediane du temps de reaction a l'alarme", ("reaction", "mediane")
     ),
+    "longueur_bassin": ParametreBalaye(
+        "E4", "m", "longueur du bassin", ("geometrie", "longueur_bassin")
+    ),
+    "largeur_bassin": ParametreBalaye(
+        "E4", "m", "largeur du bassin", ("geometrie", "largeur_bassin")
+    ),
+    "echelles": ParametreBalaye(
+        "E4",
+        "-",
+        "nombre d'echelles au milieu des grands cotes (2 n'est pas la reference)",
+        ("geometrie", "echelles"),
+    ),
     "vitesse_mouille": ParametreBalaye(
         "E3",
         "m/s",
@@ -208,6 +220,11 @@ PARAMETRES = {
         ("parametres_milieux", "EAU", "acceleration_max"),
     ),
 }
+
+
+# Parametres a valeur entiere : `--fixer n_agents=150` doit donner 150, pas 150.0, que
+# `ParametresPiscine` refuserait.
+ENTIERS = frozenset({"n_agents", "echelles"})
 
 
 @dataclass(frozen=True)
@@ -333,6 +350,10 @@ def _valeurs_valides(parametre: str, valeurs: Sequence[float]) -> list:
         # Le debit demande au moins deux sorties.
         if not all(float(v).is_integer() and v >= 2 for v in valeurs):
             raise ValueError("n_agents : entiers d'au moins 2 attendus")
+        return [int(v) for v in valeurs]
+    if parametre in ENTIERS:
+        if not all(float(v).is_integer() and v >= 0 for v in valeurs):
+            raise ValueError(f"{parametre} : entiers positifs ou nuls attendus")
         return [int(v) for v in valeurs]
     return [float(v) for v in valeurs]
 
@@ -507,11 +528,6 @@ def ajouter_commande(sous) -> None:
     commande.set_defaults(fonction=commande_balayer)
 
 
-# Parametres a valeur entiere : `--fixer n_agents=150` doit donner 150, pas 150.0, que
-# `ParametresPiscine` refuserait.
-ENTIERS = frozenset({"n_agents"})
-
-
 def lire_fixes(textes: list[str]) -> dict[str, float | int]:
     """Surcharges `NOM=VALEUR` de la ligne de commande, NOM parmi `PARAMETRES`."""
     fixes = {}
@@ -521,7 +537,10 @@ def lire_fixes(textes: list[str]) -> dict[str, float | int]:
             raise ValueError(f"--fixer attend NOM=VALEUR avec NOM parmi {', '.join(PARAMETRES)}")
         if nom in fixes:
             raise ValueError(f"{nom} est fixe deux fois")
-        nombre = float(valeur)
+        try:
+            nombre = float(valeur)
+        except ValueError:
+            raise ValueError(f"--fixer {texte} : {nom} doit etre un nombre") from None
         if nom in ENTIERS:
             if not nombre.is_integer():
                 raise ValueError(f"{nom} : entier attendu, recu {valeur}")

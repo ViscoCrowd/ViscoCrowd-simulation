@@ -561,3 +561,16 @@ def test_reaction_mediane_garde_la_dispersion():
     nouveau = balayage._appliquer(base, "reaction_mediane", 10.0)
     assert nouveau["reaction"] == {"mediane": 10.0, "dispersion": 0.5}
     assert base["reaction"]["mediane"] == 1.0
+
+
+def test_echelles_lues_et_balayees_en_entiers():
+    assert balayage.lire_fixes(["echelles=4"]) == {"echelles": 4}
+    assert balayage._valeurs_valides("echelles", [0.0, 2.0, 4.0]) == [0, 2, 4]
+    with pytest.raises(ValueError):
+        balayage._valeurs_valides("echelles", [1.5])
+
+
+def test_lire_fixes_valeur_non_numerique_message_en_francais():
+    """#195 : plus de message anglais de float() (« could not convert string to float »)."""
+    with pytest.raises(ValueError, match="doit etre un nombre"):
+        balayage.lire_fixes(["n_agents=abc"])

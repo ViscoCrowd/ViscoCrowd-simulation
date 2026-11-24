@@ -7,7 +7,7 @@ import pytest
 
 from viscocrowd.core.rng import generateur
 from viscocrowd.geometry.obstacle import ObstacleRectangle
-from viscocrowd.geometry.piscine import Piscine
+from viscocrowd.geometry.piscine import Piscine, repartir_echelles
 from viscocrowd.model.carte import CartePiscine
 from viscocrowd.model.eikonal import ChampEikonal, GrilleReguliere, fast_marching
 from viscocrowd.model.guidage_piscine import GuidagePiscine
@@ -389,3 +389,22 @@ class TestObstaclesPlage:
         b = PISCINE.bassin
         obs = ObstacleRectangle(10.0, 11.0, b.y_max + 2 * R, b.y_max + 1.0)
         replace(PISCINE, obstacles=(obs,)).valider_obstacles(R)
+
+
+@pytest.mark.parametrize(
+    "n, attendu",
+    [
+        (0, ()),
+        (1, (("haut", 0.5),)),
+        (3, (("haut", 0.25), ("haut", 0.75), ("bas", 0.5))),
+        (4, (("haut", 0.25), ("haut", 0.75), ("bas", 0.25), ("bas", 0.75))),
+    ],
+)
+def test_repartir_echelles(n, attendu):
+    assert repartir_echelles(n, 25.0, 0.5) == attendu
+
+
+@pytest.mark.parametrize("n", [-1, 2.0, True, 60])
+def test_repartir_echelles_refuse(n):
+    with pytest.raises(ValueError):
+        repartir_echelles(n, 25.0, 0.5)
