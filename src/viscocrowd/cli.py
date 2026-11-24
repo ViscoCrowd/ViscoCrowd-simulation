@@ -214,17 +214,16 @@ def construire_analyseur() -> argparse.ArgumentParser:
     campagne.ajouter_commande(sous)
     campagne_finale.ajouter_commande(sous)
 
-    from viscocrowd.viz import pose_longue
+    import importlib
 
-    pose_longue.ajouter_commande(sous)
+    from viscocrowd.viz import COMMANDES
 
-    from viscocrowd.viz import diagramme_anime
+    for nom in COMMANDES:  # liste dans viz/__init__.py : une ligne par commande
+        importlib.import_module(f"viscocrowd.viz.{nom}").ajouter_commande(sous)
 
-    diagramme_anime.ajouter_commande(sous)
+    from viscocrowd.ui import lanceur
 
-    from viscocrowd.viz import duel
-
-    duel.ajouter_commande(sous)
+    lanceur.ajouter_commande(sous)
 
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(
@@ -232,6 +231,13 @@ def construire_analyseur() -> argparse.ArgumentParser:
     )
     simuler.add_argument("configuration", type=Path, help="configuration YAML versionnee")
     simuler.add_argument("--sortie", type=Path, required=True, help="nouvelle archive .npz")
+    simuler.add_argument(
+        "--fixer",
+        nargs="+",
+        default=[],
+        metavar="NOM=VALEUR",
+        help="piscine : surcharges du YAML, noms de balayer-piscine (ex. n_agents=150)",
+    )
     simuler.set_defaults(fonction=commande_simuler)
 
     rejouer = sous.add_parser(
@@ -461,11 +467,15 @@ def commande_comparer_piscine(args: argparse.Namespace) -> int:
 def commande_simuler(args: argparse.Namespace) -> int:
     """Produit une trajectoire relisible, ou un diagnostic sans archive exploitable."""
     from viscocrowd.geometry.projection import ProjectionNonConvergee
+    from viscocrowd.scenarios.balayage_piscine import lire_fixes
     from viscocrowd.scenarios.experience import executer_configuration
 
     try:
         donnees = executer_configuration(
-            args.configuration, args.sortie, archiver_tous=args.archiver_tous
+            args.configuration,
+            args.sortie,
+            archiver_tous=args.archiver_tous,
+            fixes=lire_fixes(args.fixer),
         )
     except (OSError, ValueError, ProjectionNonConvergee) as erreur:
         print(f"Simulation refusee : {erreur}", file=sys.stderr)

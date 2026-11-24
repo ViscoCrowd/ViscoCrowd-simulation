@@ -25,6 +25,7 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
+| `echelles` | E4 | – | nombre d'échelles, réparties au milieu des grands côtés. **n = 2 n'est pas la référence** (deux échelles à 0,9, côté porte), qui coûte déjà +0,48 s sur t50 et +2,19 s sur t100 (graines 1 à 10, revue de #174) : un balayage du nombre d'échelles mélange nombre et placement |
 | `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; 0,35 s, étalonné sur E0 (#58), dans le YAML depuis le 10 novembre (#57). `temps_espacement: null` dans le YAML la désactive ; `--fixer` n'accepte pas `null` |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
@@ -492,6 +493,37 @@ sols très glissants (savon, produit d'entretien), pas un carrelage mouillé ord
 conclusion est donc : **dans ce modèle, le sol mouillé ne dégrade l'évacuation que s'il est très
 glissant et qu'il touche la file d'une porte saturée.**
 
+### Confirmation sur les graines 11 à 20 (18 novembre 2026)
+
+Selon `criteres-acceptation.md` (§ 3), un effet trouvé dans un balayage reste exploratoire
+tant qu'il n'est pas confirmé sur dix nouvelles graines, fixées avant la relance. Critère
+écrit avant le calcul : Δt100 > 0 sur au moins 9 graines sur 10 à 1 et à 2 m/s², et moyenne
+supérieure à l'effet du pas de temps (#138, #140 : moins d'une erreur standard de Δ).
+
+Commit `0499a12`, sans modification locale, Windows ; bilan graine par graine et sortie :
+[`mesures/confirmation-inertie-2026-11-18/`](mesures/confirmation-inertie-2026-11-18/).
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre adherence_mouille --valeurs 1 2 3.3 \
+  --fixer largeur_porte=0.8 largeur_mouillee=20 --graines 11 12 13 14 15 16 17 18 19 20 \
+  --sortie docs/mesures/confirmation-inertie-2026-11-18/adherence.json
+```
+
+| a_max mouillé (m/s²) | t100 mouillé (s) | J_s mouillé | Δ t50 (s) | Δ t100 (s) | Δ t100 > 0 | Graines 1 à 10 (#137) |
+|---|---|---|---|---|---|---|
+| 3,3 (référence) | 70,50 ± 0,82 | 2,24 ± 0,03 | −0,06 ± 0,24 | −0,33 ± 0,80 | 2/10 | 0,09 ± 0,41, 6/10 |
+| 2 | 73,21 ± 0,72 | 2,14 ± 0,02 | **1,00 ± 0,66** | **2,38 ± 1,12** | **10/10** | 2,47 ± 0,51, 10/10 |
+| 1 | 84,31 ± 1,27 | 1,81 ± 0,03 | **6,14 ± 0,91** | **13,48 ± 1,65** | **10/10** | 13,95 ± 1,53, 10/10 |
+
+Le témoin sec écoule 2,23 ± 0,05 pers/(m·s) ; t100 = 70,83 s en moyenne. Aucune évacuation
+incomplète, aucun bouchage. Calcul : 9 min pour les 60 évacuations.
+
+**L'effet inertiel est confirmé.** À 2 et à 1 m/s², Δt100 est positif sur les dix nouvelles
+graines (de +0,45 à +3,8 s, puis de +11,5 à +15,8 s), et les moyennes retrouvent celles des
+graines 1 à 10 à moins d'une demi-seconde. À l'adhérence de référence, il n'y a toujours rien
+(2 graines positives sur 10). La conclusion ci-dessus passe d'« exploratoire » à « confirmée
+sur vingt graines », avec la même limite : 0,2 et 0,1 g sont des sols très glissants.
+
 ## Témoin : la même adhérence loin de la file (14 novembre 2026)
 
 La section précédente change deux choses à la fois : l'adhérence et l'étendue du mouillé. Pour
@@ -619,6 +651,152 @@ Ce qu'on en retient :
 6. **Aucune dépendance décelable au pas de temps** dans une évacuation, pour la glissade
    comme pour le domino. Sur 10 graines, une dépendance de l'ordre de 20 % ne peut pas être
    exclue.
+
+## *Faster-is-slower* : la panique devant une porte saturée (17 novembre 2026)
+
+Question : au-delà d'un certain niveau de panique, aller plus vite fait-il sortir plus tard ?
+Le balayage du 14 novembre répondait non, mais avec une porte de 1,2 m jamais saturée. On
+reprend avec une porte de **0,8 m** (saturée, E4) et **150 baigneurs**, panique de 1 à 3,
+5 graines (20262027 à 20262031), dt = 0,005 s, mouillé et témoin sec appariés. Deux séries :
+
+- **avec régulation** : la référence (`temps_espacement: 0.35`) ;
+- **sans régulation** : la même, `temps_espacement: null`
+  ([configuration](mesures/faster-is-slower-2026-11-17/piscine-sans-regulation.yaml)). Les
+  baigneurs marchent alors jusqu'au contact, et seule la projection les arrête.
+
+```bash
+viscocrowd balayer-piscine experiments/piscine.yaml --parametre facteur_vitesse \
+  --valeurs 1 1.5 2 2.5 3 --graines 20262027 20262028 20262029 20262030 20262031 \
+  --fixer largeur_porte=0.8 n_agents=150 dt=0.005 \
+  --sortie docs/mesures/faster-is-slower-2026-11-17/panique-porte-0.8.json
+# Sans régulation : même commande sur piscine-sans-regulation.yaml, une valeur par
+# processus (sans-regulation-panique-<valeur>.json), au même commit eb25a7d.
+viscocrowd figure-panique docs/mesures/faster-is-slower-2026-11-17/panique-porte-0.8.json \
+  docs/mesures/faster-is-slower-2026-11-17/sans-regulation-panique-*.json \
+  --etiquettes "avec régulation" "sans régulation" "sans régulation" "sans régulation" \
+  "sans régulation" "sans régulation" --image figure.png
+```
+
+t100 en s, moyenne ± écart-type sur les évacuations terminées :
+
+| Panique | Avec régulation, mouillé | Avec, sec | Sans régulation, mouillé | Sans, sec |
+|---|---|---|---|---|
+| 1 | 123,56 ± 0,69 | 123,59 ± 0,66 | 78,31 ± 6,94 | 71,27 ± 1,45, **2 graines bouchées** |
+| 1,5 | 97,89 ± 0,58 | 98,09 ± 0,63 | 58,75 ± 6,74 | 59,13 ± 9,46 |
+| 2 | 81,62 ± 0,89 | 81,44 ± 0,31 | 50,89 ± 1,67 | 49,85 ± 0,86 |
+| 2,5 | 69,44 ± 1,20 | 68,62 ± 1,15 | 51,11 ± 1,59 | 51,23 ± 1,37 |
+| 3 | 67,77 ± 1,57 | 66,58 ± 2,05 | **59,46 ± 9,22** | 57,11 ± 6,83 |
+
+![t100 selon la panique](mesures/faster-is-slower-2026-11-17/faster-is-slower.png)
+
+### Lecture
+
+1. **Avec la régulation, pas de *faster-is-slower*.** t100 décroît de 123,6 à 67,8 s et
+   plafonne entre 2,5 et 3 (−1,7 s). Aucune graine ne bouche. La régulation garde un écart
+   devant chaque baigneur : la foule ne se comprime jamais assez pour coincer la porte.
+2. **Sans régulation, la courbe remonte.** Le minimum est entre 2 et 2,5 (≈ 50 s) ; à 3, t100
+   repasse à 59,5 s mouillé et 57,1 s sec, soit +8 s et +6 s en moyenne, avec des
+   écarts-types de 7 à 9 s. Graine par graine, t100 augmente entre 2,5 et 3 sur 9 paires sur
+   10 : mouillé +0,9 / +13,4 / +24,4 / +2,8 / +0,3 s, sec +19,1 / −1,4 / +5,8 / +5,2 / +0,7 s.
+   Les moyennes sont tirées par une ou deux graines qui se coincent : les médianes valent
+   +2,8 s (mouillé) et +5,2 s (sec). C'est la signature attendue de l'effet
+   *faster-is-slower*, absente de la référence, mais sur cinq graines elle ne peut pas être
+   dite détectée (voir les limites).
+3. **Sans régulation, à faible panique, deux graines sur cinq du témoin sec se figent, aucune
+   du mouillé** (92 baigneurs jamais sortis au total). C'est compatible avec l'hypothèse
+   tampon, mais cinq graines ne permettent pas de la distinguer du hasard (p ≈ 0,22) : à
+   refaire sur au moins dix graines. Sur les trois graines où les deux évacuations se
+   terminent, le mouillé est au contraire **plus lent** : +18,3, +0,7 et +8,5 s. La même ligne
+   montre donc les deux mécanismes de la problématique : le sec bouche là où le mouillé
+   passe, mais quand les deux passent, le mouillé est plus lent.
+4. **L'écart mouillé − sec reste petit quand tout s'écoule** (≤ 1,2 s avec régulation,
+   dans le bruit des graines sans régulation).
+
+### Limites
+
+- **Cinq graines** : les points 1 et 3 sans régulation ont des écarts-types de 7 à 9 s ; il
+  faut au moins dix graines pour chiffrer la remontée et la fréquence des bouchages. Avec un
+  test de signe exact bilatéral, cinq graines sur cinq donnent au mieux p = 2/32 ≈ 0,06 :
+  aucun effet ne peut y être dit détecté (`criteres-acceptation.md`, § 3). La relance prendra
+  les graines 1 à 10, comme les autres campagnes, et gardera 11 à 20 pour confirmer.
+- **Un bouchon ne se défait jamais dans ce modèle** : il n'y a pas de bruit dynamique, et la
+  règle de déblocage (#131) ne concerne que les nageurs. Les deux graines bouchées font sortir
+  la moitié de la foule normalement (t50 = 42,5 et 44,4 s), puis gardent 42 et 50 baigneurs
+  jusqu'à 180 s. Chez Helbing et al. (2000), les bouchons du *faster-is-slower* sont
+  intermittents ; ici, ils sont soit transitoires, soit définitifs.
+- **La régulation est étalonnée sur Seyfried (E0)** : la série « sans régulation » est un
+  modèle volontairement moins réaliste, qui sert à montrer le mécanisme, pas la référence.
+- Une graine bouchée tourne jusqu'à `duree` (180 s) et n'entre pas dans la moyenne de t100 :
+  les moyennes « sec » à 1 sans régulation portent sur 3 graines, celles du mouillé sur 5.
+  Les deux colonnes ne comparent donc pas les mêmes graines.
+- La carte des forces de contact (#164) montre où se forment ces arches.
+
+## Départs échelonnés : l'effet inertiel a besoin d'une file (18 novembre 2026)
+
+**Question, posée avant le calcul.** Si l'hypothèse tampon tient, étaler les départs
+désynchronise les arrivées à la porte, la file se forme moins, et l'effet inertiel du sol
+glissant (#137) doit diminuer : Δt100 (mouillé − sec) baisse quand la médiane du temps de
+réaction augmente. **Exploratoire** : l'option `reaction` (#181) est une proposition, ses
+valeurs n'ont pas de source pour une piscine.
+
+Configuration `experiments/variantes/reaction.yaml` : celle de #137 (porte de 0,8 m, plage
+mouillée jusqu'à la porte, a_max du mouillé à 1 m/s²), plus un temps de réaction log-normal
+de dispersion 0,5, dont on balaie la médiane. Graines 1 à 10, commit `0552c1c`, sans
+modification locale ; 80 évacuations, 17 min.
+
+```bash
+viscocrowd balayer-piscine experiments/variantes/reaction.yaml --parametre reaction_mediane \
+  --valeurs 1 5 10 20 --graines 1 2 3 4 5 6 7 8 9 10 \
+  --sortie docs/mesures/tampon-reaction-2026-11-18/reaction.json
+```
+
+| Médiane (s) | t100 mouillé (s) | t100 sec (s) | Δ t50 (s) | Δ t100 (s) | Δ J_s | Δ t100 > 0 |
+|---|---|---|---|---|---|---|
+| 1 | 84,67 ± 1,46 | 71,10 | 5,91 ± 1,37 | **13,57 ± 1,67** | −0,43 ± 0,05 | 10/10 |
+| 5 | 86,23 ± 2,68 | 74,05 | 4,91 ± 1,97 | **12,18 ± 2,08** | −0,38 ± 0,05 | 10/10 |
+| 10 | 85,27 ± 6,54 | 77,54 | 1,00 ± 4,44 | **7,73 ± 5,74** | −0,23 ± 0,18 | 9/10 |
+| 20 | 101,38 ± 13,73 | 98,60 | 0,47 ± 4,56 | **2,78 ± 3,95** | −0,06 ± 0,11 | 10/10 |
+
+Écarts appariés entre médianes, graine par graine :
+
+| Comparaison | Baisse de Δ t100 | Graines en baisse |
+|---|---|---|
+| 1 s → 5 s | 1,39 ± 1,83 s | 8/10 |
+| 1 s → 10 s | 5,83 ± 6,15 s | 9/10 |
+| 1 s → 20 s | 10,79 ± 4,52 s | 10/10, artefact : voir ci-dessous |
+
+Sur Δt100, la ligne 20 s ne mesure plus la foule : sur 7 graines sur 10, Δt100 y vaut
+exactement +0,57 s, la pénalité de relance du dernier baigneur à réagir, qui sort seul.
+Sur Δt90, moins sensible à ce dernier baigneur :
+
+| Médiane (s) | Δ t90 (s) | Δ t90 > 0 |
+|---|---|---|
+| 1 | 12,42 ± 1,76 | 10/10 |
+| 5 | 11,07 ± 2,05 | 10/10 |
+| 10 | 6,84 ± 5,50 | 8/10 |
+| 20 | 3,42 ± 8,11 | 6/10 |
+
+Δt90 baisse de 5,59 ± 5,95 s entre 1 et 10 s de médiane, sur 10 graines sur 10, mais très
+inégalement : de 0,2 à 16,0 s selon la graine, 0,5 s au plus sur trois graines et plus de
+8 s sur quatre. Entre 1
+et 20 s, la baisse est de 9,00 ± 7,28 s (10/10), mais Δt90 à 20 s est trop dispersé pour
+être lu seul. En moyenne, Δ J_s reste négatif à toutes les médianes : le mouillé ne
+dépasse jamais le sec.
+
+**Lecture.** Quand les départs s'étalent, les baigneurs arrivent à la porte en flux plus
+clairsemé. La file se forme moins, et il y a moins de relances écrêtées par le sol glissant :
+la pénalité du mouillé diminue de 1 à 10 s de médiane, sur toutes les graines, et
+nettement sur quatre d'entre elles. **L'effet inertiel a besoin
+d'une file**, ce qui rejoint le témoin de #140 (même adhérence loin de la file : aucun
+effet). Ce n'est pas l'hypothèse tampon de la problématique, où l'extraction répartie et la
+traversée du mouillé *augmenteraient* le débit : ici, le mouillé ne dépasse jamais le sec,
+et l'étalement vient d'un temps de réaction extérieur au phénomène. À 20 s de médiane, les
+dernières réactions (de 55 à plus de 100 s selon la graine) dominent t100.
+
+**Limites.** Valeurs de réaction sans source ; une seule dispersion (0,5) ; la ligne 20 s ne
+se lit ni sur t100 (dernier baigneur seul) ni vraiment sur t90 (trop dispersée). Pour en
+faire une conclusion du rapport : valider l'option en groupe, puis confirmer sur les
+graines 11 à 20.
 
 ## Portée et limites
 
