@@ -11,6 +11,32 @@ Format : une entrée par décision, la plus récente en haut.
 
 ---
 
+## 2026-11-24 — Navigation comme référence : les deux conditions de Lenny échouent (#158)
+
+**Statut.** Mesure, sans changement du modèle. Décision à prendre dans #158 (Hamza).
+
+**Contexte.** Avant d'adopter la navigation de Moussaïd et al. (2011) à τ = 0,20 s comme
+modèle de référence, Lenny demandait deux vérifications : l'anneau à ce τ, contre Weidmann ;
+et l'effet du mouillé du prototype de #201 à Δt/2.
+
+**Mesures** (graines 1 à 10 ; [`mesures/navigation-2026-11-24/`](mesures/navigation-2026-11-24/) ;
+détail dans [`navigation.md`](navigation.md), § « Les deux conditions de Lenny ») :
+- **Anneau** : l'écart à Weidmann passe de +23 à +67 % (τ = 0,5 s) à **+47 à +206 %**
+  au-delà de 1,5 pers/m², contre +28 à +33 % pour la référence sur la branche congestionnée.
+- **Mouillé à Δt/2** : avec la référence, Δ = mouillé − sec ne bouge pas (t50 +0,469 →
+  +0,474 s). Avec la navigation, **Δt100 passe de +0,72 s (10/10) à −0,01 s (7/10)**, et
+  Δt90 de +1,66 à +0,54 s. Le critère 2 du § 3 n'est pas rempli.
+
+**Lecture.** Le τ qui valide E0 éloigne l'anneau de Weidmann, et l'effet du mouillé obtenu
+avec la navigation dépend en partie du pas de temps. Pour une étude dont la comparaison
+principale est le mouillé, la navigation ne peut pas servir de référence.
+
+**Proposition** (celle de Lenny dans #158) : garder T comme référence ; la navigation à
+τ = 0,20 s sert de test de robustesse, avec une sous-section au § 6 du rapport (figure
+avant/après, ces deux limites).
+
+---
+
 ## 2026-11-20 — Débit par paliers aux goulots étroits : E0 aussi (#198)
 
 **Statut.** Mesure, sans changement du modèle. Une limite à écrire au § 6 du rapport.

@@ -276,9 +276,60 @@ baigneur, surtout au redémarrage au pied de l'échelle (passer de 0 à 2 m/s en
 demande 4 m/s²). La file indienne ne masque donc pas l'effet du mouillé : c'est le modèle
 du mouillé, par la seule adhérence, qui agit peu.
 
-**Limite connue** : un τ plus court fait aller la foule plus vite. Sur l'anneau, où la
-navigation dépasse déjà Weidmann aux fortes densités, τ = 0,20 s creusera l'écart (non
-mesuré) : E0 et Weidmann tirent τ en sens opposé.
+### Les deux conditions de Lenny (#158)
+
+Mesures demandées dans #158 avant d'adopter la navigation comme référence. Scripts écrits
+avant le calcul (question et critère dans leur docstring), bilans :
+[`mesures/navigation-2026-11-24/`](mesures/navigation-2026-11-24/). Commit `ec738e7`,
+sans modification locale ; il a été rebasé ensuite sur dev sans changement de `src/` ni
+d'`experiments/` (même empreinte des sources).
+
+**1. L'anneau à τ = 0,20 s** (`anneau-tau020.py`, même protocole que ci-dessus, graines 1
+à 10, 80 min). Écart de la vitesse à Weidmann :
+
+| ρ (pers/m²) | 0,25 | 0,50 | 0,99 | 1,50 | 2,00 | 2,49 | 3,00 | 3,50 | 4,01 |
+|---|---|---|---|---|---|---|---|---|---|
+| v navigation, τ = 0,20 s (m/s) | 1,28 | 1,27 | 1,23 | 1,18 | 1,11 | 1,02 | 0,84 | 0,64 | 0,48 |
+| écart, τ = 0,20 s | −4 % | −2 % | +16 % | +47 % | +84 % | +124 % | +152 % | +172 % | +206 % |
+| écart, τ = 0,5 s | −10 % | −10 % | +4 % | +23 % | +37 % | +42 % | +47 % | +53 % | +67 % |
+| écart, référence T | 0 % | +3 % | +26 % | +66 % | +121 % | +28 % | +30 % | +33 % | +29 % |
+
+Écart-type entre graines de 0,043 m/s au plus, dérive entre les deux moitiés de la fenêtre
+de 6,1 % au plus, recouvrement ≤ 10⁻⁶ m. **Le τ qui valide E0 fait aller la foule 2 à 3 fois
+trop vite au-delà de 2,5 pers/m²**, bien plus que la référence (+30 %). La navigation ne
+fait mieux que T qu'entre 1 et 2 pers/m², où elle ralentit progressivement au lieu de
+garder v0. E0 et Weidmann tirent τ en sens opposé.
+
+**2. L'effet du mouillé tient-il à Δt/2 ?** (`frottement-dt.py`). Avec le frottement de
+marche de #201 (RCOF = 0,20 retranché de a_max sur le mouillé et le sec), l'effet du mouillé
+devient détectable sur la référence ; la question est de savoir s'il survit à un pas de
+temps deux fois plus fin. Mouillé − sec (s), graines 1 à 10 :
+
+| Modèle | Grandeur | Δt | Δt/2 | Δt/2 − Δt (apparié) |
+|---|---|---|---|---|
+| Référence T | t50 | +0,469 ± 0,362 (9/10) | +0,474 ± 0,370 (9/10) | +0,004 ± 0,081 |
+| Référence T | t90 | +0,987 ± 0,681 (9/10) | +1,015 ± 0,608 (10/10) | +0,028 ± 0,134 |
+| Référence T | t100 | +0,717 ± 0,806 (9/10) | +0,763 ± 0,720 (9/10) | +0,047 ± 0,167 |
+| Navigation τ = 0,20 s | t50 | +0,759 ± 0,646 (9/10) | +0,499 ± 0,470 (9/10) | −0,260 ± 0,521 |
+| Navigation τ = 0,20 s | t90 | +1,657 ± 1,290 (9/10) | +0,540 ± 0,729 (9/10) | −1,118 ± 1,170 |
+| Navigation τ = 0,20 s | t100 | +0,717 ± 0,889 (10/10) | −0,011 ± 1,050 (7/10) | −0,728 ± 1,688 |
+
+La première ligne redonne les chiffres du prototype de #201 (+0,469 et +0,474 s) : la
+reproduction par la seule configuration est fidèle. t90 se lit dans le `.json` ; le `.txt`
+n'imprime que t50 et t100, les deux grandeurs du critère. Violation maximale 7,1 × 10⁻¹⁵ m.
+
+Selon le critère fixé avant le calcul (§ 3, critère 2 des
+[critères d'acceptation](criteres-acceptation.md)), **la référence est robuste au pas de
+temps sur les trois grandeurs ; la navigation ne l'est pas sur t100** (7/10 à Δt/2), et son
+effet sur t90 est divisé par trois. Avec la navigation, une partie de l'effet du mouillé
+mesuré à Δt dépend donc du pas de temps. Hypothèse, non vérifiée : la direction rechoisie à
+chaque pas, par crans de 5°, donne des à-coups qui butent sur le plafond d'adhérence, et
+leur fréquence dépend de Δt. Les temps d'évacuation eux-mêmes ne dépendent pas de Δt (§
+« Ce qu'on en retient », point 3) : seul l'écart mouillé − sec est fragile.
+
+**Conséquence pour #158** : aucune des deux conditions n'est remplie. Ces mesures vont dans
+le sens de la proposition de Lenny : garder T comme référence, et la navigation à
+τ = 0,20 s comme test de robustesse, présentée au § 6 avec ces deux limites.
 
 ## Ce qu'on en retient
 
@@ -314,8 +365,11 @@ mesuré) : E0 et Weidmann tirent τ en sens opposé.
 ## Limites
 
 - **Pas d'espace personnel** : un agent ne s'arrête qu'au contact. Aux fortes densités,
-  la foule va donc trop vite (anneau : +23 à +67 % au-delà de 1,5 pers/m²), et des
-  disques plus gros ne corrigent pas le bon mécanisme (diagnostic ci-dessus).
+  la foule va donc trop vite (anneau : +23 à +67 % au-delà de 1,5 pers/m² à τ = 0,5 s,
+  +47 à +206 % à τ = 0,20 s), et des disques plus gros ne corrigent pas le bon mécanisme
+  (diagnostic ci-dessus).
+- **L'effet du mouillé n'est pas robuste au pas de temps** avec la navigation (Δt100 de
+  +0,72 à −0,01 s quand Δt est divisé par deux), alors qu'il l'est avec la référence.
 - **E0 avec la navigation est sous Seyfried**, et N = 60 à b = 0,8 m bouche encore 4 à
   6 fois sur 10. Le même modèle donne 2,46 pers/(m·s) à la porte de la piscine et 1,48
   dans E0 à b = 1,2 m : la porte est une ouverture dans un mur, E0 un couloir de 2,8 m,
