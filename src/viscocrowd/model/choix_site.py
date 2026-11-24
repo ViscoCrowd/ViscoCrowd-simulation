@@ -7,7 +7,10 @@ a sa portee, le temps total jusqu'a la porte par ce site :
 
     cout_k = |x - attente_k| / v_eau  +  attente_k  +  T_k  +  phi_plage(arrivee_k)
 
-ou attente_k = (temps restant du franchissement en cours) + (nageurs qui visent deja k) T_k.
+ou attente_k = (temps restant du franchissement en cours) + (nageurs devant lui) T_k. Les
+nageurs « devant lui » sont ceux qui visent deja k et sont plus pres que lui de son point
+d'attente (`files_devant`) : celui qui passerait le premier ne compte pas les autres
+(revues de #188, #202).
 Le nageur garde son site tant qu'un autre ne lui fait pas gagner plus de `marge` secondes :
 sans cette hysteresis, deux sites de cout voisin le feraient osciller.
 
@@ -24,10 +27,24 @@ from __future__ import annotations
 import numpy as np
 
 
-def files_par_site(site_vise: np.ndarray, k: int) -> np.ndarray:
-    """Nombre (k,) de nageurs qui visent chaque site ; -1 = aucun site vise."""
-    site_vise = np.asarray(site_vise, dtype=np.int64)
-    return np.bincount(site_vise[site_vise >= 0], minlength=k)[:k]
+def files_devant(x: np.ndarray, attentes: np.ndarray, vises: np.ndarray) -> np.ndarray:
+    """File (N, K) devant chaque nageur, pour chaque site, en nombre de nageurs.
+
+    Pour le nageur i et le site k : les nageurs j qui visent deja k et sont strictement plus
+    pres que i du point d'attente de k. Un nageur ne se compte pas lui-meme, ni ceux qui sont
+    derriere lui.
+
+    Args:
+        x: (N, 2) positions des nageurs.
+        attentes: (K, 2) points d'attente des sites.
+        vises: (N,) site vise par chaque nageur ; -1 = aucun.
+    """
+    distances = np.hypot(x[:, None, 0] - attentes[None, :, 0], x[:, None, 1] - attentes[None, :, 1])
+    vises = np.asarray(vises, dtype=np.int64)
+    vise_k = vises[:, None] == np.arange(attentes.shape[0])[None, :]  # (N, K) : j vise k
+    # devant[i, k] = somme sur j de [j vise k et d(j, k) < d(i, k)]
+    plus_pres = distances[None, :, :] < distances[:, None, :]  # (i, j, k)
+    return np.sum(plus_pres & vise_k[None, :, :], axis=1)
 
 
 def couts_sites(
@@ -47,14 +64,15 @@ def couts_sites(
         v_eau: vitesse souhaitee dans l'eau, en m/s.
         durees: (K,) duree de franchissement de chaque site.
         temps_apres: (K,) temps de la plage depuis l'arrivee du site jusqu'a la porte.
-        files: (K,) nageurs qui visent deja chaque site.
+        files: (K,) nageurs qui visent deja chaque site, ou (N, K) la file devant chaque
+            nageur (`files_devant`).
         restes: (K,) temps restant du franchissement en cours sur chaque site (0 si libre).
     """
     trajet = (
         np.hypot(x[:, None, 0] - attentes[None, :, 0], x[:, None, 1] - attentes[None, :, 1]) / v_eau
     )
     attente = files * durees + (0.0 if restes is None else restes)
-    return trajet + (attente + durees + temps_apres)[None, :]
+    return trajet + attente + (durees + temps_apres)[None, :]
 
 
 def choisir(

@@ -7,15 +7,27 @@ from viscocrowd.model.choix_site import (
     attribuer_coordonne,
     choisir,
     couts_sites,
-    files_par_site,
+    files_devant,
 )
 
 ATTENTES = np.array([[4.0, 0.2], [6.0, 0.2]])
 DUREES = np.array([2.0, 2.0])
 
 
-def test_files_par_site():
-    np.testing.assert_array_equal(files_par_site(np.array([0, 0, 2, -1]), 3), [2, 0, 1])
+def test_files_devant_ne_compte_que_les_plus_proches():
+    """#202 : trois nageurs visent le site 0, a 1, 2 et 3 m ; un quatrieme vise le site 1."""
+    x = np.array([[4.0, 1.2], [4.0, 2.2], [4.0, 3.2], [6.0, 1.2]])
+    files = files_devant(x, ATTENTES, np.array([0, 0, 0, 1]))
+    np.testing.assert_array_equal(files[:, 0], [0, 1, 2, 2])
+    np.testing.assert_array_equal(files[:, 1], [1, 1, 1, 0])
+
+
+def test_le_premier_de_la_file_ne_compte_pas_ceux_de_derriere():
+    """Revues de #188 : le plus proche d'un site y passerait le premier, il y reste."""
+    x = np.array([[4.0, 0.7], [4.0, 1.5], [4.0, 2.0], [4.0, 2.5]])
+    vises = np.array([-1, 0, 0, 0])
+    couts = couts_sites(x, ATTENTES, 1.0, DUREES, np.zeros(2), files_devant(x, ATTENTES, vises))
+    assert choisir(couts, vises, 0.0, np.ones((4, 2), dtype=bool))[0] == 0
 
 
 def test_couts_additionnent_trajet_file_franchissement_et_suite():
