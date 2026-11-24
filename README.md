@@ -214,6 +214,10 @@ de `balayer-piscine` : `make lancer FIXER="n_agents=150 largeur_porte=0.8"`, ou
 `viscocrowd simuler experiments/piscine.yaml --fixer n_agents=150 --sortie data/essai.npz`
 (`.\run.ps1 simu --fixer n_agents=150` sous Windows). L'archive garde la configuration
 effective et la liste des surcharges ; une variante n'est pas une configuration de référence.
+Plus simple encore, `make menu` (`.\run.ps1 menu` sous Windows) pose cinq questions
+(baigneurs, échelles, porte, panique, sol mouillé), avec la référence en défaut, puis simule
+et ouvre la relecture ; `viscocrowd menu --prereglage olympique` part d'un bassin de 50 × 25 m.
+Chaque lancement est rangé dans `data/menu/` avec sa configuration effective.
 Il faut un affichage : dans Docker, utiliser plutôt les exports ci-dessous. Commandes détaillées :
 
 ```bash
@@ -246,6 +250,11 @@ intensités expliquent les corrections). Cette configuration de démonstration (
 150 baigneurs, panique 2, sans régulation) comprime la foule ; sur la référence régulée,
 presque aucun contact n'apparaît (98ᵉ centile à 1,4 m/s²). Intensités non étalonnées ; voir
 `viz/pression.py` pour la méthode et ses limites.
+
+Avec `egouttage` dans les paramètres (désactivé par défaut, voir le journal du 17 novembre),
+les baigneurs mouillent la plage en s'égouttant : `viscocrowd trainee config.yaml --image
+figures/trainee.png --instant 45` montre le film d'eau et, en contour blanc, le carrelage
+devenu glissant là où les trajets se superposent.
 
 Les couleurs distinguent eau, franchissement et plage ; les agents sortis sont masqués.
 Les sites occupés deviennent orange, même si le franchissement est encore en cours à la
