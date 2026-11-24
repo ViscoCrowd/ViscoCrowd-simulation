@@ -83,11 +83,11 @@ il a besoin d'une file pour exister (#187) et il tient de 0,75 à 0,88 m de port
 
 ## Relecture
 
-78 des 84 PR fusionnées depuis `jalon-3` ont une revue croisée enregistrée sur GitHub. Six
+78 des 85 PR fusionnées depuis `jalon-3` ont une revue croisée enregistrée sur GitHub. Sept
 n'en ont pas, et la revue de la PR de publication doit les couvrir : #113 (synchronisation
 après `jalon-3`), #141 (régulation contrôlée sur N = 40 et 20), #168 (vitesse de relecture et
-`make maquette`), #208 (CI parallèle), #209 (tolérance du bilan de l'anneau) et **#210 (tests
-P6)**, la pièce qui clôt ce jalon.
+`make maquette`), #208 (CI parallèle), #209 (tolérance du bilan de l'anneau) **#210 (tests
+P6)**, la pièce qui clôt ce jalon, et #211 (ces notes).
 
 ## Validation du candidat
 
@@ -139,4 +139,4 @@ docker compose run --rm viscocrowd make valider
 #145, #146, #147, #148, #149, #150, #152, #153, #156, #157, #159, #160, #161, #162, #163, #164,
 #165, #166, #168, #169, #171, #172, #173, #174, #175, #176, #177, #178, #179, #180, #181, #182,
 #183, #184, #185, #186, #187, #188, #189, #190, #196, #197, #199, #200, #203, #204, #205, #206,
-#207, #208, #209, #210 (84 PR).
+#207, #208, #209, #210, #211 (85 PR, dont ces notes).
