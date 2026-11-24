@@ -25,6 +25,7 @@ varier un paramètre à la fois, les autres restant ceux du YAML (spec § 4) :
 | `facteur_vitesse` | E4 | – | niveau de panique : multiplie toutes les vitesses souhaitées |
 | `largeur_porte` | E4 | m | largeur du goulot |
 | `n_agents` | E4 | pers | nombre de baigneurs |
+| `echelles` | E4 | – | nombre d'échelles, réparties au milieu des grands côtés. **n = 2 n'est pas la référence** (deux échelles à 0,9, côté porte), qui coûte déjà +0,48 s sur t50 et +2,19 s sur t100 (graines 1 à 10, revue de #174) : un balayage du nombre d'échelles mélange nombre et placement |
 | `temps_espacement` | E4 | s | temps d'espacement T de la relation vitesse–espacement (Tordeux et al.) ; 0,35 s, étalonné sur E0 (#58), dans le YAML depuis le 10 novembre (#57). `temps_espacement: null` dans le YAML la désactive ; `--fixer` n'accepte pas `null` |
 | `relaxation` | M9 | s | temps de relaxation τ, **commun** à l'eau, au mouillé et au sec (témoin compris) : vérifier que les conclusions tiennent quand τ varie |
 | `dt` | M9 | s | pas de temps : vérifier que les écarts n'en dépendent pas (spec § 5) |
@@ -729,6 +730,73 @@ t100 en s, moyenne ± écart-type sur les évacuations terminées :
   les moyennes « sec » à 1 sans régulation portent sur 3 graines, celles du mouillé sur 5.
   Les deux colonnes ne comparent donc pas les mêmes graines.
 - La carte des forces de contact (#164) montre où se forment ces arches.
+
+## Départs échelonnés : l'effet inertiel a besoin d'une file (18 novembre 2026)
+
+**Question, posée avant le calcul.** Si l'hypothèse tampon tient, étaler les départs
+désynchronise les arrivées à la porte, la file se forme moins, et l'effet inertiel du sol
+glissant (#137) doit diminuer : Δt100 (mouillé − sec) baisse quand la médiane du temps de
+réaction augmente. **Exploratoire** : l'option `reaction` (#181) est une proposition, ses
+valeurs n'ont pas de source pour une piscine.
+
+Configuration `experiments/variantes/reaction.yaml` : celle de #137 (porte de 0,8 m, plage
+mouillée jusqu'à la porte, a_max du mouillé à 1 m/s²), plus un temps de réaction log-normal
+de dispersion 0,5, dont on balaie la médiane. Graines 1 à 10, commit `0552c1c`, sans
+modification locale ; 80 évacuations, 17 min.
+
+```bash
+viscocrowd balayer-piscine experiments/variantes/reaction.yaml --parametre reaction_mediane \
+  --valeurs 1 5 10 20 --graines 1 2 3 4 5 6 7 8 9 10 \
+  --sortie docs/mesures/tampon-reaction-2026-11-18/reaction.json
+```
+
+| Médiane (s) | t100 mouillé (s) | t100 sec (s) | Δ t50 (s) | Δ t100 (s) | Δ J_s | Δ t100 > 0 |
+|---|---|---|---|---|---|---|
+| 1 | 84,67 ± 1,46 | 71,10 | 5,91 ± 1,37 | **13,57 ± 1,67** | −0,43 ± 0,05 | 10/10 |
+| 5 | 86,23 ± 2,68 | 74,05 | 4,91 ± 1,97 | **12,18 ± 2,08** | −0,38 ± 0,05 | 10/10 |
+| 10 | 85,27 ± 6,54 | 77,54 | 1,00 ± 4,44 | **7,73 ± 5,74** | −0,23 ± 0,18 | 9/10 |
+| 20 | 101,38 ± 13,73 | 98,60 | 0,47 ± 4,56 | **2,78 ± 3,95** | −0,06 ± 0,11 | 10/10 |
+
+Écarts appariés entre médianes, graine par graine :
+
+| Comparaison | Baisse de Δ t100 | Graines en baisse |
+|---|---|---|
+| 1 s → 5 s | 1,39 ± 1,83 s | 8/10 |
+| 1 s → 10 s | 5,83 ± 6,15 s | 9/10 |
+| 1 s → 20 s | 10,79 ± 4,52 s | 10/10, artefact : voir ci-dessous |
+
+Sur Δt100, la ligne 20 s ne mesure plus la foule : sur 7 graines sur 10, Δt100 y vaut
+exactement +0,57 s, la pénalité de relance du dernier baigneur à réagir, qui sort seul.
+Sur Δt90, moins sensible à ce dernier baigneur :
+
+| Médiane (s) | Δ t90 (s) | Δ t90 > 0 |
+|---|---|---|
+| 1 | 12,42 ± 1,76 | 10/10 |
+| 5 | 11,07 ± 2,05 | 10/10 |
+| 10 | 6,84 ± 5,50 | 8/10 |
+| 20 | 3,42 ± 8,11 | 6/10 |
+
+Δt90 baisse de 5,59 ± 5,95 s entre 1 et 10 s de médiane, sur 10 graines sur 10, mais très
+inégalement : de 0,2 à 16,0 s selon la graine, 0,5 s au plus sur trois graines et plus de
+8 s sur quatre. Entre 1
+et 20 s, la baisse est de 9,00 ± 7,28 s (10/10), mais Δt90 à 20 s est trop dispersé pour
+être lu seul. En moyenne, Δ J_s reste négatif à toutes les médianes : le mouillé ne
+dépasse jamais le sec.
+
+**Lecture.** Quand les départs s'étalent, les baigneurs arrivent à la porte en flux plus
+clairsemé. La file se forme moins, et il y a moins de relances écrêtées par le sol glissant :
+la pénalité du mouillé diminue de 1 à 10 s de médiane, sur toutes les graines, et
+nettement sur quatre d'entre elles. **L'effet inertiel a besoin
+d'une file**, ce qui rejoint le témoin de #140 (même adhérence loin de la file : aucun
+effet). Ce n'est pas l'hypothèse tampon de la problématique, où l'extraction répartie et la
+traversée du mouillé *augmenteraient* le débit : ici, le mouillé ne dépasse jamais le sec,
+et l'étalement vient d'un temps de réaction extérieur au phénomène. À 20 s de médiane, les
+dernières réactions (de 55 à plus de 100 s selon la graine) dominent t100.
+
+**Limites.** Valeurs de réaction sans source ; une seule dispersion (0,5) ; la ligne 20 s ne
+se lit ni sur t100 (dernier baigneur seul) ni vraiment sur t90 (trop dispersée). Pour en
+faire une conclusion du rapport : valider l'option en groupe, puis confirmer sur les
+graines 11 à 20.
 
 ## Portée et limites
 

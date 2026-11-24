@@ -1,0 +1,4 @@
+Regle : avant
+  sans  : t100 51.28 ± 1.87 s, echelles 23.7%
+  local : t100 50.88 ± 1.60 s, echelles 6.0%
+Bilan : docs\mesures\choix-site-file-devant-2026-11-20\avant.json

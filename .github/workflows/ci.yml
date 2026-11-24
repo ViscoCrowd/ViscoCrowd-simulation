@@ -56,17 +56,33 @@ jobs:
           pip install --no-deps -e .
           pip check
 
+      # Les tests se repartissent sur les coeurs du runner (-n auto). `loadfile`
+      # garde chaque fichier sur un seul processus : les fixtures `scope="module"`
+      # qui simulent une evacuation entiere ne sont ainsi calculees qu'une fois.
+      # `sysmon` (Python 3.12+) mesure la couverture bien plus vite que le traceur
+      # historique, pour les memes lignes comptees.
       - name: Suite de tests
-        run: pytest -m "not slow" --cov=viscocrowd --cov-report=term-missing
+        env:
+          COVERAGE_CORE: sysmon
+        run: >
+          pytest -m "not slow and not invariant" -n auto --dist loadfile
+          --cov=viscocrowd --cov-report=
 
-      # Les invariants physiques sont rejoues isolement : si la CI casse, le
-      # journal doit dire immediatement si c'est le style, un test unitaire, ou
-      # la PHYSIQUE qui a regresse. Les trois ne se corrigent pas pareil.
+      # Les invariants physiques sont joues a part : si la CI casse, le journal
+      # doit dire immediatement si c'est le style, un test unitaire, ou la
+      # PHYSIQUE qui a regresse. Les trois ne se corrigent pas pareil. Ils ne
+      # sont plus rejoues une seconde fois dans l'etape precedente, et leur
+      # couverture s'ajoute a la sienne avant le rapport.
       - name: Invariants physiques
-        run: pytest -m invariant -v
+        env:
+          COVERAGE_CORE: sysmon
+        run: >
+          pytest -m invariant -v -n auto --dist loadfile
+          --cov=viscocrowd --cov-append --cov-report=term-missing
 
-      - name: Criteres de validation du moteur
-        run: python -m viscocrowd.cli valider-moteur
+      # Les criteres chiffres du moteur ne sont plus rejoues ici : le job
+      # « Reproductibilite des figures » lance la meme commande avec --figures,
+      # qui echoue de la meme facon des qu'un seuil deborde.
 
   reproductibilite:
     name: Reproductibilite des figures
@@ -84,7 +100,9 @@ jobs:
           pip install --no-deps -e .
           pip check
 
-      - name: Produire les figures
+      # Rejoue aussi les criteres de validation du moteur : la commande rend 1
+      # des qu'un seuil deborde, figures ou non.
+      - name: Criteres de validation et figures
         run: python -m viscocrowd.cli valider-moteur --figures --sortie figures
 
       - uses: actions/upload-artifact@v4

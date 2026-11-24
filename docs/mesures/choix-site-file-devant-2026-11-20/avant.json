@@ -1,0 +1,145 @@
+{
+ "version": 1,
+ "regle": "avant",
+ "contexte": {
+  "code": {
+   "commit": "1cb8457e6763854d36119575f0f5c9a2ef15dbbd",
+   "modifications_locales": false,
+   "source": "git"
+  },
+  "sources_sha256": "96f08770c3e84f9e38cfca3e113725e0bab7debd8763a896b6b50cf3c0c59368",
+  "python": "3.12.10",
+  "plateforme": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "versions": {
+   "numpy": "2.5.4",
+   "scipy": "1.18.1",
+   "matplotlib": "3.11.2",
+   "pyyaml": "6.0.3"
+  }
+ },
+ "graines": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ],
+ "local": {
+  "portee": 3.0,
+  "periode": 1.0,
+  "marge": 1.0,
+  "mode": "local"
+ },
+ "mesures": {
+  "sans": {
+   "1": {
+    "t100": 51.86885683962191,
+    "franchissements": 100,
+    "par_echelles": 19
+   },
+   "2": {
+    "t100": 53.09760420847743,
+    "franchissements": 100,
+    "par_echelles": 25
+   },
+   "3": {
+    "t100": 51.524452919120435,
+    "franchissements": 100,
+    "par_echelles": 28
+   },
+   "4": {
+    "t100": 52.08647414337478,
+    "franchissements": 100,
+    "par_echelles": 24
+   },
+   "5": {
+    "t100": 47.75252952280536,
+    "franchissements": 100,
+    "par_echelles": 19
+   },
+   "6": {
+    "t100": 52.58445147967117,
+    "franchissements": 100,
+    "par_echelles": 23
+   },
+   "7": {
+    "t100": 53.51762562747543,
+    "franchissements": 100,
+    "par_echelles": 28
+   },
+   "8": {
+    "t100": 51.56866777613759,
+    "franchissements": 100,
+    "par_echelles": 17
+   },
+   "9": {
+    "t100": 50.00539467906435,
+    "franchissements": 100,
+    "par_echelles": 29
+   },
+   "10": {
+    "t100": 48.775730890632765,
+    "franchissements": 100,
+    "par_echelles": 25
+   }
+  },
+  "local": {
+   "1": {
+    "t100": 50.91114318293956,
+    "franchissements": 100,
+    "par_echelles": 4
+   },
+   "2": {
+    "t100": 50.16472218051249,
+    "franchissements": 100,
+    "par_echelles": 8
+   },
+   "3": {
+    "t100": 50.965611304806714,
+    "franchissements": 100,
+    "par_echelles": 7
+   },
+   "4": {
+    "t100": 51.83145888837279,
+    "franchissements": 100,
+    "par_echelles": 4
+   },
+   "5": {
+    "t100": 47.98626195044655,
+    "franchissements": 100,
+    "par_echelles": 4
+   },
+   "6": {
+    "t100": 52.39037875019433,
+    "franchissements": 100,
+    "par_echelles": 9
+   },
+   "7": {
+    "t100": 53.679203747946076,
+    "franchissements": 100,
+    "par_echelles": 6
+   },
+   "8": {
+    "t100": 51.41788636002816,
+    "franchissements": 100,
+    "par_echelles": 5
+   },
+   "9": {
+    "t100": 49.77160822240404,
+    "franchissements": 100,
+    "par_echelles": 7
+   },
+   "10": {
+    "t100": 49.641660606156336,
+    "franchissements": 100,
+    "par_echelles": 6
+   }
+  }
+ }
+}

@@ -1,17 +1,96 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-% La conclusion doit au moins :
-%   - repondre, au moins partiellement, a la problematique posee ;
-%   - recapituler les resultats obtenus ;
-%   - comporter une analyse critique de ces resultats ;
-%   - proposer des pistes d'amelioration.
-
 \subsection{Reponse a la problematique}
+
+La question posée était de savoir comment l'enchaînement d'une extraction répartie, d'une
+zone de carrelage mouillé et d'un goulot unique altère le diagramme fondamental d'une foule
+en panique, et lequel de deux mécanismes l'emporte : un effet tampon, où la traversée
+désynchronise les arrivées et soulage la porte, ou un effet inertiel, où la faible adhérence
+empêche les baigneurs de réguler leur approche. Dans notre modèle, la réponse tient en
+trois constats.
+
+\paragraph{Dans la piscine de référence, le carrelage mouillé n'altère rien de mesurable.}
+Sur dix populations appariées, l'écart entre la piscine mouillée et son témoin sec vaut
+$\Delta t_{50}=\SI{-0.01 \pm 0.07}{\second}$ (section~\ref{sec:e2}). Deux raisons
+l'expliquent. La bande mouillée est à \SI{17}{\metre} de la porte : l'inertie s'efface sur le
+sol sec avant que la file ne se forme. Surtout, la régulation vitesse--espacement garde les
+baigneurs assez écartés pour qu'aucun n'ait à freiner fort. Mouiller la plage jusqu'à une
+porte saturée ne suffit pas non plus, tant que l'adhérence reste celle d'un carrelage
+mouillé ordinaire ($\Delta t_{100}=\SI{0.09 \pm 0.41}{\second}$).
+
+\paragraph{Quand un sol très glissant touche la file d'une porte saturée, l'effet inertiel
+l'emporte.} À \SI{1}{\metre\per\second\squared}, la porte de \SI{0.8}{\metre} perd
+\SI{19}{\percent} de son débit et l'évacuation s'allonge de \SI{14}{\second} ; à
+\SI{2}{\metre\per\second\squared}, de \SI{4}{\percent} et \SI{2.5}{\second}
+(tableau~\ref{tab:e4-inertie}). Ces écarts sont positifs sur les dix graines de la campagne,
+puis sur dix nouvelles graines fixées avant la relance, ce qui en fait le résultat le plus
+solide de ce travail. Un témoin à la même adhérence, mais limitée à la bande de
+\SI{3}{\metre}, ne change pas le débit : c'est bien le sol glissant sous la file qui agit. Le
+diagramme fondamental mesuré devant la porte se déplace alors dans le sens de l'hypothèse
+inertielle (figure~\ref{fig:diagramme-piscine}). La branche congestionnée monte jusqu'à
+\num{3.9}~pers/\si{\metre\squared}, et à densité égale, entre \num{1.1} et
+\num{1.7}~pers/\si{\metre\squared}, la file avance 20 à \SI{24}{\percent} moins vite. Notre
+interprétation, qui reste à mesurer directement, est que ce n'est pas le freinage qui coûte,
+puisque la projection arrête le baigneur contre celui qui le précède, mais la
+\emph{relance} : à \SI{1}{\metre\per\second\squared}, retrouver \SI{1}{\metre\per\second}
+depuis l'arrêt prend \SI{1}{\second} au lieu de \SI{0.34}{\second} sur le sec.
+
+\paragraph{L'effet tampon n'a pas été mis en évidence.} Rien, dans nos campagnes de
+référence, ne montre la traversée soulager la porte : quand le mouillé a un effet, il la
+dégrade. L'extraction répartie, elle, compte : la porte ne limite l'évacuation que sous un
+mètre de large, et au-delà, ce sont les franchissements et la population qui fixent la durée
+(section~\ref{sec:e4}). Une étude exploratoire sans régulation laisse entrevoir des bouchons
+plus fréquents sur sol sec que sur sol mouillé à faible panique, mais sur trop peu de graines
+pour conclure : la question reste ouverte.
+
+Notre réponse est donc conditionnelle : \emph{dans ce modèle, le carrelage mouillé n'altère
+le diagramme fondamental que s'il est très glissant et qu'il touche la file d'une porte
+saturée, et il l'altère alors par inertie, en rendant la file plus dense et plus lente}.
 
 \subsection{Analyse critique}
 
-% Limites du modele : 2D, chocs mous uniquement, pas d'heterogeneite
-% comportementale fine, calibration des parametres de milieu.
+\paragraph{Les adhérences qui produisent l'effet sont extrêmes.} \num{1} et
+\SI{2}{\metre\per\second\squared} (0,1 et 0,2~$g$) sont bien sous le seuil de glissance d'un
+carrelage mouillé (0,34~$g$, Kendzior) : ce sont des sols savonneux. Le résultat dit qu'un
+mécanisme inertiel existe dans le modèle et dans quelles conditions il apparaît, pas qu'un
+carrelage de piscine ordinaire ralentit une évacuation.
+
+\paragraph{Le modèle est étalonné sur un seul banc.} Le temps d'espacement
+$T=\SI{0.35}{\second}$ ajuste le débit du goulot E0 à la mesure de Seyfried et al.\ sur sol
+sec (\SI{2.8}{\percent} d'écart moyen, \num{5.7} et \SI{7.3}{\percent} sur les effectifs non
+utilisés pour le choisir). Rien ne garantit qu'il convienne sur un sol glissant ou dans l'eau,
+où nous l'appliquons faute de mieux. Plusieurs paramètres de l'eau et du mouillé sont
+transposés de sources établies hors de leur cadre (une crue pour la vitesse dans l'eau, un
+essai de glissance pour l'adhérence), et les durées de franchissement des échelles et du
+rebord n'ont aucune source.
+
+\paragraph{Le modèle est déterministe et sans force de contact.} Seul le placement initial est
+tiré au hasard. Un bouchon qui forme une arche stable devant la porte ne cède donc jamais,
+alors que les bouchons réels sont intermittents. L'exclusion dure par projection traduit un
+choc parfaitement mou : il n'y a ni force de contact, ni poussée qui se transmettrait le long
+d'une file. Les intensités que nous en reconstruisons dépendent du pas de temps et ne sont
+que des ordres de grandeur. Le modèle est enfin bidimensionnel : nager et marcher dans l'eau
+ne diffèrent que par la vitesse et l'adhérence.
+
+\paragraph{Les trajectoires sur la plage sont peu réalistes.} Le guidage par le plus court
+chemin fait marcher les baigneurs en file contre le bord du bassin. Une navigation locale
+(Moussaïd et al.) corrige la marche, mais elle éloigne le banc E0 de la mesure de Seyfried ;
+nous l'avons laissée hors de la référence plutôt que de refaire toutes les campagnes sans
+l'avoir étalonnée.
 
 \subsection{Pistes d'amelioration}
+
+\begin{itemize}
+  \item \textbf{Tester directement l'effet tampon} en étalant les départs par un temps de
+        réaction à l'alarme, et en comparant le mouillé au sec à porte saturée.
+  \item \textbf{Ajouter des fluctuations} au mouvement, pour que les bouchons puissent céder
+        comme dans les expériences, et mesurer la durée des bouchons par la distribution des
+        intervalles entre sorties plutôt que par $t_{100}$ seul.
+  \item \textbf{Étalonner la navigation locale} sur le banc E0, comme la régulation, pour
+        obtenir à la fois des trajectoires réalistes et le bon débit.
+  \item \textbf{Mesurer les paramètres sans source} : chronométrer des sorties de bassin par
+        l'échelle et par le rebord, et calibrer les taux de chute avant de les activer.
+  \item \textbf{Mesurer les accélérations écrêtées} dans la file, pour confirmer que la
+        relance, et non le freinage, porte l'effet inertiel.
+\end{itemize}

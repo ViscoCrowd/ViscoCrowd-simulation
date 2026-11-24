@@ -214,33 +214,16 @@ def construire_analyseur() -> argparse.ArgumentParser:
     campagne.ajouter_commande(sous)
     campagne_finale.ajouter_commande(sous)
 
-    from viscocrowd.viz import pose_longue
+    import importlib
 
-    pose_longue.ajouter_commande(sous)
+    from viscocrowd.viz import COMMANDES
 
-    from viscocrowd.viz import diagramme_anime
+    for nom in COMMANDES:  # liste dans viz/__init__.py : une ligne par commande
+        importlib.import_module(f"viscocrowd.viz.{nom}").ajouter_commande(sous)
 
-    diagramme_anime.ajouter_commande(sous)
+    from viscocrowd.ui import lanceur
 
-    from viscocrowd.viz import duel
-
-    duel.ajouter_commande(sous)
-
-    from viscocrowd.viz import pression
-
-    pression.ajouter_commande(sous)
-
-    from viscocrowd.viz import panique
-
-    panique.ajouter_commande(sous)
-
-    from viscocrowd.viz import variantes
-
-    variantes.ajouter_commande(sous)
-
-    from viscocrowd.viz import trainee
-
-    trainee.ajouter_commande(sous)
+    lanceur.ajouter_commande(sous)
 
     simuler = sous.add_parser("simuler", help="execute une configuration YAML et sauve une NPZ")
     simuler.add_argument(
